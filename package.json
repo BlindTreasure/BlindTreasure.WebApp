@@ -26,6 +26,7 @@
     "framer-motion": "^12.9.1",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.487.0",
+    "motion": "^12.10.1",
     "next": "14.2.3",
     "react": "^18",
     "react-dom": "^18",
@@ -37,7 +38,7 @@
     "sonner": "^2.0.3",
     "string-similarity": "^4.0.4",
     "swiper": "^11.2.6",
-    "tailwind-merge": "^3.1.0",
+    "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.2"
   },

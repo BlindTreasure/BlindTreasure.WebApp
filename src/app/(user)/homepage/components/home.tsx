@@ -24,10 +24,13 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { FaRegHeart } from "react-icons/fa6";
+import { CardHoverEffectDemo } from "@/components/card-hover-effect";
+import { AuroraBackgroundDemo } from "@/components/aurora-background";
+import { SpotlightPreview } from "@/components/spotlight";
+
 
 export default function HomePage() {
   const images = ["/images/1.png", "/images/2.png", "/images/3.png", "/images/4.png"];
-
   return (
     <div className="relative overflow-hidden">
       <section className="py-36 relative bg-[#d02a2a]">
@@ -52,7 +55,7 @@ export default function HomePage() {
                 className="max-h-[320px] object-contain"
               />
               <h1 className="mt-6 text-4xl md:text-5xl font-extrabold text-[#333]">
-                MYSTERY BOX
+                HỘP BÍ ẨN
               </h1>
               <p className="text-lg text-[#333] mt-2">
                 Khám phá bất ngờ ngay hôm nay!
@@ -132,7 +135,11 @@ export default function HomePage() {
         ))}
       </div>
 
-      <h1 className="text-4xl text-red-600 text-center font-montserrat">
+      <div>
+        <SpotlightPreview />
+      </div>
+
+      <h1 className="text-4xl text-red-600 text-center font-montserrat pt-14">
         HÀNG MỚI VỀ
         <span className="block w-36 h-[3px] bg-red-600 mt-1 mx-auto"></span>
       </h1>
@@ -183,7 +190,6 @@ export default function HomePage() {
           <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
         </Carousel>
       </div>
-
     </div>
   );
 }
