@@ -11,6 +11,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         montserrat: ["Montserrat", "sans-serif"],
+        anton: ['Anton', 'sans-serif'],
         poppins: ["Poppins", "sans-serif"],
         inter: ["Inter", "sans-serif"],
         mulish: ["Mulish", "sans-serif"],

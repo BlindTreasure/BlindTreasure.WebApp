@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
         {/* Logo */}
         <div className='flex justify-center lg:justify-start'>
-          <img src="/images/logo.png" alt="Logo" className="h-36 filter brightness-0 invert-[1]" />
+          <img src="/images/darkmode_footer.png" alt="Logo" className="h-36" />
         </div>
 
         {/* Address */}

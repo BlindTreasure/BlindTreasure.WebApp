@@ -53,28 +53,11 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="flex items-center justify-between px-8 bg-white rounded-full fixed top-0 left-0 right-0 z-50 shadow-lg max-w-[1400px] h-[15%] mx-auto mt-6">
+    <header className="flex items-center justify-between px-8 bg-white rounded-full fixed top-0 left-0 right-0 z-50 shadow-lg max-w-[1400px] h-[14%] mx-auto mt-6">
       <div className="container mx-auto py-4">
         <div className="flex items-center justify-between">
-          {/* Logo */}
           <div className="flex items-center">
-            <Image
-              src="/images/logo.png" 
-              alt="Logo"
-              width={144}
-              height={144}
-              className="h-36 md:h-36 cursor-pointer block dark:hidden" 
-              onClick={handleNavigate}
-            />
-
-            <Image
-              src="/images/logo2.png" 
-              alt="Logo"
-              width={144}
-              height={144}
-              className="h-36 md:h-36 cursor-pointer hidden dark:block" 
-              onClick={handleNavigate}
-            />
+            <img src="/images/logo_header_light.png" alt="Logo" className="h-20 w-28" onClick={handleNavigate} />
         </div>
 
         {/* Desktop Navigation */}
@@ -83,7 +66,7 @@ const Header: React.FC = () => {
             <Link
               key={link.href}
               href={link.href}
-              className={`text-gray-600 hover:text-teal-400 transition-colors ${currentPath === link.href ? "text-teal-400 font-medium" : ""
+              className={`text-gray-600 hover:text-[#d02a2a] hover:underline transition-colors ${currentPath === link.href ? "text-red-700 font-medium" : ""
                 }`}
             >
               {link.label}
