@@ -29,6 +29,7 @@ import { AuroraBackgroundDemo } from "@/components/aurora-background";
 import { SpotlightPreview } from "@/components/spotlight";
 import Ribbon from "@/components/blindbox";
 import ProductCard from "@/components/product-card";
+import { InfiniteMovingCardsDemo } from "@/components/infinite-moving-cards";
 
 interface Blindbox {
   id: number;
@@ -202,7 +203,7 @@ export default function HomePage() {
                 <ProductCard
                   type={box.type}
                   percent={box.percent}
-                  title= {box.title}
+                  title={box.title}
                   price={box.price.toLocaleString("vi-VN") + "₫"}
                 />
               </CarouselItem>
@@ -277,7 +278,7 @@ export default function HomePage() {
                   type={box.type}
                   percent={box.percent}
                   title={box.title}
-                  price={box.price.toLocaleString("vi-VN") + "₫"} 
+                  price={box.price.toLocaleString("vi-VN") + "₫"}
                 />
               </CarouselItem>
             ))}
@@ -285,6 +286,13 @@ export default function HomePage() {
           <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
           <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
         </Carousel>
+      </div>
+      <h1 className="text-4xl text-red-600 text-center font-montserrat pt-14">
+        THƯƠNG HIỆU NỔI BẬT
+        <span className="block w-24 h-[3px] bg-red-600 mt-1 mx-auto"></span>
+      </h1>
+      <div>
+        <InfiniteMovingCardsDemo />
       </div>
     </div>
   );
