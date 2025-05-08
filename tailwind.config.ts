@@ -13,10 +13,12 @@ const config: Config = {
         montserrat: ["Montserrat", "sans-serif"],
         anton: ["Anton", "sans-serif"],
         poppins: ["Poppins", "sans-serif"],
+        paytone: ["Paytone One", 'sans-serif'],
         inter: ["Inter", "sans-serif"],
         mulish: ["Mulish", "sans-serif"],
         pacifico: ["Pacifico", "serif"],
         roboto: ["var(--font-roboto)"],
+        
       },
       colors: {
         background: "hsl(var(--background))",

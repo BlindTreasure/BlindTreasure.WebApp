@@ -9,27 +9,16 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { FaRegHeart } from "react-icons/fa6";
-import { CardHoverEffectDemo } from "@/components/card-hover-effect";
-import { AuroraBackgroundDemo } from "@/components/aurora-background";
 import { SpotlightPreview } from "@/components/spotlight";
-import Ribbon from "@/components/blindbox";
 import ProductCard from "@/components/product-card";
 import { InfiniteMovingCardsDemo } from "@/components/infinite-moving-cards";
+import HeroVideoSection from "@/components/test-hero";
 
 interface Blindbox {
   id: number;
@@ -80,59 +69,32 @@ export default function HomePage() {
 
   return (
     <div className="relative overflow-hidden">
-      <section className="py-36 relative bg-[#d02a2a]">
-        <div className="absolute inset-0 top-1/2 w-full h-1/2 bg-white rounded-t-[60%] scale-x-125 origin-top"></div>
-        <div className="relative z-10 container mx-auto px-6 pb-32 flex flex-col items-center text-center">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
-            <Image
-              src="/images/banner_left.png"
-              alt="Left Character"
-              width={250}
-              height={400}
-              className="w-[120px] sm:w-[160px] md:w-[250px] max-h-[240px] sm:max-h-[300px] md:max-h-[360px] object-contain"
-            />
 
-            <div className="flex flex-col items-center max-w-xs sm:max-w-sm md:max-w-md">
-              <Image
-                src="/images/hero.png"
-                alt="Gift Box"
-                width={360}
-                height={360}
-                className="w-[180px] sm:w-[240px] md:w-[360px] max-h-[200px] sm:max-h-[260px] md:max-h-[320px] object-contain"
-              />
-            </div>
+      <div>
+        <HeroVideoSection />
+      </div>
 
-            <Image
-              src="/images/banner_right.png"
-              alt="Right Character"
-              width={250}
-              height={400}
-              className="w-[120px] sm:w-[160px] md:w-[250px] max-h-[240px] sm:max-h-[300px] md:max-h-[360px] object-contain"
-            />
-          </div>
-
-          <h1 className="mt-6 text-4xl md:text-5xl font-extrabold text-[#333]">
-            HỘP BÍ ẨN
-          </h1>
-          <p className="text-lg text-[#333] mt-2">
-            Khám phá bất ngờ ngay hôm nay!
-          </p>
-          <motion.div
-            className="mt-6"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+      <div className="flex flex-col justify-center items-center py-10">
+        <h1 className="mt-6 text-4xl md:text-5xl font-extrabold text-[#333]">
+          HỘP BÍ ẨN
+        </h1>
+        <p className="text-lg text-[#333] mt-2">
+          Đến BlindTreasure và tìm kiếm sản phẩm, trải nghiệm hộp bí ẩn bất ngờ.
+        </p>
+        <motion.div
+          className="mt-6"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Button
+            variant="outline"
+            className="border-2 border-[#ACACAC] rounded-full px-8 py-6 text-lg font-semibold text-[#252424] hover:bg-[#252424] hover:text-white transition-colors duration-300"
           >
-            <Button
-              variant="outline"
-              className="border-2 border-[#ACACAC] rounded-full px-8 py-6 text-lg font-semibold text-[#252424] hover:bg-[#252424] hover:text-white transition-colors duration-300"
-            >
-              Tìm hiểu thêm
-            </Button>
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="relative z-10 w-full -mt-40">
+            Tìm hiểu thêm
+          </Button>
+        </motion.div>
+      </div>
+      <section className="relative z-10 w-full">
         <div className="container mx-auto">
           <Swiper
             spaceBetween={30}
@@ -294,6 +256,7 @@ export default function HomePage() {
       <div>
         <InfiniteMovingCardsDemo />
       </div>
+
     </div>
   );
 }

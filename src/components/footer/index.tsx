@@ -25,8 +25,8 @@ const Footer: React.FC = () => {
         {/* Contact */}
         <div>
           <h2 className="text-base mb-3 text-gray-300">LIÊN HỆ</h2>
-          <p className='text-gray-400 text-sm'>Số điện thoại: 0918777437</p>
-          <p className='text-gray-400 text-sm'>Email: edusource@gmail.com</p>
+          <p className='text-gray-400 text-sm'>Số điện thoại: 091 877 7437</p>
+          <p className='text-gray-400 text-sm'>Email: blindtreasure@gmail.com</p>
         </div>
 
         {/* Social */}
