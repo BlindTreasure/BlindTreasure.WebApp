@@ -57,7 +57,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   }, [open]);
 
   return (
-    <div className="relative p-2 mt-12 transition-all duration-300 transform hover:scale-105">
+    <div className="relative p-2 mt-6 transition-all duration-300 transform hover:scale-105">
       <Ribbon type={type} percent={percent} />
       <Card className="relative w-full rounded-xl overflow-hidden p-4 shadow-lg bg-white">
 

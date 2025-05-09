@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import { fadeIn } from "@/utils/variants";
+import Link from "next/link";
+import { GoArrowRight } from "react-icons/go";
 export default function HeroVideoSection() {
     return (
         <div className="relative w-full h-screen overflow-hidden">
@@ -31,17 +33,19 @@ export default function HeroVideoSection() {
                     <p className="text-lg md:text-xl mb-6 text-start">
                         Bạn đã sẵn sàng cho những điều bất ngờ? Khám phá hộp bí ẩn của chúng tôi ngay hôm nay và trải nghiệm cảm giác hồi hộp đến phút cuối cùng!
                     </p>
-                    <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                    >
+                    <Link href="/aboutus">
                         <Button
+                            className="group relative border-2 bg-[#d02a2a] border-[#ACACAC] rounded-full px-8 py-6 text-lg font-semibold text-white hover:bg-white hover:text-black transition-colors duration-300"
                             variant="outline"
-                            className="border-2 bg-[#d02a2a] border-[#ACACAC] rounded-full px-8 py-6 text-lg font-semibold text-white hover:bg-[#fff] hover:text-black transition-colors duration-300"
                         >
-                            Khám phá ngay
+                            <span className="inline-block transition-transform duration-300 transform group-hover:-translate-x-4 group-hover:text-black">
+                                Khám phá ngay
+                            </span>
+                            <span className="transition-transform duration-300 transform opacity-0 group-hover:opacity-100 absolute right-4">
+                                <GoArrowRight />
+                            </span>
                         </Button>
-                    </motion.div>
+                    </Link>
                 </div>
 
                 <div className="flex-1 flex justify-center md:mt-0">

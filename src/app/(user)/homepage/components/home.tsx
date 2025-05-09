@@ -192,11 +192,27 @@ export default function HomePage() {
       </motion.h1>
 
       <motion.div
+        variants={fadeIn("left", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="mt-8 flex justify-center "
+
+      >
+        <Button
+          variant="outline"
+          className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#252424] hover:text-white transition-colors duration-300"
+        >
+          Xem thêm
+        </Button>
+      </motion.div>
+
+      <motion.div
         variants={fadeIn("up", 0.3)}
         initial="hidden"
         whileInView="show"
         viewport={{ once: false, amount: 0.7 }}
-        className="flex justify-center py-8">
+        className="flex justify-center pb-8">
         <Carousel
           opts={{
             align: "start",
@@ -259,17 +275,33 @@ export default function HomePage() {
         initial="hidden"
         whileInView="show"
         viewport={{ once: false, amount: 0.7 }}
-        className="text-4xl text-red-600 text-center font-montserrat pt-14">
+        className="text-4xl text-red-600 text-center font-montserrat pt-10">
         HÀNG KHUYẾN MÃI
         <span className="block w-36 h-[3px] bg-red-600 mt-1 mx-auto"></span>
       </motion.h1>
+
+      <motion.div
+        variants={fadeIn("left", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="mt-8 flex justify-center "
+
+      >
+        <Button
+          variant="outline"
+          className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#252424] hover:text-white transition-colors duration-300"
+        >
+          Xem thêm
+        </Button>
+      </motion.div>
 
       <motion.div
         variants={fadeIn("up", 0.3)}
         initial="hidden"
         whileInView="show"
         viewport={{ once: false, amount: 0.7 }}
-        className="flex justify-center py-8">
+        className="flex justify-center pb-8">
         <Carousel
           opts={{
             align: "start",
@@ -305,11 +337,27 @@ export default function HomePage() {
       </motion.h1>
 
       <motion.div
+        variants={fadeIn("left", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="mt-8 flex justify-center "
+
+      >
+        <Button
+          variant="outline"
+          className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:bg-[#252424] hover:border-[#ACACAC] hover:text-white transition-colors duration-300"
+        >
+          Xem thêm
+        </Button>
+      </motion.div>
+
+      <motion.div
         variants={fadeIn("up", 0.3)}
         initial="hidden"
         whileInView="show"
         viewport={{ once: false, amount: 0.7 }}
-        className="flex justify-center py-8">
+        className="flex justify-center pb-8">
         <Carousel
           opts={{
             align: "start",
