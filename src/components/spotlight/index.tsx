@@ -2,6 +2,9 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { Spotlight } from "@/components/ui/spotlight";
 import { FaTag, FaDollarSign, FaGift, FaExchangeAlt } from "react-icons/fa";
+
+import { motion } from "framer-motion";
+import { fadeIn } from "@/utils/variants";
 export function SpotlightPreview() {
     const reasons = [
         {
@@ -40,19 +43,34 @@ export function SpotlightPreview() {
                 fill="white"
             />
             <div className="relative z-10 mx-auto w-full max-w-7xl p-4 pt-20 md:pt-0">
-                <h1 className="bg-opacity-50 bg-gradient-to-b from-neutral-50 to-neutral-400 bg-clip-text text-center text-4xl font-bold text-transparent md:text-7xl">
+                <motion.h1
+                    variants={fadeIn("up", 0.3)}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: false, amount: 0.7 }}
+                    className="bg-opacity-50 bg-gradient-to-b from-neutral-50 to-neutral-400 bg-clip-text text-center text-4xl font-bold text-transparent md:text-7xl">
                     Tại sao nên chọn túi mù của chúng tôi?
-                </h1>
-                <p className="mx-auto mt-4 max-w-lg text-center text-base font-normal text-neutral-300">
+                </motion.h1>
+                <motion.p
+                    variants={fadeIn("up", 0.3)}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: false, amount: 0.7 }}
+                    className="mx-auto mt-4 max-w-lg text-center text-base font-normal text-neutral-300">
                     Chúng tôi mang đến sự bất ngờ và niềm vui trong từng chiếc túi mù, giúp bạn khám phá những món đồ tuyệt vời mà bạn không thể tìm thấy ở đâu khác.
-                </p>
+                </motion.p>
                 <div className="mt-16 grid grid-cols-2 gap-8 md:grid-cols-4">
                     {reasons.map((reason, index) => (
-                        <div key={index} className="flex flex-col items-center text-center">
+                        <motion.div
+                            variants={fadeIn("up", index * 0.2)}
+                            initial="hidden"
+                            whileInView="show"
+                            viewport={{ once: false, amount: 0.7 }}
+                            key={index} className="flex flex-col items-center text-center">
                             {reason.icon}
                             <h3 className="text-lg font-semibold text-white">{reason.title}</h3>
                             <p className="text-sm text-neutral-300">{reason.description}</p>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
             </div>

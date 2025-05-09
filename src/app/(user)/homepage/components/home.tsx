@@ -18,7 +18,9 @@ import {
 import { SpotlightPreview } from "@/components/spotlight";
 import ProductCard from "@/components/product-card";
 import { InfiniteMovingCardsDemo } from "@/components/infinite-moving-cards";
-import HeroVideoSection from "@/components/test-hero";
+import HeroVideoSection from "@/components/hero-home";
+import { fadeIn } from "@/utils/variants";
+
 
 interface Blindbox {
   id: number;
@@ -29,7 +31,13 @@ interface Blindbox {
 }
 
 export default function HomePage() {
-  const images = ["/images/1.png", "/images/2.png", "/images/3.png", "/images/4.png"];
+  const images = [
+    { src: "/images/1.png", id: "1" },
+    { src: "/images/2.png", id: "2" },
+    { src: "/images/3.png", id: "3" },
+    { src: "/images/4.png", id: "4" },
+  ];
+
   const works = [
     {
       icon: <div className="text-4xl mb-4">📦</div>,
@@ -69,12 +77,14 @@ export default function HomePage() {
 
   return (
     <div className="relative overflow-hidden">
+      <HeroVideoSection />
 
-      <div>
-        <HeroVideoSection />
-      </div>
-
-      <div className="flex flex-col justify-center items-center py-10">
+      <motion.div
+        variants={fadeIn("up", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="flex flex-col justify-center items-center py-10">
         <h1 className="mt-6 text-4xl md:text-5xl font-extrabold text-[#333]">
           HỘP BÍ ẨN
         </h1>
@@ -93,9 +103,15 @@ export default function HomePage() {
             Tìm hiểu thêm
           </Button>
         </motion.div>
-      </div>
+      </motion.div>
+
       <section className="relative z-10 w-full">
-        <div className="container mx-auto">
+        <motion.div
+          variants={fadeIn("up", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: false, amount: 0.7 }}
+          className="container mx-auto">
           <Swiper
             spaceBetween={30}
             centeredSlides={true}
@@ -127,32 +143,60 @@ export default function HomePage() {
               </SwiperSlide>
             ))}
           </Swiper>
-        </div>
+        </motion.div>
       </section>
 
-      <h1 className="text-4xl text-red-600 text-center font-montserrat">
+      <motion.h1
+        variants={fadeIn("up", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="text-4xl text-red-600 text-center font-montserrat">
         DANH MỤC
         <span className="block w-24 h-[2px] bg-red-600 mt-1 mx-auto"></span>
-      </h1>
+      </motion.h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 md:gap-4">
-        {images.map((src, index) => (
-          <div key={index} className="md:h-64 h-40 bg-gray-100">
-            <img src={src} className="w-full h-full object-cover" />
+      <motion.div
+        variants={fadeIn("left", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="grid grid-cols-2 md:grid-cols-4 md:gap-4"
+      >
+        {images.map((item, index) => (
+          <div
+            key={index}
+            onClick={() => {
+              const el = document.getElementById(item.id);
+              el?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="md:h-64 h-40 bg-gray-100 cursor-pointer"
+          >
+            <img src={item.src} className="w-full h-full object-cover transition-all duration-300 transform hover:scale-105" />
           </div>
         ))}
-      </div>
+      </motion.div>
 
-      <div>
-        <SpotlightPreview />
-      </div>
 
-      <h1 className="text-4xl text-red-600 text-center font-montserrat pt-14">
+      <SpotlightPreview />
+
+      <motion.h1
+        id="2"
+        variants={fadeIn("up", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="text-4xl text-red-600 text-center font-montserrat pt-14">
         HÀNG MỚI VỀ
         <span className="block w-36 h-[3px] bg-red-600 mt-1 mx-auto"></span>
-      </h1>
+      </motion.h1>
 
-      <div className="flex justify-center py-8">
+      <motion.div
+        variants={fadeIn("up", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="flex justify-center py-8">
         <Carousel
           opts={{
             align: "start",
@@ -174,30 +218,58 @@ export default function HomePage() {
           <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
           <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
         </Carousel>
-      </div>
+      </motion.div>
 
       <div className="my-12 text-center">
-        <h1 className="text-4xl text-red-600 text-center font-montserrat">
+        <motion.h1
+          variants={fadeIn("up", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: false, amount: 0.7 }}
+          className="text-4xl text-red-600 text-center font-montserrat">
           CÁCH HOẠT ĐỘNG
-        </h1>
-        <p className="text-gray-400 mb-8 mt-2">Khám phá túi mù theo cách bạn muốn</p>
+        </motion.h1>
+        <motion.p
+          variants={fadeIn("up", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: false, amount: 0.7 }}
+          className="text-gray-400 mb-8 mt-2">Khám phá túi mù theo cách bạn muốn</motion.p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-20">
           {works.map((work, index) => (
-            <div key={index} className="bg-gray-900 p-6 rounded-lg">
+            <motion.div
+              key={index}
+              className="bg-gray-900 p-6 rounded-lg"
+              variants={fadeIn(index % 2 === 0 ? "right" : "left", index * 0.2)}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: false, amount: 0.3 }}
+            >
               {work.icon}
               <h3 className="text-xl font-semibold text-white mb-2">{work.title}</h3>
               <p className="text-neutral-400 text-sm">{work.description}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
 
-      <h1 className="text-4xl text-red-600 text-center font-montserrat pt-14">
+      <motion.h1
+        id="3"
+        variants={fadeIn("up", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="text-4xl text-red-600 text-center font-montserrat pt-14">
         HÀNG KHUYẾN MÃI
         <span className="block w-36 h-[3px] bg-red-600 mt-1 mx-auto"></span>
-      </h1>
+      </motion.h1>
 
-      <div className="flex justify-center py-8">
+      <motion.div
+        variants={fadeIn("up", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="flex justify-center py-8">
         <Carousel
           opts={{
             align: "start",
@@ -219,14 +291,25 @@ export default function HomePage() {
           <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
           <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
         </Carousel>
-      </div>
+      </motion.div>
 
-      <h1 className="text-4xl text-red-600 text-center font-montserrat pt-14">
+      <motion.h1
+        id="4"
+        variants={fadeIn("up", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="text-4xl text-red-600 text-center font-montserrat pt-14">
         BLINDBOX
         <span className="block w-24 h-[3px] bg-red-600 mt-1 mx-auto"></span>
-      </h1>
+      </motion.h1>
 
-      <div className="flex justify-center py-8">
+      <motion.div
+        variants={fadeIn("up", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="flex justify-center py-8">
         <Carousel
           opts={{
             align: "start",
@@ -248,14 +331,19 @@ export default function HomePage() {
           <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
           <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
         </Carousel>
-      </div>
-      <h1 className="text-4xl text-red-600 text-center font-montserrat pt-14">
+      </motion.div>
+
+      <motion.h1
+        variants={fadeIn("up", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.7 }}
+        className="text-4xl text-red-600 text-center font-montserrat pt-14">
         THƯƠNG HIỆU NỔI BẬT
         <span className="block w-24 h-[3px] bg-red-600 mt-1 mx-auto"></span>
-      </h1>
-      <div>
-        <InfiniteMovingCardsDemo />
-      </div>
+      </motion.h1>
+
+      <InfiniteMovingCardsDemo />
 
     </div>
   );

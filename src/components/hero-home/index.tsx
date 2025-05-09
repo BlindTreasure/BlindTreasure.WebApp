@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "../ui/button";
 import Image from "next/image";
+import { fadeIn } from "@/utils/variants";
 export default function HeroVideoSection() {
     return (
         <div className="relative w-full h-screen overflow-hidden">
@@ -18,7 +19,12 @@ export default function HeroVideoSection() {
 
             <div className="absolute inset-0 bg-black/50 z-10"></div>
 
-            <div className="relative z-20 flex flex-col md:flex-row items-center justify-between h-full pt-40 px-6 md:px-20 text-white">
+            <motion.div
+                variants={fadeIn("up", 0.3)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: false, amount: 0.7 }}
+                className="relative z-20 flex flex-col md:flex-row items-center justify-between h-full pt-40 px-6 md:px-20 text-white">
                 <div className="flex-1 text-center max-w-xl">
                     <h1 className="text-4xl md:text-7xl mb-4 font-paytone font-bold">BlindTreasure</h1>
                     <h1 className="text-4xl md:text-7xl mb-4 font-paytone font-bold text-[#d02a2a]">Chất Lượng</h1>
@@ -47,7 +53,7 @@ export default function HeroVideoSection() {
                         className="object-contain w-[200px] md:w-[600px]"
                     />
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }
