@@ -53,7 +53,8 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="flex items-center justify-between px-8 bg-white rounded-full fixed top-0 left-0 right-0 z-50 shadow-lg max-w-[1400px] h-[14%] mx-auto mt-6">
+    <header className="flex items-center justify-between px-8 bg-white rounded-full fixed top-0 left-0 right-0 z-50 shadow-lg max-w-[1400px] w-full h-24 mx-auto mt-6">
+
       <div className="container mx-auto py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
