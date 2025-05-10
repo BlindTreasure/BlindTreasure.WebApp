@@ -14,8 +14,11 @@ import "swiper/css";
 import "swiper/css/thumbs";
 import "swiper/css/navigation";
 import type { Swiper as SwiperType } from 'swiper';
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface ProductCardProps {
+  id: number;
   type: "new" | "sale" | "blindbox";
   percent?: number;
   image?: string;
@@ -24,6 +27,7 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
+  id,
   type,
   percent,
   image = "/images/cart.webp",
@@ -42,7 +46,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
   const [mainSwiper, setMainSwiper] = useState<SwiperType | null>(null);
   const [open, setOpen] = useState(false);
-
+  const router = useRouter();
   useEffect(() => {
     if (!open) {
       if (mainSwiper) {
@@ -55,6 +59,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       }
     }
   }, [open]);
+
 
   return (
     <div className="relative p-2 mt-6 transition-all duration-300 transform hover:scale-105">
@@ -135,9 +140,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             </Dialog>
 
-            <Button className="text-xs px-3 py-2 rounded-md bg-white text-black hover:bg-gray-300">
-              Xem chi tiết
-            </Button>
+            <Link href={`/detail/${id}`}>
+              <Button className="text-xs px-3 py-2 rounded-md bg-white text-black hover:bg-gray-300">
+                Xem chi tiết
+              </Button>
+            </Link>
           </div>
         </div>
 
