@@ -61,7 +61,7 @@ export default function AllProduct() {
   return (
     <div className="mt-16 container mx-auto px-4 sm:px-6 lg:p-20 xl:px-20 2xl:px-20">
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Sidebar goes here */}
+        
         <div className="w-full lg:w-auto lg:shrink-0">
           <ProductFilterSidebar categories={categories} prices={prices} brands={brands} />
         </div>
