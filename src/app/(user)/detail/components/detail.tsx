@@ -6,6 +6,10 @@ import 'swiper/css';
 import 'swiper/css/thumbs';
 import 'swiper/css/navigation';
 import type { Swiper as SwiperType } from 'swiper';
+import { ProductTabs } from '@/components/tabs';
+import ProductCard from '@/components/product-card';
+import { motion } from "framer-motion";
+import { fadeIn } from '@/utils/variants';
 
 interface DetailProps {
     detailId: string;
@@ -65,7 +69,15 @@ export default function Detail({ detailId }: DetailProps) {
 
         },
 
-        { id: 14, type: "blindbox", percent: 0, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+        {
+            id: 14, type: "blindbox", percent: 0, title: "MEGA SPACE MOLLY 400...", price: 5420000, images: [
+                '/images/blindbox1.webp',
+                '/images/blindbox_2.jpg',
+                '/images/blindbox_3.jpg',
+                '/images/blindbox_4.webp',
+                '/images/blindbox_4.webp'
+            ]
+        },
         { id: 15, type: "blindbox", title: "MEGA SPACE MOLLY 400...", price: 5420000 },
         { id: 16, type: "blindbox", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
         { id: 17, type: "blindbox", percent: 0, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
@@ -86,9 +98,14 @@ export default function Detail({ detailId }: DetailProps) {
         setQuantity(quantity + 1);
     };
     return (
-        <div className="p-6 mt-32">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-10">
-                <div>
+        <div className="p-6 mt-32 sm:px-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <motion.div
+                    variants={fadeIn("right", 0.3)}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: false, amount: 0.7 }}
+                >
                     <Swiper spaceBetween={10} thumbs={{ swiper: thumbsSwiper }} modules={[Thumbs]}>
                         {product.images?.map((img, idx) => (
                             <SwiperSlide key={`main-${idx}`}>
@@ -117,9 +134,14 @@ export default function Detail({ detailId }: DetailProps) {
                             ))}
                         </Swiper>
                     </div>
-                </div>
+                </motion.div>
 
-                <div className='space-y-4'>
+                <motion.div
+                    variants={fadeIn("left", 0.3)}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: false, amount: 0.7 }}
+                    className='space-y-4'>
                     <h2 className="text-3xl font-bold font-paytone mb-4">{product.title}</h2>
                     <div className='flex gap-8'>
                         <p>Thương hiệu: <span className='text-[#00579D] uppercase'>{product.brand}</span></p>
@@ -174,8 +196,46 @@ export default function Detail({ detailId }: DetailProps) {
                             Thêm vào giỏ hàng
                         </button>
                     </div>
-                </div>
+                </motion.div>
             </div>
+
+            <motion.div
+                variants={fadeIn("up", 0.3)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: false, amount: 0.7 }}
+                className='py-8'>
+                <ProductTabs />
+            </motion.div>
+
+            <motion.h1 variants={fadeIn("up", 0.3)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: false, amount: 0.7 }}
+                className='text-3xl font-semibold font-anton'>Sản phẩm liên quan
+            </motion.h1>
+
+            <motion.div
+                variants={fadeIn("up", 0.3)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true }}
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+                {blindboxes
+                    .filter(item => item.id !== product.id && item.type === product.type)
+                    .slice(0, 10)
+                    .map(item => (
+                        <ProductCard
+                            key={item.id}
+                            id={item.id}
+                            type={item.type}
+                            percent={item.percent}
+                            image={item.images?.[0]}
+                            title={item.title}
+                            price={item.price.toLocaleString("vi-VN") + "₫"}
+                        />
+                    ))}
+            </motion.div>
         </div>
     );
 }
