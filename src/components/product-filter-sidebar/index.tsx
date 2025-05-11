@@ -172,9 +172,9 @@ export default function ProductFilterSidebar({ categories, prices, brands }: Sid
             </SheetTrigger>
             <SheetContent
                 side="left"
-                className="w-[85%] sm:w-[350px] p-0 z-[100]" // đảm bảo đủ z-index
+                className="w-[85%] sm:w-[350px] p-0 z-[100]"
                 >
-                <div className="h-full overflow-y-auto pt-[80px] px-4"> {/* tránh header */}
+                <div className="h-full overflow-y-auto pt-[80px] px-4">
                     <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold">Bộ lọc</h2>
                     </div>
