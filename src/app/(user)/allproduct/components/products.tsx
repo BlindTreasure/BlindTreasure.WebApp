@@ -1,6 +1,8 @@
 'use client'
 import { Disclosure } from '@headlessui/react'
 import { ChevronUpIcon } from '@heroicons/react/20/solid'
+import HeartToggle from "@/components/heart-toggle";
+import PaginationBar from "@/components/pagination";
 
 export default function AllProduct() {
     const products = [
@@ -34,8 +36,7 @@ export default function AllProduct() {
             price: 5420000,
             image: "/images/blindbox_2.jpg"
           },
-      ];
-      
+    ];
     return(
         <div className="lg:p-[75px] mt-16 flex">
             <aside className="w-full md:w-1/4 p-4 space-y-6">
@@ -124,7 +125,7 @@ export default function AllProduct() {
                     {products.map((product, index) => (
                     <div
                         key={index}
-                        className="relative bg-white rounded-2xl overflow-hidden shadow hover:shadow-lg transition"
+                        className="relative bg-white rounded-2xl shadow hover:shadow-lg transition"
                     >
                         <span className="absolute top-2 right-2 bg-[#d02a2a] text-white text-xs font-semibold px-2 py-1 rounded">
                         -70%
@@ -145,17 +146,20 @@ export default function AllProduct() {
                         </p>
 
                         <div className="mt-4 flex justify-between items-center">
-                            <button className="text-xl px-4 py-2 bg-[#252424] text-white rounded-md hover:bg-[#151515] transition">
-                            Thêm vào giỏ hàng
-                            </button>
-                            <button className="text-[#252424] hover:text-[#d02a2a] text-xl">
-                            ❤️
-                            </button>
+                            <button
+                                className="inline-block cursor-pointer items-center justify-center rounded-xl border-[1.58px] border-zinc-600 bg-zinc-950 px-5 py-3 font-medium text-slate-200 shadow-md transition-all duration-300 hover:[transform:translateY(-.335rem)] hover:shadow-xl"
+                                >
+                                Thêm vào giỏ hàng   
+                                </button>
+                             <HeartToggle />
                         </div>
                         </div>
                     </div>
                     ))}
                 </div>
+                
+                <PaginationBar />
+
             </main>
         </div>
     )
