@@ -26,6 +26,7 @@ export default function ProductFilterSidebar({ categories, prices, brands }: Sid
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+
   useEffect(() => {
     const checkWidth = () => {
       if (typeof window !== 'undefined') {
@@ -161,25 +162,25 @@ export default function ProductFilterSidebar({ categories, prices, brands }: Sid
   return (
     <>
       {/* Mobile filter button - for small screens */}
-      <div className="lg:hidden w-full mb-4">
+      <div className="lg:hidden w-full mt-20">
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" className="w-full flex items-center justify-center gap-2">
               <Filter className="h-4 w-4" />
               <span>Lọc sản phẩm</span>
             </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[85%] sm:w-[350px] overflow-y-auto">
-            <SheetHeader className="mb-4">
-              <SheetTitle className="flex items-center justify-between">
-                <span>Bộ lọc</span>
-                <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </SheetTitle>
-            </SheetHeader>
-            <FilterContent />
-          </SheetContent>
+            </SheetTrigger>
+            <SheetContent
+                side="left"
+                className="w-[85%] sm:w-[350px] p-0 z-[100]" // đảm bảo đủ z-index
+                >
+                <div className="h-full overflow-y-auto pt-[80px] px-4"> {/* tránh header */}
+                    <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Bộ lọc</h2>
+                    </div>
+                    <FilterContent />
+                </div>
+            </SheetContent>
         </Sheet>
       </div>
 
