@@ -1,166 +1,90 @@
 'use client'
-import { Disclosure } from '@headlessui/react'
-import { ChevronUpIcon } from '@heroicons/react/20/solid'
-import HeartToggle from "@/components/heart-toggle";
+import { useState, useEffect } from "react";
 import PaginationBar from "@/components/pagination";
+import ProductFilterSidebar from "@/components/product-filter-sidebar";
+import ProductCard from "@/components/product-card";
+
+interface Blindbox {
+  id: number;
+  type: "new" | "sale" | "blindbox";
+  percent?: number;
+  title: string;
+  price: number;
+}
 
 export default function AllProduct() {
-    const products = [
-        {
-          name: "MEGA SPACE MOLLY 400%",
-          price: 5420000,
-          image: "/images/blindbox_2.jpg"
-        },
-        {
-            name: "MEGA SPACE MOLLY 400%",
-            price: 5420000,
-            image: "/images/blindbox_2.jpg"
-          },
-          {
-            name: "MEGA SPACE MOLLY 400%",
-            price: 5420000,
-            image: "/images/blindbox_2.jpg"
-          },
-          {
-            name: "MEGA SPACE MOLLY 400%",
-            price: 5420000,
-            image: "/images/blindbox_2.jpg"
-          },
-          {
-            name: "MEGA SPACE MOLLY 400%",
-            price: 5420000,
-            image: "/images/blindbox_2.jpg"
-          },
-          {
-            name: "MEGA SPACE MOLLY 400%",
-            price: 5420000,
-            image: "/images/blindbox_2.jpg"
-          },
-    ];
-    return(
-        <div className="lg:p-[75px] mt-16 flex">
-            <aside className="w-full md:w-1/4 p-4 space-y-6">
-                <div>
-                    <h2 className="text-2xl font-normal mb-4 text-red-500">Danh Mục</h2>
-                    <ul className="space-y-2 text-gray-700">
-                    <li><a href="#" className="hover:text-red-500">Tất cả sản phẩm</a></li>
-                        <Disclosure>
-                        {({ open }) => (
-                        <div>
-                            <Disclosure.Button className="flex justify-between w-full hover:text-red-500">
-                            <span>Series túi mù</span>
-                            <ChevronUpIcon className={`w-5 h-5 transition-transform ${open ? 'rotate-180' : ''}`} />
-                            </Disclosure.Button>
-                            <Disclosure.Panel className="pl-4 text-sm text-gray-600 space-y-1">
-                            <a href="#">Molly</a>
-                            <a href="#">Labubu</a>
-                            </Disclosure.Panel>
-                        </div>
-                        )}
-                    </Disclosure>
+  const [isMounted, setIsMounted] = useState(false);
 
-                    <li><a href="#" className="hover:text-red-500">Gấu bông</a></li>
-                    <li><a href="#" className="hover:text-red-500">Baby three</a></li>
-                    <li><a href="#" className="hover:text-red-500">Hộp hiển thị</a></li>
-                    </ul>
-                </div>
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-                <div>
-                    <h3 className="text-2xl font-semibold mb-2">Giá (₫)</h3>
-                    <form className="space-y-2 text-sm text-gray-700">
-                    {[
-                        "Dưới 200.000đ",
-                        "200.000 - 500.000đ",
-                        "500.000 - 1.000.000đ",
-                        "1.000.000 - 2.000.000đ",
-                        "2.000.000 - 4.000.000đ",
-                        "Trên 4.000.000đ"
-                    ].map((label, i) => (
-                        <label key={i} className="flex items-center space-x-2">
-                        <input type="radio" name="price" className="accent-red-500" />
-                        <span>{label}</span>
-                        </label>
-                    ))}
-                    </form>
-                </div>
+  const blindboxes: Blindbox[] = [
+    { id: 1, type: "sale", percent: 30, title: "Hello", price: 5420000 },
+    { id: 2, type: "sale", percent: 50, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: 3, type: "sale", percent: 40, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: 4, type: "sale", percent: 10, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: 5, type: "sale", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: 12, type: "sale", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+  ];
 
-                <div>
-                    <h3 className="text-2xl font-semibold mb-2">Thương hiệu</h3>
-                    <form className="space-y-2 text-sm text-gray-700">
-                    <label className="flex items-center space-x-2">
-                        <input type="checkbox" className="accent-red-500" />
-                        <span>44 Cats</span>
-                    </label>
+  const categories = [
+    { name: "Tất cả sản phẩm" },
+    {
+      name: "Series túi mù",
+      subCategories: ["Molly", "Labubu", "Skullpanda"]
+    },
+    {
+      name: "Gấu bông",
+      subCategories: ["Gấu nhỏ", "Gấu ôm", "Gấu đặc biệt"]
+    },
+    { name: "Baby three" },
+    { name: "Hộp hiển thị" }
+  ];
 
-                    <Disclosure>
-                        {({ open }) => (
-                            <div>
-                            <Disclosure.Button className="flex justify-between items-center w-full hover:text-red-500">
-                                <div className="flex items-center space-x-2">
-                                <input type="checkbox" className="accent-red-500" />
-                                <span>Avengers</span>
-                                </div>
-                                <ChevronUpIcon className={`w-5 h-5 transition-transform ${open ? 'rotate-180' : ''}`} />
-                            </Disclosure.Button>
-                                
-                            <Disclosure.Panel className="pl-7 text-xs text-gray-600 space-y-1">
-                                <a href="#">Iron Man</a>
-                                <a href="#">Thor</a>
-                            </Disclosure.Panel>
-                            </div>
-                        )}
-                        </Disclosure>
+  const prices = [
+    "Dưới 200.000₫",
+    "200.000 - 500.000₫",
+    "500.000 - 1.000.000₫",
+    "1.000.000 - 2.000.000₫",
+    "2.000.000 - 4.000.000₫",
+    "Trên 4.000.000₫",
+  ];
 
-                    {["Dragon", "Batman", "Tobot"].map((brand, i) => (
-                        <label key={i} className="flex items-center space-x-2">
-                        <input type="checkbox" className="accent-red-500" />
-                        <span>{brand}</span>
-                        </label>
-                    ))}
-                    </form>
-                </div>
-            </aside>
-            <main className="w-full p-4 sm:p-6 lg:p-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {products.map((product, index) => (
-                    <div
-                        key={index}
-                        className="relative bg-white rounded-2xl shadow hover:shadow-lg transition"
-                    >
-                        <span className="absolute top-2 right-2 bg-[#d02a2a] text-white text-xs font-semibold px-2 py-1 rounded">
-                        -70%
-                        </span>
+  const brands = ["44 Cats", "Avengers", "Dragon", "Batman", "Tobot"];
 
-                        <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-64 object-cover"
-                        />
+  // Don't render anything on the server to avoid hydration errors
+  if (!isMounted) {
+    return null;
+  }
 
-                        <div className="p-4">
-                        <h3 className="text-xl font-semibold text-[#252424] truncate">
-                            {product.name}
-                        </h3>
-                        <p className="text-[#d02a2a] font-bold text-2xl">
-                            {product.price.toLocaleString()}₫
-                        </p>
-
-                        <div className="mt-4 flex justify-between items-center">
-                            <button
-                                className="inline-block cursor-pointer items-center justify-center rounded-xl border-[1.58px] border-zinc-600 bg-zinc-950 px-5 py-3 font-medium text-slate-200 shadow-md transition-all duration-300 hover:[transform:translateY(-.335rem)] hover:shadow-xl"
-                                >
-                                Thêm vào giỏ hàng   
-                                </button>
-                             <HeartToggle />
-                        </div>
-                        </div>
-                    </div>
-                    ))}
-                </div>
-                
-                <PaginationBar />
-
-            </main>
+  return (
+    <div className="mt-16 container mx-auto px-4 sm:px-6 lg:p-20 xl:px-20 2xl:px-20">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Sidebar goes here */}
+        <div className="w-full lg:w-auto lg:shrink-0">
+          <ProductFilterSidebar categories={categories} prices={prices} brands={brands} />
         </div>
-    )
+
+        {/* Main content area */}
+        <main className="w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            {blindboxes.map((product) => (
+              <ProductCard
+                key={product.id}
+                type={product.type}
+                percent={product.percent}
+                title={product.title}
+                price={product.price.toLocaleString() + "₫"}
+              />
+            ))}
+          </div>
+
+          <div className="mt-8">
+            <PaginationBar />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }
