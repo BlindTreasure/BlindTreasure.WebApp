@@ -1,5 +1,4 @@
 "use client";
-
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -24,10 +23,19 @@ import { fadeIn } from "@/utils/variants";
 
 interface Blindbox {
   id: number;
-  type: "new" | "sale" | "blindbox";
-  percent?: number;
+  type: "sale" | "new" | "blindbox";
   title: string;
-  price: number
+  price: number;
+  percent?: number;
+  brand?: string;          
+  status?: string;         
+  material?: string[];     
+  packaging?: string;      
+  variants?: {             
+    name: string;
+    quantity?: number;
+  }[];
+  images?: string[];
 }
 
 export default function HomePage() {
@@ -63,7 +71,30 @@ export default function HomePage() {
     { id: 9, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
     { id: 10, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
     { id: 11, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: 13, type: "blindbox", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    {
+      id: 19,
+      type: "blindbox",
+      title: "DODO Nami Twinkle Bunny Plush Doll Blindbox Series",
+      price: 280000,
+      brand: "DODO SUGAR",
+      status: "Còn hàng",
+      material: ["Plastic", "Textile", "Cotton", "Polyester"],
+      packaging: "Hộp màu ngẫu nhiên. 6 Blindbox/1 SET",
+      variants: [
+        { name: "1 BLINDBOX" },
+        { name: "SET 6 BLINDBOX" }
+      ],
+      images: [
+        "/images/2.png",
+        "/images/3.png",
+        "/images/4.png",
+        "/images/4.png",
+        "/images/4.png",
+        "/images/4.png",
+      ]
+
+    },
+
     { id: 14, type: "blindbox", percent: 0, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
     { id: 15, type: "blindbox", title: "MEGA SPACE MOLLY 400...", price: 5420000 },
     { id: 16, type: "blindbox", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
@@ -223,6 +254,7 @@ export default function HomePage() {
             {newItems.map((box) => (
               <CarouselItem key={box.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
                 <ProductCard
+                  id={box.id}
                   type={box.type}
                   percent={box.percent}
                   title={box.title}
@@ -312,6 +344,7 @@ export default function HomePage() {
             {saleItems.map((box) => (
               <CarouselItem key={box.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
                 <ProductCard
+                  id={box.id}
                   type={box.type}
                   percent={box.percent}
                   title={box.title}
@@ -368,6 +401,7 @@ export default function HomePage() {
             {blindboxItems.map((box) => (
               <CarouselItem key={box.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
                 <ProductCard
+                  id={box.id}
                   type={box.type}
                   percent={box.percent}
                   title={box.title}

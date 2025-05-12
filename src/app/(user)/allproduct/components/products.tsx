@@ -61,7 +61,7 @@ export default function AllProduct() {
   return (
     <div className="mt-16 container mx-auto px-4 sm:px-6 lg:p-20 xl:px-20 2xl:px-20">
       <div className="flex flex-col lg:flex-row gap-6">
-        
+
         <div className="w-full lg:w-auto lg:shrink-0">
           <ProductFilterSidebar categories={categories} prices={prices} brands={brands} />
         </div>
@@ -71,6 +71,7 @@ export default function AllProduct() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {blindboxes.map((product) => (
               <ProductCard
+                id={product.id}
                 key={product.id}
                 type={product.type}
                 percent={product.percent}

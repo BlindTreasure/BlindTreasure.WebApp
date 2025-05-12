@@ -5,7 +5,7 @@ import HomePage from "./components/home";
 
 export const metadata: Metadata = {
     title: "Home page",
-    description: "Hom page for Capstone",
+    description: "Hom page for BlindTreasure",
 };
 
 export default function Home() {
