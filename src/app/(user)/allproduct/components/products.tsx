@@ -53,7 +53,7 @@ export default function AllProduct() {
 
   const brands = ["44 Cats", "Avengers", "Dragon", "Batman", "Tobot"];
 
-  // Don't render anything on the server to avoid hydration errors
+
   if (!isMounted) {
     return null;
   }
