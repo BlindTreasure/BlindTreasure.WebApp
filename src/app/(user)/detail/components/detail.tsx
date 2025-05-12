@@ -33,6 +33,7 @@ export default function Detail({ detailId }: DetailProps) {
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
     const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
+    
     const blindboxes: Blindbox[] = [
         { id: 1, type: "sale", percent: 30, title: "Hello", price: 5420000 },
         { id: 2, type: "sale", percent: 50, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
