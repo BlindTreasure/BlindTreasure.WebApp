@@ -33,8 +33,8 @@ export default function Inventory() {
         { id: 10, title: 'MEGA SPACE MOLLY 400...', status: 'unopened', image: '/images/blindbox_2.jpg', type: 'blindbox' },
         { id: 11, title: 'MEGA SPACE MOLLY 400...', status: 'opened', image: '/images/blindbox_3.jpg', type: 'blindbox' },
         { id: 12, title: 'CRYBABY MOONLIGHT', status: 'unopened', image: '/images/blindbox_4.webp', type: 'blindbox' },
-        { id: 13, title: 'Bình nước siêu cute', image: '/images/blindbox_4.webp', type: 'sale' },
-        { id: 14, title: 'Móc khóa dễ thương', image: '/images/blindbox_4.webp', type: 'new' },
+        { id: 13, title: 'DODO Nami Twinkle Bunny Plush Doll Blindbox Series', image: '/images/blindbox_4.webp', type: 'sale' },
+        { id: 14, title: 'MEGA SPACE MOLLY 400...', image: '/images/blindbox_4.webp', type: 'new' },
     ]
 
     const filteredItems = inventoryItems.filter(item => {
@@ -72,7 +72,7 @@ export default function Inventory() {
                 }}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6 md:px-9">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-14 mt-6 md:px-9">
                 {paginatedItems.map((item) => (
                     <Card key={item.id} className="transition-all duration-300 transform hover:scale-105">
                         <CardHeader className="p-0">
@@ -83,7 +83,7 @@ export default function Inventory() {
                             />
                         </CardHeader>
                         <CardContent className="pt-4">
-                            <CardTitle className="text-lg">{item.title}</CardTitle>
+                            <CardTitle className="truncate text-lg">{item.title}</CardTitle>
                             {item.type === 'blindbox' && (
                                 <CardDescription className={`mt-2 ${item.status === 'opened' ? 'text-green-500' : 'text-yellow-500'}`}>
                                     {item.status === 'opened' ? 'Đã mở' : 'Chưa mở'}

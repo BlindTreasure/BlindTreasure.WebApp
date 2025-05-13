@@ -17,7 +17,8 @@ interface DetailProps {
 
 interface Blindbox {
     id: number;
-    type: "sale" | "new" | "blindbox";
+    type: "blindbox" | "normal";
+    tags?: ("sale" | "new")[];
     title: string;
     price: number;
     percent?: number;
@@ -33,22 +34,22 @@ export default function Detail({ detailId }: DetailProps) {
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
     const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
-    
+
     const blindboxes: Blindbox[] = [
-        { id: 1, type: "sale", percent: 30, title: "Hello", price: 5420000 },
-        { id: 2, type: "sale", percent: 50, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-        { id: 3, type: "sale", percent: 40, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-        { id: 4, type: "sale", percent: 10, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-        { id: 5, type: "sale", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-        { id: 13, type: "sale", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-        { id: 6, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-        { id: 7, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-        { id: 8, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-        { id: 9, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-        { id: 10, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-        { id: 11, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+        { id: 1, type: "normal", tags: ["sale"], percent: 30, title: "Hello", price: 5420000 },
+        { id: 2, type: "normal", tags: ["sale"], percent: 50, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+        { id: 3, type: "normal", tags: ["sale"], percent: 40, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+        { id: 4, type: "normal", tags: ["sale"], percent: 10, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+        { id: 5, type: "normal", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+        { id: 6, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+        { id: 7, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+        { id: 8, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+        { id: 9, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+        { id: 10, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+        { id: 11, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+        { id: 12, type: "normal", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
         {
-            id: 12,
+            id: 13,
             type: "blindbox",
             title: "DODO Nami Twinkle Bunny Plush Doll Blindbox Series",
             price: 280000,
@@ -61,28 +62,21 @@ export default function Detail({ detailId }: DetailProps) {
                 { name: "SET 6 BLINDBOX" }
             ],
             images: [
-                '/images/blindbox1.webp',
-                '/images/blindbox_2.jpg',
-                '/images/blindbox_3.jpg',
-                '/images/blindbox_4.webp',
-                '/images/blindbox_4.webp'
+                "/images/blindbox_4.webp",
+                "/images/3.png",
+                "/images/4.png",
+                "/images/4.png",
+                "/images/4.png",
+                "/images/4.png",
             ]
 
         },
 
-        {
-            id: 14, type: "blindbox", percent: 0, title: "MEGA SPACE MOLLY 400...", price: 5420000, images: [
-                '/images/blindbox1.webp',
-                '/images/blindbox_2.jpg',
-                '/images/blindbox_3.jpg',
-                '/images/blindbox_4.webp',
-                '/images/blindbox_4.webp'
-            ]
-        },
+        { id: 14, type: "blindbox", percent: 0, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
         { id: 15, type: "blindbox", title: "MEGA SPACE MOLLY 400...", price: 5420000 },
         { id: 16, type: "blindbox", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-        { id: 17, type: "blindbox", percent: 0, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-        { id: 18, type: "blindbox", title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+        { id: 17, type: "blindbox", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+        { id: 18, type: "blindbox", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000 },
     ];
 
     const product = blindboxes.find((b) => b.id === parseInt(detailId));
@@ -223,19 +217,23 @@ export default function Detail({ detailId }: DetailProps) {
                 viewport={{ once: true }}
                 className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
                 {blindboxes
-                    .filter(item => item.id !== product.id && item.type === product.type)
-                    .slice(0, 10)
+                    .filter(item =>
+                        item.id !== product.id && item.type === product.type
+                    )
+                    .slice(0, 5)
                     .map(item => (
                         <ProductCard
                             key={item.id}
                             id={item.id}
                             type={item.type}
+                            tags={item.tags}
                             percent={item.percent}
                             image={item.images?.[0]}
                             title={item.title}
                             price={item.price.toLocaleString("vi-VN") + "₫"}
                         />
-                    ))}
+                    ))
+                }
             </motion.div>
         </div>
     );

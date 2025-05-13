@@ -19,7 +19,8 @@ import Link from "next/link";
 
 interface ProductCardProps {
   id: number;
-  type: "new" | "sale" | "blindbox";
+  type: "blindbox" | "normal";
+  tags?: ("sale" | "new")[];
   percent?: number;
   image?: string;
   title: string;
@@ -29,6 +30,7 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({
   id,
   type,
+  tags,
   percent,
   image = "/images/cart.webp",
   title,
@@ -63,7 +65,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div className="relative p-2 mt-6 transition-all duration-300 transform hover:scale-105">
-      <Ribbon type={type} percent={percent} />
+      <Ribbon type={type} tags={tags} percent={percent} />
       <Card className="relative w-full rounded-xl overflow-hidden p-4 shadow-lg bg-white">
 
         <div className="w-full h-48 overflow-hidden rounded-md relative group">
