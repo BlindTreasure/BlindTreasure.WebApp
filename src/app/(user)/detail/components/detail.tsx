@@ -40,7 +40,7 @@ export default function Detail({ detailId }: DetailProps) {
         { id: 3, type: "sale", percent: 40, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
         { id: 4, type: "sale", percent: 10, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
         { id: 5, type: "sale", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-        { id: 12, type: "sale", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+        { id: 13, type: "sale", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
         { id: 6, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
         { id: 7, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
         { id: 8, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
@@ -48,7 +48,7 @@ export default function Detail({ detailId }: DetailProps) {
         { id: 10, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
         { id: 11, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
         {
-            id: 19,
+            id: 12,
             type: "blindbox",
             title: "DODO Nami Twinkle Bunny Plush Doll Blindbox Series",
             price: 280000,
