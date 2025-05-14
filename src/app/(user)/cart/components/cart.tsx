@@ -54,7 +54,7 @@ export default function Cart() {
     .reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   return (
-    <div className="mt-16 p-4 sm:px-8 lg:px-20">
+    <div className="mt-16 p-4 sm:px-8 lg:px-20 mt-36">
       <h2 className="text-lg sm:text-xl font-semibold mb-4">Tổng sản phẩm</h2>
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Product List */}
