@@ -67,7 +67,6 @@ export default function OrderDetailPage() {
               className="absolute h-2 bg-[#d02a2a] rounded-full transition-all duration-300"
               style={{ width: `${fakeOrder.statusPercent}%` }}
             />
-            {/* Marker chấm */}
             {steps.map((_, index) => {
               const isActive = index <= currentStep;
               const stepPercent = (index / (steps.length - 1)) * 100;
@@ -78,50 +77,47 @@ export default function OrderDetailPage() {
                   style={{ left: `${stepPercent}%` }}
                 >
                   <div
-                    className={`w-4 h-4 rounded-full border-2 z-10 ${
-                      isActive ? "bg-[#d02a2a] border-[#d02a2a]" : "bg-white border-gray-300"
-                    }`}
+                    className={`w-4 h-4 rounded-full border-2 z-10 ${isActive ? "bg-[#d02a2a] border-[#d02a2a]" : "bg-white border-gray-300"}`}
                   />
                 </div>
               );
             })}
           </div>
-          {/* Đây là phần được sửa - điều chỉnh vị trí của nhãn văn bản và thêm margins */}
-          <div className="flex mt-4 text-xs sm:text-sm w-full relative mb-6">
-            {steps.map((step, index) => {
-              const stepPercent = (index / (steps.length - 1)) * 100;
-              let textAlignClass;
-              let adjustedPosition;
-              
-              // Căn chỉnh văn bản dựa trên vị trí
-              if (index === 0) {
-                textAlignClass = "text-left";
-                adjustedPosition = "0%";
-              } else if (index === steps.length - 1) {
-                textAlignClass = "text-right";
-                adjustedPosition = "100%";
-              } else {
-                textAlignClass = "text-center";
-                adjustedPosition = `${stepPercent}%`;
-              }
-              
-              return (
-                <div
-                  key={index}
-                  className={`absolute text-[#252424] transform -translate-x-1/2 ${textAlignClass} font-medium`}
-                  style={{ 
-                    width: index === 0 ? "25%" : index === steps.length - 1 ? "25%" : "50%",
-                    textAlign: index === 0 ? "left" : index === steps.length - 1 ? "right" : "center",
-                    transform: index === 0 ? "none" : index === steps.length - 1 ? "none" : "translateX(-50%)",
-                    left: index === 0 ? "0" : index === steps.length - 1 ? "auto" : adjustedPosition,
-                    right: index === steps.length - 1 ? "0" : "auto"
-                  }}
-                >
-                  {step}
-                </div>
-              );
-            })}
-          </div>
+
+          {/* Step Labels */}
+            <div className="flex mt-4 text-xs sm:text-sm w-full relative mb-14">
+              {steps.map((step, index) => {
+                const stepPercent = (index / (steps.length - 1)) * 100;
+                let textAlignClass;
+                let adjustedPosition;
+
+                if (index === 0) {
+                  textAlignClass = "text-left";
+                  adjustedPosition = "0%";
+                } else if (index === steps.length - 1) {
+                  textAlignClass = "text-right";
+                  adjustedPosition = "100%";
+                } else {
+                  textAlignClass = "text-center";
+                  adjustedPosition = `${stepPercent}%`;
+                }
+
+                return (
+                  <div
+                    key={index}
+                    className={`absolute text-[#252424] font-medium ${textAlignClass} pr-2 max-w-[80px] break-words`}
+                    style={{
+                      width: index === 0 || index === steps.length - 1 ? "25%" : "50%",
+                      transform: index === 0 || index === steps.length - 1 ? "none" : "translateX(-50%)",
+                      left: index === steps.length - 1 ? "auto" : adjustedPosition,
+                      right: index === steps.length - 1 ? "0" : "auto"
+                    }}
+                  >
+                    {step}
+                  </div>
+                );
+              })}
+            </div>
         </div>
 
         {/* Danh sách sản phẩm */}
@@ -164,6 +160,7 @@ export default function OrderDetailPage() {
 
         {/* Tóm tắt đơn hàng */}
         <div className="border rounded-md p-4 mt-6 space-y-2 bg-white shadow-sm">
+          <h3 className="font-semibold text-[#252424] mb-2 text-lg">Tóm tắt đơn hàng</h3>
           <div className="flex justify-between text-sm text-[#252424]">
             <span>Tạm tính</span>
             <span>{fakeOrder.summary.subtotal.toLocaleString("vi-VN")}đ</span>
@@ -177,20 +174,13 @@ export default function OrderDetailPage() {
             <span>{fakeOrder.summary.shipping.toLocaleString("vi-VN")}đ</span>
           </div>
           <div className="flex justify-between text-sm text-[#252424]">
-            <span>Thuế</span>
+            <span>Thuế (1%)</span>
             <span>{fakeOrder.summary.tax.toLocaleString("vi-VN")}đ</span>
           </div>
           <div className="flex justify-between font-semibold text-lg pt-2 border-t text-[#252424]">
             <span>Tổng cộng</span>
             <span>{fakeOrder.summary.total.toLocaleString("vi-VN")}đ</span>
           </div>
-        </div>
-
-        {/* Hỗ trợ */}
-        <div className="mt-6 flex flex-col sm:flex-row justify-center sm:justify-start sm:space-x-6 space-y-2 sm:space-y-0 text-sm text-[#d02a2a]">
-          <a href="#" className="hover:underline text-center sm:text-left">Vấn đề đơn hàng</a>
-          <a href="#" className="hover:underline text-center sm:text-left">Thông tin giao hàng</a>
-          <a href="#" className="hover:underline text-center sm:text-left">Trả hàng</a>
         </div>
       </div>
     </div>
