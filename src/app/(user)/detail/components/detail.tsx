@@ -92,6 +92,7 @@ export default function Detail({ detailId }: DetailProps) {
     const handleIncrease = () => {
         setQuantity(quantity + 1);
     };
+
     return (
         <div className="p-6 mt-32 sm:px-16">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

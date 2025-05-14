@@ -13,6 +13,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import Link from 'next/link'
 
 export default function Inventory() {
     const router = useRouter()
@@ -100,12 +101,14 @@ export default function Inventory() {
                             </Button>
 
                             {item.status === 'unopened' && (
-                                <Button
-                                    onClick={() => handleOpenBox(item.id)}
-                                    className="flex-1 bg-[#EF1104] hover:bg-[#c50e04]"
-                                >
-                                    Mở hộp
-                                </Button>
+                                <Link href="/openbox">
+                                    <Button
+                                        onClick={() => handleOpenBox(item.id)}
+                                        className="flex-1 bg-[#EF1104] hover:bg-[#c50e04]"
+                                    >
+                                        Mở hộp
+                                    </Button>
+                                </Link>
                             )}
                         </CardFooter>
                     </Card>
