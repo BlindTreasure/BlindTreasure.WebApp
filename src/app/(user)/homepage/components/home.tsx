@@ -23,15 +23,16 @@ import { fadeIn } from "@/utils/variants";
 
 interface Blindbox {
   id: number;
-  type: "sale" | "new" | "blindbox";
+  type: "blindbox" | "normal";
+  tags?: ("sale" | "new")[];
   title: string;
   price: number;
   percent?: number;
-  brand?: string;          
-  status?: string;         
-  material?: string[];     
-  packaging?: string;      
-  variants?: {             
+  brand?: string;
+  status?: string;
+  material?: string[];
+  packaging?: string;
+  variants?: {
     name: string;
     quantity?: number;
   }[];
@@ -59,20 +60,20 @@ export default function HomePage() {
     }
   ]
   const blindboxes: Blindbox[] = [
-    { id: 1, type: "sale", percent: 30, title: "Hello", price: 5420000 },
-    { id: 2, type: "sale", percent: 50, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 3, type: "sale", percent: 40, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 4, type: "sale", percent: 10, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 5, type: "sale", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 12, type: "sale", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 6, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: 7, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: 8, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: 9, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: 10, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: 11, type: "new", title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: 1, type: "normal", tags: ["sale"], percent: 30, title: "Hello", price: 5420000 },
+    { id: 2, type: "normal", tags: ["sale"], percent: 50, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: 3, type: "normal", tags: ["sale"], percent: 40, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: 4, type: "normal", tags: ["sale"], percent: 10, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: 5, type: "normal", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: 6, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: 7, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: 8, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: 9, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: 10, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: 11, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: 12, type: "normal", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
     {
-      id: 19,
+      id: 13,
       type: "blindbox",
       title: "DODO Nami Twinkle Bunny Plush Doll Blindbox Series",
       price: 280000,
@@ -85,7 +86,7 @@ export default function HomePage() {
         { name: "SET 6 BLINDBOX" }
       ],
       images: [
-        "/images/2.png",
+        "/images/blindbox_4.webp",
         "/images/3.png",
         "/images/4.png",
         "/images/4.png",
@@ -98,12 +99,12 @@ export default function HomePage() {
     { id: 14, type: "blindbox", percent: 0, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
     { id: 15, type: "blindbox", title: "MEGA SPACE MOLLY 400...", price: 5420000 },
     { id: 16, type: "blindbox", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 17, type: "blindbox", percent: 0, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 18, type: "blindbox", title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: 17, type: "blindbox", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: 18, type: "blindbox", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000 },
   ];
 
-  const newItems = blindboxes.filter((box) => box.type === "new");
-  const saleItems = blindboxes.filter((box) => box.type === "sale");
+  const newItems = blindboxes.filter((box) => box.tags?.includes("new"));
+  const saleItems = blindboxes.filter((box) => box.tags?.includes("sale"));
   const blindboxItems = blindboxes.filter((box) => box.type === "blindbox");
 
   return (
@@ -256,6 +257,7 @@ export default function HomePage() {
                 <ProductCard
                   id={box.id}
                   type={box.type}
+                  tags={box.tags}
                   percent={box.percent}
                   title={box.title}
                   price={box.price.toLocaleString("vi-VN") + "₫"}
@@ -346,6 +348,7 @@ export default function HomePage() {
                 <ProductCard
                   id={box.id}
                   type={box.type}
+                  tags={box.tags}
                   percent={box.percent}
                   title={box.title}
                   price={box.price.toLocaleString("vi-VN") + "₫"}
@@ -403,6 +406,7 @@ export default function HomePage() {
                 <ProductCard
                   id={box.id}
                   type={box.type}
+                  tags={box.tags}
                   percent={box.percent}
                   title={box.title}
                   price={box.price.toLocaleString("vi-VN") + "₫"}

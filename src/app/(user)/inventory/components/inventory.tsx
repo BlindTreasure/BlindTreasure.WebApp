@@ -21,34 +21,39 @@ export default function Inventory() {
     const itemsPerPage = 8
 
     const inventoryItems = [
-        { id: 1, name: 'DODO Nami Twinkle Bunny', status: 'opened', image: '/images/blindbox1.webp', type: 'blindbox' },
-        { id: 2, name: 'MEGA SPACE MOLLY 400%', status: 'unopened', image: '/images/blindbox_2.jpg', type: 'blindbox' },
-        { id: 3, name: 'DIMOO WORLD TOUR SERIES', status: 'opened', image: '/images/blindbox_3.jpg', type: 'blindbox' },
-        { id: 4, name: 'SKULLPANDA THE CRYSTAL BALL', status: 'unopened', image: '/images/blindbox_4.webp', type: 'blindbox' },
-        { id: 5, name: 'MOLLY EARTH CANDY', status: 'opened', image: '/images/blindbox1.webp', type: 'blindbox' },
-        { id: 6, name: 'LABUBU FRUITS SERIES', status: 'unopened', image: '/images/blindbox_2.jpg', type: 'blindbox' },
-        { id: 7, name: 'PUCKY BEAUTY STREET', status: 'opened', image: '/images/blindbox_3.jpg', type: 'blindbox' },
-        { id: 8, name: 'YUKI THE POLAR BEAR', status: 'unopened', image: '/images/blindbox_4.webp', type: 'blindbox' },
-        { id: 9, name: 'BUNNY ANGEL SERIES', status: 'opened', image: '/images/blindbox1.webp', type: 'blindbox' },
-        { id: 10, name: 'HIRONO SMALL LIE', status: 'unopened', image: '/images/blindbox_2.jpg', type: 'blindbox' },
-        { id: 11, name: 'THE MONSTERS SMLIS', status: 'opened', image: '/images/blindbox_3.jpg', type: 'blindbox' },
-        { id: 19, name: 'CRYBABY MOONLIGHT', status: 'unopened', image: '/images/blindbox_4.webp', type: 'blindbox' },
+        { id: 1, title: 'Hello', status: 'opened', image: '/images/blindbox1.webp', type: 'blindbox' },
+        { id: 2, title: 'MEGA SPACE MOLLY 400...', status: 'unopened', image: '/images/blindbox_2.jpg', type: 'blindbox' },
+        { id: 3, title: 'MEGA SPACE MOLLY 400...', status: 'opened', image: '/images/blindbox_3.jpg', type: 'blindbox' },
+        { id: 4, title: 'MEGA SPACE MOLLY 400...', status: 'unopened', image: '/images/blindbox_4.webp', type: 'blindbox' },
+        { id: 5, title: 'MEGA SPACE MOLLY 400...', status: 'opened', image: '/images/blindbox1.webp', type: 'blindbox' },
+        { id: 6, title: 'MEGA SPACE MOLLY 400...', status: 'unopened', image: '/images/blindbox_2.jpg', type: 'blindbox' },
+        { id: 7, title: 'MEGA SPACE MOLLY 400...', status: 'opened', image: '/images/blindbox_3.jpg', type: 'blindbox' },
+        { id: 8, title: 'MEGA SPACE MOLLY 400...', status: 'unopened', image: '/images/blindbox_4.webp', type: 'blindbox' },
+        { id: 9, title: 'MEGA SPACE MOLLY 400...', status: 'opened', image: '/images/blindbox1.webp', type: 'blindbox' },
+        { id: 10, title: 'MEGA SPACE MOLLY 400...', status: 'unopened', image: '/images/blindbox_2.jpg', type: 'blindbox' },
+        { id: 11, title: 'MEGA SPACE MOLLY 400...', status: 'opened', image: '/images/blindbox_3.jpg', type: 'blindbox' },
+        { id: 12, title: 'CRYBABY MOONLIGHT', status: 'unopened', image: '/images/blindbox_4.webp', type: 'blindbox' },
+        { id: 13, title: 'DODO Nami Twinkle Bunny Plush Doll Blindbox Series', image: '/images/blindbox_4.webp', type: 'sale' },
+        { id: 14, title: 'MEGA SPACE MOLLY 400...', image: '/images/blindbox_4.webp', type: 'new' },
     ]
 
-    const filteredItems = activeTab === 'all'
-        ? inventoryItems
-        : inventoryItems.filter(item => item.status === activeTab)
+    const filteredItems = inventoryItems.filter(item => {
+        if (activeTab === 'all') {
+            return ['blindbox', 'sale', 'new'].includes(item.type)
+        }
+        return item.type === 'blindbox' && item.status === activeTab
+    })
 
     const totalPages = Math.ceil(filteredItems.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const paginatedItems = filteredItems.slice(startIndex, startIndex + itemsPerPage)
 
-    const handleViewDetail = (productId: number) => {
-        router.push(`/detail/${productId}`)
+    const handleViewDetail = (id: number) => {
+        router.push(`/detail/${id}`)
     }
 
-    const handleOpenBox = (productId: number) => {
-        console.log(`Opening box for product ${productId}`)
+    const handleOpenBox = (id: number) => {
+        console.log(`Opening box for product ${id}`)
     }
 
     const handlePageChange = (page: number) => {
@@ -67,22 +72,23 @@ export default function Inventory() {
                 }}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6 md:px-9">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-14 mt-6 md:px-9">
                 {paginatedItems.map((item) => (
                     <Card key={item.id} className="transition-all duration-300 transform hover:scale-105">
                         <CardHeader className="p-0">
                             <img
                                 src={item.image}
-                                alt={item.name}
+                                alt={item.title}
                                 className="w-full h-48 object-cover rounded-t-lg"
                             />
                         </CardHeader>
                         <CardContent className="pt-4">
-                            <CardTitle className="text-lg">{item.name}</CardTitle>
-                            <CardDescription className={`mt-2 ${item.status === 'opened' ? 'text-green-500' : 'text-yellow-500'
-                                }`}>
-                                {item.status === 'opened' ? 'Đã mở' : 'Chưa mở'}
-                            </CardDescription>
+                            <CardTitle className="truncate text-lg">{item.title}</CardTitle>
+                            {item.type === 'blindbox' && (
+                                <CardDescription className={`mt-2 ${item.status === 'opened' ? 'text-green-500' : 'text-yellow-500'}`}>
+                                    {item.status === 'opened' ? 'Đã mở' : 'Chưa mở'}
+                                </CardDescription>
+                            )}
                         </CardContent>
                         <CardFooter className="flex justify-between gap-2">
                             <Button
