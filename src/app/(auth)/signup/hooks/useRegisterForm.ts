@@ -56,11 +56,18 @@ export function useRegisterForm() {
             router.push("/login");
           }
         },
-        onError: (error) => {
-          if (error.errorCode.includes("auth_email")) {
+        onError: (error: any) => {
+          const data = error?.response?.data || error;
+          if (data?.error?.code === "400") {
             setError("email", {
               type: "manual",
-              message: error.detail,
+              message: data.error.message,
+            });
+
+            addToast({
+              type: "error",
+              description: data.error.message,
+              duration: 5000,
             });
           }
         },

@@ -48,6 +48,7 @@ export function useLoginForm() {
           }
         },
         onError: (error) => {
+          
           if (error.errorCode.includes("auth_email")) {
             setError("email", {
               type: "manual",

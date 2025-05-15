@@ -22,7 +22,7 @@ declare type TResponseData<T = object> = {
   value: {
     code: string;
     message: string;
-    data?: T;
+    data: T;
   };
   isSuccess: boolean;
   isFailure: boolean;
