@@ -14,7 +14,7 @@ export const login = async (body: LoginBodyType) => {
 };
 
 export const register = async (body: RegisterBodyType) => {
-  const response = await request<TResponse>(API_ENDPOINTS.REGISTER, {
+  const response = await request<TResponseData<REQUEST.TRegister>>(API_ENDPOINTS.REGISTER, {
     method: "POST",
     data: body,
   });

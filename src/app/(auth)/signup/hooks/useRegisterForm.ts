@@ -29,12 +29,12 @@ export function useRegisterForm() {
   } = useForm<RegisterBodyType>({
     resolver: zodResolver(RegisterBody),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      fullName: "",
       email: "",
       password: "",
       confirmPassword: "",
-      phoneNumber: "",
+      dateOfBirth: "",
+      phoneNumber: ""
     },
   });
 
