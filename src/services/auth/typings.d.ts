@@ -3,8 +3,7 @@ declare namespace REQUEST {
     fullName: string;
     email: string;
     phoneNumber: string;
-    password: string;
-    confirmPassword: string; 
+    password: string; 
     dateOfBirth: string;
   };
   type TAuthVerifyEmail = {

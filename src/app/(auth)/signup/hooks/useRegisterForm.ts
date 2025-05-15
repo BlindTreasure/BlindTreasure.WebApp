@@ -3,6 +3,7 @@
 import {
   RegisterBody,
   RegisterBodyType,
+  RegisterBodyWithoutConfirm,
 } from "@/utils/schema-validations/auth.schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,26 +33,27 @@ export function useRegisterForm() {
       fullName: "",
       email: "",
       password: "",
-      confirmPassword: "",
       dateOfBirth: "",
-      phoneNumber: ""
+      phoneNumber: "",
     },
   });
 
   const onSubmit = async (data: RegisterBodyType) => {
+    const { confirmPassword, ...rest } = data;
+
+    const dataToSend: RegisterBodyWithoutConfirm = rest;
+
     try {
-      mutate(data, {
+      mutate(dataToSend, {
         onSuccess: async (data) => {
-          if (data) {
-            if (data.value.code.includes("auth_noti")) {
-              addToast({
-                description: data.value.message,
-                type: "success",
-                duration: 5000,
-              });
-              reset();
-              router.push("/login");
-            }
+          if (data && data.value.code.includes("auth_noti")) {
+            addToast({
+              description: data.value.message,
+              type: "success",
+              duration: 5000,
+            });
+            reset();
+            router.push("/login");
           }
         },
         onError: (error) => {

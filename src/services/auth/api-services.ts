@@ -3,6 +3,7 @@ import API_ENDPOINTS from "@/services/auth/api-path";
 import {
   LoginBodyType,
   RegisterBodyType,
+  RegisterBodyWithoutConfirm,
 } from "@/utils/schema-validations/auth.schema";
 
 export const login = async (body: LoginBodyType) => {
@@ -13,7 +14,7 @@ export const login = async (body: LoginBodyType) => {
   return response.data;
 };
 
-export const register = async (body: RegisterBodyType) => {
+export const register = async (body: RegisterBodyWithoutConfirm) => {
   const response = await request<TResponseData<REQUEST.TRegister>>(API_ENDPOINTS.REGISTER, {
     method: "POST",
     data: body,

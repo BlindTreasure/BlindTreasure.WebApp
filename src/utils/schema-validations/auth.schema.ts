@@ -50,3 +50,5 @@ export const RegisterBody = z
   });
 
 export type RegisterBodyType = z.TypeOf<typeof RegisterBody>;
+
+export type RegisterBodyWithoutConfirm = Omit<RegisterBodyType, "confirmPassword">;
