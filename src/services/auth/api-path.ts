@@ -1,4 +1,4 @@
-const AUTH = "/v1/Authentication";
+const AUTH = "/auth";
 const LOGIN = AUTH + "/login";
 const REGISTER = AUTH + "/register";
 const VERIFY_EMAIL = AUTH + "/verify-email";

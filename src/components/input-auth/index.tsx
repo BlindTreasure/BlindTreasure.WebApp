@@ -3,7 +3,7 @@ import { Eye, EyeOff } from "lucide-react";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface InputAuthProps {
   id: string;
-  type: "text" | "password" | "number";
+  type: "text" | "password" | "number"| "date";
   autoComplete: "on" | "off";
   label: string;
   register?: any;

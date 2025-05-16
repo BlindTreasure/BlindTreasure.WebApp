@@ -39,22 +39,22 @@ export const useServiceUpdateAvatarProfile = () => {
 
       return await updateAvatarProfile(formData);
     },
-    onSuccess: (data) => {
-      dispatch(
-        updateImage({
-          cropAvatarLink: data.value.data.cropAvatarLink,
-          fullAvatarLink: data.value.data.fullAvatarLink,
-        })
-      );
-      addToast(
-        {
-          type: "success",
-          description: data.value.message,
-          duration: 5000,
-        },
-        false
-      );
-    },
+    // onSuccess: (data) => {
+    //   dispatch(
+    //     updateImage({
+    //       cropAvatarLink: data.value.data.cropAvatarLink,
+    //       fullAvatarLink: data.value.data.fullAvatarLink,
+    //     })
+    //   );
+    //   addToast(
+    //     {
+    //       type: "success",
+    //       description: data.value.message,
+    //       duration: 5000,
+    //     },
+    //     false
+    //   );
+    // },
     onError: () => {
       addToast({
         type: "error",
@@ -65,25 +65,25 @@ export const useServiceUpdateAvatarProfile = () => {
   });
 };
 
-export const useServiceUpdateInfoProfile = () => {
-  const dispatch = useAppDispatch();
-  const { addToast } = useToast();
-  return useMutation<
-    TResponseData<API.TProfileAccount>,
-    TMeta,
-    REQUEST.TUpdateInfoProfile
-  >({
-    mutationFn: updateInfoProfile,
-    onSuccess: (data) => {
-      dispatch(updateInformationProfile(data.value.data));
-      addToast({
-        type: "success",
-        description: data.value.message,
-        duration: 5000,
-      });
-    },
-  });
-};
+// export const useServiceUpdateInfoProfile = () => {
+//   const dispatch = useAppDispatch();
+//   const { addToast } = useToast();
+//   return useMutation<
+//     TResponseData<API.TProfileAccount>,
+//     TMeta,
+//     REQUEST.TUpdateInfoProfile
+//   >({
+//     mutationFn: updateInfoProfile,
+//     onSuccess: (data) => {
+//       dispatch(updateInformationProfile(data.value.data));
+//       addToast({
+//         type: "success",
+//         description: data.value.message,
+//         duration: 5000,
+//       });
+//     },
+//   });
+// };
 
 export const useServiceUpdateEmailProfile = () => {
   const { addToast } = useToast();
