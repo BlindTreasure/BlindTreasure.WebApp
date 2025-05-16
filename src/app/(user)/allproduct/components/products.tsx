@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useState, useEffect } from "react";
 import PaginationBar from "@/components/pagination";
 import ProductFilterSidebar from "@/components/product-filter-sidebar";
@@ -15,6 +15,9 @@ interface Blindbox {
 
 export default function AllProduct() {
   const [isMounted, setIsMounted] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 6;
 
   useEffect(() => {
     setIsMounted(true);
@@ -34,6 +37,12 @@ export default function AllProduct() {
     { id: 11, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
     { id: 12, type: "normal", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
   ];
+
+  const totalPages = Math.ceil(blindboxes.length / itemsPerPage);
+  const paginatedBlindboxes = blindboxes.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const categories = [
     { name: "Tất cả sản phẩm" },
@@ -60,26 +69,21 @@ export default function AllProduct() {
 
   const brands = ["44 Cats", "Avengers", "Dragon", "Batman", "Tobot"];
 
-
-  if (!isMounted) {
-    return null;
-  }
+  if (!isMounted) return null;
 
   return (
     <div className="mt-16 container mx-auto px-4 sm:px-6 lg:p-20 xl:px-20 2xl:px-20">
       <div className="flex flex-col lg:flex-row gap-6">
-
         <div className="w-full lg:w-auto lg:shrink-0">
           <ProductFilterSidebar categories={categories} prices={prices} brands={brands} />
         </div>
 
-        {/* Main content area */}
         <main className="w-full">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-            {blindboxes.map((product) => (
+            {paginatedBlindboxes.map((product) => (
               <ProductCard
-                id={product.id}
                 key={product.id}
+                id={product.id}
                 type={product.type}
                 percent={product.percent}
                 title={product.title}
@@ -89,7 +93,11 @@ export default function AllProduct() {
           </div>
 
           <div className="mt-8">
-            <PaginationBar />
+            <PaginationBar
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </main>
       </div>
