@@ -24,22 +24,11 @@ const Header: React.FC = () => {
   const router = useRouter();
   const [avatarTooltip, setAvatarTooltip] = useState(false);
 
-  const getLink = () => {
-    if (user?.roleId === 3) {
-      return { href: "/customer-request", label: "Yêu cầu khách hàng" };
-    } else if (user?.roleId === 2) {
-      return { href: "/personal-hiring-post", label: "Tài liệu theo yêu cầu" };
-    }
-    return null;
-  };
-
-  const specialLink = getLink();
-
   const navLinks = [
     { href: "/", label: "Trang chủ" },
     { href: "/aboutus", label: "Về chúng tôi" },
     { href: "/contact", label: "Liên hệ" },
-    ...(specialLink ? [specialLink] : []),
+
   ];
 
   const handleToggleAvatarTooltip = () => {
@@ -108,18 +97,17 @@ const Header: React.FC = () => {
                     onClickOutside={handleCloseAvatarTooltip}
                   >
                     <figure className="rounded-full border border-zinc-300 overflow-hidden w-14 h-14 flex items-center justify-center hover:bg-teal-400">
-                      {userState?.user?.cropAvatarLink !== "" && (
-                        <img
-                          id="avatarButton"
-                          onClick={handleToggleAvatarTooltip}
-                          className="w-12 h-12 rounded-full cursor-pointer"
-                          src={
-                            userState?.user?.cropAvatarLink ||
-                            "images/unknown_avatar.png"
-                          }
-                          alt="User dropdown"
-                        />
-                      )}
+                      <img
+                        id="avatarButton"
+                        onClick={handleToggleAvatarTooltip}
+                        className="w-12 h-12 rounded-full cursor-pointer"
+                        src={
+                          userState?.user?.cropAvatarLink
+                            ? userState.user.cropAvatarLink
+                            : "images/unknown_avatar.png"
+                        }
+                        alt="User dropdown"
+                      />
                     </figure>
                   </TippyHeadless>
                 </div>

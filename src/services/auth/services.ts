@@ -6,9 +6,9 @@ import {
   logout,
   register,
   verifyEmail,
+  verifyOtp,
 } from "@/services/auth/api-services";
 import { useAppDispatch } from "@/stores/store";
-import { loginUser, resetUser } from "@/stores/user-slice";
 import { removeStorageItem, setStorageItem } from "@/utils/local-storage";
 import {
   LoginBodyType,
@@ -19,27 +19,30 @@ import { useMutation } from "@tanstack/react-query";
 import { ForgotPasswordEmailBodyType } from "@/utils/schema-validations/forgot-password.schema";
 import useToast from "@/hooks/use-toast";
 import { resetProfile } from "@/stores/account-slice";
-// import { resetCreatePet } from "@/src/stores/create-pet-slice";
+import { clearUser } from "@/stores/user-slice";
 
 export const useServiceLogin = () => {
   const dispatch = useAppDispatch();
 
-  return useMutation<API.TAuthResponse, TMeta, LoginBodyType>({
+  return useMutation<TResponseData<API.TAuthResponse>, TMeta, LoginBodyType>({
     mutationFn: login,
     onSuccess: (data) => {
-      const { authProfile, token } = data;
-      // Save access token in local storage
-      setStorageItem("accessToken", `${token.tokenType} ${token.accessToken}`);
-      // Save auth profile in redux storage
-      dispatch(loginUser(authProfile));
-      return data;
+      const tokenData = data?.value?.data;
+      if (tokenData?.accessToken) {
+        setStorageItem("accessToken", `${tokenData.accessToken}`);
+        setStorageItem("refreshToken", tokenData.refreshToken);
+      }
     },
   });
 };
 
 export const useServiceRegister = () => {
   const { addToast } = useToast();
-  return useMutation<TResponseData, TMeta, RegisterBodyWithoutConfirm>({
+  return useMutation<
+    TResponseData<API.TRegisterResponse>,
+    TMeta,
+    RegisterBodyWithoutConfirm
+  >({
     mutationFn: register,
     onSuccess: (data) => {
       addToast({
@@ -93,6 +96,20 @@ export const useServiceForgotPasswordOtp = () => {
   });
 };
 
+export const useServiceVerifyOtp = () => {
+  const { addToast } = useToast();
+  return useMutation<TResponseData, TMeta, API.TAuthVerifyOtp>({
+    mutationFn: verifyOtp,
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+  });
+};
+
 export const useServiceForgotPasswordChange = () => {
   const { addToast } = useToast();
   return useMutation<TResponseData, TMeta, API.TAuthForgotPasswordChange>({
@@ -113,7 +130,7 @@ export const useServiceLogout = () => {
     mutationFn: logout,
     onSuccess: (data) => {
       removeStorageItem("accessToken");
-      dispatch(resetUser());
+      dispatch(clearUser());
       dispatch(resetProfile());
       // dispatch(resetCreatePet());
       dispatch(resetProfile());
@@ -121,7 +138,7 @@ export const useServiceLogout = () => {
     },
     onError: (error) => {
       removeStorageItem("accessToken");
-      dispatch(resetUser());
+      dispatch(clearUser());
       dispatch(resetProfile());
       // dispatch(resetCreatePet());
       dispatch(resetProfile());

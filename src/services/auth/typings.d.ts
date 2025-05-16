@@ -3,7 +3,7 @@ declare namespace REQUEST {
     fullName: string;
     email: string;
     phoneNumber: string;
-    password: string; 
+    password: string;
     dateOfBirth: string;
   };
   type TAuthVerifyEmail = {
@@ -13,8 +13,8 @@ declare namespace REQUEST {
 
 declare namespace API {
   type TAuthResponse = {
-    token: TAuthToken;
-    authProfile: TAuthProfile;
+    accessToken: string;
+    refreshToken: string;
   };
 
   type TAuthForgotPasswordEmail = {
@@ -22,6 +22,11 @@ declare namespace API {
   };
 
   type TAuthForgotPasswordOtp = {
+    email: string;
+    otp: string;
+  };
+
+  type TAuthVerifyOtp = {
     email: string;
     otp: string;
   };
@@ -53,5 +58,15 @@ declare namespace API {
   type TAuthForgotPassword = {
     email: string;
     otp: string;
+  };
+  type TRegisterResponse = {
+    avatarUrl: string;
+    createdAt: string;
+    dateOfBirth: string;
+    email: string;
+    fullName: string;
+    phoneNumber: string;
+    roleName: string;
+    userId: string;
   };
 }

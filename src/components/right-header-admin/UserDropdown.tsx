@@ -13,7 +13,7 @@ interface UserDropdownProps {
 }
 const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { handleLogout, isPending } = useLogout();
+  const { handleLogout } = useLogout();
   const userState = useAppSelector((state: RootState) => state.userSlice);
 
   const onLogout = async () => {

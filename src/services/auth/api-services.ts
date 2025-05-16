@@ -7,18 +7,30 @@ import {
 } from "@/utils/schema-validations/auth.schema";
 
 export const login = async (body: LoginBodyType) => {
-  const response = await request<API.TAuthResponse>(API_ENDPOINTS.LOGIN, {
+  const response = await request<TResponseData<API.TAuthResponse>>(API_ENDPOINTS.LOGIN, {
     method: "POST",
     data: body,
   });
   return response.data;
 };
 
-export const register = async (body: RegisterBodyWithoutConfirm) => {
-  const response = await request<TResponseData>(API_ENDPOINTS.REGISTER, {
+export const register = async (body: RegisterBodyWithoutConfirm): Promise<TResponseData<API.TRegisterResponse>> => {
+  const response = await request<TResponseData<API.TRegisterResponse>>(API_ENDPOINTS.REGISTER, {
     method: "POST",
     data: body,
   });
+  return response.data;
+};
+
+
+export const verifyOtp = async (body: API.TAuthVerifyOtp) => {
+  const response = await request<TResponseData>(
+    API_ENDPOINTS.VERIFY_OTP,
+    {
+      method: "POST",
+      data: body,
+    }
+  );
   return response.data;
 };
 

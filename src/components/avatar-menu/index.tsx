@@ -19,7 +19,12 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const userState = useAppSelector((state) => state.userSlice);
-  const { handleLogout, isPending } = useLogout();
+  const { handleLogout } = useLogout();
+
+  const onLogout = () => {
+    handleLogout(); 
+    router.push("/login");
+  };
 
   const handleOpenTabMessage = () => {
     dispatch(openMessageUser());
@@ -62,23 +67,23 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
       <div
         className="px-4 py-3 text-lg text-gray-900 hover:bg-gray-200 select-none cursor-pointer"
         onClick={() => {
-          if (userState?.user?.roleId === Roles[1].id) {
+          if (userState?.user?.role === "Customer") {
             handleNavigate(1);
           }
-          if (userState?.user?.roleId === Roles[2].id) {
-            handleNavigate(4);
-          }
-          if (userState?.user?.roleId === Roles[0].id) {
-            handleNavigate(2);
-          }
+          // if (userState?.user?.roleId === Roles[2].id) {
+          //   handleNavigate(4);
+          // }
+          // if (userState?.user?.roleId === Roles[0].id) {
+          //   handleNavigate(2);
+          // }
         }}
       >
         <div className="font-bold">Xin chào</div>
         <div className="text-xs text-gray-500 truncate">
-          {userState.user?.firstName} {userState.user?.lastName}
+          {userState.user?.email}
         </div>
       </div>
-      {userState.user?.roleId === Roles[1]?.id && (
+      {userState.user?.role === "Customer" && (
         <ul
           className="py-2 text-sm text-gray-700"
           aria-labelledby="avatarButton"
@@ -131,7 +136,7 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
         </ul>
       )}
 
-      {userState.user?.roleId === Roles[2].id && (
+      {/* {userState.user?.roleId === Roles[2].id && (
         <ul
           className="py-2 text-sm text-gray-700"
           aria-labelledby="avatarButton"
@@ -152,11 +157,11 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
             </div>
           </li>
         </ul>
-      )}
+      )} */}
 
       <div className="py-1">
         <div
-          onClick={handleLogout}
+          onClick={onLogout}
           className="cursor-pointer flex items-center justify-between px-4 py-2 bg-white rounded-lg hover:bg-gray-200"
         >
           <div className="flex items-center">
@@ -168,8 +173,6 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
           </div>
         </div>
       </div>
-
-
     </div>
   );
 }

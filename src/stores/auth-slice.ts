@@ -7,10 +7,18 @@ export interface InitialState {
     email: string;
     otp: string;
   };
+  signup: {
+    email: string;
+    otp: string;
+  };
 }
 
 let initialState: InitialState = {
   forgotPassword: {
+    email: "",
+    otp: "",
+  },
+  signup: {
     email: "",
     otp: "",
   },
@@ -32,6 +40,12 @@ const authSlice = createSlice({
     ) => {
       state.forgotPassword.otp = action.payload.otp;
     },
+    setSignupEmail: (state, action: PayloadAction<API.TAuthVerifyOtp>) => {
+      state.signup.email = action.payload.email;
+    },
+    setSignupOtp: (state, action: PayloadAction<API.TAuthVerifyOtp>) => {
+      state.signup.otp = action.payload.otp;
+    },
     resetForgotPasswordOtp: (state) => {
       state.forgotPassword.otp = "";
     },
@@ -42,6 +56,16 @@ const authSlice = createSlice({
       state.forgotPassword.email = "";
       state.forgotPassword.otp = "";
     },
+    resetSignupEmail: (state) => {
+      state.signup.email = "";
+    },
+    resetSignupOtp: (state) => {
+      state.signup.otp = "";
+    },
+    resetSignup: (state) => {
+      state.signup.email = "";
+      state.signup.otp = "";
+    },
   },
 });
 
@@ -51,6 +75,12 @@ export const {
   resetForgotPasswordOtp,
   resetForgotPasswordEmail,
   resetForgotPassword,
+
+  setSignupEmail,
+  setSignupOtp,
+  resetSignupEmail,
+  resetSignupOtp,
+  resetSignup,
 } = authSlice.actions;
 
 export default authSlice.reducer;

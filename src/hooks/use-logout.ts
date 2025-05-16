@@ -1,16 +1,13 @@
-import { useServiceLogout } from "@/services/auth/services";
+import { useAppDispatch } from "@/stores/store";
+import { clearUser } from "@/stores/user-slice";
 
 export default function useLogout() {
-  const { mutate, isPending } = useServiceLogout();
+  const dispatch = useAppDispatch();
+
   const handleLogout = () => {
-    try {
-      mutate();
-    } catch (err) {
-      location.href = "/";
-    }
+    localStorage.removeItem("accessToken");
+    dispatch(clearUser());
   };
-  return {
-    isPending,
-    handleLogout,
-  };
+
+  return { handleLogout };
 }

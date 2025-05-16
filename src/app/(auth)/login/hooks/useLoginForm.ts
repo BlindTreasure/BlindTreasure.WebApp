@@ -1,17 +1,32 @@
 "use client";
 
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useServiceLogin } from "@/services/auth/services";
 import { useRouter } from "next/navigation";
-import { LoginBody, LoginBodyType } from "@/utils/schema-validations/auth.schema";
+import {
+  LoginBody,
+  LoginBodyType,
+} from "@/utils/schema-validations/auth.schema";
+import { jwtDecode } from "jwt-decode";
+import useToast from "@/hooks/use-toast";
+import { useAppDispatch } from "@/stores/store";
+import { setUser } from "@/stores/user-slice";
+
+type TDecodedToken = {
+  role: string;
+  email: string;
+  cropAvatarLink?: string;
+  nameid: string;
+};
 
 export function useLoginForm() {
   const router = useRouter();
   const [typePassword, setTypePassword] = useState<boolean>(false);
   const { mutate, isPending } = useServiceLogin();
+  const { addToast } = useToast();
+  const dispatch = useAppDispatch();
 
   const {
     register,
@@ -32,41 +47,47 @@ export function useLoginForm() {
     try {
       mutate(request, {
         onSuccess: async (data) => {
-          if (data) {
+          if (data?.isSuccess) {
             reset();
-            // Navigate
-            switch (data.authProfile.roleId) {
-              case 1:
-                return router.push("/admin/dashboard");
-              case 2:
-                return router.push("/staff/dashboard");
-              case 3:
-                return router.push("/");
-              default:
-                return router.push("/");
+            const token = data.value?.data?.accessToken;
+            if (token) {
+              const decoded = jwtDecode<TDecodedToken>(token);
+              dispatch(
+                setUser({
+                  role: decoded.role,
+                  email: decoded.email,
+                  cropAvatarLink: decoded.cropAvatarLink,
+                  nameid: decoded.nameid,
+                })
+              );
+              const role = decoded.role;
+
+              switch (role) {
+                case "Admin":
+                  return router.push("/admin/dashboard");
+                case "Staff":
+                  return router.push("/");
+                case "Customer":
+                default:
+                  return router.push("/");
+              }
+            } else {
+              return router.push("/login");
             }
           }
         },
-        onError: (error) => {
-          
-          if (error.errorCode.includes("auth_email")) {
+        onError: (error: any) => {
+          const data = error?.response?.data || error;
+          if (data?.error?.code === "404") {
             setError("email", {
               type: "manual",
-              message: error.detail,
+              message: data.error.message,
             });
-          }
 
-          if (error.errorCode.includes("auth_password")) {
-            setError("password", {
-              type: "manual",
-              message: error.detail,
-            });
-          }
-
-          if (error.errorCode.includes("auth_noti_11")) {
-            setError("email", {
-              type: "manual",
-              message: error.detail,
+            addToast({
+              type: "error",
+              description: data.error.message,
+              duration: 5000,
             });
           }
         },
