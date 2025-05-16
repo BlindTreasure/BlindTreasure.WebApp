@@ -1,3 +1,4 @@
+// components/PaginationBar.tsx
 import {
   Pagination,
   PaginationContent,
@@ -7,23 +8,54 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-export default function PaginationBar() {
+interface PaginationBarProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
+
+export default function PaginationBar({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: PaginationBarProps) {
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+
   return (
     <div className="mt-10 flex justify-center">
       <Pagination>
         <PaginationContent>
           <PaginationItem>
-            <PaginationPrevious href="#" />
+            <PaginationPrevious
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage > 1) onPageChange(currentPage - 1);
+              }}
+            />
           </PaginationItem>
-          {[1, 2, 3, 4].map((page) => (
+          {pages.map((page) => (
             <PaginationItem key={page}>
-              <PaginationLink href="#" isActive={page === 2}>
+              <PaginationLink
+                href="#"
+                isActive={page === currentPage}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onPageChange(page);
+                }}
+              >
                 {page}
               </PaginationLink>
             </PaginationItem>
           ))}
           <PaginationItem>
-            <PaginationNext href="#" />
+            <PaginationNext
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) onPageChange(currentPage + 1);
+              }}
+            />
           </PaginationItem>
         </PaginationContent>
       </Pagination>
