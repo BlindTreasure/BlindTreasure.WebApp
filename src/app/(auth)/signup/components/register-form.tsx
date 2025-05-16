@@ -33,28 +33,15 @@ export default function RegisterForm() {
           className="pt-5 flex flex-col gap-y-4"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className="flex items-center gap-x-2">
-            <div className="w-1/2 flex flex-col gap-y-2">
-              <InputAuth
-                id="firstname"
-                label="Họ"
-                type="text"
-                autoComplete="off"
-                register={register("firstName")}
-                error={errors?.firstName?.message}
-              />
-            </div>
-            <div className="w-1/2 flex flex-col gap-y-2">
-              <InputAuth
-                id="lastname"
-                label="Tên"
-                type="text"
-                autoComplete="off"
-                register={register("lastName")}
-                error={errors?.lastName?.message}
-              />
-            </div>
-          </div>
+          <InputAuth
+            id="fullname"
+            label="Họ và tên"
+            type="text"
+            autoComplete="off"
+            register={register("fullName")}
+            error={errors?.fullName?.message}
+          />
+
           <div className="flex flex-col gap-y-2">
             <InputAuth
               id="email"
@@ -98,6 +85,15 @@ export default function RegisterForm() {
             )}
           </div>
 
+          <InputAuth
+            id="dateOfBirth"
+            label="Ngày sinh"
+            type="date"
+            autoComplete="off"
+            register={register("dateOfBirth")}
+            error={errors?.dateOfBirth?.message}
+          />
+
           <div className="flex flex-col gap-y-2">
             <InputAuth
               id="password"
@@ -125,8 +121,8 @@ export default function RegisterForm() {
           <div className="flex flex-col gap-y-5">
             <button
               className={`mt-2 block w-[100%] rounded-md py-2 ${Object.keys(errors).length === 0
-                  ? "bg-[#7a3cdd]"
-                  : "bg-[#C3B1E1]"
+                ? "bg-[#7a3cdd]"
+                : "bg-[#C3B1E1]"
                 }`}
             >
               <span className="text-base text-gray-200">Đăng ký</span>
@@ -134,15 +130,15 @@ export default function RegisterForm() {
             <div className="flex items-center justify-between gap-3">
               <div
                 className={`w-[50%] h-1 rounded-full ${Object.keys(errors).length === 0
-                    ? "bg-[#7a3cdd]"
-                    : "bg-[#C3B1E1]"
+                  ? "bg-[#7a3cdd]"
+                  : "bg-[#C3B1E1]"
                   }`}
               ></div>
               <span className="text-gray-400">HOẶC</span>
               <div
                 className={`w-[50%] h-1 rounded-full ${Object.keys(errors).length === 0
-                    ? "bg-[#7a3cdd]"
-                    : "bg-[#C3B1E1]"
+                  ? "bg-[#7a3cdd]"
+                  : "bg-[#C3B1E1]"
                   }`}
               ></div>
             </div>

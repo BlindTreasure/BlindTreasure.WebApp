@@ -13,6 +13,7 @@ import { removeStorageItem, setStorageItem } from "@/utils/local-storage";
 import {
   LoginBodyType,
   RegisterBodyType,
+  RegisterBodyWithoutConfirm,
 } from "@/utils/schema-validations/auth.schema";
 import { useMutation } from "@tanstack/react-query";
 import { ForgotPasswordEmailBodyType } from "@/utils/schema-validations/forgot-password.schema";
@@ -38,7 +39,7 @@ export const useServiceLogin = () => {
 
 export const useServiceRegister = () => {
   const { addToast } = useToast();
-  return useMutation<TResponse, TMeta, RegisterBodyType>({
+  return useMutation<TResponseData, TMeta, RegisterBodyWithoutConfirm>({
     mutationFn: register,
     onSuccess: (data) => {
       addToast({
