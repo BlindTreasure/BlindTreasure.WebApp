@@ -1,8 +1,7 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 // Fake data
 const fakeOrders = [
@@ -31,44 +30,52 @@ const fakeOrders = [
 
 export default function OrderHistory() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-20 py-20">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20 py-20">
       <h1 className="text-2xl font-bold mb-6 text-center sm:text-left">
         Lịch sử đơn hàng
       </h1>
 
-      <div className="space-y-4">
-        {fakeOrders.map((order) => (
-          <Card key={order.id} className="shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="space-y-1 text-center sm:text-left">
-                <div className="font-semibold text-lg text-primary">
-                  Đơn hàng #{order.id}
-                </div>
-
-                <div className="flex justify-center sm:justify-start items-center gap-2 text-sm text-muted-foreground">
-                  <CalendarDays className="w-4 h-4" />
-                  <span>{format(order.date, "dd/MM/yyyy")}</span>
-                </div>
-
-                <div className="text-sm">
-                  {order.boxTypes} loại blindbox • {order.totalItems} box tổng cộng
-                </div>
-
-                <div className="text-sm font-medium text-green-600">
-                  Tổng tiền: {order.totalPrice.toLocaleString("vi-VN")}₫
-                </div>
-              </div>
-
-              <div className="text-center sm:text-right">
-                <Link href={`/orderhistory/${order.id}`}>
-                  <Button variant="outline" className="mt-2 md:mt-0">
-                    Xem chi tiết
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="overflow-x-auto border rounded-lg shadow-sm">
+        <table className="min-w-full text-sm text-left">
+          <thead className="bg-gray-100 text-muted-foreground">
+            <tr>
+              <th className="px-4 py-3">Mã đơn</th>
+              <th className="px-4 py-3">Ngày đặt</th>
+              <th className="px-4 py-3">Loại box</th>
+              <th className="px-4 py-3">Số lượng</th>
+              <th className="px-4 py-3">Tổng tiền</th>
+              <th className="px-4 py-3 text-center">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            {fakeOrders.map((order, idx) => (
+              <tr
+                key={order.id}
+                className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+              >
+                <td className="px-4 py-4 font-medium text-primary">
+                  #{order.id}
+                </td>
+                <td className="px-4 py-4 flex items-center gap-1 text-muted-foreground">
+                  <CalendarDays className="w-4 h-4 shrink-0" />
+                  {format(order.date, "dd/MM/yyyy")}
+                </td>
+                <td className="px-4 py-4">{order.boxTypes}</td>
+                <td className="px-4 py-4">{order.totalItems}</td>
+                <td className="px-4 py-4 text-green-600 font-medium">
+                  {order.totalPrice.toLocaleString("vi-VN")}₫
+                </td>
+                <td className="px-4 py-4 text-center">
+                  <Link href={`/orderhistory/${order.id}`}>
+                    <Button variant="outline" size="sm">
+                      Xem chi tiết
+                    </Button>
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

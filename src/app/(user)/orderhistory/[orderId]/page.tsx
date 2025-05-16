@@ -1,8 +1,10 @@
+"use client";
+
 import { format } from "date-fns";
-import { CalendarDays, PackageCheck } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useState } from "react";
 
 // Fake data
 const orderDetail = {
@@ -26,6 +28,8 @@ const orderDetail = {
 };
 
 export default function OrderDetailPage() {
+  const [tab, setTab] = useState("order");
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-16 space-y-6 mt-20">
       <h1 className="text-2xl font-bold">Chi tiết đơn hàng #{orderDetail.id}</h1>
@@ -64,20 +68,28 @@ export default function OrderDetailPage() {
         ))}
       </div>
 
-      {/* Hỗ trợ */}
+      {/* Hỗ trợ - Tabs */}
       <div className="pt-6 border-t">
-        <h2 className="text-lg font-semibold mb-2">Hỗ trợ</h2>
-        <div className="flex flex-col sm:flex-row justify-center sm:justify-start sm:space-x-6 space-y-2 sm:space-y-0 text-sm text-[#d02a2a]">
-          <Link href="/support/order-issues" className="hover:underline text-center sm:text-left">
-            Vấn đề đơn hàng
-          </Link>
-          <Link href="/support/shipping-info" className="hover:underline text-center sm:text-left">
-            Thông tin giao hàng
-          </Link>
-          <Link href="/support/returns" className="hover:underline text-center sm:text-left">
-            Trả hàng
-          </Link>
-        </div>
+        <h2 className="text-lg font-semibold mb-3">Hỗ trợ</h2>
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
+          <TabsList className="flex flex-col sm:flex-row gap-2 sm:gap-6 text-[#d02a2a]">
+            <TabsTrigger value="order">Vấn đề đơn hàng</TabsTrigger>
+            <TabsTrigger value="shipping">Thông tin giao hàng</TabsTrigger>
+            <TabsTrigger value="return">Trả hàng</TabsTrigger>
+          </TabsList>
+
+          <div className="mt-4 text-sm text-muted-foreground bg-gray-50 p-4 rounded-md border">
+            <TabsContent value="order">
+              Nếu bạn gặp sự cố với đơn hàng, vui lòng liên hệ chúng tôi qua hotline hoặc gửi yêu cầu hỗ trợ trong mục Liên hệ.
+            </TabsContent>
+            <TabsContent value="shipping">
+              Đơn hàng của bạn sẽ được giao trong vòng 3–5 ngày làm việc. Vui lòng kiểm tra tình trạng giao hàng trong phần Theo dõi đơn hàng.
+            </TabsContent>
+            <TabsContent value="return">
+              Bạn có thể trả hàng trong vòng 7 ngày nếu sản phẩm lỗi hoặc không đúng mô tả. Truy cập mục Chính sách hoàn trả để biết thêm chi tiết.
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
     </div>
   );
