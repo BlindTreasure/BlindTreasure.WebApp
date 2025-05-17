@@ -25,7 +25,7 @@ export default function LoginForm() {
       <div className="w-[80%] px-5 py-4 m-auto">
         <h2 className="text-[1.5rem] leading-8 font-medium">Đăng nhập</h2>
         <span className="text-gray-500 inline-block mt-2">
-          Khám phá kho tài liệu tiếng Anh cấp 1 được thiết kế sinh động, dễ hiểu – giải pháp tối ưu giúp bé học giỏi hơn mỗi ngày!
+          Bí ẩn, thú vị, không đoán trước – Blindbox dành cho những ai yêu sự bất ngờ!
         </span>
         <form
           className="pt-5 flex flex-col gap-y-4"

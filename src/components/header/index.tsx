@@ -42,7 +42,7 @@ const Header: React.FC = () => {
   const handleNavigate = () => {
     router.push("/");
   };
-
+  
   return (
     <header className="flex items-center justify-between px-8 bg-white rounded-full fixed top-0 left-0 right-0 z-50 shadow-lg max-w-[1400px] w-full h-24 mx-auto mt-6">
       <div className="container mx-auto py-4">
@@ -97,17 +97,19 @@ const Header: React.FC = () => {
                     onClickOutside={handleCloseAvatarTooltip}
                   >
                     <figure className="rounded-full border border-zinc-300 overflow-hidden w-14 h-14 flex items-center justify-center hover:bg-teal-400">
-                      <img
-                        id="avatarButton"
-                        onClick={handleToggleAvatarTooltip}
-                        className="w-12 h-12 rounded-full cursor-pointer"
-                        src={
-                          userState?.user?.cropAvatarLink
-                            ? userState.user.cropAvatarLink
-                            : "images/unknown_avatar.png"
-                        }
-                        alt="User dropdown"
-                      />
+
+                      {userState?.user?.avatarUrl !== "" && (
+                        <img
+                          id="avatarButton"
+                          onClick={handleToggleAvatarTooltip}
+                          className="w-12 h-12 rounded-full cursor-pointer"
+                          src={
+                            userState?.user?.avatarUrl ||
+                            "images/unknown_avatar.png"
+                          }
+                          alt="User dropdown"
+                        />
+                      )}
                     </figure>
                   </TippyHeadless>
                 </div>
@@ -180,7 +182,7 @@ const Header: React.FC = () => {
                               onClick={handleToggleAvatarTooltip}
                               className="w-full h-full object-cover"
                               src={
-                                userState?.user?.cropAvatarLink ||
+                                userState?.user?.avatarUrl ||
                                 "/images/unknown_avatar.png"
                               }
                               alt="User avatar"

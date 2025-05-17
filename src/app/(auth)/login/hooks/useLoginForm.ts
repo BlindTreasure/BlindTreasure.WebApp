@@ -14,12 +14,6 @@ import useToast from "@/hooks/use-toast";
 import { useAppDispatch } from "@/stores/store";
 import { setUser } from "@/stores/user-slice";
 
-type TDecodedToken = {
-  role: string;
-  email: string;
-  cropAvatarLink?: string;
-  nameid: string;
-};
 
 export function useLoginForm() {
   const router = useRouter();
@@ -49,20 +43,20 @@ export function useLoginForm() {
         onSuccess: async (data) => {
           if (data?.isSuccess) {
             reset();
-            const token = data.value?.data?.accessToken;
-            if (token) {
-              const decoded = jwtDecode<TDecodedToken>(token);
+            const userInfo = data.value?.data?.user;
+            if (userInfo) {
               dispatch(
                 setUser({
-                  role: decoded.role,
-                  email: decoded.email,
-                  cropAvatarLink: decoded.cropAvatarLink,
-                  nameid: decoded.nameid,
+                  email: userInfo.email,
+                  avatarUrl: userInfo.avatarUrl,
+                  fullName: userInfo.fullName,
+                  roleName: userInfo.roleName,
                 })
               );
-              const role = decoded.role;
 
-              switch (role) {
+              const roleName = userInfo.roleName;
+
+              switch (roleName) {
                 case "Admin":
                   return router.push("/admin/dashboard");
                 case "Staff":

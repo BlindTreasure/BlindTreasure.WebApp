@@ -15,6 +15,7 @@ declare namespace API {
   type TAuthResponse = {
     accessToken: string;
     refreshToken: string;
+    user: TAuthProfile
   };
 
   type TAuthRefreshToken = {
@@ -52,11 +53,13 @@ declare namespace API {
 
   type TAuthProfile = {
     userId: string;
-    firstName: string;
-    lastName: string;
-    cropAvatarLink: string;
-    fullAvatarLink: string;
-    roleId: AuthRole;
+    fullName: string;
+    email: string;
+    avatarUrl: string;
+    dateOfBirth: string;
+    phoneNumber: string;
+    roleName: string;
+    createdAt: string;
   };
 
   type TAuthForgotPassword = {

@@ -18,7 +18,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ForgotPasswordEmailBodyType } from "@/utils/schema-validations/forgot-password.schema";
 import useToast from "@/hooks/use-toast";
 import { resetProfile } from "@/stores/account-slice";
-import { clearUser } from "@/stores/user-slice";
+import { clearUser, loginUser } from "@/stores/user-slice";
 import { useRouter } from "next/navigation";
 
 export const useServiceLogin = () => {
@@ -37,6 +37,8 @@ export const useServiceLogin = () => {
         setStorageItem("accessToken", `${tokenData.accessToken}`);
         setStorageItem("refreshToken", tokenData.refreshToken);
       }
+      dispatch(loginUser(tokenData.user));
+      return data;
     },
   });
 };

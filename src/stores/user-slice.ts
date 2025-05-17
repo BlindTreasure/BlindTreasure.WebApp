@@ -45,21 +45,22 @@
 
 // export default userSlice.reducer;
 // userSlice.ts
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-const initialState = {
-  user: null as null | {
-    role: string;
-    email: string;
-    cropAvatarLink?: string;
-    nameid: string;
-  },
-};
+export interface InitialState {
+  user?: API.TAuthProfile | null;
+  status: string;
+}
+
+let initialState: InitialState = { status: "idle", user: null };
 
 const userSlice = createSlice({
-  name: "user",
-  initialState,
+  name: "userSlice",
+  initialState: initialState,
   reducers: {
+    loginUser: (state, action: PayloadAction<API.TAuthProfile>) => {
+      state.user = action.payload;
+    },
     setUser(state, action) {
       state.user = action.payload;
     },
@@ -69,5 +70,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUser, clearUser } = userSlice.actions;
+export const { loginUser, setUser, clearUser } = userSlice.actions;
 export default userSlice.reducer;
