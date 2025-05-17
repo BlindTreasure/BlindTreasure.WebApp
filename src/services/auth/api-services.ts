@@ -1,5 +1,6 @@
 import request from "@/components/interceptor";
 import API_ENDPOINTS from "@/services/auth/api-path";
+import { getStorageItem } from "@/utils/local-storage";
 import {
   LoginBodyType,
   RegisterBodyType,
@@ -22,7 +23,6 @@ export const register = async (body: RegisterBodyWithoutConfirm): Promise<TRespo
   return response.data;
 };
 
-
 export const verifyOtp = async (body: API.TAuthVerifyOtp) => {
   const response = await request<TResponseData>(
     API_ENDPOINTS.VERIFY_OTP,
@@ -34,13 +34,16 @@ export const verifyOtp = async (body: API.TAuthVerifyOtp) => {
   return response.data;
 };
 
-export const verifyEmail = async (body: REQUEST.TAuthVerifyEmail) => {
-  const response = await request<TResponse>(API_ENDPOINTS.VERIFY_EMAIL, {
+export const logout = async () => {
+  const response = await request<TResponseData>(API_ENDPOINTS.LOGOUT, {
     method: "POST",
-    data: body,
+    headers: {
+      'Authorization': `Bearer ${getStorageItem("accessToken")}`
+    }
   });
   return response.data;
 };
+
 
 export const forgotPasswordEmail = async (
   body: API.TAuthForgotPasswordEmail
@@ -55,9 +58,11 @@ export const forgotPasswordEmail = async (
   return response.data;
 };
 
-export const forgotPasswordOtp = async (body: API.TAuthForgotPasswordOtp) => {
+export const resendOtp = async (
+  body: API.TAuthForgotPasswordEmail
+) => {
   const response = await request<TResponseData>(
-    API_ENDPOINTS.FORGOT_PASSWORD_OTP,
+    API_ENDPOINTS.RESEND_OTP,
     {
       method: "POST",
       data: body,
@@ -79,20 +84,11 @@ export const forgotPasswordChange = async (
   return response.data;
 };
 
-export const logout = async () => {
-  const response = await request<TResponseData>(API_ENDPOINTS.LOGOUT, {
+export const refreshToken = async (body: API.TAuthRefreshToken) => {
+  const response = await request<TResponseData<API.TAuthResponse>>(API_ENDPOINTS.REFRESH_TOKEN, {
     method: "POST",
+    data: body,
   });
-  return response.data;
-};
-
-export const refreshToken = async () => {
-  const response = await request<API.TAuthResponse>(
-    API_ENDPOINTS.REFRESH_TOKEN,
-    {
-      method: "GET",
-    }
-  );
   return response.data;
 };
 

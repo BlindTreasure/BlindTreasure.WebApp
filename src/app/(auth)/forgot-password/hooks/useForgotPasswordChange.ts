@@ -15,6 +15,8 @@ export default function useForgotPasswordChange() {
   const dispatch = useAppDispatch();
   const { addToast } = useToast();
   const router = useRouter();
+  const [otpValue, setOtpValue] = useState("");
+  const [otpError, setOtpError] = useState("");
 
   const [typePassword, setTypePassword] = useState<boolean>(false);
   const [typeConfirmPassword, setTypeConfirmPassword] =
@@ -56,31 +58,37 @@ export default function useForgotPasswordChange() {
     reset();
   };
 
+  const handleOtpChange = (value: string) => {
+    setOtpValue(value);
+    if (value.length === 6) {
+      setOtpError("");
+    }
+  };
+
   const onSubmit = (data: ForgotPasswordChangeBodyType) => {
+    if (otpValue.length !== 6) {
+      setOtpError("Vui lòng nhập đủ 6 ký tự OTP");
+      return;
+    }
     try {
       const form = {
-        password: data.password,
+        newPassword: data.password,
         email: forgotPasswordState.email,
-        otp: forgotPasswordState.otp,
+        otp: otpValue,
       };
       mutate(form, {
         onSuccess: async (data) => {
           if (data) {
-            if (data.value.code.includes("auth_noti")) {
-              addToast({
-                description: data.value.message,
-                type: "success",
-                duration: 5000,
-              });
-            }
             handleReset();
+            router.push("/login");
           }
         },
-        onError: (error) => {
-          if (error.errorCode.includes("auth_email_02")) {
+        onError: (error: any) => {
+          const data = error?.response?.data || error;
+          if (data?.error?.code === "400") {
             addToast({
-              description: error.detail,
               type: "error",
+              description: data.error.message,
               duration: 5000,
             });
           }
@@ -103,5 +111,8 @@ export default function useForgotPasswordChange() {
     valueConfirmPassword,
     handleToggleTypePassword,
     handleToggleTypeConfirmPassword,
+    otpValue,
+    handleOtpChange,
+    otpError,
   };
 }

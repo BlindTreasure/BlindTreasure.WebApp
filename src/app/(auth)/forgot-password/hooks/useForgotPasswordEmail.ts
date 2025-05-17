@@ -1,3 +1,4 @@
+import useToast from "@/hooks/use-toast";
 import { useServiceForgotPasswordEmail } from "@/services/auth/services";
 import { setForgotPasswordEmail } from "@/stores/auth-slice";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
@@ -14,6 +15,7 @@ export default function useForgotPasswordEmail() {
     (state) => state.authSlice.forgotPassword
   );
   const { mutate, isPending } = useServiceForgotPasswordEmail();
+  const { addToast } = useToast();
 
   const {
     register,
@@ -28,27 +30,25 @@ export default function useForgotPasswordEmail() {
     },
   });
 
-  const handleSubmitFormEmail = (email: string) => {
-    dispatch(
-      setForgotPasswordEmail({
-        email: email,
-        otp: forgotPasswordState.otp,
-      })
-    );
-  };
-
   const onSubmit = (data: ForgotPasswordEmailBodyType) => {
     try {
       mutate(data, {
-        onSuccess: async (data) => {
-          handleSubmitFormEmail(`${data.value.data}`);
+        onSuccess: async () => {
+          dispatch(
+            setForgotPasswordEmail({
+              email: data.email,
+            })
+          );
+
           reset();
         },
-        onError: (error) => {
-          if (error.errorCode.includes("auth_email")) {
-            setError("email", {
-              type: "manual",
-              message: error.detail,
+        onError: (error: any) => {
+          const data = error?.response?.data || error;
+          if (data?.error?.code === "400") {
+            addToast({
+              type: "error",
+              description: data.error.message,
+              duration: 5000,
             });
           }
         },
@@ -57,6 +57,7 @@ export default function useForgotPasswordEmail() {
       console.log(err);
     }
   };
+
   return {
     register,
     errors,

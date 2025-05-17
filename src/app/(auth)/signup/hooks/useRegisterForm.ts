@@ -54,13 +54,7 @@ export function useRegisterForm() {
     try {
       mutate(dataToSend, {
         onSuccess: async (data) => {
-          console.log("DATA ON SUCCESS:", data);
           if (data && data.value.code.includes("200")) {
-            addToast({
-              description: data.value.message,
-              type: "success",
-              duration: 5000,
-            });
             reset();
             const email = data.value.data?.email || rest.email;
             dispatch(setSignupEmail({ email, otp: "" }));

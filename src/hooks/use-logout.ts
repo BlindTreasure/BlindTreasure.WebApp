@@ -1,12 +1,11 @@
-import { useAppDispatch } from "@/stores/store";
-import { clearUser } from "@/stores/user-slice";
+
+import { useServiceLogout } from "@/services/auth/services";
 
 export default function useLogout() {
-  const dispatch = useAppDispatch();
+  const { mutate: logout } = useServiceLogout();
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    dispatch(clearUser());
+    logout();
   };
 
   return { handleLogout };

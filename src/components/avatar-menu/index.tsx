@@ -23,7 +23,6 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
 
   const onLogout = () => {
     handleLogout(); 
-    router.push("/login");
   };
 
   const handleOpenTabMessage = () => {

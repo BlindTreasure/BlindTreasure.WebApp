@@ -5,7 +5,7 @@ export interface Data {}
 export interface InitialState {
   forgotPassword: {
     email: string;
-    otp: string;
+   
   };
   signup: {
     email: string;
@@ -16,7 +16,6 @@ export interface InitialState {
 let initialState: InitialState = {
   forgotPassword: {
     email: "",
-    otp: "",
   },
   signup: {
     email: "",
@@ -34,27 +33,19 @@ const authSlice = createSlice({
     ) => {
       state.forgotPassword.email = action.payload.email;
     },
-    setForgotPasswordOtp: (
-      state,
-      action: PayloadAction<API.TAuthForgotPassword>
-    ) => {
-      state.forgotPassword.otp = action.payload.otp;
-    },
+    
     setSignupEmail: (state, action: PayloadAction<API.TAuthVerifyOtp>) => {
       state.signup.email = action.payload.email;
     },
     setSignupOtp: (state, action: PayloadAction<API.TAuthVerifyOtp>) => {
       state.signup.otp = action.payload.otp;
     },
-    resetForgotPasswordOtp: (state) => {
-      state.forgotPassword.otp = "";
-    },
+    
     resetForgotPasswordEmail: (state) => {
       state.forgotPassword.email = "";
     },
     resetForgotPassword: (state) => {
       state.forgotPassword.email = "";
-      state.forgotPassword.otp = "";
     },
     resetSignupEmail: (state) => {
       state.signup.email = "";
@@ -71,8 +62,6 @@ const authSlice = createSlice({
 
 export const {
   setForgotPasswordEmail,
-  setForgotPasswordOtp,
-  resetForgotPasswordOtp,
   resetForgotPasswordEmail,
   resetForgotPassword,
 

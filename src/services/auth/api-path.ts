@@ -2,24 +2,23 @@ const AUTH = "/auth";
 const LOGIN = AUTH + "/login";
 const REGISTER = AUTH + "/register";
 const VERIFY_OTP = AUTH + "/verify-otp";
-
-const VERIFY_EMAIL = AUTH + "/verify-email";
-const FORGOT_PASSWORD_EMAIL = AUTH + "/forgot-password-email";
-const FORGOT_PASSWORD_OTP = AUTH + "/forgot-password-otp";
-const FORGOT_PASSWORD_CHANGE = AUTH + "/forgot-password-change";
 const LOGOUT = AUTH + "/logout";
 const REFRESH_TOKEN = AUTH + "/refresh-token";
+const FORGOT_PASSWORD_EMAIL = AUTH + "/forgot-password";
+const FORGOT_PASSWORD_CHANGE = AUTH + "/reset-password";
+const RESEND_OTP = AUTH + "/resend-otp";
+
+
 const LOGIN_GOOGLE = AUTH + "/login-google";
 
 export default {
   LOGIN,
   REGISTER,
   VERIFY_OTP,
-  VERIFY_EMAIL,
   FORGOT_PASSWORD_EMAIL,
-  FORGOT_PASSWORD_OTP,
   FORGOT_PASSWORD_CHANGE,
   LOGOUT,
   REFRESH_TOKEN,
+  RESEND_OTP,
   LOGIN_GOOGLE,
 };

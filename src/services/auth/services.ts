@@ -1,11 +1,10 @@
 import {
   forgotPasswordChange,
   forgotPasswordEmail,
-  forgotPasswordOtp,
   login,
   logout,
+  refreshToken,
   register,
-  verifyEmail,
   verifyOtp,
 } from "@/services/auth/api-services";
 import { useAppDispatch } from "@/stores/store";
@@ -20,13 +19,19 @@ import { ForgotPasswordEmailBodyType } from "@/utils/schema-validations/forgot-p
 import useToast from "@/hooks/use-toast";
 import { resetProfile } from "@/stores/account-slice";
 import { clearUser } from "@/stores/user-slice";
+import { useRouter } from "next/navigation";
 
 export const useServiceLogin = () => {
   const dispatch = useAppDispatch();
-
+  const { addToast } = useToast();
   return useMutation<TResponseData<API.TAuthResponse>, TMeta, LoginBodyType>({
     mutationFn: login,
     onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
       const tokenData = data?.value?.data;
       if (tokenData?.accessToken) {
         setStorageItem("accessToken", `${tokenData.accessToken}`);
@@ -54,10 +59,10 @@ export const useServiceRegister = () => {
   });
 };
 
-export const useServiceVerifyEmail = () => {
+export const useServiceVerifyOtp = () => {
   const { addToast } = useToast();
-  return useMutation<TResponse, TMeta, REQUEST.TAuthVerifyEmail>({
-    mutationFn: verifyEmail,
+  return useMutation<TResponseData, TMeta, API.TAuthVerifyOtp>({
+    mutationFn: verifyOtp,
     onSuccess: (data) => {
       addToast({
         type: "success",
@@ -70,7 +75,7 @@ export const useServiceVerifyEmail = () => {
 
 export const useServiceForgotPasswordEmail = () => {
   const { addToast } = useToast();
-  return useMutation<TResponseData, TMeta, ForgotPasswordEmailBodyType>({
+  return useMutation<TResponse, TMeta, ForgotPasswordEmailBodyType>({
     mutationFn: forgotPasswordEmail,
     onSuccess: (data) => {
       addToast({
@@ -79,31 +84,10 @@ export const useServiceForgotPasswordEmail = () => {
         duration: 5000,
       });
     },
-  });
-};
-
-export const useServiceForgotPasswordOtp = () => {
-  const { addToast } = useToast();
-  return useMutation<TResponseData, TMeta, API.TAuthForgotPasswordOtp>({
-    mutationFn: forgotPasswordOtp,
-    onSuccess: (data) => {
+    onError: (error) => {
       addToast({
-        type: "success",
-        description: data.value.message,
-        duration: 5000,
-      });
-    },
-  });
-};
-
-export const useServiceVerifyOtp = () => {
-  const { addToast } = useToast();
-  return useMutation<TResponseData, TMeta, API.TAuthVerifyOtp>({
-    mutationFn: verifyOtp,
-    onSuccess: (data) => {
-      addToast({
-        type: "success",
-        description: data.value.message,
+        type: "error",
+        description: error.detail,
         duration: 5000,
       });
     },
@@ -125,24 +109,50 @@ export const useServiceForgotPasswordChange = () => {
 };
 
 export const useServiceLogout = () => {
+  const { addToast } = useToast();
   const dispatch = useAppDispatch();
+  const router = useRouter();
   return useMutation<TResponseData, TMeta>({
     mutationFn: logout,
     onSuccess: (data) => {
       removeStorageItem("accessToken");
+      removeStorageItem("refreshToken");
       dispatch(clearUser());
       dispatch(resetProfile());
-      // dispatch(resetCreatePet());
-      dispatch(resetProfile());
-      window.location.href = "/";
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+      router.push("/login");
     },
     onError: (error) => {
+      addToast({
+        type: "error",
+        description: error.detail,
+        duration: 5000,
+      });
       removeStorageItem("accessToken");
+      removeStorageItem("refreshToken");
       dispatch(clearUser());
       dispatch(resetProfile());
-      // dispatch(resetCreatePet());
-      dispatch(resetProfile());
-      window.location.href = "/";
+    },
+  });
+};
+
+export const useServiceRefreshToken = () => {
+  return useMutation<
+    TResponseData<API.TAuthResponse>,
+    TMeta,
+    API.TAuthRefreshToken
+  >({
+    mutationFn: refreshToken,
+    onSuccess: (data) => {
+      const tokenData = data?.value?.data;
+      if (tokenData?.accessToken) {
+        setStorageItem("accessToken", `${tokenData.accessToken}`);
+        setStorageItem("refreshToken", tokenData.refreshToken);
+      }
     },
   });
 };

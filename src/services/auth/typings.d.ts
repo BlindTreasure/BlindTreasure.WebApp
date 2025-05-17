@@ -17,6 +17,10 @@ declare namespace API {
     refreshToken: string;
   };
 
+  type TAuthRefreshToken = {
+    refreshToken: string;
+  };
+
   type TAuthForgotPasswordEmail = {
     email: string;
   };
@@ -34,7 +38,7 @@ declare namespace API {
   type TAuthForgotPasswordChange = {
     email: string;
     otp: string;
-    password: string;
+    newPassword: string;
   };
 
   type TAuthToken = {
@@ -57,7 +61,6 @@ declare namespace API {
 
   type TAuthForgotPassword = {
     email: string;
-    otp: string;
   };
   type TRegisterResponse = {
     avatarUrl: string;

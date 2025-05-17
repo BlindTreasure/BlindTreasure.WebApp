@@ -1,9 +1,8 @@
 import useToast from "@/hooks/use-toast";
 import { useServiceVerifyOtp } from "@/services/auth/services";
-import {
-  setSignupOtp,
-} from "@/stores/auth-slice";
+import { setSignupOtp } from "@/stores/auth-slice";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const useSignupOtp = () => {
@@ -12,7 +11,7 @@ const useSignupOtp = () => {
   const { addToast } = useToast();
   const [error, setError] = useState<string>("");
   const [value, setValue] = useState<string>("");
-
+  const router = useRouter();
   const { mutate, isPending } = useServiceVerifyOtp();
 
   const handleChange = (value: string) => {
@@ -45,8 +44,9 @@ const useSignupOtp = () => {
       mutate(data, {
         onSuccess: (data) => {
           if (data) {
-            handleSubmitOtp(`${data.value.data}`); 
+            handleSubmitOtp(`${data.value.data}`);
             handleReset();
+            router.push("/login");
           }
         },
         onError: (error) => {
