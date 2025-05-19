@@ -6,12 +6,17 @@ import {
 } from "@/stores/auth-slice";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { ChevronLeft } from "lucide-react";
+import { useEffect } from "react";
 
 export default function ForgotPasswordForm() {
   const dispatch = useAppDispatch();
   const forgotPasswordState = useAppSelector(
     (state) => state.authSlice.forgotPassword
   );
+
+  useEffect(() => {
+    dispatch(resetForgotPasswordEmail());
+  }, [dispatch]);
 
   const handlePrevious = () => {
     dispatch(resetForgotPasswordEmail());

@@ -1,9 +1,13 @@
+import { handleError } from "@/hooks/error";
 import useToast from "@/hooks/use-toast";
-import { useServiceVerifyOtp } from "@/services/auth/services";
-import { setSignupOtp } from "@/stores/auth-slice";
+import {
+  useServiceResendOtp,
+  useServiceVerifyOtp,
+} from "@/services/auth/services";
+import { setSignupEmail, setSignupOtp } from "@/stores/auth-slice";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const useSignupOtp = () => {
   const dispatch = useAppDispatch();
@@ -12,7 +16,17 @@ const useSignupOtp = () => {
   const [error, setError] = useState<string>("");
   const [value, setValue] = useState<string>("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const emailFromUrl = searchParams.get("email") || "";
   const { mutate, isPending } = useServiceVerifyOtp();
+  const { mutate: resendOtpMutate, isPending: isResending } =
+    useServiceResendOtp();
+
+  useEffect(() => {
+    if (!signupState.email && emailFromUrl) {
+      dispatch(setSignupEmail({ email: emailFromUrl, otp: "" }));
+    }
+  }, [emailFromUrl, signupState.email, dispatch]);
 
   const handleChange = (value: string) => {
     setValue(value);
@@ -49,18 +63,32 @@ const useSignupOtp = () => {
             router.push("/login");
           }
         },
-        onError: (error) => {
-          if (error.errorCode.includes("auth_otp")) {
-            setError(error.detail);
-          } else {
-            addToast({
-              type: "error",
-              description: "OTP verification failed. Please try again.",
-            });
-          }
+        onError: (error: any) => {
+          handleError(error);
         },
       });
     }
+  };
+
+  const handleResendOtp = () => {
+    if (!signupState.email) {
+      return addToast({
+        type: "error",
+        description: "Không tìm thấy email. Vui lòng quay lại đăng ký.",
+      });
+    }
+
+    resendOtpMutate(
+      {
+        Email: signupState.email,
+        Type: "Register",
+      },
+      {
+        onError: (error: any) => {
+          handleError(error);
+        },
+      }
+    );
   };
 
   return {
@@ -69,6 +97,8 @@ const useSignupOtp = () => {
     handleChange,
     handleSubmit,
     isPending,
+    isResending,
+    handleResendOtp,
     setError,
   };
 };

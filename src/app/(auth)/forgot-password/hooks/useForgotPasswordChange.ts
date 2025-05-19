@@ -5,11 +5,15 @@ import {
   ForgotPasswordChangeBody,
   ForgotPasswordChangeBodyType,
 } from "@/utils/schema-validations/forgot-password.schema";
-import { useServiceForgotPasswordChange } from "@/services/auth/services";
+import {
+  useServiceForgotPasswordChange,
+  useServiceResendOtp,
+} from "@/services/auth/services";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { resetForgotPassword } from "@/stores/auth-slice";
 import useToast from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { handleError } from "@/hooks/error";
 
 export default function useForgotPasswordChange() {
   const dispatch = useAppDispatch();
@@ -21,6 +25,9 @@ export default function useForgotPasswordChange() {
   const [typePassword, setTypePassword] = useState<boolean>(false);
   const [typeConfirmPassword, setTypeConfirmPassword] =
     useState<boolean>(false);
+
+  const { mutate: resendOtpMutate, isPending: isResending } =
+    useServiceResendOtp();
 
   const forgotPasswordState = useAppSelector(
     (state) => state.authSlice.forgotPassword
@@ -84,19 +91,28 @@ export default function useForgotPasswordChange() {
           }
         },
         onError: (error: any) => {
-          const data = error?.response?.data || error;
-          if (data?.error?.code === "400") {
-            addToast({
-              type: "error",
-              description: data.error.message,
-              duration: 5000,
-            });
-          }
+          handleError(error);
         },
       });
     } catch (err) {
       console.log(err);
     }
+  };
+
+  const handleResendOtp = () => {
+    if (!forgotPasswordState.email) {
+      return addToast({
+        type: "error",
+        description: "Không tìm thấy email. Vui lòng quay lại đăng ký.",
+      });
+    }
+
+    resendOtpMutate(
+      {
+        Email: forgotPasswordState.email,
+        Type: "ForgotPassword",
+      },
+    );
   };
 
   return {
@@ -114,5 +130,7 @@ export default function useForgotPasswordChange() {
     otpValue,
     handleOtpChange,
     otpError,
+    isResending,
+    handleResendOtp,
   };
 }

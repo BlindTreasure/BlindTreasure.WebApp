@@ -8,11 +8,15 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { useServiceRegister } from "@/services/auth/services";
+import {
+  useServiceRegister,
+  useServiceResendOtp,
+} from "@/services/auth/services";
 import { useRouter } from "next/navigation";
 import useToast from "@/hooks/use-toast";
 import { useAppDispatch } from "@/stores/store";
 import { setSignupEmail } from "@/stores/auth-slice";
+import { handleError } from "@/hooks/error";
 
 export function useRegisterForm() {
   const router = useRouter();
@@ -21,8 +25,7 @@ export function useRegisterForm() {
   const [typeConfirmPassword, setTypeConfirmPassword] =
     useState<boolean>(false);
   const { mutate, isPending } = useServiceRegister();
-  const { addToast } = useToast();
-
+  
   const {
     register,
     watch,
@@ -57,24 +60,14 @@ export function useRegisterForm() {
           if (data && data.value.code.includes("200")) {
             reset();
             const email = data.value.data?.email || rest.email;
+
             dispatch(setSignupEmail({ email, otp: "" }));
+
             router.push(`/signup-otp?email=${encodeURIComponent(email)}`);
           }
         },
         onError: (error: any) => {
-          const data = error?.response?.data || error;
-          if (data?.error?.code === "400") {
-            setError("email", {
-              type: "manual",
-              message: data.error.message,
-            });
-
-            addToast({
-              type: "error",
-              description: data.error.message,
-              duration: 5000,
-            });
-          }
+          handleError(error);
         },
       });
     } catch (err) {

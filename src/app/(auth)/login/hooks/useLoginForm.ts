@@ -13,7 +13,7 @@ import { jwtDecode } from "jwt-decode";
 import useToast from "@/hooks/use-toast";
 import { useAppDispatch } from "@/stores/store";
 import { setUser } from "@/stores/user-slice";
-
+import { handleError } from "@/hooks/error";
 
 export function useLoginForm() {
   const router = useRouter();
@@ -71,19 +71,7 @@ export function useLoginForm() {
           }
         },
         onError: (error: any) => {
-          const data = error?.response?.data || error;
-          if (data?.error?.code === "404") {
-            setError("email", {
-              type: "manual",
-              message: data.error.message,
-            });
-
-            addToast({
-              type: "error",
-              description: data.error.message,
-              duration: 5000,
-            });
-          }
+          handleError(error);
         },
       });
     } catch (err) {

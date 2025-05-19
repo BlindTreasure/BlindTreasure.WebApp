@@ -9,13 +9,17 @@ declare namespace REQUEST {
   type TAuthVerifyEmail = {
     email: string;
   };
+  type TAuthResendOtp = {
+    Email: string;
+    Type: "Register" | "ForgotPassword";
+  };
 }
 
 declare namespace API {
   type TAuthResponse = {
     accessToken: string;
     refreshToken: string;
-    user: TAuthProfile
+    user: TAuthProfile;
   };
 
   type TAuthRefreshToken = {
@@ -26,10 +30,11 @@ declare namespace API {
     email: string;
   };
 
-  type TAuthForgotPasswordOtp = {
+  type TAuthForgotPasswordEmail = {
     email: string;
-    otp: string;
   };
+
+  
 
   type TAuthVerifyOtp = {
     email: string;

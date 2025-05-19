@@ -18,12 +18,14 @@ export default function ForgotPasswordChange() {
     typePassword,
     typeConfirmPassword,
     valuePassword,
-    handleToggleTypePassword,
     valueConfirmPassword,
+    handleToggleTypePassword,
     handleToggleTypeConfirmPassword,
     otpValue,
     handleOtpChange,
     otpError,
+    isResending,
+    handleResendOtp,
   } = useForgotPasswordChange();
 
   const renderListOtp = () => {
@@ -78,8 +80,11 @@ export default function ForgotPasswordChange() {
             value={valuePassword}
             onClickEyePassword={handleToggleTypePassword}
           />
+        </div>
+
+        <div className="flex flex-col gap-y-2">
           <InputAuth
-            id="confirmPassword"
+            id="confirmpassword"
             label="Xác nhận mật khẩu"
             type={typeConfirmPassword ? "text" : "password"}
             autoComplete="off"
@@ -93,38 +98,43 @@ export default function ForgotPasswordChange() {
         <div className="flex flex-col gap-y-5">
           <button
             type="submit"
-            className={`mt-2 block w-[100%] rounded-md py-2 ${
-              otpValue?.length === 6 && 
-              valuePassword && 
+            className={`mt-2 block w-[100%] rounded-md py-2 ${otpValue?.length === 6 &&
+              valuePassword &&
               valueConfirmPassword
-                ? "bg-[#7a3cdd]"
-                : "bg-[#C3B1E1]"
-            }`}
+              ? "bg-[#7a3cdd]"
+              : "bg-[#C3B1E1]"
+              }`}
           >
             <span className="text-base text-gray-200">Xác nhận</span>
           </button>
-          
+          <button
+            type="button"
+            onClick={handleResendOtp}
+            disabled={isResending || isPending}
+            className={`mt-1 underline text-[#7a3cdd] text-center ${isResending ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+              }`}
+          >
+            {isResending ? "Đang gửi lại OTP..." : "Gửi lại mã OTP"}
+          </button>
           <div className="flex items-center justify-between gap-3">
             <div
-              className={`w-[50%] h-1 rounded-full ${
-                otpValue?.length === 6 && 
-                valuePassword && 
+              className={`w-[50%] h-1 rounded-full ${otpValue?.length === 6 &&
+                valuePassword &&
                 valueConfirmPassword
-                  ? "bg-[#7a3cdd]"
-                  : "bg-[#C3B1E1]"
-              }`}
+                ? "bg-[#7a3cdd]"
+                : "bg-[#C3B1E1]"
+                }`}
             ></div>
             <div
-              className={`w-[50%] h-1 rounded-full ${
-                otpValue?.length === 6 && 
-                valuePassword && 
+              className={`w-[50%] h-1 rounded-full ${otpValue?.length === 6 &&
+                valuePassword &&
                 valueConfirmPassword
-                  ? "bg-[#7a3cdd]"
-                  : "bg-[#C3B1E1]"
-              }`}
+                ? "bg-[#7a3cdd]"
+                : "bg-[#C3B1E1]"
+                }`}
             ></div>
           </div>
-          
+
           <div className="flex justify-between">
             <p className="text-[1rem]">
               Bạn có tài khoản?{" "}
@@ -135,7 +145,7 @@ export default function ForgotPasswordChange() {
           </div>
         </div>
       </form>
-      <Backdrop open={isPending} />
+      <Backdrop open={isPending || isResending} />
     </div>
   );
 }

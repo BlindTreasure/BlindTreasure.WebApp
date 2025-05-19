@@ -58,16 +58,27 @@ export const forgotPasswordEmail = async (
   return response.data;
 };
 
-export const resendOtp = async (
-  body: API.TAuthForgotPasswordEmail
-) => {
-  const response = await request<TResponseData>(
-    API_ENDPOINTS.RESEND_OTP,
-    {
-      method: "POST",
-      data: body,
-    }
-  );
+// export const resendOtp = async (
+//   body: REQUEST.TAuthResendOtp
+// ) => {
+//   const response = await request<TResponseData>(
+//     API_ENDPOINTS.RESEND_OTP,
+//     {
+//       method: "POST",
+//       data: body,
+//     }
+//   );
+//   return response.data;
+// };
+
+export const resendOtp = async (body: FormData) => {
+  const response = await request<TResponseData>(API_ENDPOINTS.RESEND_OTP, {
+    method: "POST",
+    data: body,
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 

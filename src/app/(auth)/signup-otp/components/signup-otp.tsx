@@ -9,8 +9,15 @@ import { Backdrop } from "@/components/backdrop";
 import useSignupOtp from "../hooks/useSignupOtp";
 
 export default function SignupOtp() {
-  const { error, value, handleChange, handleSubmit, isPending } =
-    useSignupOtp();
+  const {
+    error,
+    value,
+    handleChange,
+    handleSubmit,
+    isPending,
+    isResending,
+    handleResendOtp,
+  } = useSignupOtp();
 
   const renderListOtp = () => {
     return (
@@ -56,6 +63,15 @@ export default function SignupOtp() {
           >
             <span className="text-base text-gray-200">Xác nhận</span>
           </button>
+          <button
+            type="button"
+            onClick={handleResendOtp}
+            disabled={isResending || isPending}
+            className={`mt-1 underline text-[#7a3cdd] text-center ${isResending ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+              }`}
+          >
+            {isResending ? "Đang gửi lại OTP..." : "Gửi lại mã OTP"}
+          </button>
           <div className="flex items-center justify-between gap-3">
             <div
               className={`w-[50%] h-1 rounded-full ${value !== "" ? "bg-[#7a3cdd]" : "bg-[#C3B1E1]"
@@ -76,7 +92,7 @@ export default function SignupOtp() {
           </div>
         </div>
       </form>
-      <Backdrop open={isPending} />
+      <Backdrop open={isPending || isResending} />
     </div>
   );
 }

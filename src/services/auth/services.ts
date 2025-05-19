@@ -5,6 +5,7 @@ import {
   logout,
   refreshToken,
   register,
+  resendOtp,
   verifyOtp,
 } from "@/services/auth/api-services";
 import { useAppDispatch } from "@/stores/store";
@@ -20,6 +21,7 @@ import useToast from "@/hooks/use-toast";
 import { resetProfile } from "@/stores/account-slice";
 import { clearUser, loginUser } from "@/stores/user-slice";
 import { useRouter } from "next/navigation";
+import { handleError } from "@/hooks/error";
 
 export const useServiceLogin = () => {
   const dispatch = useAppDispatch();
@@ -71,6 +73,43 @@ export const useServiceVerifyOtp = () => {
         description: data.value.message,
         duration: 5000,
       });
+    },
+  });
+};
+
+// export const useServiceResendOtp = () => {
+//   const { addToast } = useToast();
+//   return useMutation<TResponseData, TMeta, REQUEST.TAuthResendOtp>({
+//     mutationFn: resendOtp,
+//     onSuccess: (data) => {
+//       addToast({
+//         type: "success",
+//         description: data.value.message,
+//         duration: 5000,
+//       });
+//     },
+//   });
+// };
+
+export const useServiceResendOtp = () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData, Error, REQUEST.TAuthResendOtp>({
+    mutationFn: async (data: REQUEST.TAuthResendOtp) => {
+      const formData = new FormData();
+      formData.append("Email", data.Email);
+      formData.append("Type", data.Type);
+      return await resendOtp(formData);
+    },
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
     },
   });
 };
@@ -127,17 +166,6 @@ export const useServiceLogout = () => {
         duration: 5000,
       });
       router.push("/login");
-    },
-    onError: (error) => {
-      addToast({
-        type: "error",
-        description: error.detail,
-        duration: 5000,
-      });
-      removeStorageItem("accessToken");
-      removeStorageItem("refreshToken");
-      dispatch(clearUser());
-      dispatch(resetProfile());
     },
   });
 };
