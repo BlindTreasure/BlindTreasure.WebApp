@@ -3,25 +3,40 @@ declare namespace REQUEST {
     fullName: string;
     email: string;
     phoneNumber: string;
-    password: string; 
+    password: string;
     dateOfBirth: string;
   };
   type TAuthVerifyEmail = {
     email: string;
   };
+  type TAuthResendOtp = {
+    Email: string;
+    Type: "Register" | "ForgotPassword";
+  };
 }
 
 declare namespace API {
   type TAuthResponse = {
-    token: TAuthToken;
-    authProfile: TAuthProfile;
+    accessToken: string;
+    refreshToken: string;
+    user: TAuthProfile;
+  };
+
+  type TAuthRefreshToken = {
+    refreshToken: string;
   };
 
   type TAuthForgotPasswordEmail = {
     email: string;
   };
 
-  type TAuthForgotPasswordOtp = {
+  type TAuthForgotPasswordEmail = {
+    email: string;
+  };
+
+  
+
+  type TAuthVerifyOtp = {
     email: string;
     otp: string;
   };
@@ -29,7 +44,7 @@ declare namespace API {
   type TAuthForgotPasswordChange = {
     email: string;
     otp: string;
-    password: string;
+    newPassword: string;
   };
 
   type TAuthToken = {
@@ -43,15 +58,26 @@ declare namespace API {
 
   type TAuthProfile = {
     userId: string;
-    firstName: string;
-    lastName: string;
-    cropAvatarLink: string;
-    fullAvatarLink: string;
-    roleId: AuthRole;
+    fullName: string;
+    email: string;
+    avatarUrl: string;
+    dateOfBirth: string;
+    phoneNumber: string;
+    roleName: string;
+    createdAt: string;
   };
 
   type TAuthForgotPassword = {
     email: string;
-    otp: string;
+  };
+  type TRegisterResponse = {
+    avatarUrl: string;
+    createdAt: string;
+    dateOfBirth: string;
+    email: string;
+    fullName: string;
+    phoneNumber: string;
+    roleName: string;
+    userId: string;
   };
 }

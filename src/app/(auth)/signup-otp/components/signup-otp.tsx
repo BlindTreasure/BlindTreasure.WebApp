@@ -1,19 +1,27 @@
+'use client'
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import Link from "next/link";
-import useForgotPasswordOtp from "@/app/(auth)/forgot-password/hooks/useForgotPasswordOtp";
 import { Backdrop } from "@/components/backdrop";
+import useSignupOtp from "../hooks/useSignupOtp";
 
-export default function ForgotPasswordOtp() {
-  const { error, value, handleChange, handleSubmit, isPending } =
-    useForgotPasswordOtp();
+export default function SignupOtp() {
+  const {
+    error,
+    value,
+    handleChange,
+    handleSubmit,
+    isPending,
+    isResending,
+    handleResendOtp,
+  } = useSignupOtp();
 
   const renderListOtp = () => {
     return (
-      <InputOTP maxLength={5} value={value} onChange={handleChange}>
+      <InputOTP maxLength={6} value={value} onChange={handleChange}>
         <InputOTPGroup>
           <InputOTPSlot index={0} />
         </InputOTPGroup>
@@ -29,15 +37,18 @@ export default function ForgotPasswordOtp() {
         <InputOTPGroup>
           <InputOTPSlot index={4} />
         </InputOTPGroup>
+        <InputOTPGroup>
+          <InputOTPSlot index={5} />
+        </InputOTPGroup>
       </InputOTP>
     );
   };
 
   return (
-    <div>
-      <h2 className="text-[1.5rem] leading-8 font-medium">Quên mật khẩu</h2>
+    <div className="w-[80%] px-5 py-4 pt-10 m-auto">
+      <h2 className="text-[1.5rem] font-medium">Xác thực OTP</h2>
       <span className="text-gray-500 inline-block mt-2">
-        Mã OTP đã được gửi, vui lòng nhập để hoàn tất!
+        Mã OTP đã được gửi tới email của bạn, vui lòng nhập để xác nhận tài khoản!
       </span>
       <form className="pt-5 flex flex-col gap-y-4" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-y-2">
@@ -50,14 +61,22 @@ export default function ForgotPasswordOtp() {
             className={`mt-2 block w-[100%] rounded-md py-2 ${value !== "" ? "bg-[#7a3cdd]" : "bg-[#C3B1E1]"
               }`}
           >
-            <span className="text-base text-gray-200">Tiếp tục</span>
+            <span className="text-base text-gray-200">Xác nhận</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleResendOtp}
+            disabled={isResending || isPending}
+            className={`mt-1 underline text-[#7a3cdd] text-center ${isResending ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+              }`}
+          >
+            {isResending ? "Đang gửi lại OTP..." : "Gửi lại mã OTP"}
           </button>
           <div className="flex items-center justify-between gap-3">
             <div
               className={`w-[50%] h-1 rounded-full ${value !== "" ? "bg-[#7a3cdd]" : "bg-[#C3B1E1]"
                 }`}
             ></div>
-            {/* <span className="text-gray-400">OR</span> */}
             <div
               className={`w-[50%] h-1 rounded-full ${value !== "" ? "bg-[#7a3cdd]" : "bg-[#C3B1E1]"
                 }`}
@@ -65,15 +84,15 @@ export default function ForgotPasswordOtp() {
           </div>
           <div className="flex justify-between">
             <p className="text-[1rem]">
-              Bạn có tài khoản BlindTreasure?
+              Đã có tài khoản?
               <Link href="/login">
-                <span className="font-bold cursor-pointer">Đăng nhập</span>
+                <span className="font-bold cursor-pointer ml-1">Đăng nhập</span>
               </Link>
             </p>
           </div>
         </div>
       </form>
-      <Backdrop open={isPending} />
+      <Backdrop open={isPending || isResending} />
     </div>
   );
 }

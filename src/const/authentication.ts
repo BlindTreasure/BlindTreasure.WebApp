@@ -5,10 +5,15 @@ export const Roles = [
   },
   {
     id: 2,
-    value: "User",
+    value: "Customer",
   },
   {
     id: 3,
+    value: "Seller",
+  },
+  {
+    id: 4,
     value: "Staff",
   },
+  
 ];

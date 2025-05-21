@@ -13,7 +13,7 @@ interface UserDropdownProps {
 }
 const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { handleLogout, isPending } = useLogout();
+  const { handleLogout } = useLogout();
   const userState = useAppSelector((state: RootState) => state.userSlice);
 
   const onLogout = async () => {
@@ -41,7 +41,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
           <img
             className="w-11 h-11 rounded-full cursor-pointer"
-            src={userState?.user?.cropAvatarLink || "/images/unknown_avatar.png"}
+            src={userState?.user?.avatarUrl || "/images/unknown_avatar.png"}
             alt="User"
           />
         </span>

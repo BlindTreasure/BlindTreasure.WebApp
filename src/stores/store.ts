@@ -22,8 +22,8 @@ const persistConfig = {
   key: "root",
   version: 1,
   storage,
-  whitelist: ["cartSlice", "userSlice"],
-  blacklist: ["authSlice", "accountSlice", "differenceSlice"],
+  whitelist: ["cartSlice", "userSlice", "authSlice"],
+  blacklist: ["accountSlice", "differenceSlice"],
 };
 
 const rootReducer = combineReducers({

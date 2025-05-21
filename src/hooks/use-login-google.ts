@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGoogleLogin } from "@react-oauth/google";
-import { loginUser } from "@/stores/user-slice";
+// import { loginUser } from "@/stores/user-slice";
 import { useAppDispatch } from "@/stores/store";
 import { loginGoogle } from "@/services/auth/api-services";
 import useToast from "./use-toast";
@@ -24,14 +24,14 @@ export default function useLoginGoogle() {
         const res = await loginGoogle({
           accessTokenGoogle: tokenResponse?.access_token,
         });
-        const { authProfile, token } = res;
-        // Save access token in local storage
-        setStorageItem(
-          "accessToken",
-          `${token.tokenType} ${token.accessToken}`
-        );
-        // Save auth profile in redux storage
-        dispatch(loginUser(authProfile));
+        // const { authProfile, token } = res;
+        // // Save access token in local storage
+        // setStorageItem(
+        //   "accessToken",
+        //   `${token.tokenType} ${token.accessToken}`
+        // );
+        // // Save auth profile in redux storage
+        // dispatch(loginUser(authProfile));
 
         router.push("/");
       } catch (error: unknown) {

@@ -10,7 +10,6 @@ import {
   verifyChangePassword,
 } from "@/services/account/api-services";
 import { useAppDispatch } from "@/stores/store";
-import { updateImage, updateInformationProfile } from "@/stores/user-slice";
 import { useMutation } from "@tanstack/react-query";
 
 export const useServiceGetProfileAccount = async () => {

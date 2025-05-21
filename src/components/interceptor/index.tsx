@@ -14,7 +14,6 @@ const request = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
 });
 
 
@@ -73,11 +72,13 @@ const errorHandler = async (error: AxiosError) => {
     return Promise.reject(result);
   }
 
-  if (error.response?.status === 401 && error?.config) {
+  if (error.response?.status === 401 && error?.config &&
+    !error.config.url?.includes("/auth/logout")) {
     const originalRequest = error?.config;
 
     if (!refreshTokenPromise) {
-      refreshTokenPromise = refreshToken()
+      const storedRefreshToken = getStorageItem("refreshToken") || "";
+      refreshTokenPromise = refreshToken({ refreshToken: storedRefreshToken })
         .then((res: any) => {
           const accessToken = `${res?.tokenType} ${res?.accessToken}`;
           setStorageItem("accessToken", accessToken);
@@ -85,7 +86,7 @@ const errorHandler = async (error: AxiosError) => {
         })
         .catch((err: any) => {
           removeStorageItem("accessToken");
-          location.href = "/";
+          location.href = "/login";
           return Promise.reject(err);
         })
         .finally(() => {
@@ -104,6 +105,11 @@ const errorHandler = async (error: AxiosError) => {
 
 request.interceptors.request.use(
   (config) => {
+
+    if (config.url?.includes("/auth/logout")) {
+      return config;
+    }
+    
     const token = getStorageItem("accessToken");
     if (token) {
       config.headers.Authorization = token;

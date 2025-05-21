@@ -1,5 +1,6 @@
 import request from "@/components/interceptor";
 import API_ENDPOINTS from "@/services/auth/api-path";
+import { getStorageItem } from "@/utils/local-storage";
 import {
   LoginBodyType,
   RegisterBodyType,
@@ -7,28 +8,42 @@ import {
 } from "@/utils/schema-validations/auth.schema";
 
 export const login = async (body: LoginBodyType) => {
-  const response = await request<API.TAuthResponse>(API_ENDPOINTS.LOGIN, {
+  const response = await request<TResponseData<API.TAuthResponse>>(API_ENDPOINTS.LOGIN, {
     method: "POST",
     data: body,
   });
   return response.data;
 };
 
-export const register = async (body: RegisterBodyWithoutConfirm) => {
-  const response = await request<TResponseData<REQUEST.TRegister>>(API_ENDPOINTS.REGISTER, {
+export const register = async (body: RegisterBodyWithoutConfirm): Promise<TResponseData<API.TRegisterResponse>> => {
+  const response = await request<TResponseData<API.TRegisterResponse>>(API_ENDPOINTS.REGISTER, {
     method: "POST",
     data: body,
   });
   return response.data;
 };
 
-export const verifyEmail = async (body: REQUEST.TAuthVerifyEmail) => {
-  const response = await request<TResponse>(API_ENDPOINTS.VERIFY_EMAIL, {
+export const verifyOtp = async (body: API.TAuthVerifyOtp) => {
+  const response = await request<TResponseData>(
+    API_ENDPOINTS.VERIFY_OTP,
+    {
+      method: "POST",
+      data: body,
+    }
+  );
+  return response.data;
+};
+
+export const logout = async () => {
+  const response = await request<TResponseData>(API_ENDPOINTS.LOGOUT, {
     method: "POST",
-    data: body,
+    headers: {
+      'Authorization': `Bearer ${getStorageItem("accessToken")}`
+    }
   });
   return response.data;
 };
+
 
 export const forgotPasswordEmail = async (
   body: API.TAuthForgotPasswordEmail
@@ -43,14 +58,27 @@ export const forgotPasswordEmail = async (
   return response.data;
 };
 
-export const forgotPasswordOtp = async (body: API.TAuthForgotPasswordOtp) => {
-  const response = await request<TResponseData>(
-    API_ENDPOINTS.FORGOT_PASSWORD_OTP,
-    {
-      method: "POST",
-      data: body,
-    }
-  );
+// export const resendOtp = async (
+//   body: REQUEST.TAuthResendOtp
+// ) => {
+//   const response = await request<TResponseData>(
+//     API_ENDPOINTS.RESEND_OTP,
+//     {
+//       method: "POST",
+//       data: body,
+//     }
+//   );
+//   return response.data;
+// };
+
+export const resendOtp = async (body: FormData) => {
+  const response = await request<TResponseData>(API_ENDPOINTS.RESEND_OTP, {
+    method: "POST",
+    data: body,
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 
@@ -67,20 +95,11 @@ export const forgotPasswordChange = async (
   return response.data;
 };
 
-export const logout = async () => {
-  const response = await request<TResponseData>(API_ENDPOINTS.LOGOUT, {
+export const refreshToken = async (body: API.TAuthRefreshToken) => {
+  const response = await request<TResponseData<API.TAuthResponse>>(API_ENDPOINTS.REFRESH_TOKEN, {
     method: "POST",
+    data: body,
   });
-  return response.data;
-};
-
-export const refreshToken = async () => {
-  const response = await request<API.TAuthResponse>(
-    API_ENDPOINTS.REFRESH_TOKEN,
-    {
-      method: "GET",
-    }
-  );
   return response.data;
 };
 

@@ -1,7 +1,6 @@
 'use client'
 import Footer from "@/components/footer";
 import Header from "@/components/header";
-import { Roles } from "@/const/authentication";
 import { openMessageUser } from "@/stores/difference-slice";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { usePathname, useRouter } from "next/navigation";
@@ -26,7 +25,7 @@ export default function UserLayout({
                 {children}
             </main>
             {!hideHeaderFooter && <Footer />}
-            {(!userState.user || userState.user?.roleId === Roles[1]?.id) && (
+            {(!userState.user || userState.user?.roleName === "Admin") && (
                 <button
                     onClick={handleOpenChat}
                     className="fixed bottom-6 right-6 w-14 h-14 bg-[#fb8500] text-white rounded-full flex items-center justify-center shadow-lg hover:opacity-80 transition"

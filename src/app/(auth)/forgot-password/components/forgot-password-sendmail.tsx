@@ -2,10 +2,16 @@ import InputAuth from "@/components/input-auth";
 import Link from "next/link";
 import useForgotPasswordEmail from "../hooks/useForgotPasswordEmail";
 import { Backdrop } from "@/components/backdrop";
+import { useServiceResendOtp } from "@/services/auth/services";
 
 export default function ForgotPasswordSendMail() {
-  const { register, errors, handleSubmit, onSubmit, isPending } =
-    useForgotPasswordEmail();
+  const {
+    register,
+    errors,
+    handleSubmit,
+    onSubmit,
+    isPending 
+  } = useForgotPasswordEmail();
 
   return (
     <div className="w-[100%]">

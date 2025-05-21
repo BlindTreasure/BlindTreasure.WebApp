@@ -1,13 +1,12 @@
 "use client";
 import ForgotPasswordChange from "@/app/(auth)/forgot-password/components/forgot-password-change";
-import ForgotPasswordOtp from "@/app/(auth)/forgot-password/components/forgot-password-otp";
 import ForgotPasswordSendMail from "@/app/(auth)/forgot-password/components/forgot-password-sendmail";
 import {
   resetForgotPasswordEmail,
-  resetForgotPasswordOtp,
 } from "@/stores/auth-slice";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { ChevronLeft } from "lucide-react";
+import { useEffect } from "react";
 
 export default function ForgotPasswordForm() {
   const dispatch = useAppDispatch();
@@ -15,12 +14,12 @@ export default function ForgotPasswordForm() {
     (state) => state.authSlice.forgotPassword
   );
 
+  useEffect(() => {
+    dispatch(resetForgotPasswordEmail());
+  }, [dispatch]);
+
   const handlePrevious = () => {
-    if (forgotPasswordState.otp?.length > 0) {
-      dispatch(resetForgotPasswordOtp());
-    } else {
-      dispatch(resetForgotPasswordEmail());
-    }
+    dispatch(resetForgotPasswordEmail());
   };
 
   return (
@@ -33,12 +32,11 @@ export default function ForgotPasswordForm() {
             </div>
           </div>
         )}
-        {forgotPasswordState.email?.length > 0 &&
-          forgotPasswordState.otp?.length > 0 && <ForgotPasswordChange />}
-        {forgotPasswordState.email?.length > 0 &&
-          forgotPasswordState.otp?.length === 0 && <ForgotPasswordOtp />}
-        {forgotPasswordState.email?.length === 0 &&
-          forgotPasswordState.otp?.length === 0 && <ForgotPasswordSendMail />}
+        {forgotPasswordState.email?.length > 0 ? (
+          <ForgotPasswordChange />
+        ) : (
+          <ForgotPasswordSendMail />
+        )}
       </div>
     </div>
   );

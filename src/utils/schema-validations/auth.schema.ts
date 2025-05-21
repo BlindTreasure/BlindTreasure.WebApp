@@ -5,7 +5,7 @@ export const LoginBody = z
     email: z.string().email(),
     password: z
       .string()
-      .min(6, "Password must be at least 6 characters")
+      .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
       .max(100),
   })
   .strict();
@@ -14,28 +14,28 @@ export type LoginBodyType = z.infer<typeof LoginBody>;
 
 export const RegisterBody = z
   .object({
-    email: z.string().email("Invalid email address"),
+    email: z.string().email("Địa chỉ email không hợp lệ"),
     password: z
       .string()
-      .min(6, "Password must be at least 6 characters")
+      .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
       .max(100),
     confirmPassword: z
       .string()
-      .min(6, "Confirm Password must be at least 6 characters")
+      .min(6, "Xác nhận mật khẩu phải có ít nhất 6 ký tự")
       .max(100),
     fullName: z
       .string()
       .trim()
-      .min(2, "Full name must be at least 2 characters")
+      .min(2, "Tên đầy đủ phải có ít nhất 2 ký tự")
       .max(256),
     dateOfBirth: z
       .string()
       .refine((val) => !isNaN(Date.parse(val)), {
-        message: "Invalid date format",
+        message: "Định dạng ngày không hợp lệ",
       }),
     phoneNumber: z.string().refine(
       (val) => /^0\d{9}$/.test(val),
-      { message: "Invalid phone number" }
+      { message: "Số điện thoại không hợp lệ" }
     ),
   })
   .strict()
@@ -43,7 +43,7 @@ export const RegisterBody = z
     if (password !== confirmPassword) {
       ctx.addIssue({
         code: "custom",
-        message: "Passwords do not match",
+        message: "Mật khẩu không khớp",
         path: ["confirmPassword"],
       });
     }

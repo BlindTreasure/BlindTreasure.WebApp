@@ -1,4 +1,9 @@
-import { useServiceForgotPasswordEmail } from "@/services/auth/services";
+import { handleError } from "@/hooks/error";
+import useToast from "@/hooks/use-toast";
+import {
+  useServiceForgotPasswordEmail,
+  useServiceResendOtp,
+} from "@/services/auth/services";
 import { setForgotPasswordEmail } from "@/stores/auth-slice";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import {
@@ -10,17 +15,12 @@ import { useForm } from "react-hook-form";
 
 export default function useForgotPasswordEmail() {
   const dispatch = useAppDispatch();
-  const forgotPasswordState = useAppSelector(
-    (state) => state.authSlice.forgotPassword
-  );
-  const { mutate, isPending } = useServiceForgotPasswordEmail();
+  const { mutate: resendOtpMutate, isPending } = useServiceResendOtp();
 
   const {
     register,
     handleSubmit,
-    setError,
     formState: { errors },
-    reset,
   } = useForm<ForgotPasswordEmailBodyType>({
     resolver: zodResolver(ForgotPasswordEmailBody),
     defaultValues: {
@@ -28,35 +28,20 @@ export default function useForgotPasswordEmail() {
     },
   });
 
-  const handleSubmitFormEmail = (email: string) => {
-    dispatch(
-      setForgotPasswordEmail({
-        email: email,
-        otp: forgotPasswordState.otp,
-      })
+  const onSubmit = (data: ForgotPasswordEmailBodyType) => {
+    resendOtpMutate(
+      {
+        Email: data.email,
+        Type: "ForgotPassword",
+      },
+      {
+        onSuccess: () => {
+          dispatch(setForgotPasswordEmail({ email: data.email }));
+        },
+      }
     );
   };
 
-  const onSubmit = (data: ForgotPasswordEmailBodyType) => {
-    try {
-      mutate(data, {
-        onSuccess: async (data) => {
-          handleSubmitFormEmail(`${data.value.data}`);
-          reset();
-        },
-        onError: (error) => {
-          if (error.errorCode.includes("auth_email")) {
-            setError("email", {
-              type: "manual",
-              message: error.detail,
-            });
-          }
-        },
-      });
-    } catch (err) {
-      console.log(err);
-    }
-  };
   return {
     register,
     errors,

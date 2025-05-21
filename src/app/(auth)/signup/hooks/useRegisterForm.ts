@@ -8,18 +8,24 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { useServiceRegister } from "@/services/auth/services";
+import {
+  useServiceRegister,
+  useServiceResendOtp,
+} from "@/services/auth/services";
 import { useRouter } from "next/navigation";
 import useToast from "@/hooks/use-toast";
+import { useAppDispatch } from "@/stores/store";
+import { setSignupEmail } from "@/stores/auth-slice";
+import { handleError } from "@/hooks/error";
 
 export function useRegisterForm() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [typePassword, setTypePassword] = useState<boolean>(false);
   const [typeConfirmPassword, setTypeConfirmPassword] =
     useState<boolean>(false);
   const { mutate, isPending } = useServiceRegister();
-  const { addToast } = useToast();
-
+  
   const {
     register,
     watch,
@@ -41,28 +47,27 @@ export function useRegisterForm() {
   const onSubmit = async (data: RegisterBodyType) => {
     const { confirmPassword, ...rest } = data;
 
+    if (rest.dateOfBirth) {
+      rest.dateOfBirth =
+        new Date(rest.dateOfBirth).toISOString().split(".")[0] + "Z";
+    }
+
     const dataToSend: RegisterBodyWithoutConfirm = rest;
 
     try {
       mutate(dataToSend, {
         onSuccess: async (data) => {
-          if (data && data.value.code.includes("auth_noti")) {
-            addToast({
-              description: data.value.message,
-              type: "success",
-              duration: 5000,
-            });
+          if (data && data.value.code.includes("200")) {
             reset();
-            router.push("/login");
+            const email = data.value.data?.email || rest.email;
+
+            dispatch(setSignupEmail({ email, otp: "" }));
+
+            router.push(`/signup-otp?email=${encodeURIComponent(email)}`);
           }
         },
-        onError: (error) => {
-          if (error.errorCode.includes("auth_email")) {
-            setError("email", {
-              type: "manual",
-              message: error.detail,
-            });
-          }
+        onError: (error: any) => {
+          handleError(error);
         },
       });
     } catch (err) {
