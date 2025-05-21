@@ -8,6 +8,7 @@ import { useAppSelector } from "@/stores/store";
 import AvatarMenu from "@/components/avatar-menu";
 import TippyHeadless from "@tippyjs/react/headless";
 import { Menu, X } from "lucide-react";
+import { BsCart3 } from "react-icons/bs";
 import Image from "next/image";
 import {
   Sheet,
@@ -69,7 +70,10 @@ const Header: React.FC = () => {
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center space-x-4">
+            <Link href="/cart" className="text-gray-600 hover:text-[#d02a2a] text-2xl">
+              <BsCart3 />
+            </Link>
             {userState.user === null ? (
               <Link
                 href="/login"
@@ -118,6 +122,9 @@ const Header: React.FC = () => {
           </div>
 
           <div className="md:hidden flex items-center">
+            <Link href="/cart" className="text-gray-600 hover:text-[#d02a2a] text-2xl">
+              <BsCart3 />
+            </Link>
             <Sheet>
               <SheetTrigger asChild>
                 <button className="p-2 text-gray-600 hover:text-[#d02a2a] focus:outline-none">
