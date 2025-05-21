@@ -61,7 +61,7 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
   };
   
   return (
-    <div className="z-10 absolute right-0 mt-2 bg-white divide-y divide-gray-100 rounded-lg shadow-box w-72 overflow-hidden">
+    <div className="z-10 absolute mt-2 bg-white divide-y ml-24 sm:-ml-4 divide-gray-100 rounded-lg shadow-box md:w-72 w-64 md:right-0 sm:left-auto left-1/2 -translate-x-1/2 sm:translate-x-0 overflow-hidden">
       <div
         className="px-4 py-3 text-lg text-gray-900 hover:bg-gray-200 select-none cursor-pointer"
         onClick={() => {

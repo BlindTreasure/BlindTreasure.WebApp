@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -42,7 +42,7 @@ const Header: React.FC = () => {
   const handleNavigate = () => {
     router.push("/");
   };
-  
+
   return (
     <header className="flex items-center justify-between px-8 bg-white rounded-full fixed top-0 left-0 right-0 z-50 shadow-lg max-w-[1400px] w-full h-24 mx-auto mt-6">
       <div className="container mx-auto py-4">
@@ -73,7 +73,7 @@ const Header: React.FC = () => {
             {userState.user === null ? (
               <Link
                 href="/login"
-                className={`text-xl text-gray-600 hover:text-teal-400 ${currentPath === "/login" ? "text-teal-400" : ""
+                className={`text-xl text-gray-600 hover:text-[#d02a2a] hover:underline ${currentPath === "/login" ? "text-teal-400" : ""
                   }`}
               >
                 Đăng nhập
@@ -96,7 +96,7 @@ const Header: React.FC = () => {
                     )}
                     onClickOutside={handleCloseAvatarTooltip}
                   >
-                    <figure className="rounded-full border border-zinc-300 overflow-hidden w-14 h-14 flex items-center justify-center hover:bg-teal-400">
+                    <figure className="rounded-full border border-zinc-300 overflow-hidden w-14 h-14 flex items-center justify-center hover:bg-#d02a2a">
 
                       {userState?.user?.avatarUrl !== "" && (
                         <img
@@ -120,7 +120,7 @@ const Header: React.FC = () => {
           <div className="md:hidden flex items-center">
             <Sheet>
               <SheetTrigger asChild>
-                <button className="p-2 text-gray-600 hover:text-teal-400 focus:outline-none">
+                <button className="p-2 text-gray-600 hover:text-[#d02a2a] focus:outline-none">
                   <Menu size={32} />
                 </button>
               </SheetTrigger>
@@ -142,7 +142,7 @@ const Header: React.FC = () => {
                       key={link.href}
                       href={link.href}
                       className={`px-4 py-2 rounded-lg text-lg ${currentPath === link.href
-                        ? "bg-teal-50 text-teal-600"
+                        ? "bg-[#ebeaea] text-[#d02a2a]"
                         : "text-gray-600 hover:bg-gray-50"
                         }`}
                     >
@@ -164,13 +164,13 @@ const Header: React.FC = () => {
                       <div className="relative">
                         <TippyHeadless
                           interactive
-                          placement="bottom-end"
+                          placement="bottom"
                           offset={[-5, 2]}
                           visible={avatarTooltip}
                           render={(attrs) => (
                             <div
                               {...attrs}
-                              className="w-48 py-2 rounded-md bg-white shadow-lg z-[9999] border border-gray-100"
+
                             >
                               <AvatarMenu onCloseTooltip={handleCloseAvatarTooltip} />
                             </div>
