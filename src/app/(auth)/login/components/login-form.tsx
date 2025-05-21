@@ -82,31 +82,27 @@ export default function LoginForm() {
               onClick={() => handleLoginGoogle()}
               className={`block w-[100%] rounded-md py-2 bg-white border border-gray-400 hover:bg-gray-300`}
             >
-              <div className="relative">
-                <figure className="absolute top-1/2 -translate-y-1/2 left-[38%]">
-                  <img
-                    src={"/images/Google-icon.svg"}
-                    alt="Login with Google"
-                    width={25}
-                    height={25}
-                    className="block"
-                  />
-                </figure>
+              <div className="flex items-center gap-2 justify-center">
+                <img
+                  src="/images/Google-icon.svg"
+                  alt="Login with Google"
+                  width={25}
+                  height={25}
+                  className="block"
+                />
                 <span className="text-base text-gray-700">Google</span>
               </div>
             </button>
-            <div className="flex justify-between">
-              <p className="text-[1rem]">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-[1rem]">
+              <p>
                 Lần đầu sử dụng BlindTreasure?{" "}
                 <Link href="/signup">
                   <span className="font-bold cursor-pointer">Đăng ký</span>
                 </Link>
               </p>
               <Link href="/forgot-password">
-                <p className="text-[1rem]">
-                  <span className="font-bold cursor-pointer">
-                    Quên mật khẩu?
-                  </span>
+                <p>
+                  <span className="font-bold cursor-pointer">Quên mật khẩu?</span>
                 </p>
               </Link>
             </div>
