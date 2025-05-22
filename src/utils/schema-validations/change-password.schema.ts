@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const ChangePasswordBody = z
   .object({
-    password: z.string().min(6).max(100),
+    password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự").max(100),
     confirmPassword: z
       .string()
       .min(6, "Xác nhận mật khẩu phải có ít nhất 6 ký tự")

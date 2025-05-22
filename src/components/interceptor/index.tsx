@@ -73,7 +73,8 @@ const errorHandler = async (error: AxiosError) => {
   }
 
   if (error.response?.status === 401 && error?.config &&
-    !error.config.url?.includes("/auth/logout")) {
+    !error.config.url?.includes("/auth/logout") &&
+  !error.config.url?.includes("/auth/login")) {
     const originalRequest = error?.config;
 
     if (!refreshTokenPromise) {
