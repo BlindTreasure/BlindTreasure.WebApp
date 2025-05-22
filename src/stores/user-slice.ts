@@ -67,8 +67,16 @@ const userSlice = createSlice({
     clearUser(state) {
       state.user = null;
     },
+    updateInformationProfile: (
+      state,
+      action: PayloadAction<API.TProfileAccount>
+    ) => {
+      if (state.user) {
+        state.user.fullName = action.payload.firstName;
+      }
+    },
   },
 });
 
-export const { loginUser, setUser, clearUser } = userSlice.actions;
+export const { loginUser, setUser, clearUser, updateInformationProfile } = userSlice.actions;
 export default userSlice.reducer;

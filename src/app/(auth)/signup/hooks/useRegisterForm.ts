@@ -25,7 +25,7 @@ export function useRegisterForm() {
   const [typeConfirmPassword, setTypeConfirmPassword] =
     useState<boolean>(false);
   const { mutate, isPending } = useServiceRegister();
-  
+
   const {
     register,
     watch,
@@ -47,6 +47,10 @@ export function useRegisterForm() {
   const onSubmit = async (data: RegisterBodyType) => {
     const { confirmPassword, ...rest } = data;
 
+    if (!rest.phoneNumber.startsWith("0")) {
+      rest.phoneNumber = `0${rest.phoneNumber}`;
+    }
+
     if (rest.dateOfBirth) {
       rest.dateOfBirth =
         new Date(rest.dateOfBirth).toISOString().split(".")[0] + "Z";
@@ -67,7 +71,21 @@ export function useRegisterForm() {
           }
         },
         onError: (error: any) => {
+          const errorCode = error?.error?.code;
+          const errorMessage = error?.error?.message;
+          const email = rest.email;
+
           handleError(error);
+
+          if (
+            errorCode === "409" &&
+            errorMessage === "Email đã được sử dụng."
+          ) {
+            dispatch(setSignupEmail({ email, otp: "" }));
+            setTimeout(() => {
+              router.push(`/signup-otp?email=${encodeURIComponent(email)}`);
+            }, 1500);
+          }
         },
       });
     } catch (err) {

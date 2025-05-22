@@ -83,11 +83,6 @@ const useSignupOtp = () => {
         Email: signupState.email,
         Type: "Register",
       },
-      {
-        onError: (error: any) => {
-          handleError(error);
-        },
-      }
     );
   };
 
