@@ -2,7 +2,7 @@ import AdminHeader from "@/components/admin-header";
 import SellerSidebar from "@/components/seller-sidebar";
 import React from "react";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function SellerLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen">
       <SellerSidebar />
