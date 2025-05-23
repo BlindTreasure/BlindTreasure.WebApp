@@ -15,10 +15,10 @@ const Footer: React.FC = () => {
 
         {/* Address */}
         <div>
-          <p className='text-base mb-3 text-gray-300'>ĐỊA CHỈ</p>
+          <p className='text-base mb-3 text-gray-300 font-anton'>ĐỊA CHỈ</p>
           <p className='text-gray-400 text-sm'>Thành phố Hồ Chí Minh, Việt Nam</p>
           <p className='text-gray-400 text-sm mt-1'>
-            (Xin lưu ý rằng chúng tôi không có địa chỉ tạm thời, chúng tôi chỉ là mạng lưới cung cấp tài liệu)
+            (Xin lưu ý rằng chúng tôi không có địa chỉ tạm thời, chúng tôi chỉ là mạng lưới cung cấp sản phẩm)
           </p>
         </div>
 

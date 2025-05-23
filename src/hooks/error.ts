@@ -20,8 +20,6 @@ export function handleError(error: any) {
         duration: 5000,
       });
       
-
-      
       break;
     case 403:
       addToast({

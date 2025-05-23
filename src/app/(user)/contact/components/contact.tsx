@@ -10,7 +10,7 @@ export default function Contact() {
     return (
         <div>
             <section>
-                <div className="relative w-full h-96"><img className="absolute h-full w-full object-cover object-center" src="https://tienganhtieuhoc.edu.vn/images/home/banner.png" alt="nature image" />
+                <div className="relative w-full h-96"><img className="absolute h-full w-full object-cover object-center" src="./images/contact.webp" alt="contact" />
                     <div className="absolute inset-0 h-full w-full bg-black/50"></div>
                     <motion.div
                         variants={fadeIn("up", 0.3)}
