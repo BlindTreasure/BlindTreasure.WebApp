@@ -5,6 +5,7 @@ import {
   logout,
   refreshToken,
   register,
+  registerSeller,
   resendOtp,
   verifyOtp,
 } from "@/services/auth/api-services";
@@ -14,6 +15,7 @@ import {
   LoginBodyType,
   RegisterBodyType,
   RegisterBodyWithoutConfirm,
+  RegisterSellerBodyWithoutConfirm,
 } from "@/utils/schema-validations/auth.schema";
 import { useMutation } from "@tanstack/react-query";
 import { ForgotPasswordEmailBodyType } from "@/utils/schema-validations/forgot-password.schema";
@@ -53,6 +55,24 @@ export const useServiceRegister = () => {
     RegisterBodyWithoutConfirm
   >({
     mutationFn: register,
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+  });
+};
+
+export const useServiceRegisterSeller = () => {
+  const { addToast } = useToast();
+  return useMutation<
+    TResponseData<API.TRegisterSellerResponse>,
+    TMeta,
+    RegisterSellerBodyWithoutConfirm
+  >({
+    mutationFn: registerSeller,
     onSuccess: (data) => {
       addToast({
         type: "success",

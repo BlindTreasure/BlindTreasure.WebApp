@@ -16,7 +16,7 @@ const minDate = new Date(
   today.getDate()
 );
 
-export const RegisterBody = z
+const RegisterBase = z
   .object({
     email: z.string().email("Địa chỉ email không hợp lệ"),
     password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự").max(100),
@@ -35,10 +35,7 @@ export const RegisterBody = z
         const isInFuture = dob > today;
         const isTooYoung = dob > minDate;
 
-        if (isInFuture) return false;
-        if (isTooYoung) return false;
-
-        return true;
+        return !(isInFuture || isTooYoung);
       },
       {
         message:
@@ -51,8 +48,11 @@ export const RegisterBody = z
       .max(9, "Số điện thoại chỉ gồm 9 chữ số")
       .regex(/^[1-9][0-9]{8}$/, "Số điện thoại không hợp lệ (bỏ số 0 đầu)"),
   })
-  .strict()
-  .superRefine(({ password, confirmPassword }, ctx) => {
+  .strict();
+
+
+export const RegisterBody = RegisterBase.superRefine(
+  ({ password, confirmPassword }, ctx) => {
     if (password !== confirmPassword) {
       ctx.addIssue({
         code: "custom",
@@ -60,11 +60,42 @@ export const RegisterBody = z
         path: ["confirmPassword"],
       });
     }
-  });
+  }
+);
 
-export type RegisterBodyType = z.TypeOf<typeof RegisterBody>;
+export const RegisterSellerBody = RegisterBase.extend({
+  companyName: z
+    .string()
+    .min(2, "Tên công ty phải có ít nhất 2 ký tự")
+    .max(256, "Tên công ty quá dài"),
+  taxId: z
+    .string()
+    .min(5, "Mã số thuế phải có ít nhất 5 ký tự")
+    .max(50, "Mã số thuế quá dài"),
+  companyAddress: z
+    .string()
+    .min(5, "Địa chỉ công ty phải có ít nhất 5 ký tự")
+    .max(256, "Địa chỉ công ty quá dài"),
+  coaDocumentUrl: z
+  .string()
+  .url("URL tài liệu COA không hợp lệ")
+  .optional()
+  .or(z.literal(""))
+}).superRefine(({ password, confirmPassword }, ctx) => {
+  if (password !== confirmPassword) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Mật khẩu không khớp",
+      path: ["confirmPassword"],
+    });
+  }
+});
 
-export type RegisterBodyWithoutConfirm = Omit<
-  RegisterBodyType,
+export type RegisterBodyType = z.infer<typeof RegisterBody>;
+export type RegisterBodyWithoutConfirm = Omit<RegisterBodyType, "confirmPassword">;
+
+export type RegisterSellerBodyType = z.infer<typeof RegisterSellerBody>;
+export type RegisterSellerBodyWithoutConfirm = Omit<
+  RegisterSellerBodyType,
   "confirmPassword"
 >;

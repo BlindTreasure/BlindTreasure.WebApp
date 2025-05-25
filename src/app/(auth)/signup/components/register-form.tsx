@@ -165,6 +165,12 @@ export default function RegisterForm() {
                   <span className="font-bold cursor-pointer">Đăng nhập</span>
                 </Link>
               </p>
+              <p>
+                Bạn là người bán?{" "}
+                <Link href="/signup-seller" className="text-purple-700 font-bold">
+                  Đăng ký với tư cách người bán
+                </Link>
+              </p>
             </div>
           </div>
         </form>
