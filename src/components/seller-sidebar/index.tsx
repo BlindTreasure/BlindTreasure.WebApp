@@ -42,7 +42,7 @@ const sidebarItems = [
       },
       {
         label: "Thêm sản phẩm mới",
-        href: "/seller/products/create",
+        href: "/seller/productform",
         icon: PlusSquare,
       },
     ],
