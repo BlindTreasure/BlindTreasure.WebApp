@@ -34,8 +34,6 @@ declare namespace API {
     email: string;
   };
 
-  
-
   type TAuthVerifyOtp = {
     email: string;
     otp: string;
