@@ -5,6 +5,7 @@ import {
   LoginBodyType,
   RegisterBodyType,
   RegisterBodyWithoutConfirm,
+  RegisterSellerBodyWithoutConfirm,
 } from "@/utils/schema-validations/auth.schema";
 
 export const login = async (body: LoginBodyType) => {
@@ -17,6 +18,14 @@ export const login = async (body: LoginBodyType) => {
 
 export const register = async (body: RegisterBodyWithoutConfirm): Promise<TResponseData<API.TRegisterResponse>> => {
   const response = await request<TResponseData<API.TRegisterResponse>>(API_ENDPOINTS.REGISTER, {
+    method: "POST",
+    data: body,
+  });
+  return response.data;
+};
+
+export const registerSeller = async (body: RegisterSellerBodyWithoutConfirm): Promise<TResponseData<API.TRegisterSellerResponse>> => {
+  const response = await request<TResponseData<API.TRegisterSellerResponse>>(API_ENDPOINTS.REGISTER_SELLER, {
     method: "POST",
     data: body,
   });
@@ -57,19 +66,6 @@ export const forgotPasswordEmail = async (
   );
   return response.data;
 };
-
-// export const resendOtp = async (
-//   body: REQUEST.TAuthResendOtp
-// ) => {
-//   const response = await request<TResponseData>(
-//     API_ENDPOINTS.RESEND_OTP,
-//     {
-//       method: "POST",
-//       data: body,
-//     }
-//   );
-//   return response.data;
-// };
 
 export const resendOtp = async (body: FormData) => {
   const response = await request<TResponseData>(API_ENDPOINTS.RESEND_OTP, {
