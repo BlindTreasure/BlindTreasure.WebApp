@@ -19,11 +19,6 @@ export default function useLogout() {
         removeStorageItem("refreshToken");
         dispatch(clearUser());
         dispatch(resetProfile());
-        addToast({
-          type: "success",
-          description: data.value.message,
-          duration: 5000,
-        });
         router.push("/login");
       },
       onError: (error: any) => {

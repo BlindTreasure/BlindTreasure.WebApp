@@ -6,8 +6,6 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import useLogout from "@/hooks/use-logout";
 import { RootState, useAppSelector } from "@/stores/store";
-import TippyHeadless from "@tippyjs/react/headless";
-import AvatarMenu from "@/components/avatar-menu";
 interface UserDropdownProps {
   setIsLoggingOut: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -46,7 +44,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
           />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">Admin</span>
+        <span className="block mr-1 font-medium text-theme-sm">Nhân viên</span>
 
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
@@ -74,10 +72,10 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
       >
         <div>
           <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            Admin EduSource
+            {userState?.user?.fullName}
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            admin@edusource.com
+            {userState?.user?.email}
           </span>
         </div>
 
@@ -177,7 +175,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
               fill=""
             />
           </svg>
-          Sign out
+          Đăng xuất
         </button>
       </Dropdown>
     </div>

@@ -3,7 +3,7 @@ import { z } from "zod";
 export const LoginBody = z
   .object({
     email: z.string().email("Địa chỉ email không hợp lệ"),
-    password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự").max(100),
+    password: z.string().min(2).max(100),
   })
   .strict();
 
