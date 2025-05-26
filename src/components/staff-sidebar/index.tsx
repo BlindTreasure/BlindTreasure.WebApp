@@ -83,7 +83,7 @@ export default function StaffSidebar() {
                                 onClick={() => toggleDropdown("dashboard")}
                                 className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded-md"
                             >
-                                <Link href="/admin/dashboard" className="flex items-center space-x-2">
+                                <Link href="/staff/dashboard" className="flex items-center space-x-2">
                                     <div className="flex items-center justify-center w-8 h-8">
                                         <LayoutDashboard size={20} />
                                     </div>
@@ -91,42 +91,22 @@ export default function StaffSidebar() {
                                         Dashboard
                                     </span>
                                 </Link>
-                                {staffState.openSidebar && !isMobile && (
-                                    <ChevronDown
-                                        className={`size-4 transition-transform ${openDropdown === "dashboard" ? "rotate-180" : ""} text-gray-400`}
-                                    />
-                                )}
                             </button>
-
-                            {openDropdown === "dashboard" && staffState.openSidebar && !isMobile && (
-                                <ul className="pl-4 mt-1 space-y-1">
-                                    <li>
-                                        <Link href="/admin/user-donate" className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded-md">
-                                            <div className="flex items-center justify-center w-8 h-8">
-                                                <Coins size={20} />
-                                            </div>
-                                            <span className="truncate">All users donation</span>
-                                        </Link>
-                                    </li>
-                                </ul>
-                            )}
                         </li>
 
                         <li>
-                            <Link href="/admin/transaction" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
+                            <Link href="/staff/seller-management" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
                                 <div className="flex items-center justify-center w-8 h-8">
                                     <Building size={20} />
                                 </div>
                                 <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
-                                    Thống kê giao dịch
+                                    Duyệt hồ sơ bán hàng
                                 </span>
                             </Link>
                         </li>
-
                     </ul>
                 </div>
             </aside>
-
         </>
     );
 }

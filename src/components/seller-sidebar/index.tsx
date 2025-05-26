@@ -125,7 +125,7 @@ export default function SellerSidebar() {
             />
           </div>
           {staffState.openSidebar && (
-            <span className="text-lg font-semibold">Seller</span>
+            <span className="text-lg font-semibold">Người bán</span>
           )}
         </div>
 

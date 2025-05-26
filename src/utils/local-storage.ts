@@ -1,12 +1,11 @@
 export const getStorageItem = (
-    key: string,
-    defaultValue?: string
-  ): string | undefined => {
-    return (
-      (localStorage.getItem(key) !== null && localStorage.getItem(key)) ||
-      defaultValue
-    );
-  };
+  key: string,
+  defaultValue?: string
+): string | undefined => {
+  const value = localStorage.getItem(key);
+  return value && value.trim() !== "" ? value : defaultValue;
+};
+
   
   export const setStorageItem = (key: string, value: string): void => {
     localStorage.setItem(key, value);

@@ -16,7 +16,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
 
   const onLogout = async () => {
     setIsLoggingOut(true);
-    await handleLogout();
+    handleLogout();
     setIsLoggingOut(false);
   };
 
@@ -44,7 +44,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
           />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">Nhân viên</span>
+        <span className="block mr-1 font-medium text-theme-sm">{userState?.user?.roleName}</span>
 
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""

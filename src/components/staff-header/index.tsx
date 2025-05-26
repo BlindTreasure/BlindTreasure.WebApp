@@ -139,6 +139,5 @@ export default function StaffHeader() {
                 </div>
             </div>
         </header>
-
     );
 }
