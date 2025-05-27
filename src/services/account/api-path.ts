@@ -1,6 +1,6 @@
 /* eslint-disable import/no-anonymous-default-export */
-const ACCOUNT = "/v1/Account";
-const GET_ACCOUNT_PROFILE = ACCOUNT + "/get-account-profile";
+const ACCOUNT = "/personal";
+const GET_ACCOUNT_PROFILE = ACCOUNT + "/me";
 const UPDATE_AVATAR_PROFILE = ACCOUNT + "/update-avatar-profile";
 const UPDATE_INFO_PROFILE = ACCOUNT + "/update-info-profile";
 const UPDATE_EMAIL_PROFILE = ACCOUNT + "/update-email-profile";

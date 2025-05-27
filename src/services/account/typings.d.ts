@@ -30,14 +30,16 @@ declare namespace REQUEST {
 
 declare namespace API {
   type TProfileAccount = {
-    id: string;
-    firstName: string;
-    lastName: string;
+    userId: string;
+    fullName: string;
     email: string;
+    avatarUrl: string;
+    dateOfBirth: string;
+    gender: number | null;
+    status: string;
     phoneNumber: string;
-    gender: number;
-    status: boolean;
-    loginType?: number;
+    roleName: string;
+    createdAt: string;
   };
 
   type TUpdateAvatar = {

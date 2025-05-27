@@ -31,8 +31,8 @@ export default function EditPersonal({
 }: EditPersonalProps) {
   const { register, errors, handleSubmit, onSubmit, reset, isPending } =
     useUpdateInformation({
-      firstName: information.firstName,
-      lastName: information.lastName,
+      firstName: information.fullName,
+      lastName: information.fullName,
       phoneNumber: information.phoneNumber,
     });
 

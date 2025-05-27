@@ -72,7 +72,7 @@ const userSlice = createSlice({
       action: PayloadAction<API.TProfileAccount>
     ) => {
       if (state.user) {
-        state.user.fullName = action.payload.firstName;
+        state.user.fullName = action.payload.fullName;
       }
     },
   },

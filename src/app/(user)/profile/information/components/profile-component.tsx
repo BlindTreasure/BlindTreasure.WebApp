@@ -14,13 +14,16 @@ export default function ProfileComponent() {
   const [editPasswordPopup, setEditPasswordPopup] = useState<boolean>(false);
 
   const [profileInfo, setProfileInfo] = useState<API.TProfileAccount>({
-    id: "",
+    userId: "",
+    fullName: "",
     email: "",
-    firstName: "",
-    lastName: "",
+    avatarUrl: "",
+    dateOfBirth: "",
     gender: 1,
+    status: "",
     phoneNumber: "",
-    status: false,
+    roleName: "",
+    createdAt: ""
   });
 
 
@@ -53,13 +56,16 @@ export default function ProfileComponent() {
 
   const handleFetchProfile = async () => {
     const initialData = {
-      id: "",
+      userId: "",
+      fullName: "",
       email: "",
-      firstName: "",
-      lastName: "",
+      avatarUrl: "",
+      dateOfBirth: "",
       gender: 1,
+      status: "",
       phoneNumber: "",
-      status: false,
+      roleName: "",
+      createdAt: ""
     };
     try {
       const res = await getProfile.getInfoProfileApi();
@@ -148,7 +154,7 @@ export default function ProfileComponent() {
                 <div className="flex flex-col gap-y-5">
                   <div className="flex flex-col gap-y-2">
                     <label className="text-sm font-medium text-gray-400">Họ và tên</label>
-                    <h5 className="text-base text-gray-650">{profileInfo.email}</h5>
+                    <h5 className="text-base text-gray-650">{profileInfo.fullName}</h5>
                   </div>
 
                   <div className="flex flex-col gap-y-2">

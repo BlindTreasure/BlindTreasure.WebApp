@@ -1,8 +1,8 @@
 import useToast from "@/hooks/use-toast";
 import { getQueryClient } from "@/lib/query";
 import {
-  changePassword,
   getAccountProfile,
+  changePassword,
   updateAvatarProfile,
   updateEmailProfile,
   updateInfoProfile,
