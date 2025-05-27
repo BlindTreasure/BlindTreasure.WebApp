@@ -11,7 +11,6 @@ export default function useGetProfileAccount() {
     setPending(true);
     try {
       const res = await getAccountProfile();
-      console.log("1");
       if (isTResponseData(res)) {
         return res as TResponseData<API.TProfileAccount>;
       }

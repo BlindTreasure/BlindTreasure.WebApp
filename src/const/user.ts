@@ -1,10 +1,12 @@
 export const Genders = [
   {
-    value: "Male",
+    value: true,
+    label: "Male"
   },
   {
-    value: "Female",
-  },
+    value: false,
+    label: "Female"
+  }
 ];
 
 export const ListMessages = [

@@ -7,27 +7,31 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 export default function useUpdateInformation({
-  firstName,
-  lastName,
+  fullName,
+  email,
   phoneNumber,
+  gender,
 }: Readonly<{
-  firstName: string;
-  lastName: string;
+  fullName: string;
+  email: string;
   phoneNumber: string;
+  gender: boolean | null
 }>) {
   const {
     register,
     watch,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors },
     reset,
   } = useForm<UpdateInfoProfileBodyType>({
     resolver: zodResolver(UpdateInfoProfileBody),
     defaultValues: {
-      firstName: firstName,
-      lastName: lastName,
+      fullName: fullName,
+      email: email,
       phoneNumber: phoneNumber,
+      gender: gender
     },
   });
 
@@ -56,5 +60,7 @@ export default function useUpdateInformation({
     mutate,
     reset,
     isPending,
+    watch,
+    setValue,
   };
 }

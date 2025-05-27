@@ -5,10 +5,10 @@ declare namespace REQUEST {
   };
 
   type TUpdateInfoProfile = {
-    firstName: string;
-    lastName: string;
+    fullName: string;
+    email: string;
     phoneNumber: string;
-    gender: number;
+    gender: boolean | null;
   };
 
   type TUpdateEmail = {
@@ -35,7 +35,7 @@ declare namespace API {
     email: string;
     avatarUrl: string;
     dateOfBirth: string;
-    gender: number | null;
+    gender: boolean | null;
     status: string;
     phoneNumber: string;
     roleName: string;
