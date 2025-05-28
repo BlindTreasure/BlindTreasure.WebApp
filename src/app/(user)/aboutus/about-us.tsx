@@ -32,7 +32,7 @@ export default function AboutUs() {
                 variants={fadeIn("up", 0.3)}
                 initial="hidden"
                 whileInView="show"
-                viewport={{ once: false, amount: 0.7 }}
+                viewport={{ once: true, amount: 0.7 }}
                 className='pt-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center mt-28'>
                 <h1 className='text-4xl md:text-5xl font-bold text-[#d02a2a] mb-6'>
                     Về chúng tôi
@@ -53,7 +53,7 @@ export default function AboutUs() {
                         variants={fadeIn("right", 0.3)}
                         initial="hidden"
                         whileInView="show"
-                        viewport={{ once: false, amount: 0.7 }}
+                        viewport={{ once: true, amount: 0.7 }}
                         className="order-2 md:order-1">
                         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
                             Sứ mệnh của chúng tôi
@@ -76,7 +76,7 @@ export default function AboutUs() {
                         variants={fadeIn("left", 0.3)}
                         initial="hidden"
                         whileInView="show"
-                        viewport={{ once: false, amount: 0.7 }}
+                        viewport={{ once: true, amount: 0.7 }}
                         className="order-1 md:order-2">
                         <img
                             src="https://readymadeui.com/team-image.webp"
@@ -99,7 +99,7 @@ export default function AboutUs() {
                     variants={fadeIn("up", 0.3)}
                     initial="hidden"
                     whileInView="show"
-                    viewport={{ once: false, amount: 0.7 }}
+                    viewport={{ once: true, amount: 0.7 }}
                     className="relative z-10 max-w-4xl mx-auto text-center px-6 py-12">
                     <h2 className="text-white text-3xl sm:text-4xl font-bold mb-6">
                         Vui từ điều chưa biết trước
@@ -116,7 +116,7 @@ export default function AboutUs() {
                         variants={fadeIn("up", 0.3)}
                         initial="hidden"
                         whileInView="show"
-                        viewport={{ once: false, amount: 0.7 }}
+                        viewport={{ once: true, amount: 0.7 }}
                         className="text-center mb-12">
                         <h1 className="text-3xl font-bold text-gray-900 mb-4">Cam kết của chúng tôi</h1>
                         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -128,7 +128,7 @@ export default function AboutUs() {
                         variants={fadeIn("up", 0.3)}
                         initial="hidden"
                         whileInView="show"
-                        viewport={{ once: false, amount: 0.7 }}
+                        viewport={{ once: true, amount: 0.7 }}
                         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                         {commitments.map((item, index) => (
                             <div key={index} className="group bg-gray-50 rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
@@ -154,7 +154,7 @@ export default function AboutUs() {
                         variants={fadeIn("up", 0.3)}
                         initial="hidden"
                         whileInView="show"
-                        viewport={{ once: false, amount: 0.7 }}
+                        viewport={{ once: true, amount: 0.7 }}
                         className="text-lg text-gray-600 mb-8">
                         Hãy để BlindTreasure mang đến cho bạn những bất ngờ thú vị và những món quà đáng yêu nhất!
                     </motion.p>
@@ -163,7 +163,7 @@ export default function AboutUs() {
                             variants={fadeIn("right", 0.3)}
                             initial="hidden"
                             whileInView="show"
-                            viewport={{ once: false, amount: 0.7 }}
+                            viewport={{ once: true, amount: 0.7 }}
                             className="px-6 py-3 bg-[#d02a2a] text-white rounded-lg font-medium hover:bg-[#b02525] transition duration-300">
                             Mua sắm ngay
                         </motion.button>
@@ -171,7 +171,7 @@ export default function AboutUs() {
                             variants={fadeIn("left", 0.3)}
                             initial="hidden"
                             whileInView="show"
-                            viewport={{ once: false, amount: 0.7 }}
+                            viewport={{ once: true, amount: 0.7 }}
                             className="px-6 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition duration-300">
                             Liên hệ chúng tôi
                         </motion.button>
