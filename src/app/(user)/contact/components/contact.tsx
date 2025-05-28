@@ -30,7 +30,7 @@ export default function Contact() {
                                 variants={fadeIn("right", 0.3)}
                                 initial="hidden"
                                 whileInView="show"
-                                viewport={{ once: false, amount: 0.7 }}
+                                viewport={{ once: true, amount: 0.7 }}
                                 className="my-4 md:my-8 grid gap-6 px-4">
                                 <div className="flex items-center gap-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="h-6 w-6">
                                     <MdLocationPin className='text-2xl' />
@@ -51,7 +51,7 @@ export default function Contact() {
                             <motion.div variants={fadeIn("left", 0.3)}
                                 initial="hidden"
                                 whileInView="show"
-                                viewport={{ once: false, amount: 0.7 }}
+                                viewport={{ once: true, amount: 0.7 }}
                                 className="py-4">
                                 <form action="#">
                                     <div className="mb-4">

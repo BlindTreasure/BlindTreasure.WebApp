@@ -100,7 +100,7 @@ export default function Detail({ detailId }: DetailProps) {
                     variants={fadeIn("right", 0.3)}
                     initial="hidden"
                     whileInView="show"
-                    viewport={{ once: false, amount: 0.7 }}
+                    viewport={{ once: true, amount: 0.7 }}
                 >
                     <Swiper spaceBetween={10} thumbs={{ swiper: thumbsSwiper }} modules={[Thumbs]}>
                         {product.images?.map((img, idx) => (
@@ -136,7 +136,7 @@ export default function Detail({ detailId }: DetailProps) {
                     variants={fadeIn("left", 0.3)}
                     initial="hidden"
                     whileInView="show"
-                    viewport={{ once: false, amount: 0.7 }}
+                    viewport={{ once: true, amount: 0.7 }}
                     className='space-y-4'>
                     <h2 className="text-3xl font-bold font-paytone mb-4">{product.title}</h2>
                     <div className='flex gap-8'>
@@ -199,7 +199,7 @@ export default function Detail({ detailId }: DetailProps) {
                 variants={fadeIn("up", 0.3)}
                 initial="hidden"
                 whileInView="show"
-                viewport={{ once: false, amount: 0.7 }}
+                viewport={{ once: true, amount: 0.7 }}
                 className='py-8'>
                 <ProductTabs />
             </motion.div>
@@ -207,7 +207,7 @@ export default function Detail({ detailId }: DetailProps) {
             <motion.h1 variants={fadeIn("up", 0.3)}
                 initial="hidden"
                 whileInView="show"
-                viewport={{ once: false, amount: 0.7 }}
+                viewport={{ once: true, amount: 0.7 }}
                 className='text-3xl font-semibold font-anton'>Sản phẩm liên quan
             </motion.h1>
 
