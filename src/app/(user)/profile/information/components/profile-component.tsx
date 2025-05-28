@@ -4,14 +4,10 @@ import { Fragment, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import useGetProfile from "@/app/(user)/profile/information/hooks/useGetProfileAccount";
 import EditPersonal from "@/app/(user)/profile/information/components/edit-personal";
-import EditEmail from "@/app/(user)/profile/information/components/edit-email";
-import ChangePassword from "@/app/(user)/profile/information/components/change-password";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfileComponent() {
   const [editInfoPopup, setEditInfoPopup] = useState<boolean>(false);
-  const [editEmailPopup, setEditEmailPopup] = useState<boolean>(false);
-  const [editPasswordPopup, setEditPasswordPopup] = useState<boolean>(false);
 
   const [profileInfo, setProfileInfo] = useState<API.TProfileAccount>({
     userId: "",
@@ -36,22 +32,6 @@ export default function ProfileComponent() {
 
   const handleOpenEditInfo = () => {
     setEditInfoPopup(true);
-  };
-
-  const handleCloseEditEmail = () => {
-    setEditEmailPopup(false);
-  };
-
-  const handleOpenEditEmail = () => {
-    setEditEmailPopup(true);
-  };
-
-  const handleCloseEditPassword = () => {
-    setEditPasswordPopup(false);
-  };
-
-  const handleOpenEditPassword = () => {
-    setEditPasswordPopup(true);
   };
 
   const handleFetchProfile = async () => {
@@ -128,20 +108,6 @@ export default function ProfileComponent() {
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
-                    onClick={handleOpenEditEmail}
-                    className="px-5 rounded-2xl bg-transparent border border-gray-300 hover:bg-gray-300 text-gray-700"
-                  >
-                    Chỉnh sửa email
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleOpenEditPassword}
-                    className="px-3 rounded-2xl bg-transparent border border-gray-300 hover:bg-gray-300 text-gray-700"
-                  >
-                    Chỉnh sửa mật khẩu
-                  </Button>
-                  <Button
-                    type="button"
                     onClick={handleOpenEditInfo}
                     className="px-5 rounded-2xl bg-transparent border border-gray-300 hover:bg-gray-300 text-gray-700"
                   >
@@ -166,7 +132,7 @@ export default function ProfileComponent() {
                     <label className="text-sm font-medium text-gray-400">Số điện thoại</label>
                     <h5 className="text-base text-gray-650">
                       {profileInfo.phoneNumber?.length > 0
-                        ? `+84 ${profileInfo.phoneNumber}`
+                        ? `${profileInfo.phoneNumber}`
                         : "Unknown"}
                     </h5>
                   </div>
@@ -190,17 +156,6 @@ export default function ProfileComponent() {
             information={profileInfo}
             fetchProfileApi={handleFetchProfile}
           />
-        )}
-        {profileInfo?.email !== "" && editEmailPopup && (
-          <EditEmail
-            open={editEmailPopup}
-            onClose={handleCloseEditEmail}
-            information={profileInfo}
-            fetchProfileApi={handleFetchProfile}
-          />
-        )}
-        {profileInfo?.email !== "" && editPasswordPopup && (
-          <ChangePassword open={editPasswordPopup} onClose={handleCloseEditPassword} />
         )}
       </div>
     </div>

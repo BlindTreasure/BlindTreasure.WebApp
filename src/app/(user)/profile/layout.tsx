@@ -8,10 +8,6 @@ interface LayoutProps {
   children: ReactNode;
 }
 
-// const TabProfile = dynamic(() => import("@/app/(user)/profile/tab-profile"), {
-//   ssr: false,
-// });
-
 export default function UserProfileLayout({ children }: LayoutProps) {
   const userState = useAppSelector((state) => state.userSlice);
 

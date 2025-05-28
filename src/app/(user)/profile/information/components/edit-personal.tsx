@@ -74,11 +74,6 @@ export default function EditPersonal({
             <h3 className="text-xl font-semibold select-text">
               Chỉnh sửa thông tin
             </h3>
-            <button type="button" onClick={handleCloseEdit}>
-              <div className="p-2 bg-slate-200 rounded-full hover:bg-slate-300 cursor-pointer">
-                <X className="w-4 h-4" />
-              </div>
-            </button>
           </div>
 
           <form onSubmit={handleSubmit(handleSubmitForm)}>
@@ -129,27 +124,6 @@ export default function EditPersonal({
                   {errors?.phoneNumber && (
                     <p className="text-base text-red-400">
                       {errors.phoneNumber.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Email */}
-                <div className="flex flex-col gap-y-2">
-                  <label className="text-[15px] font-medium text-gray-400">
-                    Email
-                  </label>
-                  <Input
-                    type="email"
-                    className={`border bg-[#f2f4f7] focus-visible:ring-0 ${
-                      errors?.email && "border-red-500"
-                    }`}
-                    autoComplete="off"
-                    placeholder="example@gmail.com"
-                    {...register("email")}
-                  />
-                  {errors?.email && (
-                    <p className="text-base text-red-400">
-                      {errors.email.message}
                     </p>
                   )}
                 </div>

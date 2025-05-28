@@ -43,7 +43,6 @@ declare namespace API {
   };
 
   type TUpdateAvatar = {
-    cropAvatarLink: string;
-    fullAvatarLink: string;
+    file: string;
   };
 }

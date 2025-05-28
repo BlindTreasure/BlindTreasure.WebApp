@@ -2,12 +2,8 @@ import useToast from "@/hooks/use-toast";
 import { getQueryClient } from "@/lib/query";
 import {
   getAccountProfile,
-  changePassword,
   updateAvatarProfile,
-  updateEmailProfile,
   updateInfoProfile,
-  verifyChangeEmail,
-  verifyChangePassword,
 } from "@/services/account/api-services";
 import { useAppDispatch } from "@/stores/store";
 import { updateInformationProfile } from "@/stores/user-slice";
@@ -39,22 +35,6 @@ export const useServiceUpdateAvatarProfile = () => {
 
       return await updateAvatarProfile(formData);
     },
-    // onSuccess: (data) => {
-    //   dispatch(
-    //     updateImage({
-    //       cropAvatarLink: data.value.data.cropAvatarLink,
-    //       fullAvatarLink: data.value.data.fullAvatarLink,
-    //     })
-    //   );
-    //   addToast(
-    //     {
-    //       type: "success",
-    //       description: data.value.message,
-    //       duration: 5000,
-    //     },
-    //     false
-    //   );
-    // },
     onError: () => {
       addToast({
         type: "error",
@@ -85,65 +65,3 @@ export const useServiceUpdateInfoProfile = () => {
   });
 };
 
-export const useServiceUpdateEmailProfile = () => {
-  const { addToast } = useToast();
-  return useMutation<TResponse, TMeta, REQUEST.TUpdateEmail>({
-    mutationFn: updateEmailProfile,
-    onSuccess: (data) => {
-      addToast({
-        type: "success",
-        description: data.value.message,
-        duration: 5000,
-      });
-    },
-  });
-};
-
-export const useServiceVerifyChangeEmail = () => {
-  const { addToast } = useToast();
-  return useMutation<TResponse, TMeta, REQUEST.TVerifyChangeEmail>({
-    mutationFn: verifyChangeEmail,
-    onSuccess: (data) => {
-      addToast({
-        type: "success",
-        description: data.value.message,
-        duration: 5000,
-      });
-    },
-  });
-};
-
-export const useServiceChangePassword = () => {
-  const { addToast } = useToast();
-  return useMutation<TResponse, TMeta, REQUEST.TChangePassword>({
-    mutationFn: changePassword,
-    onSuccess: (data) => {
-      addToast({
-        type: "success",
-        description: data.value.message,
-        duration: 5000,
-      });
-    },
-    onError: (error) => {
-      addToast({
-        type: "error",
-        description: error?.detail,
-        duration: 3000,
-      });
-    },
-  });
-};
-
-export const useServiceVerifyChangePassword = () => {
-  const { addToast } = useToast();
-  return useMutation<TResponse, TMeta, REQUEST.TVerifyChangePassword>({
-    mutationFn: verifyChangePassword,
-    onSuccess: (data) => {
-      addToast({
-        type: "success",
-        description: data.value.message,
-        duration: 5000,
-      });
-    },
-  });
-};
