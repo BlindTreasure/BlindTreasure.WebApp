@@ -115,7 +115,7 @@ export default function HomePage() {
         variants={fadeIn("up", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="flex flex-col justify-center items-center py-10">
         <h1 className="mt-6 text-4xl md:text-5xl font-extrabold text-[#333]">
           HỘP BÍ ẨN
@@ -142,7 +142,7 @@ export default function HomePage() {
           variants={fadeIn("up", 0.3)}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: false, amount: 0.7 }}
+          viewport={{ once: true, amount: 0.7 }}
           className="container mx-auto">
           <Swiper
             spaceBetween={30}
@@ -182,7 +182,7 @@ export default function HomePage() {
         variants={fadeIn("up", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="text-4xl text-red-600 text-center font-montserrat">
         DANH MỤC
         <span className="block w-24 h-[2px] bg-red-600 mt-1 mx-auto"></span>
@@ -192,7 +192,7 @@ export default function HomePage() {
         variants={fadeIn("left", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="grid grid-cols-2 md:grid-cols-4 md:gap-4"
       >
         {images.map((item, index) => (
@@ -217,7 +217,7 @@ export default function HomePage() {
         variants={fadeIn("up", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="text-4xl text-red-600 text-center font-montserrat pt-14">
         HÀNG MỚI VỀ
         <span className="block w-36 h-[3px] bg-red-600 mt-1 mx-auto"></span>
@@ -227,7 +227,7 @@ export default function HomePage() {
         variants={fadeIn("left", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="mt-8 flex justify-center "
 
       >
@@ -243,7 +243,7 @@ export default function HomePage() {
         variants={fadeIn("up", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="flex justify-center pb-8">
         <Carousel
           opts={{
@@ -275,7 +275,7 @@ export default function HomePage() {
           variants={fadeIn("up", 0.3)}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: false, amount: 0.7 }}
+          viewport={{ once: true, amount: 0.7 }}
           className="text-4xl text-red-600 text-center font-montserrat">
           CÁCH HOẠT ĐỘNG
         </motion.h1>
@@ -283,7 +283,7 @@ export default function HomePage() {
           variants={fadeIn("up", 0.3)}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: false, amount: 0.7 }}
+          viewport={{ once: true, amount: 0.7 }}
           className="text-gray-400 mb-8 mt-2">Khám phá túi mù theo cách bạn muốn</motion.p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-20">
           {works.map((work, index) => (
@@ -293,7 +293,7 @@ export default function HomePage() {
               variants={fadeIn(index % 2 === 0 ? "right" : "left", index * 0.2)}
               initial="hidden"
               whileInView="show"
-              viewport={{ once: false, amount: 0.3 }}
+              viewport={{ once: true, amount: 0.3 }}
             >
               {work.icon}
               <h3 className="text-xl font-semibold text-white mb-2">{work.title}</h3>
@@ -308,7 +308,7 @@ export default function HomePage() {
         variants={fadeIn("up", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="text-4xl text-red-600 text-center font-montserrat pt-10">
         HÀNG KHUYẾN MÃI
         <span className="block w-36 h-[3px] bg-red-600 mt-1 mx-auto"></span>
@@ -318,7 +318,7 @@ export default function HomePage() {
         variants={fadeIn("left", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="mt-8 flex justify-center "
 
       >
@@ -334,7 +334,7 @@ export default function HomePage() {
         variants={fadeIn("up", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="flex justify-center pb-8">
         <Carousel
           opts={{
@@ -366,7 +366,7 @@ export default function HomePage() {
         variants={fadeIn("up", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="text-4xl text-red-600 text-center font-montserrat pt-14">
         BLINDBOX
         <span className="block w-24 h-[3px] bg-red-600 mt-1 mx-auto"></span>
@@ -376,7 +376,7 @@ export default function HomePage() {
         variants={fadeIn("left", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="mt-8 flex justify-center "
 
       >
@@ -392,7 +392,7 @@ export default function HomePage() {
         variants={fadeIn("up", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="flex justify-center pb-8">
         <Carousel
           opts={{
@@ -423,7 +423,7 @@ export default function HomePage() {
         variants={fadeIn("up", 0.3)}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.7 }}
+        viewport={{ once: true, amount: 0.7 }}
         className="text-4xl text-red-600 text-center font-montserrat pt-14">
         THƯƠNG HIỆU NỔI BẬT
         <span className="block w-24 h-[3px] bg-red-600 mt-1 mx-auto"></span>
