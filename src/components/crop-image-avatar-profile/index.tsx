@@ -78,7 +78,7 @@ export default function CropImageAvatarProfile({
         className="mt-5 w-full py-3 text-white text-base font-semibold rounded-full bg-teal-500 bg-gradient-to-r from-cyan-600 to-teal-700 hover:opacity-90"
         onClick={handleSubmit}
       >
-        Save
+        Lưu
       </button>
     </div>
   );

@@ -6,7 +6,7 @@ import {
   updateInfoProfile,
 } from "@/services/account/api-services";
 import { useAppDispatch } from "@/stores/store";
-import { updateInformationProfile } from "@/stores/user-slice";
+import { updateImage, updateInformationProfile } from "@/stores/user-slice";
 import { useMutation } from "@tanstack/react-query";
 
 export const useServiceGetProfileAccount = async () => {
@@ -30,10 +30,22 @@ export const useServiceUpdateAvatarProfile = () => {
   >({
     mutationFn: async (data: REQUEST.TUpdateAvatar) => {
       const formData = new FormData();
-      formData.append("CropAvatar", data.cropAvatar);
-      formData.append("FullAvatar", data.fullAvatar);
-
+      formData.append("File", data.file);
       return await updateAvatarProfile(formData);
+    },
+    onSuccess: (data) => {
+      dispatch(
+        updateImage({
+          avatarUrl: data.value.data.avatarUrl,
+        })
+      );
+      addToast(
+        {
+          type: "success",
+          description: data.value.message,
+          duration: 5000,
+        },
+      );
     },
     onError: () => {
       addToast({

@@ -57,11 +57,6 @@ export default function UpdateAvatarProfilePopup({
     };
 
     const handleSubmit = async (base64UrlImage: any) => {
-        const fullFileAvatar = await convertBase64ToFile(
-            avatarSrc,
-            `fullFile_avatar_${userState?.user?.userId}.jpg`
-        );
-
         const cropAvatarFile = await convertBase64ToFile(
             base64UrlImage,
             `crop_avatar_${userState?.user?.userId}.jpg`
@@ -70,8 +65,7 @@ export default function UpdateAvatarProfilePopup({
         try {
             onSubmit(
                 {
-                    cropAvatar: cropAvatarFile,
-                    fullAvatar: fullFileAvatar,
+                    file: cropAvatarFile,
                 },
                 handleCloseUpdateAvatar
             );
@@ -89,22 +83,18 @@ export default function UpdateAvatarProfilePopup({
                                     className="w-10 h-10 rounded-full text-2xl opacity-70 hover:bg-black/10 flex justify-center items-center group"
                                     onClick={handleCloseUpdateAvatar}
                                 >
-                                    <i>
-                                        <X
-                                            strokeWidth={2.75}
-                                            className="text-gray-500 group-hover:text-gray-950 w-6 h-6"
-                                        />
-                                    </i>
+                                    
                                 </button>
                             </div>
                             <form className="px-6">
                                 <div>
                                     <h2 className="text-2xl font-bold select-text">
-                                        Update avatar
+                                        Cập nhật avatar
                                     </h2>
                                     <p className="mt-2 text-base opacity-90 select-text">
-                                        Keep Your Profile Fresh, Keep Making a
-                                        Difference!
+                                        Hãy chọn một bức ảnh đại diện mới để
+                                        cập nhật. Ảnh đại diện sẽ được sử dụng
+                                        trên toàn bộ nền tảng của chúng tôi.
                                     </p>
                                 </div>
                                 <div className="py-10 flex justify-around">
@@ -148,7 +138,7 @@ export default function UpdateAvatarProfilePopup({
                                                 />
                                             </i>
                                             <span className="text-lg font-medium text-gray-600 group-hover:text-gray-800">
-                                                Upload new Avatar
+                                                Tải lên ảnh đại diện mới
                                             </span>
                                         </div>
                                     </button>
@@ -174,16 +164,11 @@ export default function UpdateAvatarProfilePopup({
                                     className="w-10 h-10 rounded-full text-2xl opacity-70 hover:bg-black/10 flex justify-center items-center group"
                                     onClick={handleCloseUpdateAvatar}
                                 >
-                                    <i>
-                                        <X
-                                            strokeWidth={2.75}
-                                            className="text-gray-500 group-hover:text-gray-950 w-6 h-6"
-                                        />
-                                    </i>
+                                    
                                 </button>
                             </div>
                             <form className="mt-2 px-6 flex flex-col gap-y-2">
-                                <h2 className="text-2xl font-bold">Preview</h2>
+                                <h2 className="text-2xl font-bold">Xem trước</h2>
                                 <div className="py-3">
                                     <CropImageAvatarProfile
                                         image={avatarSrc}

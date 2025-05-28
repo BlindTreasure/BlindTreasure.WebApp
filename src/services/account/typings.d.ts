@@ -1,7 +1,6 @@
 declare namespace REQUEST {
   type TUpdateAvatar = {
-    cropAvatar: File;
-    fullAvatar: File;
+    file: File;
   };
 
   type TUpdateInfoProfile = {
@@ -43,6 +42,6 @@ declare namespace API {
   };
 
   type TUpdateAvatar = {
-    file: string;
+    avatarUrl: string;
   };
 }
