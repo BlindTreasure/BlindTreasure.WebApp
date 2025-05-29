@@ -20,3 +20,4 @@ export const getAllStatusSeller = async ({
   );
   return response.data;
 };
+

@@ -3,10 +3,11 @@ const ACCOUNT = "/personal";
 const GET_ACCOUNT_PROFILE = ACCOUNT + "/me";
 const UPDATE_AVATAR_PROFILE = ACCOUNT + "/me/avatar";
 const UPDATE_INFO_PROFILE = ACCOUNT + "/me";
-
+const GET_ACCOUNT_SELLER_PROFILE = ACCOUNT + "/me/seller-profile"
 
 export default {
   GET_ACCOUNT_PROFILE,
   UPDATE_AVATAR_PROFILE,
   UPDATE_INFO_PROFILE,
+  GET_ACCOUNT_SELLER_PROFILE
 };

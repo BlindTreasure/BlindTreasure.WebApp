@@ -63,39 +63,41 @@ export const RegisterBody = RegisterBase.superRefine(
   }
 );
 
-export const RegisterSellerBody = RegisterBase.extend({
-  companyName: z
+export const RegisterSellerVerifyOtp = z.object({
+  email: z
     .string()
-    .min(2, "Tên công ty phải có ít nhất 2 ký tự")
-    .max(256, "Tên công ty quá dài"),
-  taxId: z
+    .min(5, "Email phải có ít nhất 5 ký tự")
+    .max(256, "Email quá dài")
+    .email("Email không hợp lệ"),
+  otp: z
     .string()
-    .min(5, "Mã số thuế phải có ít nhất 5 ký tự")
-    .max(50, "Mã số thuế quá dài"),
-  companyAddress: z
-    .string()
-    .min(5, "Địa chỉ công ty phải có ít nhất 5 ký tự")
-    .max(256, "Địa chỉ công ty quá dài"),
-  coaDocumentUrl: z
-  .string()
-  .url("URL tài liệu COA không hợp lệ")
-  .optional()
-  .or(z.literal(""))
-}).superRefine(({ password, confirmPassword }, ctx) => {
-  if (password !== confirmPassword) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Mật khẩu không khớp",
-      path: ["confirmPassword"],
-    });
-  }
+    .min(4, "Mã OTP phải có ít nhất 4 ký tự")
+    .max(8, "Mã OTP quá dài"),
 });
 
+export const RegisterSellerStepOne = z
+  .object({
+    email: z.string().email("Email không hợp lệ"),
+    password: z.string().min(6, "Mật khẩu ít nhất 6 ký tự"),
+    confirmPassword: z.string(),
+  })
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["confirmPassword"],
+        message: "Mật khẩu không khớp",
+      });
+    }
+  });
+
+  
 export type RegisterBodyType = z.infer<typeof RegisterBody>;
 export type RegisterBodyWithoutConfirm = Omit<RegisterBodyType, "confirmPassword">;
-
-export type RegisterSellerBodyType = z.infer<typeof RegisterSellerBody>;
+  
+export type RegisterSellerStepOneType = z.infer<typeof RegisterSellerStepOne>;
+export type RegisterSellerVerifyOtpType = z.infer<typeof RegisterSellerVerifyOtp>;
 export type RegisterSellerBodyWithoutConfirm = Omit<
-  RegisterSellerBodyType,
+  RegisterSellerStepOneType,
   "confirmPassword"
 >;

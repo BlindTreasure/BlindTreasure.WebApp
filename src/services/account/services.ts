@@ -7,7 +7,9 @@ import {
 } from "@/services/account/api-services";
 import { useAppDispatch } from "@/stores/store";
 import { updateImage, updateInformationProfile } from "@/stores/user-slice";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query";
+import { getSellerProfile, updateSellerProfile } from "@/services/account/api-services";
+import { handleError } from "@/hooks/error";
 
 export const useServiceGetProfileAccount = async () => {
   const queryClient = getQueryClient();
@@ -77,3 +79,45 @@ export const useServiceUpdateInfoProfile = () => {
   });
 };
 
+export const useServiceGetSellerProfile = () => {
+  const { addToast } = useToast();
+
+  return useQuery<TResponseData<API.Seller>, TMeta>({
+    queryKey: ["seller", "profile"],
+    queryFn: getSellerProfile,
+    // 🛠 Fix lỗi onError:
+    retry: false, // Optional: tắt retry nếu muốn
+    onError: (error: TMeta) => {
+      handleError(error);
+      addToast({
+        type: "error",
+        description: "Không thể lấy thông tin người bán.",
+        duration: 5000,
+      });
+    },
+  } as UseQueryOptions<TResponseData<API.Seller>, TMeta>);
+};
+
+// Cập nhật thông tin seller
+export const useServiceUpdateSellerProfile = () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<API.Seller>, TMeta, REQUEST.UpdateSellerInfo>({
+    mutationFn: updateSellerProfile,
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message || "Cập nhật thông tin thành công!",
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
+      addToast({
+        type: "error",
+        description: "Cập nhật thất bại. Vui lòng thử lại.",
+        duration: 5000,
+      });
+    },
+  });
+};

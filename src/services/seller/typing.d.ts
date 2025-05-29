@@ -4,6 +4,15 @@ declare namespace REQUEST {
     pageIndex: number;
     pageSize: number;
   };
+
+  type UpdateSellerInfo = {
+    fullName: string;
+    phoneNumber: string;
+    dateOfBirth: string;
+    companyName: string;
+    taxId: string;
+    companyAddress: string;
+  };
 }
 
 declare namespace API {
@@ -15,6 +24,11 @@ declare namespace API {
     coaDocumentUrl: string;
     status: SellerStatus;
     isVerified: boolean;
+    phoneNumber?: string;
+    dateOfBirth?: string;
+    taxId?: string;
+    companyAddress?: string;
+    sellerStatus: string
   };
 
   type ResponseDataSeller = {

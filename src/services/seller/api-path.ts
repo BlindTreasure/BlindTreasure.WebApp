@@ -1,4 +1,4 @@
-const SELLER = "/sellers";
+const SELLER = "/seller";
 
 export default {
   SELLER,
