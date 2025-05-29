@@ -142,53 +142,6 @@ export default function BlindBoxBasicInfoForm() {
           <CardTitle className="text-xl">Thông Tin Cơ Bản</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Tên Sản Phẩm *</Label>
-              <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="price">Giá Bán (VND) *</Label>
-              <Input id="price" type="number" min="0" value={formData.price} onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="totalQuantity">Tổng Số Lượng *</Label>
-              <Input id="totalQuantity" type="number" value={formData.totalQuantity} onChange={(e) => setFormData({ ...formData, totalQuantity: parseInt(e.target.value) })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Ngày Phát Hành</Label>
-              <div className="relative">
-                <div 
-                  className="flex items-center justify-center w-full h-10 border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-md"
-                  onClick={() => setShowDatePicker(!showDatePicker)}
-                >
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="ml-2 text-muted-foreground">{formatDisplayDate(formData.releaseDate)}</span>
-                </div>
-                {showDatePicker && (
-                  <div className="absolute top-full left-0 mt-1 z-10 bg-background border border-input rounded-md shadow-lg">
-                    <Input 
-                      type="datetime-local" 
-                      value={formData.releaseDate} 
-                      onChange={(e) => {
-                        setFormData({ ...formData, releaseDate: e.target.value });
-                        setShowDatePicker(false);
-                      }}
-                      className="border-0 focus:ring-0"
-                      autoFocus
-                      onBlur={() => setTimeout(() => setShowDatePicker(false), 200)}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Mô Tả</Label>
-            <Textarea id="description" rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
-          </div>
-
           <div className="space-y-2">
             <Label>Hình Ảnh Sản Phẩm</Label>
             <div className="space-y-4">
@@ -226,7 +179,19 @@ export default function BlindBoxBasicInfoForm() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Tên Sản Phẩm *</Label>
+              <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Mô Tả</Label>
+            <Textarea id="description" rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+          </div>
+
+          {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="probabilityConfig">Cấu Hình Xác Suất</Label>
               <Textarea id="probabilityConfig" rows={3} value={formData.probabilityConfig} onChange={(e) => setFormData({ ...formData, probabilityConfig: e.target.value })} />
@@ -243,7 +208,7 @@ export default function BlindBoxBasicInfoForm() {
                 </div>
               )}
             </div>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
 

@@ -43,7 +43,7 @@ export default function StaffSidebar() {
 
 
             {staffState.openSidebar && isMobile && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => dispatch(closeSidebar())}></div>
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-60" onClick={() => dispatch(closeSidebar())}></div>
             )}
 
 
