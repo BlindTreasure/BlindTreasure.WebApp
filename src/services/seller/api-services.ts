@@ -31,3 +31,28 @@ export const uploadSellerDocument = async (formData: FormData): Promise<TRespons
   });
   return response.data;
 };
+
+export const verifySellerByStaff = async ({
+  sellerId,
+  body,
+}: {
+  sellerId: string | number;
+  body: REQUEST.VerifySeller;
+}): Promise<TResponseData<any>> => {
+  const formData = new FormData();
+  formData.append("IsApproved", String(body.IsApproved)); // Phải convert thành string
+  formData.append("RejectReason", body.RejectReason || "");
+
+  const response = await request<TResponseData<any>>(
+    API_ENDPOINTS.VERIFY_SELLER_BY_STAFF(sellerId),
+    {
+      method: "PUT",
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data", // Rất quan trọng
+      },
+    }
+  );
+
+  return response.data;
+};

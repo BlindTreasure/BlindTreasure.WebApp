@@ -13,6 +13,11 @@ declare namespace REQUEST {
     taxId: string;
     companyAddress: string;
   };
+
+  type VerifySeller = {
+    IsApproved: boolean;
+    RejectReason: string;
+  };
 }
 
 declare namespace API {

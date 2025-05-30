@@ -14,6 +14,6 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
           {children}
         </main>
       </div>
-    </div>    
+    </div>
   );
 } 

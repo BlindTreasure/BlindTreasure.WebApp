@@ -12,6 +12,8 @@ import Pagination from "./Pagination";
 import useGetStatusSeller from "@/app/staff/seller-management/hooks/useGetStatusSeller";
 import { SellerStatus } from "@/const/seller";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import useVerifySeller from "@/app/staff/seller-management/hooks/useVerifySeller";
+
 
 export default function SellerManagementTable() {
     const { isPending, getStatusSellersApi } = useGetStatusSeller();
@@ -23,6 +25,10 @@ export default function SellerManagementTable() {
     const [entriesPerPage, setEntriesPerPage] = useState(10);
     const [totalSellers, setTotalSellers] = useState(0);
     const [status, setStatus] = useState<SellerStatus | undefined>(undefined);
+    const [rejectReasonModalOpen, setRejectReasonModalOpen] = useState(false);
+    const [rejectReason, setRejectReason] = useState("");
+    const [rejectingSellerId, setRejectingSellerId] = useState<string | null>(null);
+    const { verifySeller, isPending: isVerifying } = useVerifySeller();
 
     useEffect(() => {
         async function fetchSellers() {
@@ -65,14 +71,50 @@ export default function SellerManagementTable() {
     };
 
     const handleApprove = async (sellerId: string) => {
-        console.log("Approving seller:", sellerId);
-        closeModal();
+        const success = await verifySeller(sellerId, {
+            IsApproved: true,
+            RejectReason: "",
+        });
+
+        if (success) {
+            closeModal();
+            // Tải lại danh sách
+            const res = await getStatusSellersApi({ status, pageIndex, pageSize });
+            if (res) {
+            setSellers(res.value.data.result);
+            setTotalPages(res.value.data.totalPages);
+            setTotalSellers(res.value.data.count);
+            }
+        }
+        };
+
+    const handleRejectClick = (sellerId: string) => {
+        setRejectingSellerId(sellerId);
+        setRejectReason("");
+        setRejectReasonModalOpen(true);
     };
 
-    const handleReject = async (sellerId: string) => {
-        console.log("Rejecting seller:", sellerId);
-        closeModal();
+    const handleConfirmReject = async () => {
+        if (!rejectingSellerId) return;
+
+        const success = await verifySeller(rejectingSellerId, {
+            IsApproved: false,
+            RejectReason: rejectReason,
+        });
+
+        if (success) {
+            setRejectReasonModalOpen(false);
+            closeModal();
+
+            const res = await getStatusSellersApi({ status, pageIndex, pageSize });
+            if (res) {
+                setSellers(res.value.data.result);
+                setTotalPages(res.value.data.totalPages);
+                setTotalSellers(res.value.data.count);
+            }
+        }
     };
+
 
     return (
         <div className="overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-md dark:border-white/[0.1] dark:bg-gray-900">
@@ -203,78 +245,109 @@ export default function SellerManagementTable() {
                 <Dialog open={Boolean(selectedSeller)} onOpenChange={closeModal}>
                     <DialogContent className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg max-w-2xl">
                         <DialogTitle className="border-b pb-4 text-lg font-semibold">Chi tiết người bán</DialogTitle>
-                        <DialogDescription>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                <div className="space-y-2">
-                                    <p className="text-gray-700 dark:text-gray-300">
-                                        <strong>ID:</strong> {selectedSeller.id}
-                                    </p>
-                                    <p className="text-gray-700 dark:text-gray-300">
-                                        <strong>Email:</strong> {selectedSeller.email}
-                                    </p>
-                                    <p className="text-gray-700 dark:text-gray-300">
-                                        <strong>Họ tên:</strong> {selectedSeller.fullName}
-                                    </p>
-                                </div>
-                                <div className="space-y-2">
-                                    <p className="text-gray-700 dark:text-gray-300">
-                                        <strong>Tên công ty:</strong> {selectedSeller.companyName}
-                                    </p>
-                                    <p className="text-gray-700 dark:text-gray-300">
-                                        <strong>Trạng thái:</strong>
-                                        <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${statusBadgeColor(selectedSeller.status)}`}>
-                                            {selectedSeller.status === "WaitingReview" ? "Chờ duyệt" :
-                                                selectedSeller.status === "Approved" ? "Đã duyệt" : "Từ chối"}
-                                        </span>
-                                    </p>
-                                    <p className="text-gray-700 dark:text-gray-300">
-                                        <strong>Xác minh:</strong>
-                                        <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${verifiedBadgeColor(selectedSeller.isVerified)}`}>
-                                            {selectedSeller.isVerified ? "Đã xác minh" : "Chưa xác minh"}
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="mb-4">
-                                <h3 className="text-md font-semibold mb-2 text-gray-800 dark:text-gray-200">Tài liệu COA</h3>
-                                {selectedSeller.coaDocumentUrl ? (
-                                    <div className="flex flex-col gap-4">
-                                        <a
-                                            href={selectedSeller.coaDocumentUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 inline-block"
-                                        >
-                                            Xem tài liệu đầy đủ
-                                        </a>
-
+                        <DialogDescription asChild>
+                            <div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                    <div className="space-y-2">
+                                        <div className="text-gray-700 dark:text-gray-300">
+                                            <strong>ID:</strong> {selectedSeller.id}
+                                        </div>
+                                        <div className="text-gray-700 dark:text-gray-300">
+                                            <strong>Email:</strong> {selectedSeller.email}
+                                        </div>
+                                        <div className="text-gray-700 dark:text-gray-300">
+                                            <strong>Họ tên:</strong> {selectedSeller.fullName}
+                                        </div>
                                     </div>
-                                ) : (
-                                    <p className="text-gray-400">Không có tài liệu</p>
+                                    <div className="space-y-2">
+                                        <div className="text-gray-700 dark:text-gray-300">
+                                            <strong>Tên công ty:</strong> {selectedSeller.companyName}
+                                        </div>
+                                        <div className="text-gray-700 dark:text-gray-300">
+                                            <strong>Trạng thái:</strong>
+                                            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${statusBadgeColor(selectedSeller.status)}`}>
+                                                {selectedSeller.status === "WaitingReview" ? "Chờ duyệt" :
+                                                    selectedSeller.status === "Approved" ? "Đã duyệt" : "Từ chối"}
+                                            </span>
+                                        </div>
+                                        <div className="text-gray-700 dark:text-gray-300">
+                                            <strong>Xác minh:</strong>
+                                            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${verifiedBadgeColor(selectedSeller.isVerified)}`}>
+                                                {selectedSeller.isVerified ? "Đã xác minh" : "Chưa xác minh"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mb-4">
+                                    <h3 className="text-md font-semibold mb-2 text-gray-800 dark:text-gray-200">Tài liệu COA</h3>
+                                    {selectedSeller.coaDocumentUrl ? (
+                                        <div className="flex flex-col gap-4">
+                                            <a
+                                                href={selectedSeller.coaDocumentUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 inline-block"
+                                            >
+                                                Xem tài liệu đầy đủ
+                                            </a>
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-400">Không có tài liệu</p>
+                                    )}
+                                </div>
+
+                                {selectedSeller.status === "WaitingReview" && (
+                                    <div className="flex justify-end gap-3 mt-6">
+                                        <button
+                                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+                                            onClick={() => handleRejectClick(selectedSeller.id)}
+                                        >
+                                            Từ chối
+                                        </button>
+
+                                        <button
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                                            onClick={() => handleApprove(selectedSeller.id)}
+                                        >
+                                            Phê duyệt
+                                        </button>
+                                    </div>
                                 )}
                             </div>
-
-                            {selectedSeller.status === "WaitingReview" && (
-                                <div className="flex justify-end gap-3 mt-6">
-                                    <button
-                                        className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
-                                        onClick={() => handleReject(selectedSeller.id)}
-                                    >
-                                        Từ chối
-                                    </button>
-                                    <button
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                                        onClick={() => handleApprove(selectedSeller.id)}
-                                    >
-                                        Phê duyệt
-                                    </button>
-                                </div>
-                            )}
                         </DialogDescription>
                     </DialogContent>
                 </Dialog>
             )}
+            <Dialog open={rejectReasonModalOpen} onOpenChange={setRejectReasonModalOpen}>
+                <DialogContent className="bg-white dark:bg-gray-900 p-6 rounded-lg max-w-md">
+                    <DialogTitle className="text-lg font-semibold mb-2">Lý do từ chối</DialogTitle>
+                    <DialogDescription>
+                        <textarea
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                            className="w-full h-24 p-2 border rounded-md resize-none text-gray-800 dark:text-gray-200 dark:bg-gray-800"
+                            placeholder="Nhập lý do từ chối..."
+                        />
+                    </DialogDescription>
+                    <div className="flex justify-end gap-3 mt-4">
+                        <button
+                            onClick={() => setRejectReasonModalOpen(false)}
+                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+                        >
+                            Hủy
+                        </button>
+                        <button
+                            onClick={handleConfirmReject}
+                            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+                            disabled={!rejectReason.trim()}
+                        >
+                            Xác nhận từ chối
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
         </div>
     );
 }

@@ -18,8 +18,12 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
 
     const sellerStatus = data.value?.data.sellerStatus;
 
-    if (sellerStatus === "WaitingReview") {
-      // Nếu chưa được duyệt thì ẩn layout và redirect
+    if (sellerStatus === "InfoEmpty") {
+      if (pathname !== "/seller/information") {
+        router.push("/seller/information");
+      }
+      setShowFullLayout(false);
+    } else if (sellerStatus === "WaitingReview") {
       if (pathname !== "/seller/pending") {
         router.push("/seller/pending");
       }
@@ -39,7 +43,9 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
           <div className="min-h-[109px] bg-white shadow-md">
             <AdminHeader />
           </div>
-        <main className="flex-grow p-4 bg-gray-100 overflow-auto">{children}</main>
+        <main className="flex-grow p-4 bg-gray-100 overflow-auto">
+          {children}
+        </main>
       </div>
     </div>
   );
