@@ -5,6 +5,7 @@ import Basic from '@/components/tabs-seller/Basic';
 import { TabWrapper } from '@/components/tabs-seller/TabWrapper';
 import Detail from '@/components/tabs-seller/Detail';
 import Sales from '@/components/tabs-seller/Sales';
+import Delivery from '@/components/tabs-seller/Delivery';
 
 const TABS = ['Thông tin cơ bản', 'Thông tin chi tiết', 'Thông tin bán hàng', 'Vận chuyển', 'Thông tin khác'];
 
@@ -88,6 +89,17 @@ export default function CreateProductSeller() {
             >
                 <h2 className="text-xl font-semibold mb-4">Thông tin bán hàng</h2>
                 <Sales />
+            </section>
+
+            <section
+                ref={(el) => {
+                    sectionRefs.current['Vận chuyển'] = el;
+                }}
+                id="Vận chuyển"
+                className="bg-white rounded-lg shadow-md p-6"
+            >
+                <h2 className="text-xl font-semibold mb-4">Vận chuyển</h2>
+                <Delivery />
             </section>
         </div>
     );
