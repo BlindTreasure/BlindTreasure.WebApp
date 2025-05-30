@@ -130,7 +130,7 @@ export default function Sales() {
                         </div>
                     </>
                 )}
-             
+
                 <div className="space-y-1 w-[300px]">
                     <Label>Số lượng kho</Label>
                     <Input
@@ -198,7 +198,7 @@ export default function Sales() {
                                             <TableCell>
                                                 <Input
                                                     type="number"
-                                                    min={2} // HTML vẫn set min
+                                                    min={2}
                                                     value={row.from}
                                                     onChange={(e) => {
                                                         const value = e.target.value;
@@ -209,20 +209,31 @@ export default function Sales() {
                                                         const newValue = Number(value);
                                                         if (newValue < 2) return;
 
+                                                        if (typeof row.to === 'number' && row.to <= newValue) {
+                                                            updateDiscountRow(idx, 'to', '');
+                                                        }
+
                                                         updateDiscountRow(idx, 'from', newValue);
                                                     }}
                                                     placeholder="Từ"
                                                 />
-
                                             </TableCell>
 
                                             <TableCell>
                                                 <Input
                                                     type="number"
-                                                    min={typeof row.from === 'number' ? row.from + 1 : 1}
+                                                    min={typeof row.from === 'number' ? row.from + 1 : 2}
                                                     value={row.to}
                                                     onChange={(e) => {
-                                                        const newValue = e.target.value === '' ? '' : Number(e.target.value);
+                                                        const value = e.target.value;
+                                                        if (value === '') {
+                                                            updateDiscountRow(idx, 'to', '');
+                                                            return;
+                                                        }
+                                                        const newValue = Number(value);
+
+                                                        if (typeof row.from === 'number' && newValue <= row.from) return;
+
                                                         updateDiscountRow(idx, 'to', newValue);
                                                     }}
                                                     placeholder="Đến"
@@ -242,7 +253,7 @@ export default function Sales() {
                                             </TableCell>
                                             <TableCell>
                                                 <Button variant="outline" onClick={() => removeDiscountRow(idx)}>
-                                                    <RiDeleteBin6Line className='text-[#d02a2a]'/>
+                                                    <RiDeleteBin6Line className='text-[#d02a2a]' />
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
