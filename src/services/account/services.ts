@@ -85,8 +85,7 @@ export const useServiceGetSellerProfile = () => {
   return useQuery<TResponseData<API.Seller>, TMeta>({
     queryKey: ["seller", "profile"],
     queryFn: getSellerProfile,
-    // 🛠 Fix lỗi onError:
-    retry: false, // Optional: tắt retry nếu muốn
+    retry: false,
     onError: (error: TMeta) => {
       handleError(error);
       addToast({
