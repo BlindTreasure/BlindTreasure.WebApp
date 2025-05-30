@@ -7,7 +7,7 @@ import stringSimilarity from "string-similarity";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { closeMessageUser } from "@/stores/difference-slice";
 import ReactMarkdown from 'react-markdown';
-import { ListMessages } from "@/const/user";
+import { sampleQuestions } from "@/const/user";
 
 export default function Message({
   children,
@@ -24,15 +24,6 @@ export default function Message({
   const dispatch = useAppDispatch();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const sampleQuestions = [
-    { question: "EduSource có những loại tài liệu nào?", answer: "Xin chào! Bên EduSource cung cấp một số tài liệu với các thể loại như là slide, bài tập và bài kiểm tra" },
-    { question: "Tài liệu có hỗ trợ file PDF hoặc PowerPoint không?", answer: "Có! Bên EduSource có hỗ trợ cung cấp tài liệu với các định dạng như PDF, PowerPoint, Zip và Rar" },
-    { question: "Chào bạn", answer: "Xin chào! Tôi có thể giúp gì cho bạn?" },
-    { question: "Bạn có thể giúp tôi không?", answer: "Tất nhiên! Bạn cần hỗ trợ gì?" },
-    { question: "Làm sao để mua khóa học?", answer: "Bạn có thể mua khóa học bằng cách nhấn vào nút 'Mua ngay' trên trang khóa học." },
-    { question: "Tôi có thể thanh toán bằng cách nào?", answer: "Bạn có thể thanh toán qua thẻ tín dụng, Momo hoặc chuyển khoản ngân hàng." },
-    { question: "Giới thiệu về trang web EduSource", answer: "EduSource là nền tảng chuyên cung cấp tài liệu giảng dạy tiếng Anh chất lượng cao cho giáo viên và học viên. Chúng tôi mang đến các bài giảng PowerPoint, giáo trình PDF, bài tập thực hành và nhiều tài liệu khác, giúp việc giảng dạy và học tập trở nên dễ dàng và hiệu quả hơn." },
-  ];
 
   const handleCloseMessage = () => {
     dispatch(closeMessageUser());
@@ -210,15 +201,15 @@ export default function Message({
     return (
       <div className="py-2">
         <div className="inline-block min-w-1/2 min-h-[100px] shadow-box-shadown rounded-lg overflow-hidden">
-          {ListMessages?.map((item, index) => {
+          {sampleQuestions?.map((item, index) => {
             return (
               <div
                 key={index}
                 className="py-2 px-4 border-b-2 hover:bg-[#0000001a] cursor-pointer"
-                onClick={() => handleClickFirstMessageBot(item.value)}
+                onClick={() => handleClickFirstMessageBot(item.question)}
               >
                 <span className="text-base font-sans font-normal">
-                  {item.value}
+                  {item.question}
                 </span>
               </div>
             );

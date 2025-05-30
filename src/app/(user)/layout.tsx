@@ -25,7 +25,7 @@ export default function UserLayout({
                 {children}
             </main>
             {!hideHeaderFooter && <Footer />}
-            {(!userState.user || userState.user?.roleName === "Admin") && (
+            {(!userState.user || userState.user?.roleName === "Customer") && (
                 <button
                     onClick={handleOpenChat}
                     className="fixed bottom-6 right-6 w-14 h-14 bg-[#fb8500] text-white rounded-full flex items-center justify-center shadow-lg hover:opacity-80 transition"
