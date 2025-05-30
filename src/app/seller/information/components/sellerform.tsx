@@ -7,10 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import useRegisterSellerStep1 from "@/app/seller/information/hooks/useRegisterSellerStep1";
+import useUploadSellerDocument from "@/app/seller/information/hooks/useUploadSellerDocument";
 
 export default function RegisterSellerPage() {
   const [step, setStep] = useState("step1");
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   const {
     register,
@@ -26,14 +26,15 @@ export default function RegisterSellerPage() {
     companyAddress: "",
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    if (file && file.type === "application/pdf") {
-      setPdfFile(file);
-    } else {
-      alert("Vui lòng chọn file PDF hợp lệ.");
-    }
-  };
+  const {
+    register: registerUpload,
+    handleSubmit,
+    onSubmit,
+    errors: uploadErrors,
+    isSubmitting: isUploading,
+  } = useUploadSellerDocument(() => {
+    alert("Đăng ký thành công!");
+  });
 
   return (
     <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -95,20 +96,28 @@ export default function RegisterSellerPage() {
         </TabsContent>
 
         <TabsContent value="step2">
-          <Card>
-            <CardContent className="py-8 px-6 sm:px-8 space-y-6">
-              <div>
-                <Label htmlFor="pdfUpload">Tải lên file định danh (PDF)</Label>
-                <Input type="file" accept="application/pdf" onChange={handleFileChange} />
-              </div>
-              {pdfFile && (
-                <p className="text-sm text-gray-600">Đã chọn: {pdfFile.name}</p>
-              )}
-              <div className="flex justify-end">
-                <Button disabled={!pdfFile}>Hoàn tất đăng ký</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Card>
+              <CardContent className="py-8 px-6 sm:px-8 space-y-6">
+                <div>
+                  <Label htmlFor="pdfUpload">Tải lên file định danh (PDF)</Label>
+                  <Input
+                    type="file"
+                    accept="application/pdf"
+                    {...registerUpload("file")}
+                  />
+                  {uploadErrors.file && (
+                    <p className="text-red-500 text-sm">{uploadErrors.file.message}</p>
+                  )}
+                </div>
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={isUploading}>
+                    {isUploading ? "Đang tải..." : "Hoàn tất đăng ký"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </form>
         </TabsContent>
       </Tabs>
     </div>
