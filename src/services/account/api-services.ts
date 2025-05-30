@@ -50,7 +50,7 @@ export const getSellerProfile = async () => {
 
 // Cập nhật thông tin seller
 export const updateSellerProfile = async (body: REQUEST.UpdateSellerInfo) => {
-  const response = await request<TResponseData<API.Seller>>(API_ENDPOINTS.GET_ACCOUNT_SELLER_PROFILE, {
+  const response = await request<TResponseData<API.Seller>>(API_ENDPOINTS.UPDATE_INFO_SELLER_PROFILE, {
     method: "PUT",
     data: body,
     headers: {

@@ -18,7 +18,7 @@ export default function useRedirectIfSellerInfoEmpty() {
   
   useEffect(() => {
     if (data?.value?.data?.sellerStatus === "InfoEmpty") {
-      router.push("/seller/info");
+      router.push("/seller/information");
     }
   }, [data, router]);
 
