@@ -30,7 +30,7 @@ const sidebarItems = [
     ],
   },
   {
-    label: "Sản phẩm",
+    label: "Quản lý sản phẩm",
     icon: Package,
     href: "/seller/products",
     dropdownKey: "products",
@@ -41,8 +41,8 @@ const sidebarItems = [
         icon: ListOrdered,
       },
       {
-        label: "Thêm sản phẩm mới",
-        href: "/seller/productform",
+        label: "Thêm sản phẩm",
+        href: "/seller/create-product",
         icon: PlusSquare,
       },
     ],
