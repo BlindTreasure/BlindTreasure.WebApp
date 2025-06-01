@@ -89,7 +89,11 @@ export default function AllProduct() {
           </div>
 
           <div className="mt-8">
-            <PaginationBar />
+            <PaginationBar
+              currentPage={1}
+              totalPages={1}
+              onPageChange={()=>{}}
+            />
           </div>
         </main>
       </div>
