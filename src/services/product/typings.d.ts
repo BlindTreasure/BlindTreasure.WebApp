@@ -6,8 +6,8 @@ export type GetProduct = {
   status?: string;
   sortBy?: ProductSortBy;
   desc?: boolean;
-  pageIndex?: number;
-  pageSize?: number;
+  pageIndex: number;
+  pageSize: number;
 };
 
 export type Product = {
