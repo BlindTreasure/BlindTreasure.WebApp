@@ -1,5 +1,5 @@
 import { Status } from "@/const/products";
-import { useServiceCreateProduct } from "@/services/product/services";
+import { useServiceUpdateProduct } from "@/services/product/services";
 import { CreateProductForm } from "@/services/product/typings";
 import {
   CreateProductBody,
@@ -9,7 +9,10 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-export default function useCreateProductForm(defaultValues?: Partial<CreateProductBodyType>) {
+export default function useUpdateProductForm(
+  productId: string,
+  initialData?: CreateProductBodyType
+) {
   const {
     register,
     watch,
@@ -20,7 +23,7 @@ export default function useCreateProductForm(defaultValues?: Partial<CreateProdu
     reset,
   } = useForm<CreateProductBodyType>({
     resolver: zodResolver(CreateProductBody),
-    defaultValues: {
+    defaultValues: initialData ?? {
       name: "",
       description: "",
       categoryId: "",
@@ -32,23 +35,29 @@ export default function useCreateProductForm(defaultValues?: Partial<CreateProdu
       productType: null,
       brand: "",
       productImageUrl: undefined,
-       ...defaultValues,
     },
   });
 
-  const { mutate, isPending } = useServiceCreateProduct();
+  const { mutate, isPending } = useServiceUpdateProduct();
 
-  const onSubmit = (data: CreateProductForm, clearImages: () => void) => {
-    console.log("data",data);
+  const onSubmit = (
+    data: CreateProductForm,
+    clearImages: () => void,
+    onSuccessCallback?: () => void
+  ) => {
     try {
-      mutate(data, {
-        onSuccess: () => {
-          reset();
-          clearImages();
-        },
-      });
+      mutate(
+        { id: productId, data },
+        {
+          onSuccess: () => {
+            reset();
+            clearImages();
+            if (onSuccessCallback) onSuccessCallback();
+          },
+        }
+      );
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 

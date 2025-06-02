@@ -14,16 +14,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { GetProduct, TProductResponse } from "@/services/product/typings"
+import { GetProduct, Product, TProductResponse } from "@/services/product/typings"
 import useGetAllProduct from "../hooks/useGetAllProduct"
 import moment from "moment"
 import { FaRegEdit } from "react-icons/fa"
 import { HiOutlineTrash } from "react-icons/hi"
 import { BsEye } from "react-icons/bs"
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import Pagination from "@/components/tables/Pagination";
 import { CiSearch } from "react-icons/ci";
 import { ProductSortBy } from "@/const/products"
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import EditProductSeller from "../../create-product/components/edit-product"
 
 export default function ProductTable() {
     const [products, setProducts] = useState<TProductResponse>()
@@ -39,6 +40,14 @@ export default function ProductTable() {
     })
 
     const [searchInput, setSearchInput] = useState("")
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+    const [open, setOpen] = useState(false);
+
+    const handleEditClick = (product: Product) => {
+        setSelectedProduct(product);
+        setOpen(true);
+    };
 
     useEffect(() => {
         const delay = setTimeout(() => {
@@ -200,7 +209,7 @@ export default function ProductTable() {
                                         </TableCell>
                                         <TableCell>{moment(product.createdAt).format("DD/MM/YYYY")}</TableCell>
                                         <TableCell className="flex gap-4">
-                                            <Button variant="outline" size="icon">
+                                            <Button variant="outline" size="icon" onClick={() => handleEditClick(product)}>
                                                 <FaRegEdit className="w-4 h-4" />
                                             </Button>
                                             <Button variant="outline" size="icon" className="text-red-500">
@@ -215,6 +224,23 @@ export default function ProductTable() {
                             )}
                         </TableBody>
                     </Table>
+
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Cập nhật sản phẩm</DialogTitle>
+                            </DialogHeader>
+                            {selectedProduct && (
+                                <EditProductSeller
+                                    productData={selectedProduct}
+                                    onUpdateSuccess={() => {
+                                        setOpen(false); 
+                                        setParams({ ...params }); 
+                                    }}
+                                />
+                            )}
+                        </DialogContent>
+                    </Dialog>
 
                     <div className="p-4 border-t bg-white dark:bg-gray-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">

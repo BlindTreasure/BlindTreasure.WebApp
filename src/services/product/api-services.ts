@@ -39,3 +39,14 @@ export const createProduct = async (body: FormData) => {
   });
   return response.data;
 };
+
+export const updateProduct = async (productId: string, body: FormData) => {
+  const response = await request<TResponseData<Product>>(API_ENDPOINTS.PRODUCT_WITH_ID(productId), {
+    method: "PUT",
+    data: body,
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+};
