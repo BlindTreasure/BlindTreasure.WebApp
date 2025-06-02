@@ -14,18 +14,8 @@ export default function useGetStatusSeller() {
       const res = await getAllStatusSeller(params);
       if (isTResponseData(res)) {
         return res as TResponseData<API.ResponseDataSeller>;
-      } else {
-        addToast({
-          type: "error",
-          description: "Failed to fetch books",
-        });
-        return null;
       }
     } catch (error) {
-      addToast({
-        type: "error",
-        description: "An error occurred while fetching books",
-      });
       return null;
     } finally {
       setPending(false);

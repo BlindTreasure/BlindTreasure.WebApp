@@ -2,18 +2,25 @@
 
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'; 
-import { useState } from 'react';
+import {
+    Select,
+    SelectTrigger,
+    SelectContent,
+    SelectItem,
+    SelectValue,
+} from '@/components/ui/select';
+import useCreateProductForm from '@/app/seller/create-product/hooks/useCreateProduct';
+import { ProductType } from '@/const/products';
 
-export default function Detail() {
-    const [formData, setFormData] = useState({
-        brand: '',
-        manufacturerAddress: '',
-        size: '',
-        material: '',
-        packaging: '',
-    });
+type Props = {
+    register: ReturnType<typeof useCreateProductForm>["register"];
+    setValue: ReturnType<typeof useCreateProductForm>["setValue"];
+    errors: ReturnType<typeof useCreateProductForm>["errors"];
+    watch: ReturnType<typeof useCreateProductForm>["watch"];
+    categories?: API.ResponseDataCategory;
+};
 
+export default function Detail({ register, setValue, errors, watch, categories }: Props) {
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -21,70 +28,95 @@ export default function Detail() {
                     <Label htmlFor="brand">Thương hiệu</Label>
                     <Input
                         id="brand"
-                        value={formData.brand}
-                        onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                        {...register("brand")}
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="manufacturerAddress">Địa chỉ tổ chức chịu trách nhiệm sản xuất</Label>
-                    <Input
-                        id="manufacturerAddress"
-                        value={formData.manufacturerAddress}
-                        onChange={(e) => setFormData({ ...formData, manufacturerAddress: e.target.value })}
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="size">Kích cỡ sản phẩm</Label>
+                    <Label htmlFor="categoryId">Danh mục <span className='text-red-600'>*</span></Label>
                     <Select
-                        value={formData.size}
-                        onValueChange={(value) => setFormData({ ...formData, size: value })}
+                        onValueChange={(value) => setValue("categoryId", value)}
+                        value={watch("categoryId")}
                     >
-                        <SelectTrigger id="size" className="w-full">
-                            <SelectValue placeholder="Chọn kích cỡ" />
+                        <SelectTrigger id="categoryId">
+                            <SelectValue placeholder="Chọn danh mục" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="small">Nhỏ</SelectItem>
-                            <SelectItem value="medium">Trung bình</SelectItem>
-                            <SelectItem value="large">Lớn</SelectItem>
+                            {categories?.result?.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
+                    {errors.categoryId && <p className="text-red-500">{errors.categoryId.message}</p>}
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="height">Kích cỡ sản phẩm</Label>
+                    <div className="relative">
+                        <Input
+                            id="height"
+                            {...register("height", {
+                                setValueAs: (v) => (v === "" ? undefined : Number(v))
+                            })}
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            placeholder="Cao"
+                            className="pr-12"
+                        />
+                        <span className="absolute inset-y-0 right-3 flex items-center text-gray-500 text-sm pointer-events-none">
+                            | cm
+                        </span>
+                    </div>
                 </div>
 
                 <div className="space-y-2">
                     <Label htmlFor="material">Chất liệu sản phẩm</Label>
+                    <Input
+                        id="material"
+                        {...register("material")}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="price">Giá sản phẩm (VNĐ) <span className='text-red-600'>*</span></Label>
+                    <Input
+                        id="price"
+                        type="number"
+                        min={1}
+                        {...register("price", { valueAsNumber: true })}
+                    />{errors.price && <p className="text-red-500">{errors.price.message}</p>}
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="stock">Số lượng kho</Label>
+                    <Input
+                        id="stock"
+                        type="number"
+                        min={0}
+                        {...register("stock", { valueAsNumber: true })}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="productType">Loại sản phẩm</Label>
                     <Select
-                        value={formData.material}
-                        onValueChange={(value) => setFormData({ ...formData, material: value })}
+                        onValueChange={(value: ProductType) => setValue("productType", value)}
+                        value={watch("productType") || ""}
                     >
-                        <SelectTrigger id="material" className="w-full">
-                            <SelectValue placeholder="Chọn chất liệu" />
+                        <SelectTrigger id="productType" className="w-full">
+                            <SelectValue placeholder="Chọn loại sản phẩm" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="cotton">Cotton</SelectItem>
-                            <SelectItem value="polyester">Polyester</SelectItem>
-                            <SelectItem value="leather">Da</SelectItem>
+                            <SelectItem value="Directsale">Bán trực tiếp</SelectItem>
+                            <SelectItem value="BlindBoxOnly">Túi mù</SelectItem>
+                            <SelectItem value="Both">Cả hai</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="packaging">Bao bì đóng gói</Label>
-                    <Select
-                        value={formData.packaging}
-                        onValueChange={(value) => setFormData({ ...formData, packaging: value })}
-                    >
-                        <SelectTrigger id="packaging" className="w-full">
-                            <SelectValue placeholder="Chọn bao bì" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="box">Hộp giấy</SelectItem>
-                            <SelectItem value="plastic">Túi nhựa</SelectItem>
-                            <SelectItem value="bag">Túi vải</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
             </div>
         </div>
     );

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-anonymous-default-export */
 const ACCOUNT = "/personal";
 const GET_ACCOUNT_PROFILE = ACCOUNT + "/me";
 const UPDATE_AVATAR_PROFILE = ACCOUNT + "/me/avatar";
