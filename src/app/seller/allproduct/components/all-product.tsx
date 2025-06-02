@@ -25,10 +25,22 @@ import { CiSearch } from "react-icons/ci";
 import { ProductSortBy } from "@/const/products"
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import EditProductSeller from "../../create-product/components/edit-product"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import useDeleteProduct from "../hooks/useDeleteProduct"
 
 export default function ProductTable() {
     const [products, setProducts] = useState<TProductResponse>()
     const { getAllProductApi, isPending } = useGetAllProduct()
+    const { onDelete, isPending: isDeleting } = useDeleteProduct();
     const [params, setParams] = useState<GetProduct>({
         pageIndex: 1,
         pageSize: 5,
@@ -41,12 +53,28 @@ export default function ProductTable() {
 
     const [searchInput, setSearchInput] = useState("")
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
 
     const handleEditClick = (product: Product) => {
         setSelectedProduct(product);
         setOpen(true);
+    };
+
+    const handleDeleteClick = (productId: string) => {
+        setProductToDelete(productId);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (productToDelete) {
+            onDelete(productToDelete, () => {
+                setParams({ ...params }); // Refresh danh sách
+                setProductToDelete(null);
+            });
+        }
+        setDeleteDialogOpen(false);
     };
 
     useEffect(() => {
@@ -85,7 +113,7 @@ export default function ProductTable() {
                                 className="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10"
                             />
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-wrap items-center gap-4 ">
                             <Select
                                 value={params.sortBy}
                                 onValueChange={(value) =>
@@ -212,7 +240,13 @@ export default function ProductTable() {
                                             <Button variant="outline" size="icon" onClick={() => handleEditClick(product)}>
                                                 <FaRegEdit className="w-4 h-4" />
                                             </Button>
-                                            <Button variant="outline" size="icon" className="text-red-500">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                className="text-red-500"
+                                                onClick={() => handleDeleteClick(product.id)}
+                                                disabled={isDeleting}
+                                            >
                                                 <HiOutlineTrash className="w-4 h-4" />
                                             </Button>
                                             <Button variant="outline" size="icon">
@@ -234,13 +268,33 @@ export default function ProductTable() {
                                 <EditProductSeller
                                     productData={selectedProduct}
                                     onUpdateSuccess={() => {
-                                        setOpen(false); 
-                                        setParams({ ...params }); 
+                                        setOpen(false);
+                                        setParams({ ...params });
                                     }}
                                 />
                             )}
                         </DialogContent>
                     </Dialog>
+
+                    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận xóa sản phẩm</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Bạn có chắc chắn muốn xóa sản phẩm này? Hành động này không thể hoàn tác.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={handleConfirmDelete}
+                                    className="bg-red-500 hover:bg-red-600"
+                                >
+                                    Xóa
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
 
                     <div className="p-4 border-t bg-white dark:bg-gray-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">

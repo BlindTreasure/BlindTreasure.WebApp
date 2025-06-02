@@ -50,3 +50,10 @@ export const updateProduct = async (productId: string, body: FormData) => {
   });
   return response.data;
 };
+
+export const deleteProduct = async (productId: string) => {
+  const response = await request<TResponseData<Product>>(API_ENDPOINTS.PRODUCT_WITH_ID(productId), {
+    method: "DELETE",
+  });
+  return response.data;
+};

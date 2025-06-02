@@ -9,10 +9,6 @@ type EditProductSellerProps = {
 };
 
 export default function EditProductSeller({ productData, onUpdateSuccess }: EditProductSellerProps) {
-    console.log("productData:", productData);
-
-
-    // 1. Lấy id riêng
     const { id, ...rest } = productData;
 
     const createFormData: CreateProductForm = {
@@ -28,7 +24,6 @@ export default function EditProductSeller({ productData, onUpdateSuccess }: Edit
         brand: undefined,
         productImageUrl: undefined,
     };
-    console.log("rest:", rest);
     const { onSubmit: onUpdateHook, isPending } = useUpdateProductForm(id);
 
     const handleUpdate = (data: CreateProductForm, clearImages: () => void) => {
