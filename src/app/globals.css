@@ -9,11 +9,6 @@ html, body {
   padding: 0;
 }
 
-body {
-  overflow-y: hidden;
-  height: fit-content;
-}
-
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;

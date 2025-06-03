@@ -4,6 +4,8 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAppSelector } from '@/stores/store';
+import UserLayout from './(user)/layout';
+import HomePage from './(user)/homepage/components/home';
 
 export default function RootRedirect() {
   const router = useRouter();
@@ -22,12 +24,16 @@ export default function RootRedirect() {
       case 'Seller':
         router.replace('/seller/dashboard');
         break;
-      case 'Customer':
-      default:
-        router.replace('/');
-        break;
     }
   }, [user]);
+
+  if (user?.roleName === 'Customer') {
+    return (
+      <UserLayout>
+        <HomePage />
+      </UserLayout>
+    );
+  }
 
   return null;
 }

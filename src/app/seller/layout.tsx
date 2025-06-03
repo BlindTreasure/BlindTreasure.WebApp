@@ -14,6 +14,13 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   const [showFullLayout, setShowFullLayout] = useState(true);
 
   useEffect(() => {
+    document.body.style.overflow = 'hidden'; 
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  useEffect(() => {
     if (!data) return;
 
     const sellerStatus = data.value?.data.sellerStatus;
@@ -43,7 +50,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
           <div className="min-h-[76px] bg-white shadow-md">
             <SellerHeader />
           </div>
-        <main className="flex-grow p-4 bg-gray-100 overflow-auto">
+        <main className="flex-grow p-4 bg-gray-100 overflow-y-auto">
           {children}
         </main>
       </div>
