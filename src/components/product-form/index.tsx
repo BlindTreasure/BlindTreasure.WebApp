@@ -6,7 +6,7 @@ import { TabWrapper } from '@/components/tabs-seller/TabWrapper';
 import Detail from '@/components/tabs-seller/Detail';
 import { Button } from '@/components/ui/button';
 import { Backdrop } from '@/components/backdrop';
-import { CreateProductForm } from '@/services/product/typings';
+import { CreateProductForm } from '@/services/product-seller/typings';
 import useGetCategory from '@/app/staff/category-management/hooks/useGetCategory';
 import useCreateProductForm from '@/app/seller/create-product/hooks/useCreateProduct';
 

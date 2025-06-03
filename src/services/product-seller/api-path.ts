@@ -1,4 +1,4 @@
-const PRODUCT = "/products";
+const PRODUCT = "/sellers/products";
 const PRODUCT_WITH_ID = (productId: string) => `${PRODUCT}/${productId}`;
 
 export default {

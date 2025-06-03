@@ -1,6 +1,9 @@
 import useToast from "@/hooks/use-toast";
-import { getAllProduct } from "@/services/product/api-services";
-import { GetProduct, TProductResponse } from "@/services/product/typings";
+import { getAllProduct } from "@/services/product-seller/api-services";
+import {
+  GetProduct,
+  TProductResponse,
+} from "@/services/product-seller/typings";
 import { getAllStatusSeller } from "@/services/seller/api-services";
 import { isTResponseData } from "@/utils/compare";
 import { useRef, useState } from "react";

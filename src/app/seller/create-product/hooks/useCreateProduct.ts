@@ -1,6 +1,6 @@
 import { Status } from "@/const/products";
-import { useServiceCreateProduct } from "@/services/product/services";
-import { CreateProductForm } from "@/services/product/typings";
+import { useServiceCreateProduct } from "@/services/product-seller/services";
+import { CreateProductForm } from "@/services/product-seller/typings";
 import {
   CreateProductBody,
   CreateProductBodyType,
@@ -9,7 +9,9 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-export default function useCreateProductForm(defaultValues?: Partial<CreateProductBodyType>) {
+export default function useCreateProductForm(
+  defaultValues?: Partial<CreateProductBodyType>
+) {
   const {
     register,
     watch,
@@ -32,14 +34,14 @@ export default function useCreateProductForm(defaultValues?: Partial<CreateProdu
       productType: null,
       brand: "",
       productImageUrl: undefined,
-       ...defaultValues,
+      ...defaultValues,
     },
   });
 
   const { mutate, isPending } = useServiceCreateProduct();
 
   const onSubmit = (data: CreateProductForm, clearImages: () => void) => {
-    console.log("data",data);
+    console.log("data", data);
     try {
       mutate(data, {
         onSuccess: () => {

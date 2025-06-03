@@ -1,6 +1,6 @@
 import { Status } from "@/const/products";
-import { useServiceUpdateProduct } from "@/services/product/services";
-import { CreateProductForm } from "@/services/product/typings";
+import { useServiceUpdateProduct } from "@/services/product-seller/services";
+import { CreateProductForm } from "@/services/product-seller/typings";
 import {
   CreateProductBody,
   CreateProductBodyType,

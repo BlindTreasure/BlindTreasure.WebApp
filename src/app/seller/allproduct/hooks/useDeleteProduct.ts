@@ -1,4 +1,4 @@
-import { useServiceDeleteProduct } from "@/services/product/services";
+import { useServiceDeleteProduct } from "@/services/product-seller/services";
 
 export default function useDeleteProduct() {
   const { mutate, isPending } = useServiceDeleteProduct();
