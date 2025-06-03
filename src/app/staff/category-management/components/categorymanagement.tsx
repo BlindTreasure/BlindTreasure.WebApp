@@ -7,13 +7,14 @@ import CategoryTable, { CategoryRow } from '@/components/category-table'
 import useGetCategory from '../hooks/useGetCategory'
 import useCreateCategory from '../hooks/useCreateCategory'
 import useUpdateCategory from '../hooks/useUpdateCategory'
-import useDeleteCategory from "../hooks/useDeleteCategory";
+import useDeleteCategory from '../hooks/useDeleteCategory'
 import useGetCategoryById from '../hooks/useGetCategoryById'
 import Pagination from '@/components/pagination'
 import CategoryFormModal from '@/components/category-form-modal'
 
 export default function CategoryPage() {
   const [categories, setCategories] = useState<CategoryRow[]>([])
+  const [allCategories, setAllCategories] = useState<CategoryRow[]>([]) // Store all nested categories
   const [expandedIds, setExpandedIds] = useState<string[]>([])
   const [editingCategory, setEditingCategory] = useState<CategoryRow | null>(null)
   const [showModal, setShowModal] = useState(false)
@@ -22,7 +23,7 @@ export default function CategoryPage() {
 
   const [pagination, setPagination] = useState({
     pageIndex: 1,
-    pageSize: 20
+    pageSize: 3
   })
   const [totalPages, setTotalPages] = useState(0)
   const [totalRecords, setTotalRecords] = useState(0)
@@ -30,7 +31,7 @@ export default function CategoryPage() {
   const { getCategoryApi } = useGetCategory()
   const { createCategoryApi, isPending: isCreating } = useCreateCategory()
   const { updateCategoryApi, isPending: isUpdating } = useUpdateCategory()
-  const { deleteCategoryApi, isPending: isDeleting } = useDeleteCategory();
+  const { deleteCategoryApi, isPending: isDeleting } = useDeleteCategory()
   const { getCategoryByIdApi } = useGetCategoryById()
 
   const buildNestedCategories = (flatList: CategoryRow[]): CategoryRow[] => {
@@ -53,35 +54,39 @@ export default function CategoryPage() {
   }
 
   const fetchData = async () => {
+    // Fetch all categories first to build complete nested structure
     const res = await getCategoryApi({
-      pageIndex: pagination.pageIndex,
-      pageSize: pagination.pageSize
+      pageIndex: 1,
+      pageSize: 1000 // Get all categories to build proper nested structure
     })
 
     const flatList = res?.value?.data?.result ?? []
-    
-    // ✅ Filter chỉ lấy categories chưa bị xóa (isDeleted === false)
-    const activeCategories = flatList.filter((item) => item.isDeleted === false)
 
-    // ✅ Filter chỉ lấy categories cấp 0 để tính pagination
-    const rootCategories = activeCategories.filter((item) => !item.parentId)
-    
-    // ✅ Pagination chỉ dựa trên số lượng categories cấp 0
-    const rootCount = rootCategories.length
-    const totalPages = Math.ceil(rootCount / pagination.pageSize)
-
-    setTotalRecords(rootCount)
-    setTotalPages(totalPages)
-
-    const mapped: CategoryRow[] = activeCategories.map((item) => ({
+    const mapped: CategoryRow[] = flatList.map((item) => ({
       id: item.id,
       name: item.name,
       description: item.description,
       parentId: item.parentId,
     }))
 
-    const nested = buildNestedCategories(mapped)
-    setCategories(nested)
+    // Build complete nested structure
+    const allNested = buildNestedCategories(mapped)
+    setAllCategories(allNested)
+
+    // Count only parent categories (root level)
+    const rootCategories = allNested
+    const totalRootCount = rootCategories.length
+    const totalPages = Math.ceil(totalRootCount / pagination.pageSize)
+
+    setTotalRecords(totalRootCount)
+    setTotalPages(totalPages)
+
+    // Apply pagination to parent categories only
+    const startIndex = (pagination.pageIndex - 1) * pagination.pageSize
+    const endIndex = startIndex + pagination.pageSize
+    const paginatedRootCategories = rootCategories.slice(startIndex, endIndex)
+
+    setCategories(paginatedRootCategories)
   }
 
   useEffect(() => {
@@ -94,32 +99,24 @@ export default function CategoryPage() {
     )
   }
 
-  // ✅ Sửa lại handleEdit để call API get by ID
   const handleEdit = async (category: CategoryRow) => {
     try {
       setIsLoadingEdit(true)
-      
-      // ✅ Gọi API để lấy chi tiết category
       const categoryDetail = await getCategoryByIdApi(category.id)
-      
       if (categoryDetail?.isSuccess) {
-        // ✅ Set dữ liệu chi tiết từ API thay vì dữ liệu từ table
         setEditingCategory({
           id: categoryDetail.value.data.id,
           name: categoryDetail.value.data.name,
           description: categoryDetail.value.data.description,
           parentId: categoryDetail.value.data.parentId,
         })
-        setShowModal(true)
       } else {
-        // ✅ Fallback nếu API failed
         console.error('Failed to fetch category details')
         setEditingCategory(category)
-        setShowModal(true)
       }
+      setShowModal(true)
     } catch (error) {
       console.error('Error fetching category details:', error)
-      // ✅ Fallback nếu có lỗi
       setEditingCategory(category)
       setShowModal(true)
     } finally {
@@ -128,13 +125,9 @@ export default function CategoryPage() {
   }
 
   const handleDelete = async (categoryId: string) => {
-    const confirmed = window.confirm("Bạn có chắc chắn muốn xoá danh mục này?");
-    if (!confirmed) return;
-
-    const success = await deleteCategoryApi(categoryId);
-
+    const success = await deleteCategoryApi(categoryId)
     if (success?.isSuccess === true) {
-      await fetchData();
+      await fetchData()
     }
   }
 
@@ -158,7 +151,6 @@ export default function CategoryPage() {
         parentId: data.parentId
       })
     } else {
-      // ✅ Create new category
       success = await createCategoryApi({
         name: data.name,
         description: data.description,
@@ -186,26 +178,18 @@ export default function CategoryPage() {
 
   const handlePageSizeChange = (newPageSize: number) => {
     setPagination({
-      pageIndex: 1,
+      pageIndex: 1, // Reset to first page when changing page size
       pageSize: newPageSize
     })
   }
 
-  // ✅ Handle detail view (nếu cần)
   const handleDetail = async (category: CategoryRow) => {
     try {
       const categoryDetail = await getCategoryByIdApi(category.id)
-      if (categoryDetail?.isSuccess) {
-        // ✅ Xử lý hiển thị detail - có thể mở modal khác hoặc navigate
-        console.log('Category detail:', categoryDetail.value.data)
-        // Implement detail view logic here
-      }
     } catch (error) {
       console.error('Error fetching category details:', error)
     }
   }
-
-  console.log(categories);
 
   return (
     <div className="space-y-4">
@@ -240,10 +224,10 @@ export default function CategoryPage() {
               <option value={10}>10</option>
               <option value={20}>20</option>
             </select>
-            <span className="text-sm text-gray-600">mục/trang</span>
+            <span className="text-sm text-gray-600">danh mục cha/trang</span>
           </div>
           <div className="text-sm text-gray-600">
-            Tổng cộng: {totalRecords} mục
+            Tổng cộng: {totalRecords} danh mục cha
           </div>
         </div>
 
@@ -263,7 +247,7 @@ export default function CategoryPage() {
           setEditingCategory(null)
         }}
         initialData={editingCategory}
-        categories={categories}
+        categories={allCategories} // Pass all categories for parent selection
         isSubmitting={isSubmitting || isCreating || isUpdating}
         onSubmit={handleSubmit}
         isLoadingEdit={isLoadingEdit}

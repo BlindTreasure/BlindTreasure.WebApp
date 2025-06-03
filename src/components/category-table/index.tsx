@@ -1,8 +1,9 @@
 'use client'
 
 import React from 'react'
-import { ChevronDown, ChevronRight, Pencil, Trash2, Eye } from 'lucide-react'
+import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import DeleteConfirmDialog from '@/components/delete-confirm-dialog'
 
 export type CategoryRow = {
   id: string
@@ -16,10 +17,10 @@ type Props = {
   categories: CategoryRow[]
   expandedIds: string[]
   onToggleExpand: (id: string) => void
-  onEdit?: (category: CategoryRow) => void // ✅ Nhận category object thay vì chỉ ID
+  onEdit?: (category: CategoryRow) => void
   onDelete?: (categoryId: string) => void
-  onDetail?: (category: CategoryRow) => void // ✅ Nhận category object thay vì chỉ ID
-  isLoadingEdit?: boolean // ✅ Loading state cho edit
+  onDetail?: (category: CategoryRow) => void
+  isLoadingEdit?: boolean
 }
 
 export default function CategoryTable({
@@ -29,7 +30,7 @@ export default function CategoryTable({
   onEdit,
   onDelete,
   onDetail,
-  isLoadingEdit = false
+  isLoadingEdit = false,
 }: Props) {
   const renderRow = (category: CategoryRow, level = 0): JSX.Element[] => {
     const isExpanded = expandedIds.includes(category.id)
@@ -59,26 +60,30 @@ export default function CategoryTable({
         </td>
         <td className="px-4 py-3 bg-white text-gray-700">{category.description}</td>
         <td className="px-4 py-3 bg-white text-right space-x-2">
-          
+          {/* Ẩn nút Xoá nếu là cha (có children) */}
+          {onDelete && !hasChildren && (
+            <DeleteConfirmDialog
+              onConfirm={() => onDelete(category.id)}
+              isPending={isLoadingEdit}
+              title="Xác nhận xoá danh mục"
+              description={`Bạn có chắc chắn muốn xoá danh mục "${category.name}"?`}
+              trigger={
+                <Button variant="destructive" size="sm">
+                  <Trash2 size={16} className="mr-1" /> Xoá
+                </Button>
+              }
+            />
+          )}
+
           {onEdit && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => onEdit(category)}
               disabled={isLoadingEdit}
             >
-              <Pencil size={16} className="mr-1" /> 
+              <Pencil size={16} className="mr-1" />
               {isLoadingEdit ? 'Đang tải...' : 'Sửa'}
-            </Button>
-          )}
-
-          {onDelete && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => onDelete(category.id)}
-            >
-              <Trash2 size={16} className="mr-1" /> Xoá
             </Button>
           )}
         </td>
