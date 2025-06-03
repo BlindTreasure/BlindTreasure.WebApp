@@ -18,7 +18,7 @@ const roboto = Roboto({
 
 
 export const metadata: Metadata = {
-  title: "Home",
+  title: "Trang chủ",
   description: "This is BlindTreasure",
 };
 

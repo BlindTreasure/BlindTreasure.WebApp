@@ -3,6 +3,10 @@ import { useState, useEffect } from "react";
 import PaginationBar from "@/components/pagination";
 import ProductFilterSidebar from "@/components/product-filter-sidebar";
 import ProductCard from "@/components/product-card";
+import useGetAllProductWeb from "../hooks/useGetAllProductWeb";
+import { GetAllProducts, TAllProductResponse } from "@/services/product/typings";
+import { ProductStatus } from "@/const/products";
+import Pagination from "@/components/tables/Pagination";
 
 interface Blindbox {
   id: number;
@@ -14,11 +18,11 @@ interface Blindbox {
 }
 
 export default function AllProduct() {
-  const [isMounted, setIsMounted] = useState(false);
+  // const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  // useEffect(() => {
+  //   setIsMounted(true);
+  // }, []);
 
   const blindboxes: Blindbox[] = [
     { id: 1, type: "normal", tags: ["sale"], percent: 30, title: "Hello", price: 5420000 },
@@ -60,9 +64,34 @@ export default function AllProduct() {
 
   const brands = ["44 Cats", "Avengers", "Dragon", "Batman", "Tobot"];
 
+  // if (!isMounted) {
+  //   return null;
+  // }
 
-  if (!isMounted) {
-    return null;
+  const [products, setProducts] = useState<TAllProductResponse>()
+  const { getAllProductWebApi, isPending } = useGetAllProductWeb()
+
+  const [params, setParams] = useState<GetAllProducts>({
+    pageIndex: 1,
+    pageSize: 5,
+    search: "",
+    productStatus: ProductStatus.Active,
+    sellerId: "",
+    categoryId: "",
+    sortBy: undefined,
+    desc: undefined,
+  })
+
+  useEffect(() => {
+    (async () => {
+      const res = await getAllProductWebApi(params)
+      if (res) setProducts(res.value.data)
+    })()
+  }, [params])
+
+  const handlePageChange = (newPage: number) => {
+        if (newPage < 1 || newPage > (products?.totalPages || 1)) return
+        setParams((prev) => ({ ...prev, pageIndex: newPage }))
   }
 
   return (
@@ -76,23 +105,28 @@ export default function AllProduct() {
         {/* Main content area */}
         <main className="w-full">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-            {blindboxes.map((product) => (
+            {products?.result.map((product) => (
               <ProductCard
-                id={product.id}
+                // id={product.id}
+                // key={product.id}
+                // type={product.type}
+                // percent={product.percent}
+                // title={product.title}
+                // price={product.price.toLocaleString() + "₫"}
                 key={product.id}
-                type={product.type}
-                percent={product.percent}
-                title={product.title}
-                price={product.price.toLocaleString() + "₫"}
+                product={product}
+                type="normal"
+                tags={["sale"]}
+                percent={10}
               />
             ))}
           </div>
 
           <div className="mt-8">
-            <PaginationBar
-              currentPage={1}
-              totalPages={1}
-              onPageChange={()=>{}}
+            <Pagination
+              currentPage={params.pageIndex ?? 1}
+              totalPages={products?.totalPages ?? 1}
+              onPageChange={handlePageChange}
             />
           </div>
         </main>

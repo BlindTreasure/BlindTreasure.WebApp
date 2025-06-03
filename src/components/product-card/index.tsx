@@ -18,37 +18,50 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface ProductCardProps {
-  id: number;
-  type: "blindbox" | "normal";
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    categoryId: string;
+    price: number;
+    stock: number;
+    status: string;
+    imageUrl: string;
+    sellerId: string;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+  type: "normal" | "blindbox";
   tags?: ("sale" | "new")[];
   percent?: number;
-  image?: string;
-  title: string;
-  price: string;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
-  id,
+  product,
   type,
   tags,
   percent,
-  image = "/images/cart.webp",
-  title,
-  price,
 }) => {
+  const {
+    id,
+    name,
+    description,
+    price,
+    imageUrl,
+  } = product;
+
   const images = [
-    image,
+    imageUrl || "/images/cart.webp",
     "/images/2.png",
     "/images/3.png",
-    "/images/4.png",
-    "/images/4.png",
-    "/images/4.png",
     "/images/4.png",
   ];
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
   const [mainSwiper, setMainSwiper] = useState<SwiperType | null>(null);
   const [open, setOpen] = useState(false);
   const router = useRouter();
+
   useEffect(() => {
     if (!open) {
       if (mainSwiper) {
@@ -62,7 +75,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
   }, [open]);
 
-
   return (
     <div className="relative p-2 mt-6 transition-all duration-300 transform hover:scale-105">
       <Ribbon type={type} tags={tags} percent={percent} />
@@ -70,7 +82,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         <div className="w-full h-48 overflow-hidden rounded-md relative group">
           <img
-            src={image}
+            src={imageUrl}
             alt="Product"
             className="w-full h-full object-cover"
           />
@@ -129,10 +141,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
                   <div className="flex flex-col justify-between">
                     <div className="space-y-4">
-                      <h2 className="text-2xl font-semibold">{title}</h2>
+                      <h2 className="text-2xl font-semibold">{name}</h2>
                       <p className="text-red-600 font-bold text-lg">{price}</p>
                       <p className="text-sm text-gray-600">
-                        Mô tả sản phẩm sẽ được hiển thị ở đây
+                        {description}
                       </p>
                       <Button className="bg-black text-white w-full">Mua ngay</Button>
                     </div>
@@ -151,7 +163,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         <div className="mt-4 text-sm">
-          <p className="truncate font-semibold text-gray-800">{title}</p>
+          <p className="truncate font-semibold text-gray-800">{name}</p>
           <p className="text-red-600 font-bold text-lg">{price}</p>
         </div>
 

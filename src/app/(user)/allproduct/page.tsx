@@ -2,8 +2,8 @@ import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
 import AllProduct from "./components/products"
 
 export const metadata: Metadata = {
-    title: "All Product",
-    description: "All product of Blind Treasure",
+    title: "Tất cả sản phẩm",
+    description: "Tất cả sản phẩm của Blind Treasure",
 };
 
 export default function Home() {

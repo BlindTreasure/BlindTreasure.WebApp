@@ -2,7 +2,7 @@ import request from "@/components/interceptor";
 import API_ENDPOINTS from "@/services/product-seller/api-path";
 import { GetProduct, Product, TProductResponse } from "./typings";
 
-export const getAllProduct = async ({
+export const getAllProductSeller = async ({
   search,
   categoryId,
   status,

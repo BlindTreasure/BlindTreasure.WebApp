@@ -19,10 +19,15 @@ import ProductCard from "@/components/product-card";
 import { InfiniteMovingCardsDemo } from "@/components/infinite-moving-cards";
 import HeroVideoSection from "@/components/hero-home";
 import { fadeIn } from "@/utils/variants";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { GetAllProducts, TAllProductResponse } from "@/services/product/typings";
+import useGetAllProductWeb from "../../allproduct/hooks/useGetAllProductWeb";
+import { ProductStatus } from "@/const/products";
 
 
 interface Blindbox {
-  id: number;
+  id: string;
   type: "blindbox" | "normal";
   tags?: ("sale" | "new")[];
   title: string;
@@ -60,20 +65,20 @@ export default function HomePage() {
     }
   ]
   const blindboxes: Blindbox[] = [
-    { id: 1, type: "normal", tags: ["sale"], percent: 30, title: "Hello", price: 5420000 },
-    { id: 2, type: "normal", tags: ["sale"], percent: 50, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 3, type: "normal", tags: ["sale"], percent: 40, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 4, type: "normal", tags: ["sale"], percent: 10, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 5, type: "normal", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 6, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: 7, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: 8, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: 9, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: 10, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: 11, type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: 12, type: "normal", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: "1", type: "normal", tags: ["sale"], percent: 30, title: "Hello", price: 5420000 },
+    { id: "2", type: "normal", tags: ["sale"], percent: 50, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: "3", type: "normal", tags: ["sale"], percent: 40, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: "4", type: "normal", tags: ["sale"], percent: 10, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: "5", type: "normal", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: "6", type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: "7", type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: "8", type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: "9", type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: "10", type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: "11", type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
+    { id: "12", type: "normal", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
     {
-      id: 13,
+      id: "13",
       type: "blindbox",
       title: "DODO Nami Twinkle Bunny Plush Doll Blindbox Series",
       price: 280000,
@@ -96,16 +101,38 @@ export default function HomePage() {
 
     },
 
-    { id: 14, type: "blindbox", percent: 0, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 15, type: "blindbox", title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 16, type: "blindbox", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 17, type: "blindbox", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: 18, type: "blindbox", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: "14", type: "blindbox", percent: 0, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: "15", type: "blindbox", title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: "16", type: "blindbox", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: "17", type: "blindbox", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
+    { id: "18", type: "blindbox", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000 },
   ];
+
+  const [products, setProducts] = useState<TAllProductResponse>()
+  const { getAllProductWebApi, isPending } = useGetAllProductWeb()
+
+  const [params, setParams] = useState<GetAllProducts>({
+    pageIndex: 1,
+    pageSize: 5,
+    search: "",
+    productStatus: ProductStatus.Active,
+    sellerId: "",
+    categoryId: "",
+    sortBy: undefined,
+    desc: undefined,
+  })
+
+  useEffect(() => {
+    (async () => {
+      const res = await getAllProductWebApi(params)
+      if (res) setProducts(res.value.data)
+    })()
+  }, [params])
 
   const newItems = blindboxes.filter((box) => box.tags?.includes("new"));
   const saleItems = blindboxes.filter((box) => box.tags?.includes("sale"));
   const blindboxItems = blindboxes.filter((box) => box.type === "blindbox");
+  const router = useRouter();
 
   return (
     <div className="relative overflow-hidden">
@@ -193,14 +220,18 @@ export default function HomePage() {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.7 }}
-        className="grid grid-cols-2 md:grid-cols-4 md:gap-4"
+        className="grid grid-cols-2 md:grid-cols-4 md:gap-4 py-4"
       >
         {images.map((item, index) => (
           <div
             key={index}
             onClick={() => {
-              const el = document.getElementById(item.id);
-              el?.scrollIntoView({ behavior: "smooth" });
+              if (item.id === "1") {
+                router.push(`/allproduct`);
+              } else {
+                const el = document.getElementById(item.id);
+                el?.scrollIntoView({ behavior: "smooth" });
+              }
             }}
             className="md:h-64 h-40 bg-gray-100 cursor-pointer"
           >
@@ -252,15 +283,20 @@ export default function HomePage() {
           className="w-96 sm:w-full max-w-[1400px]"
         >
           <CarouselContent>
-            {newItems.map((box) => (
-              <CarouselItem key={box.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
+            {products?.result.map((product) => (
+              <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
                 <ProductCard
-                  id={box.id}
-                  type={box.type}
-                  tags={box.tags}
-                  percent={box.percent}
-                  title={box.title}
-                  price={box.price.toLocaleString("vi-VN") + "₫"}
+                  // id={box.id}
+                  // type={box.type}
+                  // tags={box.tags}
+                  // percent={box.percent}
+                  // title={box.title}
+                  // price={box.price.toLocaleString("vi-VN") + "₫"}
+                  key={product.id}
+                  product={product}
+                  type="normal"
+                  tags={["sale"]}
+                  percent={10}
                 />
               </CarouselItem>
             ))}
@@ -343,15 +379,20 @@ export default function HomePage() {
           className="w-96 sm:w-full max-w-[1400px]"
         >
           <CarouselContent>
-            {saleItems.map((box) => (
-              <CarouselItem key={box.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
+            {products?.result.map((product) => (
+              <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
                 <ProductCard
-                  id={box.id}
-                  type={box.type}
-                  tags={box.tags}
-                  percent={box.percent}
-                  title={box.title}
-                  price={box.price.toLocaleString("vi-VN") + "₫"}
+                  // id={box.id}
+                  // type={box.type}
+                  // tags={box.tags}
+                  // percent={box.percent}
+                  // title={box.title}
+                  // price={box.price.toLocaleString("vi-VN") + "₫"}
+                  key={product.id}
+                  product={product}
+                  type="normal"
+                  tags={["sale"]}
+                  percent={10}
                 />
               </CarouselItem>
             ))}
@@ -401,15 +442,20 @@ export default function HomePage() {
           className="w-96 sm:w-full max-w-[1400px]"
         >
           <CarouselContent>
-            {blindboxItems.map((box) => (
-              <CarouselItem key={box.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
+            {products?.result.map((product) => (
+              <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
                 <ProductCard
-                  id={box.id}
-                  type={box.type}
-                  tags={box.tags}
-                  percent={box.percent}
-                  title={box.title}
-                  price={box.price.toLocaleString("vi-VN") + "₫"}
+                  // id={box.id}
+                  // type={box.type}
+                  // tags={box.tags}
+                  // percent={box.percent}
+                  // title={box.title}
+                  // price={box.price.toLocaleString("vi-VN") + "₫"}
+                  key={product.id}
+                  product={product}
+                  type="normal"
+                  tags={["sale"]}
+                  percent={10}
                 />
               </CarouselItem>
             ))}

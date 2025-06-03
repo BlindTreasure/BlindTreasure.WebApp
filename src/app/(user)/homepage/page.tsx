@@ -4,8 +4,8 @@ import HomePage from "./components/home";
 
 
 export const metadata: Metadata = {
-    title: "Home page",
-    description: "Hom page for BlindTreasure",
+    title: "Trang chủ",
+    description: "Trang chủ của BlindTreasure",
 };
 
 export default function Home() {

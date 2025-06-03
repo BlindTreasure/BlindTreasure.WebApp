@@ -70,7 +70,7 @@ export default function ProductTable() {
     const handleConfirmDelete = () => {
         if (productToDelete) {
             onDelete(productToDelete, () => {
-                setParams({ ...params }); // Refresh danh sách
+                setParams({ ...params }); 
                 setProductToDelete(null);
             });
         }

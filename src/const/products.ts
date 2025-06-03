@@ -20,3 +20,8 @@ export enum ProductType {
 export enum Status {
   Active = "Active"
 }
+
+export enum ProductStatus {
+  Active = "Active",
+  InActive = "Inactive"
+}
