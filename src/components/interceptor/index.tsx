@@ -80,11 +80,14 @@ const errorHandler = async (error: AxiosError) => {
       const storedRefreshToken = getStorageItem("refreshToken") || "";
       refreshTokenPromise = refreshToken({ refreshToken: storedRefreshToken })
         .then((res: any) => {
+          // const accessTokenRaw = res?.value?.data?.accessToken;
+          // const accessToken = `Bearer ${accessTokenRaw}`;
+          // console.log("👉 accessToken:", accessTokenRaw);
+          // setStorageItem("accessToken", accessToken);
+          // request.defaults.headers.Authorization = accessToken;
           const accessTokenRaw = res?.value?.data?.accessToken;
-          const accessToken = `Bearer ${accessTokenRaw}`;
-          console.log("👉 accessToken:", accessTokenRaw);
-          setStorageItem("accessToken", accessToken);
-          request.defaults.headers.Authorization = accessToken;
+          setStorageItem("accessToken", accessTokenRaw);
+
         })
         .catch((err: any) => {
           removeStorageItem("accessToken");
@@ -97,7 +100,9 @@ const errorHandler = async (error: AxiosError) => {
     }
 
     return refreshTokenPromise.then(() => {
-      originalRequest.headers.Authorization = getStorageItem("accessToken");
+      // originalRequest.headers.Authorization = getStorageItem("accessToken");
+      // return request(originalRequest);
+      originalRequest.headers.Authorization = `Bearer ${getStorageItem("accessToken")}`;
       return request(originalRequest);
     });
   }

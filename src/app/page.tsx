@@ -24,7 +24,7 @@ export default function RootRedirect() {
         break;
       case 'Customer':
       default:
-        router.replace('/homepage');
+        router.replace('/');
         break;
     }
   }, [user]);
