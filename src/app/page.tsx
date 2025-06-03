@@ -35,5 +35,13 @@ export default function RootRedirect() {
     );
   }
 
+  if (!user) {
+    return (
+      <UserLayout>
+        <HomePage />
+      </UserLayout>
+    );
+  }
+
   return null;
 }
