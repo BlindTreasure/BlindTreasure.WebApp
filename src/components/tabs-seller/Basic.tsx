@@ -3,19 +3,33 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { UploadCloud, X } from 'lucide-react';
-import { useState } from 'react';
+import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { LuImagePlus } from "react-icons/lu";
+import useCreateProductForm from '@/app/seller/create-product/hooks/useCreateProduct';
 
-export default function Basic() {
-    const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-    });
+type BasicProps = {
+    register: ReturnType<typeof useCreateProductForm>["register"];
+    setValue: ReturnType<typeof useCreateProductForm>["setValue"];
+    errors: ReturnType<typeof useCreateProductForm>["errors"];
+    watch: ReturnType<typeof useCreateProductForm>["watch"];
+    clearSignal: number;
+};
 
+export default function Basic({ register, setValue, errors, watch, clearSignal }: BasicProps) {
     const [images, setImages] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [thumbnailIndex, setThumbnailIndex] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (clearSignal > 0) {
+            previewUrls.forEach(url => URL.revokeObjectURL(url));
+            setImages([]);
+            setPreviewUrls([]);
+            setThumbnailIndex(null);
+            setValue("productImageUrl", undefined);
+        }
+    }, [clearSignal]);
 
     const maxImages = 9;
 
@@ -31,6 +45,10 @@ export default function Basic() {
 
         if (thumbnailIndex === null && newFiles.length > 0) {
             setThumbnailIndex(0);
+        }
+
+        if (newFiles.length > 0) {
+            setValue("productImageUrl", newFiles[0]);
         }
     };
 
@@ -55,23 +73,23 @@ export default function Basic() {
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                    <Label htmlFor="name">Tên Sản Phẩm *</Label>
+                    <Label htmlFor="name">Tên Sản Phẩm <span className='text-red-600'>*</span></Label>
                     <Input
                         id="name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        {...register("name")}
                     />
+                    {errors.name && <p className="text-red-500">{errors.name.message}</p>}
                 </div>
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="description">Mô Tả</Label>
+                <Label htmlFor="description">Mô Tả <span className='text-red-600'>*</span></Label>
                 <Textarea
                     id="description"
                     rows={3}
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    {...register("description")}
                 />
+                {errors.description && <p className="text-red-500">{errors.description.message}</p>}
             </div>
 
             <div className="space-y-6">
@@ -110,8 +128,8 @@ export default function Basic() {
                                 htmlFor="uploadFile1"
                                 className=" bg-white text-slate-500 font-semibold text-base rounded h-32 flex flex-col items-center justify-center cursor-pointer border-2 border-gray-300 border-dashed"
                             >
-                               
-                                <LuImagePlus className='text-3xl'/>
+
+                                <LuImagePlus className='text-3xl' />
                                 Thêm hình ảnh ({images.length}/{maxImages})
                                 <input
                                     type="file"
@@ -125,7 +143,6 @@ export default function Basic() {
                             </label>
                         )}
                     </div>
-                    
                 </div>
             </div>
         </div>

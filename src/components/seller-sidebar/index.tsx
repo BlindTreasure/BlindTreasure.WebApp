@@ -32,12 +32,12 @@ const sidebarItems = [
   {
     label: "Quản lý sản phẩm",
     icon: Package,
-    href: "/seller/products",
+    href: "/seller/allproduct",
     dropdownKey: "products",
     subItems: [
       {
         label: "Tất cả sản phẩm",
-        href: "/seller/products",
+        href: "/seller/allproduct",
         icon: ListOrdered,
       },
       {

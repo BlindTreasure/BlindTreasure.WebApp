@@ -1,10 +1,10 @@
 "use client";
 
-import AdminHeader from "@/components/admin-header";
 import SellerSidebar from "@/components/seller-sidebar";
 import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useServiceGetSellerProfile } from "@/services/account/services";
+import SellerHeader from "@/components/seller-header";
 
 export default function SellerLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -12,6 +12,13 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
 
   const { data, isLoading, isError } = useServiceGetSellerProfile();
   const [showFullLayout, setShowFullLayout] = useState(true);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'; 
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   useEffect(() => {
     if (!data) return;
@@ -40,10 +47,10 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
     <div className="flex h-screen">
       {showFullLayout && <SellerSidebar />}
       <div className="flex flex-col flex-1 overflow-hidden">
-          <div className="min-h-[109px] bg-white shadow-md">
-            <AdminHeader />
+          <div className="min-h-[76px] bg-white shadow-md">
+            <SellerHeader />
           </div>
-        <main className="flex-grow p-4 bg-gray-100 overflow-auto">
+        <main className="flex-grow p-4 bg-gray-100 overflow-y-auto">
           {children}
         </main>
       </div>
