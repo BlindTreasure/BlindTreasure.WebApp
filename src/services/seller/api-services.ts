@@ -36,7 +36,7 @@ export const verifySellerByStaff = async ({
   sellerId,
   body,
 }: {
-  sellerId: string | number;
+  sellerId: string;
   body: REQUEST.VerifySeller;
 }): Promise<TResponseData<any>> => {
   const formData = new FormData();

@@ -33,7 +33,7 @@ export const useServiceVerifySellerByStaff = () => {
   return useMutation<
     TResponseData<any>,
     TMeta,
-    { sellerId: string | number; body: REQUEST.VerifySeller }
+    { sellerId: string; body: REQUEST.VerifySeller }
   >({
     mutationFn: verifySellerByStaff,
     onSuccess: (data) => {

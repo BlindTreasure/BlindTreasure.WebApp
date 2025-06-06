@@ -123,6 +123,17 @@ export default function AdminSidebar() {
                             </Link>
                         </li>
 
+                        <li>
+                            <Link href="/admin/user-management" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
+                                <div className="flex items-center justify-center w-8 h-8">
+                                    <Building size={20} />
+                                </div>
+                                <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
+                                    Quản lí người dùng
+                                </span>
+                            </Link>
+                        </li>
+
                     </ul>
                 </div>
             </aside>
