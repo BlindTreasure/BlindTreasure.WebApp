@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import useCreateProductForm from '@/app/seller/create-product/hooks/useCreateProduct';
 import { ProductType } from '@/const/products';
+import React from 'react';
 
 type Props = {
     register: ReturnType<typeof useCreateProductForm>["register"];
@@ -20,7 +21,50 @@ type Props = {
     categories?: API.ResponseDataCategory;
 };
 
+function findCategoryLabelById(cats: API.Category[], id: string): string | undefined {
+    const traverse = (nodes: API.Category[], path: string[] = []): string | undefined => {
+        for (const node of nodes) {
+            const newPath = [...path, node.name];
+            if (node.id === id) return newPath.join(" > ");
+            if (node.children) {
+                const found = traverse(node.children, newPath);
+                if (found) return found;
+            }
+        }
+        return undefined;
+    };
+    return traverse(cats);
+}
+
 export default function Detail({ register, setValue, errors, watch, categories }: Props) {
+    const topLevelCats = categories?.result?.filter(c => !c.parentId) || [];
+
+    function renderCategories(cats: API.Category[], level = 0): React.ReactElement[] {
+        return cats.flatMap(cat => {
+            const indent = Array(level).fill('\u00A0\u00A0\u00A0').join('');
+            const label = cat.name;
+            const currentItem = (
+                <SelectItem
+                    key={cat.id}
+                    value={cat.id}
+                    className={level === 0 ? 'font-semibold' : 'font-normal'}
+                >
+                    {indent}{label}
+                </SelectItem>
+            );
+
+            if (cat.children?.length) {
+                return [currentItem, ...renderCategories(cat.children, level + 1)];
+            }
+            return [currentItem];
+        });
+    }
+
+    const selectedCategoryId = watch("categoryId");
+    const selectedCategoryLabel = selectedCategoryId && categories?.result
+        ? findCategoryLabelById(categories.result, selectedCategoryId)
+        : "";
+
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -33,23 +77,25 @@ export default function Detail({ register, setValue, errors, watch, categories }
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="categoryId">Danh mục <span className='text-red-600'>*</span></Label>
+                    <Label htmlFor="categoryId">
+                        Danh mục <span className="text-red-600">*</span>
+                    </Label>
                     <Select
                         onValueChange={(value) => setValue("categoryId", value)}
-                        value={watch("categoryId")}
+                        value={selectedCategoryId}
                     >
                         <SelectTrigger id="categoryId">
-                            <SelectValue placeholder="Chọn danh mục" />
+                            <SelectValue placeholder="Chọn danh mục">
+                                {selectedCategoryLabel}
+                            </SelectValue>
                         </SelectTrigger>
-                        <SelectContent>
-                            {categories?.result?.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                    {cat.name}
-                                </SelectItem>
-                            ))}
+                        <SelectContent className="max-h-80 overflow-y-auto">
+                            {renderCategories(topLevelCats)}
                         </SelectContent>
                     </Select>
-                    {errors.categoryId && <p className="text-red-500">{errors.categoryId.message}</p>}
+                    {errors.categoryId && (
+                        <p className="text-red-500">{errors.categoryId.message}</p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -87,7 +133,8 @@ export default function Detail({ register, setValue, errors, watch, categories }
                         type="number"
                         min={1}
                         {...register("price", { valueAsNumber: true })}
-                    />{errors.price && <p className="text-red-500">{errors.price.message}</p>}
+                    />
+                    {errors.price && <p className="text-red-500">{errors.price.message}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -110,13 +157,12 @@ export default function Detail({ register, setValue, errors, watch, categories }
                             <SelectValue placeholder="Chọn loại sản phẩm" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="Directsale">Bán trực tiếp</SelectItem>
+                            <SelectItem value="DirectSale">Bán trực tiếp</SelectItem>
                             <SelectItem value="BlindBoxOnly">Túi mù</SelectItem>
                             <SelectItem value="Both">Cả hai</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
-
             </div>
         </div>
     );

@@ -74,23 +74,19 @@ const errorHandler = async (error: AxiosError) => {
   if (error.response?.status === 401 && error?.config &&
     !error.config.url?.includes("/auth/logout") &&
     !error.config.url?.includes("/auth/login")) {
-    const originalRequest = error?.config;
 
     if (!refreshTokenPromise) {
       const storedRefreshToken = getStorageItem("refreshToken") || "";
       refreshTokenPromise = refreshToken({ refreshToken: storedRefreshToken })
         .then((res: any) => {
-          // const accessTokenRaw = res?.value?.data?.accessToken;
-          // const accessToken = `Bearer ${accessTokenRaw}`;
-          // console.log("👉 accessToken:", accessTokenRaw);
-          // setStorageItem("accessToken", accessToken);
-          // request.defaults.headers.Authorization = accessToken;
           const accessTokenRaw = res?.value?.data?.accessToken;
+          const refreshTokenRaw = res?.value?.data?.refreshToken;
           setStorageItem("accessToken", accessTokenRaw);
-
+          setStorageItem("refreshToken", refreshTokenRaw);
         })
         .catch((err: any) => {
           removeStorageItem("accessToken");
+          removeStorageItem("refreshToken");
           location.href = "/login";
           return Promise.reject(err);
         })
@@ -100,8 +96,10 @@ const errorHandler = async (error: AxiosError) => {
     }
 
     return refreshTokenPromise.then(() => {
-      // originalRequest.headers.Authorization = getStorageItem("accessToken");
-      // return request(originalRequest);
+      const originalRequest = error.config;
+      if (!originalRequest) {
+        return Promise.reject(error);
+      }
       originalRequest.headers.Authorization = `Bearer ${getStorageItem("accessToken")}`;
       return request(originalRequest);
     });

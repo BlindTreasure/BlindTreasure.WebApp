@@ -26,37 +26,36 @@ interface ProductCardProps {
     price: number;
     stock: number;
     status: string;
-    imageUrl: string;
+    height: number;
+    material: string;
+    productType: string;
+    imageUrls: string [];
     sellerId: string;
     isDeleted: boolean;
     createdAt: string;
     updatedAt: string;
   };
-  type: "normal" | "blindbox";
-  tags?: ("sale" | "new")[];
-  percent?: number;
+  // type: "normal" | "blindbox";
+  // tags?: ("sale" | "new")[];
+  // percent?: number;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
   product,
-  type,
-  tags,
-  percent,
+  // type,
+  // tags,
+  // percent,
 }) => {
   const {
     id,
     name,
     description,
     price,
-    imageUrl,
+    imageUrls,
   } = product;
 
-  const images = [
-    imageUrl || "/images/cart.webp",
-    "/images/2.png",
-    "/images/3.png",
-    "/images/4.png",
-  ];
+  const images = imageUrls.length > 0 ? imageUrls : ["/images/cart.webp"];
+
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
   const [mainSwiper, setMainSwiper] = useState<SwiperType | null>(null);
   const [open, setOpen] = useState(false);
@@ -77,12 +76,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div className="relative p-2 mt-6 transition-all duration-300 transform hover:scale-105">
-      <Ribbon type={type} tags={tags} percent={percent} />
+      <Ribbon createdAt={product.createdAt} />
       <Card className="relative w-full rounded-xl overflow-hidden p-4 shadow-lg bg-white">
 
         <div className="w-full h-48 overflow-hidden rounded-md relative group">
           <img
-            src={imageUrl}
+            src={imageUrls[0]}
             alt="Product"
             className="w-full h-full object-cover"
           />

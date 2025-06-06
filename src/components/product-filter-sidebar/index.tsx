@@ -14,54 +14,53 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 type SidebarProps = {
-  categories: {
-    name: string;
-    subCategories?: string[];
-  }[];
+  categories?: API.ResponseDataCategory;
   prices: string[];
   brands: string[];
 };
 
 export default function ProductFilterSidebar({ categories, prices, brands }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
-
+  
   const FilterContent = ({ isCompact = false }: { isCompact?: boolean }) => (
     <div
-      className={`space-y-5 text-[15px] leading-relaxed ${
-        isCompact ? "p-2" : "p-4"
-      }`}
+      className={`space-y-5 text-[15px] leading-relaxed ${isCompact ? "p-2" : "p-4"
+        }`}
     >
       {/* Danh Mục */}
       <div>
         <h3 className="text-[#d02a2a] font-semibold mb-2 text-base">Danh Mục</h3>
         <Accordion type="multiple" className="space-y-1">
-          {categories.map((cat, idx) =>
-            cat.subCategories ? (
-              <AccordionItem key={idx} value={`cat-${idx}`} className="border-none">
-                <AccordionTrigger className="text-left font-normal px-2 py-1 hover:text-[#d02a2a] transition-colors">
-                  {cat.name}
-                </AccordionTrigger>
-                <AccordionContent className="pl-5 space-y-1">
-                  {cat.subCategories.map((sub, subIdx) => (
-                    <div
-                      key={subIdx}
-                      className="cursor-pointer hover:text-[#d02a2a] transition-colors"
-                    >
-                      {sub}
-                    </div>
-                  ))}
-                </AccordionContent>
-              </AccordionItem>
-            ) : (
-              <div
-                key={idx}
-                className="flex items-center justify-between px-2 py-1 font-normal cursor-pointer hover:text-[#d02a2a] transition-colors"
-              >
-                <span>{cat.name}</span>
-                <ChevronDown className="w-4 h-4 opacity-0" />
-              </div>
-            )
-          )}
+          {categories?.result
+            .filter((cat) => !cat.parentId) 
+            .map((parentCat) => {
+              const hasChildren = parentCat.children && parentCat.children.length > 0;
+
+              return hasChildren ? (
+                <AccordionItem key={parentCat.id} value={`cat-${parentCat.id}`} className="border-none">
+                  <AccordionTrigger className="text-left font-normal px-2 py-1 hover:text-[#d02a2a] transition-colors">
+                    {parentCat.name}
+                  </AccordionTrigger>
+                  <AccordionContent className="pl-5 space-y-1">
+                    {parentCat.children.map((childCat) => (
+                      <div
+                        key={childCat.id}
+                        className="cursor-pointer hover:text-[#d02a2a] transition-colors"
+                      >
+                        {childCat.name}
+                      </div>
+                    ))}
+                  </AccordionContent>
+                </AccordionItem>
+              ) : (
+                <div
+                  key={parentCat.id}
+                  className="px-2 py-1 cursor-pointer hover:text-[#d02a2a] transition-colors"
+                >
+                  {parentCat.name}
+                </div>
+              );
+            })}
         </Accordion>
       </div>
 

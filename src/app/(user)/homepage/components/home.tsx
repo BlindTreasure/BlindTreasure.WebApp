@@ -24,6 +24,7 @@ import { useEffect, useState } from "react";
 import { GetAllProducts, TAllProductResponse } from "@/services/product/typings";
 import useGetAllProductWeb from "../../allproduct/hooks/useGetAllProductWeb";
 import { ProductStatus } from "@/const/products";
+import { Backdrop } from "@/components/backdrop";
 
 
 interface Blindbox {
@@ -115,7 +116,7 @@ export default function HomePage() {
     pageIndex: 1,
     pageSize: 5,
     search: "",
-    productStatus: ProductStatus.Active,
+    productStatus: undefined,
     sellerId: "",
     categoryId: "",
     sortBy: undefined,
@@ -286,17 +287,8 @@ export default function HomePage() {
             {products?.result.map((product) => (
               <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
                 <ProductCard
-                  // id={box.id}
-                  // type={box.type}
-                  // tags={box.tags}
-                  // percent={box.percent}
-                  // title={box.title}
-                  // price={box.price.toLocaleString("vi-VN") + "₫"}
                   key={product.id}
                   product={product}
-                  type="normal"
-                  tags={["sale"]}
-                  percent={10}
                 />
               </CarouselItem>
             ))}
@@ -390,9 +382,9 @@ export default function HomePage() {
                   // price={box.price.toLocaleString("vi-VN") + "₫"}
                   key={product.id}
                   product={product}
-                  type="normal"
-                  tags={["sale"]}
-                  percent={10}
+                // type="normal"
+                // tags={["sale"]}
+                // percent={10}
                 />
               </CarouselItem>
             ))}
@@ -442,23 +434,13 @@ export default function HomePage() {
           className="w-96 sm:w-full max-w-[1400px]"
         >
           <CarouselContent>
-            {products?.result.map((product) => (
-              <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
-                <ProductCard
-                  // id={box.id}
-                  // type={box.type}
-                  // tags={box.tags}
-                  // percent={box.percent}
-                  // title={box.title}
-                  // price={box.price.toLocaleString("vi-VN") + "₫"}
-                  key={product.id}
-                  product={product}
-                  type="normal"
-                  tags={["sale"]}
-                  percent={10}
-                />
-              </CarouselItem>
-            ))}
+            {products?.result
+              .filter((product) => product.productType === "BlindBoxOnly")
+              .map((product) => (
+                <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
+                  <ProductCard product={product} />
+                </CarouselItem>
+              ))}
           </CarouselContent>
           <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
           <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
@@ -476,7 +458,7 @@ export default function HomePage() {
       </motion.h1>
 
       <InfiniteMovingCardsDemo />
-
+      <Backdrop open={isPending} />
     </div>
   );
 }

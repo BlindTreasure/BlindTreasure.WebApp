@@ -30,6 +30,11 @@ declare namespace API {
     user: TAuthProfile;
   };
 
+  type TRefreshTokenResponse = {
+    accessToken: string;
+    refreshToken: string;
+  };
+
   type TAuthRefreshToken = {
     refreshToken: string;
   };

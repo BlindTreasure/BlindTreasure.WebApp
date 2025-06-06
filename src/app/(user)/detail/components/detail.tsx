@@ -281,7 +281,7 @@ export default function Detail({ detailId }: DetailProps) {
         setQuantity(quantity + 1);
     };
 
-    const images = products?.imageUrl ? [products.imageUrl] : [];
+    const images = products?.imageUrls?.length ? products.imageUrls : [];
 
     return (
         <div className="p-6 mt-32 sm:px-16">

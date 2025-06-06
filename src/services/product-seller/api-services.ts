@@ -1,6 +1,6 @@
 import request from "@/components/interceptor";
 import API_ENDPOINTS from "@/services/product-seller/api-path";
-import { GetProduct, Product, TProductResponse } from "./typings";
+import { GetProduct, Product, TProductResponse, UpdateInfor } from "./typings";
 
 export const getAllProductSeller = async ({
   search,
@@ -43,17 +43,19 @@ export const createProduct = async (body: FormData) => {
   return response.data;
 };
 
-export const updateProduct = async (productId: string, body: FormData) => {
+export const updateProduct = async (
+  body: UpdateInfor & { productId: string }
+): Promise<TResponseData<Product>> => {
+  const { productId, ...data } = body;
+
   const response = await request<TResponseData<Product>>(
     API_ENDPOINTS.PRODUCT_WITH_ID(productId),
     {
       method: "PUT",
-      data: body,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      data,
     }
   );
+
   return response.data;
 };
 
@@ -62,6 +64,21 @@ export const deleteProduct = async (productId: string) => {
     API_ENDPOINTS.PRODUCT_WITH_ID(productId),
     {
       method: "DELETE",
+    }
+  );
+  return response.data;
+};
+
+
+export const updateImageProduct = async (productId: string, body: FormData) => {
+  const response = await request<TResponseData<Product>>(
+    API_ENDPOINTS.UPDATE_IMAGE(productId),
+    {
+      method: "PUT",
+      data: body,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     }
   );
   return response.data;

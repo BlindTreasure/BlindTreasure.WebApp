@@ -19,7 +19,8 @@ declare namespace API {
     description: string;
     parentId: string;
     isDeleted: boolean;
-    createdAt: string //ISO format
+    createdAt: string ;
+    children: Category[];
   };
 
   type ResponseDataCategory = {

@@ -127,7 +127,7 @@ export default function SellerHeader() {
 
                     {/* Menu nhỏ mobile nếu mở */}
                     {rightMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-50">
+                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-[9999]">
                             <div className="p-2 border-b border-gray-200">
                                 <NotificationDropdown />
                             </div>

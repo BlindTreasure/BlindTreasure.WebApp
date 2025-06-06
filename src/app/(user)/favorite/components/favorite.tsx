@@ -66,9 +66,7 @@ export default function Favorite() {
                         // price={product.price.toLocaleString() + "₫"}
                         key={product.id}
                         product={product}
-                        type="normal"
-                        tags={["sale"]}
-                        percent={10}
+                       
                     />
                 ))}
             </div>

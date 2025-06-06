@@ -23,8 +23,12 @@ export type AllProduct = {
   categoryId: string;
   price: number;
   stock: number;
+  height: number;
+  material: string;
+  productType: string;
+  brand: string;
   status: string;
-  imageUrl: string;
+  imageUrls: string[];
   sellerId: string;
   isDeleted: boolean;
   createdAt: string;
