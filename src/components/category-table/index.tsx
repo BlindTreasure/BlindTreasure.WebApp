@@ -10,6 +10,7 @@ export type CategoryRow = {
   name: string
   description: string
   parentId?: string
+  imageUrl?: string // ✅ Thêm trường ảnh
   children?: CategoryRow[]
 }
 
@@ -58,9 +59,24 @@ export default function CategoryTable({
             <span className="font-medium text-gray-900">{category.name}</span>
           </div>
         </td>
-        <td className="px-4 py-3 bg-white text-gray-700">{category.description}</td>
+
+        <td className="px-4 py-3 bg-white text-gray-700">
+          {category.description}
+        </td>
+
+        <td className="px-4 py-3 bg-white text-gray-700">
+          {category.imageUrl ? (
+            <img
+              src={category.imageUrl}
+              alt={category.name}
+              className="w-10 h-10 object-cover rounded"
+            />
+          ) : (
+            <span className="text-gray-400 italic">Không có ảnh</span>
+          )}
+        </td>
+
         <td className="px-4 py-3 bg-white text-right space-x-2">
-          {/* Ẩn nút Xoá nếu là cha (có children) */}
           {onDelete && !hasChildren && (
             <DeleteConfirmDialog
               onConfirm={() => onDelete(category.id)}
@@ -100,11 +116,12 @@ export default function CategoryTable({
 
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm px-2 sm:px-4">
-      <table className="w-full min-w-[600px] bg-white text-sm">
+      <table className="w-full min-w-[700px] bg-white text-sm">
         <thead className="bg-white text-gray-700 border-b border-gray-200">
           <tr>
             <th className="px-4 py-3 text-left">Tên danh mục</th>
             <th className="px-4 py-3 text-left">Mô tả</th>
+            <th className="px-4 py-3 text-left">Ảnh</th>
             <th className="px-4 py-3 text-right">Hành động</th>
           </tr>
         </thead>

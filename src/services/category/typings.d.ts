@@ -4,12 +4,13 @@ declare namespace REQUEST {
     pageSize?: number;
   };
 
-  type CategoryInfo = {
+  type CategoryForm = {
     id?: string;
     name: string;
     description: string;
     parentId?: string;
-  }
+    imageUrl?: File;
+  };
 }
 
 declare namespace API {
@@ -19,7 +20,7 @@ declare namespace API {
     description: string;
     parentId: string;
     isDeleted: boolean;
-    createdAt: string //ISO format
+    createdAt: string
   };
 
   type ResponseDataCategory = {
