@@ -92,7 +92,7 @@ export const forgotPasswordChange = async (
 };
 
 export const refreshToken = async (body: API.TAuthRefreshToken) => {
-  const response = await request<TResponseData<API.TAuthResponse>>(API_ENDPOINTS.REFRESH_TOKEN, {
+  const response = await request<TResponseData<API.TRefreshTokenResponse>>(API_ENDPOINTS.REFRESH_TOKEN, {
     method: "POST",
     data: body,
   });

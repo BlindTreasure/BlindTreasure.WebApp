@@ -12,11 +12,19 @@ export enum ProductSortBy {
 }
 
 export enum ProductType {
-  Directsale = "Directsale",
+  DirectSale = "DirectSale",
   BlindBoxOnly = "BlindBoxOnly",
   Both = "Both",
 }
 
 export enum Status {
-  Active = "Active"
+  Active = "Active",
+  InActive = "InActive"
+}
+
+export enum ProductStatus {
+  Active = "Active",
+  InActive = "InActive",
+  New = "New",
+  OutOfStock = "OutOfStock"
 }

@@ -3,8 +3,8 @@ import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
 import Detail from "../components/detail";
 
 export const metadata: Metadata = {
-    title: "Detail",
-    description: "Detail for BlindTreasure",
+    title: "Chi tiết sản phẩm",
+    description: "Chi tiết sản phẩm của BlindTreasure",
 };
 
 export default function DetailProp({ params }: any) {

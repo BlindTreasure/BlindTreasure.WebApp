@@ -17,8 +17,12 @@ export type Product = {
   categoryId: string;
   price: number;
   stock: number;
+  height: number;
+  material: string;
+  productType: string;
+  brand: string;
   status: string;
-  imageUrl: string;
+  imageUrls: string[];
   sellerId: string;
   isDeleted: boolean;
   createdAt: string;
@@ -39,10 +43,22 @@ export type CreateProductForm = {
   categoryId: string;
   price: number;
   stock: number;
-  status: Status; 
+  status: Status;
   height?: number;
   material?: string;
   productType?: ProductType | null;
   brand?: string;
-  productImageUrl?: File;
+  images?: (File | string)[];
+};
+
+export type UpdateInfor = {
+  name: string;
+  description: string;
+  categoryId: string;
+  price: number;
+  stock: number;
+  height?: number;
+  material?: string;
+  productType?: ProductType | null;
+  brand?: string;
 };

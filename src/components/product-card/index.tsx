@@ -18,37 +18,49 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface ProductCardProps {
-  id: number;
-  type: "blindbox" | "normal";
-  tags?: ("sale" | "new")[];
-  percent?: number;
-  image?: string;
-  title: string;
-  price: string;
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    categoryId: string;
+    price: number;
+    stock: number;
+    status: string;
+    height: number;
+    material: string;
+    productType: string;
+    imageUrls: string [];
+    sellerId: string;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+  // type: "normal" | "blindbox";
+  // tags?: ("sale" | "new")[];
+  // percent?: number;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
-  id,
-  type,
-  tags,
-  percent,
-  image = "/images/cart.webp",
-  title,
-  price,
+  product,
+  // type,
+  // tags,
+  // percent,
 }) => {
-  const images = [
-    image,
-    "/images/2.png",
-    "/images/3.png",
-    "/images/4.png",
-    "/images/4.png",
-    "/images/4.png",
-    "/images/4.png",
-  ];
+  const {
+    id,
+    name,
+    description,
+    price,
+    imageUrls,
+  } = product;
+
+  const images = imageUrls.length > 0 ? imageUrls : ["/images/cart.webp"];
+
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
   const [mainSwiper, setMainSwiper] = useState<SwiperType | null>(null);
   const [open, setOpen] = useState(false);
   const router = useRouter();
+
   useEffect(() => {
     if (!open) {
       if (mainSwiper) {
@@ -62,15 +74,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
   }, [open]);
 
-
   return (
     <div className="relative p-2 mt-6 transition-all duration-300 transform hover:scale-105">
-      <Ribbon type={type} tags={tags} percent={percent} />
+      <Ribbon createdAt={product.createdAt} />
       <Card className="relative w-full rounded-xl overflow-hidden p-4 shadow-lg bg-white">
 
         <div className="w-full h-48 overflow-hidden rounded-md relative group">
           <img
-            src={image}
+            src={imageUrls[0]}
             alt="Product"
             className="w-full h-full object-cover"
           />
@@ -129,10 +140,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
                   <div className="flex flex-col justify-between">
                     <div className="space-y-4">
-                      <h2 className="text-2xl font-semibold">{title}</h2>
+                      <h2 className="text-2xl font-semibold">{name}</h2>
                       <p className="text-red-600 font-bold text-lg">{price}</p>
                       <p className="text-sm text-gray-600">
-                        Mô tả sản phẩm sẽ được hiển thị ở đây
+                        {description}
                       </p>
                       <Button className="bg-black text-white w-full">Mua ngay</Button>
                     </div>
@@ -151,7 +162,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         <div className="mt-4 text-sm">
-          <p className="truncate font-semibold text-gray-800">{title}</p>
+          <p className="truncate font-semibold text-gray-800">{name}</p>
           <p className="text-red-600 font-bold text-lg">{price}</p>
         </div>
 

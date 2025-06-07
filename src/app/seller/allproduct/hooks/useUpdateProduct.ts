@@ -30,11 +30,11 @@ export default function useUpdateProductForm(
       price: 0,
       stock: 0,
       status: Status.Active,
-      height: undefined,
+      height: 0,
       material: "",
       productType: null,
       brand: "",
-      productImageUrl: undefined,
+      images: [],
     },
   });
 
@@ -47,7 +47,7 @@ export default function useUpdateProductForm(
   ) => {
     try {
       mutate(
-        { id: productId, data },
+        { ...data, productId },
         {
           onSuccess: () => {
             reset();

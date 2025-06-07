@@ -12,13 +12,15 @@ import useCreateProductForm from '@/app/seller/create-product/hooks/useCreatePro
 
 interface ProductFormProps {
   defaultValues?: CreateProductForm;
-  onSubmit: (data: CreateProductForm, clearImages: () => void) => void;
+  onSubmit?: (data: CreateProductForm,
+    clearImages: () => void) => void;
   isPending: boolean;
+  showImageField?: boolean;
 }
 
 const TABS = ['Thông tin cơ bản', 'Thông tin chi tiết'];
 
-export default function ProductForm({ defaultValues, onSubmit, isPending }: ProductFormProps) {
+export default function ProductForm({ defaultValues, onSubmit, isPending, showImageField = true }: ProductFormProps) {
   const {
     register,
     handleSubmit,
@@ -66,8 +68,12 @@ export default function ProductForm({ defaultValues, onSubmit, isPending }: Prod
     setClearSignal(prev => prev + 1);
   };
 
-  const handleSubmitForm = (data: CreateProductForm) => {
-    onSubmit(data, clearImages);
+   const handleSubmitForm = (data: CreateProductForm) => {
+    if (onSubmit) {
+      onSubmit(data, clearImages);
+    } else {
+      onSubmitHook(data, clearImages);
+    }
   };
 
   return (
@@ -91,6 +97,8 @@ export default function ProductForm({ defaultValues, onSubmit, isPending }: Prod
               errors={errors}
               watch={watch}
               clearSignal={clearSignal}
+              defaultValues={defaultValues}
+              showImageField={showImageField}
             />
           </section>
 
@@ -116,7 +124,7 @@ export default function ProductForm({ defaultValues, onSubmit, isPending }: Prod
           <Button
             type="button"
             onClick={() => {
-              reset(defaultValues); // reset về defaultValues nếu có, hoặc rỗng nếu không
+              reset(defaultValues);
               clearImages();
             }}
             className="px-4 py-2 bg-white text-gray-800 rounded hover:bg-gray-300"

@@ -99,21 +99,20 @@ export default function SellerSidebar() {
 
       {staffState.openSidebar && isMobile && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black bg-opacity-50 z-[60]"
           onClick={() => dispatch(closeSidebar())}
         ></div>
       )}
 
       <aside
-        className={`fixed lg:static z-50 h-screen bg-gray-900 text-white transition-all duration-300 ${
-          isMobile
-            ? staffState.openSidebar
-              ? "w-72"
-              : "w-0 overflow-hidden"
-            : staffState.openSidebar
+        className={`fixed lg:static z-[9999] h-screen bg-gray-900 text-white transition-all duration-300 ${isMobile
+          ? staffState.openSidebar
+            ? "w-72"
+            : "w-0 overflow-hidden"
+          : staffState.openSidebar
             ? "w-72"
             : "w-20"
-        }`}
+          }`}
       >
         <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-700">
           <div className="rounded-full w-16 h-16 flex items-center justify-center font-bold text-xs">
@@ -132,9 +131,8 @@ export default function SellerSidebar() {
         <div className="p-4 w-full">
           <ul className="space-y-1">
             <li
-              className={`flex items-center pt-4 text-sm font-semibold text-gray-400 h-10 ${
-                staffState.openSidebar ? "justify-start" : "justify-center"
-              }`}
+              className={`flex items-center pt-4 text-sm font-semibold text-gray-400 h-10 ${staffState.openSidebar ? "justify-start" : "justify-center"
+                }`}
             >
               {staffState.openSidebar ? (
                 <div className="transition-all duration-300 truncate w-full opacity-100">
@@ -163,27 +161,28 @@ export default function SellerSidebar() {
                     <Link
                       href={item.href}
                       className="flex items-center space-x-2"
+                      onClick={() => {
+                        if (isMobile) dispatch(closeSidebar());
+                      }}
                     >
                       <div className="flex items-center justify-center w-8 h-8">
                         <Icon size={20} />
                       </div>
                       <span
-                        className={`${
-                          staffState.openSidebar || isMobile
-                            ? "block"
-                            : "hidden"
-                        } truncate`}
+                        className={`${staffState.openSidebar || isMobile
+                          ? "block"
+                          : "hidden"
+                          } truncate`}
                       >
                         {item.label}
                       </span>
                     </Link>
                     {isDropdown &&
                       staffState.openSidebar &&
-                      !isMobile && (
+                      (
                         <ChevronDown
-                          className={`size-4 transition-transform ${
-                            isOpen ? "rotate-180" : ""
-                          } text-gray-400`}
+                          className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""
+                            } text-gray-400`}
                         />
                       )}
                   </button>
@@ -191,7 +190,7 @@ export default function SellerSidebar() {
                   {isDropdown &&
                     isOpen &&
                     staffState.openSidebar &&
-                    !isMobile && (
+                    (
                       <ul className="pl-4 mt-1 space-y-1">
                         {item.subItems!.map((sub) => {
                           const SubIcon = sub.icon;
@@ -200,6 +199,9 @@ export default function SellerSidebar() {
                               <Link
                                 href={sub.href}
                                 className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded-md"
+                                onClick={() => {
+                                  if (isMobile) dispatch(closeSidebar());
+                                }}
                               >
                                 <div className="flex items-center justify-center w-8 h-8">
                                   <SubIcon size={20} />

@@ -1,5 +1,5 @@
 import useToast from "@/hooks/use-toast";
-import { getAllProduct } from "@/services/product-seller/api-services";
+import { getAllProductSeller } from "@/services/product-seller/api-services";
 import {
   GetProduct,
   TProductResponse,
@@ -16,7 +16,7 @@ export default function useGetAllProduct() {
   const getAllProductApi = async (params: GetProduct) => {
     setPending(true);
     try {
-      const res = await getAllProduct(params);
+      const res = await getAllProductSeller(params);
       if (isTResponseData(res)) {
         return res as TResponseData<TProductResponse>;
       }

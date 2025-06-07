@@ -192,7 +192,7 @@ export const useServiceLogout = () => {
 
 export const useServiceRefreshToken = () => {
   return useMutation<
-    TResponseData<API.TAuthResponse>,
+    TResponseData<API.TRefreshTokenResponse>,
     TMeta,
     API.TAuthRefreshToken
   >({

@@ -70,7 +70,7 @@ export default function ProductTable() {
     const handleConfirmDelete = () => {
         if (productToDelete) {
             onDelete(productToDelete, () => {
-                setParams({ ...params }); // Refresh danh sách
+                setParams({ ...params }); 
                 setProductToDelete(null);
             });
         }
@@ -210,9 +210,9 @@ export default function ProductTable() {
                                 products?.result.map((product) => (
                                     <TableRow key={product.id}>
                                         <TableCell>
-                                            {product.imageUrl ? (
+                                            {product.imageUrls && product.imageUrls.length > 0 ? (
                                                 <img
-                                                    src={product.imageUrl}
+                                                    src={product.imageUrls[0]}
                                                     alt={product.name}
                                                     className="w-24 h-14 object-cover rounded"
                                                 />
@@ -262,7 +262,7 @@ export default function ProductTable() {
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
-                                <DialogTitle>Cập nhật sản phẩm</DialogTitle>
+                                <DialogTitle className="font-poppins text-xl">Cập nhật sản phẩm</DialogTitle>
                             </DialogHeader>
                             {selectedProduct && (
                                 <EditProductSeller
