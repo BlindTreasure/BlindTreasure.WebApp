@@ -1,5 +1,6 @@
 declare namespace REQUEST {
   type GetCategory = {
+    search?: string;
     pageIndex?: number;
     pageSize?: number;
   };

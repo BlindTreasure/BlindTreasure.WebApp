@@ -2,6 +2,7 @@ import request from "@/components/interceptor";
 import API_ENDPOINTS from "@/services/category/api-path";
 
 export const getAllCategory = async ({
+  search,
   pageIndex,
   pageSize,
 }: REQUEST.GetCategory): Promise<TResponseData<API.ResponseDataCategory>> => {
@@ -10,6 +11,7 @@ export const getAllCategory = async ({
     {
       method: "GET",
       params: {
+        search,
         pageIndex,
         pageSize,
       },
