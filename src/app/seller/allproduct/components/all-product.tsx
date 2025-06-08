@@ -53,17 +53,18 @@ export default function ProductTable() {
     })
 
     const [searchInput, setSearchInput] = useState("")
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [selectedProductToEdit, setSelectedProductToEdit] = useState<Product | null>(null);
+    const [selectedProductToView, setSelectedProductToView] = useState<Product | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
 
     const openModal = (product: Product) => {
-        setSelectedProduct(product);
+        setSelectedProductToView(product);
     };
 
     const handleEditClick = (product: Product) => {
-        setSelectedProduct(product);
+        setSelectedProductToEdit(product);
         setOpen(true);
     };
 
@@ -261,11 +262,11 @@ export default function ProductTable() {
                         </TableBody>
                     </Table>
 
-                    {selectedProduct && (
+                    {selectedProductToView && (
                         <ProductDetailDialog
-                            product={selectedProduct}
+                            product={selectedProductToView}
                             isOpen={true}
-                            onClose={() => setSelectedProduct(null)}
+                            onClose={() => setSelectedProductToView(null)}
                         />
                     )}
 
@@ -274,9 +275,9 @@ export default function ProductTable() {
                             <DialogHeader>
                                 <DialogTitle className="font-poppins text-xl">Cập nhật sản phẩm</DialogTitle>
                             </DialogHeader>
-                            {selectedProduct && (
+                            {selectedProductToEdit  && (
                                 <EditProductSeller
-                                    productData={selectedProduct}
+                                    productData={selectedProductToEdit }
                                     onUpdateSuccess={() => {
                                         setOpen(false);
                                         setParams({ ...params });
