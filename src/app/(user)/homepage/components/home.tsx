@@ -26,7 +26,6 @@ import useGetAllProductWeb from "../../allproduct/hooks/useGetAllProductWeb";
 import { ProductStatus } from "@/const/products";
 import { Backdrop } from "@/components/backdrop";
 
-
 interface Blindbox {
   id: string;
   type: "blindbox" | "normal";
@@ -65,52 +64,27 @@ export default function HomePage() {
       description: "Khui hộp ngay trên website – nhanh chóng, tiện lợi mà vẫn hồi hộp!",
     }
   ]
-  const blindboxes: Blindbox[] = [
-    { id: "1", type: "normal", tags: ["sale"], percent: 30, title: "Hello", price: 5420000 },
-    { id: "2", type: "normal", tags: ["sale"], percent: 50, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: "3", type: "normal", tags: ["sale"], percent: 40, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: "4", type: "normal", tags: ["sale"], percent: 10, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: "5", type: "normal", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: "6", type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: "7", type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: "8", type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: "9", type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: "10", type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: "11", type: "normal", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000, percent: 20 },
-    { id: "12", type: "normal", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    {
-      id: "13",
-      type: "blindbox",
-      title: "DODO Nami Twinkle Bunny Plush Doll Blindbox Series",
-      price: 280000,
-      brand: "DODO SUGAR",
-      status: "Còn hàng",
-      material: ["Plastic", "Textile", "Cotton", "Polyester"],
-      packaging: "Hộp màu ngẫu nhiên. 6 Blindbox/1 SET",
-      variants: [
-        { name: "1 BLINDBOX" },
-        { name: "SET 6 BLINDBOX" }
-      ],
-      images: [
-        "/images/blindbox_4.webp",
-        "/images/3.png",
-        "/images/4.png",
-        "/images/4.png",
-        "/images/4.png",
-        "/images/4.png",
-      ]
-
-    },
-
-    { id: "14", type: "blindbox", percent: 0, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: "15", type: "blindbox", title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: "16", type: "blindbox", percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: "17", type: "blindbox", tags: ["sale"], percent: 20, title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-    { id: "18", type: "blindbox", tags: ["new"], title: "MEGA SPACE MOLLY 400...", price: 5420000 },
-  ];
 
   const [products, setProducts] = useState<TAllProductResponse>()
   const { getAllProductWebApi, isPending } = useGetAllProductWeb()
+  const [loadingPage, setLoadingPage] = useState(false);
+  const router = useRouter();
+
+  const handleClick = (id: string) => {
+    if (id === "1") {
+      setLoadingPage(true);
+      router.push("/allproduct");
+    } else {
+      const el = document.getElementById(id);
+      el?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const handleViewDetail = (id: string) => {
+    setLoadingPage(true);
+    router.push(`/detail/${id}`);
+  };
+
 
   const [params, setParams] = useState<GetAllProducts>({
     pageIndex: 1,
@@ -130,335 +104,326 @@ export default function HomePage() {
     })()
   }, [params])
 
-  const newItems = blindboxes.filter((box) => box.tags?.includes("new"));
-  const saleItems = blindboxes.filter((box) => box.tags?.includes("sale"));
-  const blindboxItems = blindboxes.filter((box) => box.type === "blindbox");
-  const router = useRouter();
-
   return (
-    <div className="relative overflow-hidden">
-      <HeroVideoSection />
+    <>
+      <div className="relative overflow-hidden">
+        <HeroVideoSection />
 
-      <motion.div
-        variants={fadeIn("up", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="flex flex-col justify-center items-center py-10">
-        <h1 className="mt-6 text-4xl md:text-5xl font-extrabold text-[#333]">
-          HỘP BÍ ẨN
-        </h1>
-        <p className="text-lg text-[#333] mt-2">
-          Đến BlindTreasure và tìm kiếm sản phẩm, trải nghiệm hộp bí ẩn bất ngờ.
-        </p>
-        <motion.div
-          className="mt-6"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Button
-            variant="outline"
-            className="border-2 border-[#ACACAC] rounded-full px-8 py-6 text-lg font-semibold text-[#252424] hover:bg-[#252424] hover:text-white transition-colors duration-300"
-          >
-            Tìm hiểu thêm
-          </Button>
-        </motion.div>
-      </motion.div>
-
-      <section className="relative z-10 w-full">
         <motion.div
           variants={fadeIn("up", 0.3)}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.7 }}
-          className="container mx-auto">
-          <Swiper
-            spaceBetween={30}
-            centeredSlides={true}
-            autoplay={{
-              delay: 2500,
-              disableOnInteraction: false,
-            }}
-            pagination={{
-              clickable: true,
-            }}
-            navigation={true}
-            modules={[Autoplay, Pagination, Navigation]}
-            className="w-full h-96 md:h-[512px] mb-16"
+          className="flex flex-col justify-center items-center py-10">
+          <h1 className="mt-6 text-4xl md:text-5xl font-extrabold text-[#333]">
+            HỘP BÍ ẨN
+          </h1>
+          <p className="text-lg text-[#333] mt-2">
+            Đến BlindTreasure và tìm kiếm sản phẩm, trải nghiệm hộp bí ẩn bất ngờ.
+          </p>
+          <motion.div
+            className="mt-6"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            {[
-              "/images/slider_1.webp",
-              "/images/slider_2.jpg",
-              "/images/slider_3.jpg",
-            ].map((url, index) => (
-              <SwiperSlide key={index}>
-                <div className="w-full h-full relative">
-                  <Image
-                    src={url}
-                    alt={`Slide ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
+            <Button
+              variant="outline"
+              className="border-2 border-[#ACACAC] rounded-full px-8 py-6 text-lg font-semibold text-[#252424] hover:bg-[#252424] hover:text-white transition-colors duration-300"
+            >
+              Tìm hiểu thêm
+            </Button>
+          </motion.div>
         </motion.div>
-      </section>
 
-      <motion.h1
-        variants={fadeIn("up", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="text-4xl text-red-600 text-center font-montserrat">
-        DANH MỤC
-        <span className="block w-24 h-[2px] bg-red-600 mt-1 mx-auto"></span>
-      </motion.h1>
+        <section className="relative z-10 w-full">
+          <motion.div
+            variants={fadeIn("up", 0.3)}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.7 }}
+            className="container mx-auto">
+            <Swiper
+              spaceBetween={30}
+              centeredSlides={true}
+              autoplay={{
+                delay: 2500,
+                disableOnInteraction: false,
+              }}
+              pagination={{
+                clickable: true,
+              }}
+              navigation={true}
+              modules={[Autoplay, Pagination, Navigation]}
+              className="w-full h-96 md:h-[512px] mb-16"
+            >
+              {[
+                "/images/slider_1.webp",
+                "/images/slider_2.jpg",
+                "/images/slider_3.jpg",
+              ].map((url, index) => (
+                <SwiperSlide key={index}>
+                  <div className="w-full h-full relative">
+                    <Image
+                      src={url}
+                      alt={`Slide ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </motion.div>
+        </section>
 
-      <motion.div
-        variants={fadeIn("left", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="grid grid-cols-2 md:grid-cols-4 md:gap-4 py-4"
-      >
-        {images.map((item, index) => (
-          <div
-            key={index}
-            onClick={() => {
-              if (item.id === "1") {
-                router.push(`/allproduct`);
-              } else {
-                const el = document.getElementById(item.id);
-                el?.scrollIntoView({ behavior: "smooth" });
-              }
-            }}
-            className="md:h-64 h-40 bg-gray-100 cursor-pointer"
-          >
-            <img src={item.src} className="w-full h-full object-cover transition-all duration-300 transform hover:scale-105" />
-          </div>
-        ))}
-      </motion.div>
-
-
-      <SpotlightPreview />
-
-      <motion.h1
-        id="2"
-        variants={fadeIn("up", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="text-4xl text-red-600 text-center font-montserrat pt-14">
-        HÀNG MỚI VỀ
-        <span className="block w-36 h-[3px] bg-red-600 mt-1 mx-auto"></span>
-      </motion.h1>
-
-      <motion.div
-        variants={fadeIn("left", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="mt-8 flex justify-center "
-
-      >
-        <Button
-          variant="outline"
-          className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#252424] hover:text-white transition-colors duration-300"
-        >
-          Xem thêm
-        </Button>
-      </motion.div>
-
-      <motion.div
-        variants={fadeIn("up", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="flex justify-center pb-8">
-        <Carousel
-          opts={{
-            align: "start",
-          }}
-          className="w-96 sm:w-full max-w-[1400px]"
-        >
-          <CarouselContent>
-            {products?.result.map((product) => (
-              <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
-          <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
-        </Carousel>
-      </motion.div>
-
-      <div className="my-12 text-center">
         <motion.h1
           variants={fadeIn("up", 0.3)}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.7 }}
           className="text-4xl text-red-600 text-center font-montserrat">
-          CÁCH HOẠT ĐỘNG
+          DANH MỤC
+          <span className="block w-24 h-[2px] bg-red-600 mt-1 mx-auto"></span>
         </motion.h1>
-        <motion.p
+
+        <motion.div
+          variants={fadeIn("left", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.7 }}
+          className="grid grid-cols-2 md:grid-cols-4 md:gap-4 py-4"
+        >
+          {images.map((item, index) => (
+            <div
+              key={index}
+              onClick={() => handleClick(item.id)}
+              className="md:h-64 h-40 bg-gray-100 cursor-pointer"
+            >
+              <img src={item.src} className="w-full h-full object-cover transition-all duration-300 transform hover:scale-105" />
+            </div>
+          ))}
+        </motion.div>
+
+        <SpotlightPreview />
+
+        <motion.h1
+          id="2"
           variants={fadeIn("up", 0.3)}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.7 }}
-          className="text-gray-400 mb-8 mt-2">Khám phá túi mù theo cách bạn muốn</motion.p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-20">
-          {works.map((work, index) => (
-            <motion.div
-              key={index}
-              className="bg-gray-900 p-6 rounded-lg"
-              variants={fadeIn(index % 2 === 0 ? "right" : "left", index * 0.2)}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, amount: 0.3 }}
-            >
-              {work.icon}
-              <h3 className="text-xl font-semibold text-white mb-2">{work.title}</h3>
-              <p className="text-neutral-400 text-sm">{work.description}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+          className="text-4xl text-red-600 text-center font-montserrat pt-14">
+          HÀNG MỚI VỀ
+          <span className="block w-36 h-[3px] bg-red-600 mt-1 mx-auto"></span>
+        </motion.h1>
 
-      <motion.h1
-        id="3"
-        variants={fadeIn("up", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="text-4xl text-red-600 text-center font-montserrat pt-10">
-        HÀNG KHUYẾN MÃI
-        <span className="block w-36 h-[3px] bg-red-600 mt-1 mx-auto"></span>
-      </motion.h1>
+        <motion.div
+          variants={fadeIn("left", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.7 }}
+          className="mt-8 flex justify-center "
 
-      <motion.div
-        variants={fadeIn("left", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="mt-8 flex justify-center "
-
-      >
-        <Button
-          variant="outline"
-          className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#252424] hover:text-white transition-colors duration-300"
         >
-          Xem thêm
-        </Button>
-      </motion.div>
+          <Button
+            variant="outline"
+            className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#252424] hover:text-white transition-colors duration-300"
+          >
+            Xem thêm
+          </Button>
+        </motion.div>
 
-      <motion.div
-        variants={fadeIn("up", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="flex justify-center pb-8">
-        <Carousel
-          opts={{
-            align: "start",
-          }}
-          className="w-96 sm:w-full max-w-[1400px]"
-        >
-          <CarouselContent>
-            {products?.result.map((product) => (
-              <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
-                <ProductCard
-                  // id={box.id}
-                  // type={box.type}
-                  // tags={box.tags}
-                  // percent={box.percent}
-                  // title={box.title}
-                  // price={box.price.toLocaleString("vi-VN") + "₫"}
-                  key={product.id}
-                  product={product}
-                // type="normal"
-                // tags={["sale"]}
-                // percent={10}
-                />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
-          <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
-        </Carousel>
-      </motion.div>
-
-      <motion.h1
-        id="4"
-        variants={fadeIn("up", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="text-4xl text-red-600 text-center font-montserrat pt-14">
-        BLINDBOX
-        <span className="block w-24 h-[3px] bg-red-600 mt-1 mx-auto"></span>
-      </motion.h1>
-
-      <motion.div
-        variants={fadeIn("left", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="mt-8 flex justify-center "
-
-      >
-        <Button
-          variant="outline"
-          className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:bg-[#252424] hover:border-[#ACACAC] hover:text-white transition-colors duration-300"
-        >
-          Xem thêm
-        </Button>
-      </motion.div>
-
-      <motion.div
-        variants={fadeIn("up", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="flex justify-center pb-8">
-        <Carousel
-          opts={{
-            align: "start",
-          }}
-          className="w-96 sm:w-full max-w-[1400px]"
-        >
-          <CarouselContent>
-            {products?.result
-              .filter((product) => product.productType === "BlindBoxOnly")
-              .map((product) => (
+        <motion.div
+          variants={fadeIn("up", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.7 }}
+          className="flex justify-center pb-8">
+          <Carousel
+            opts={{
+              align: "start",
+            }}
+            className="w-96 sm:w-full max-w-[1400px]"
+          >
+            <CarouselContent>
+              {products?.result.map((product) => (
                 <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
-                  <ProductCard product={product} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onViewDetail={handleViewDetail}
+                  />
                 </CarouselItem>
               ))}
-          </CarouselContent>
-          <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
-          <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
-        </Carousel>
-      </motion.div>
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+            <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+          </Carousel>
+        </motion.div>
 
-      <motion.h1
-        variants={fadeIn("up", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="text-4xl text-red-600 text-center font-montserrat pt-14">
-        THƯƠNG HIỆU NỔI BẬT
-        <span className="block w-24 h-[3px] bg-red-600 mt-1 mx-auto"></span>
-      </motion.h1>
+        <div className="my-12 text-center">
+          <motion.h1
+            variants={fadeIn("up", 0.3)}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.7 }}
+            className="text-4xl text-red-600 text-center font-montserrat">
+            CÁCH HOẠT ĐỘNG
+          </motion.h1>
+          <motion.p
+            variants={fadeIn("up", 0.3)}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.7 }}
+            className="text-gray-400 mb-8 mt-2">Khám phá túi mù theo cách bạn muốn</motion.p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-20">
+            {works.map((work, index) => (
+              <motion.div
+                key={index}
+                className="bg-gray-900 p-6 rounded-lg"
+                variants={fadeIn(index % 2 === 0 ? "right" : "left", index * 0.2)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.3 }}
+              >
+                {work.icon}
+                <h3 className="text-xl font-semibold text-white mb-2">{work.title}</h3>
+                <p className="text-neutral-400 text-sm">{work.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
 
-      <InfiniteMovingCardsDemo />
-      <Backdrop open={isPending} />
-    </div>
+        <motion.h1
+          id="3"
+          variants={fadeIn("up", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.7 }}
+          className="text-4xl text-red-600 text-center font-montserrat pt-10">
+          HÀNG KHUYẾN MÃI
+          <span className="block w-36 h-[3px] bg-red-600 mt-1 mx-auto"></span>
+        </motion.h1>
+
+        <motion.div
+          variants={fadeIn("left", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.7 }}
+          className="mt-8 flex justify-center "
+
+        >
+          <Button
+            variant="outline"
+            className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#252424] hover:text-white transition-colors duration-300"
+          >
+            Xem thêm
+          </Button>
+        </motion.div>
+
+        <motion.div
+          variants={fadeIn("up", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.7 }}
+          className="flex justify-center pb-8">
+          <Carousel
+            opts={{
+              align: "start",
+            }}
+            className="w-96 sm:w-full max-w-[1400px]"
+          >
+            <CarouselContent>
+              {products?.result.map((product) => (
+                <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
+                  <ProductCard
+                    // id={box.id}
+                    // type={box.type}
+                    // tags={box.tags}
+                    // percent={box.percent}
+                    // title={box.title}
+                    // price={box.price.toLocaleString("vi-VN") + "₫"}
+                    key={product.id}
+                    product={product}
+                     onViewDetail={handleViewDetail}
+                  // type="normal"
+                  // tags={["sale"]}
+                  // percent={10}
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+            <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+          </Carousel>
+        </motion.div>
+
+        <motion.h1
+          id="4"
+          variants={fadeIn("up", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.7 }}
+          className="text-4xl text-red-600 text-center font-montserrat pt-14">
+          BLINDBOX
+          <span className="block w-24 h-[3px] bg-red-600 mt-1 mx-auto"></span>
+        </motion.h1>
+
+        <motion.div
+          variants={fadeIn("left", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.7 }}
+          className="mt-8 flex justify-center "
+
+        >
+          <Button
+            variant="outline"
+            className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:bg-[#252424] hover:border-[#ACACAC] hover:text-white transition-colors duration-300"
+          >
+            Xem thêm
+          </Button>
+        </motion.div>
+
+        <motion.div
+          variants={fadeIn("up", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.7 }}
+          className="flex justify-center pb-8">
+          <Carousel
+            opts={{
+              align: "start",
+            }}
+            className="w-96 sm:w-full max-w-[1400px]"
+          >
+            <CarouselContent>
+              {products?.result
+                .filter((product) => product.productType === "BlindBoxOnly")
+                .map((product) => (
+                  <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
+                    <ProductCard product={product} onViewDetail={handleViewDetail}/>
+                  </CarouselItem>
+                ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+            <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+          </Carousel>
+        </motion.div>
+
+        <motion.h1
+          variants={fadeIn("up", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.7 }}
+          className="text-4xl text-red-600 text-center font-montserrat pt-14">
+          THƯƠNG HIỆU NỔI BẬT
+          <span className="block w-24 h-[3px] bg-red-600 mt-1 mx-auto"></span>
+        </motion.h1>
+
+        <InfiniteMovingCardsDemo />
+        <Backdrop open={loadingPage} />
+      </div>
+    </>
   );
 }

@@ -80,42 +80,6 @@ export const useServiceDeleteProduct = () => {
   });
 };
 
-// export const useServiceUpdateImageProduct = () => {
-//   const { addToast } = useToast();
-
-//   return useMutation<TResponse, Error, CreateProductForm>({
-//     mutationFn: async (data: CreateProductForm) => {
-//       const formData = new FormData();
-//       formData.append("name", data.name);
-//       formData.append("description", data.description);
-//       formData.append("categoryId", data.categoryId);
-//       formData.append("price", data.price.toString());
-//       formData.append("stock", data.stock.toString());
-//       formData.append("status", data.status);
-
-//       if (data.height !== undefined)
-//         formData.append("height", data.height.toString());
-//       if (data.material) formData.append("material", data.material);
-//       if (data.productType !== undefined && data.productType !== null)
-//         formData.append("productType", data.productType);
-//       if (data.brand) formData.append("brand", data.brand);
-//       if (data.images && data.images.length > 0) {
-//         data.images.forEach((file) => {
-//           formData.append("images", file);
-//         });
-//       }
-
-//       return await createProduct(formData);
-//     },
-//     onSuccess: (data) => {
-//       addToast({
-//         type: "success",
-//         description: data.value.message,
-//         duration: 5000,
-//       });
-//     },
-//   });
-// };
 
 export const useServiceUpdateImageProduct = () => {
   const { addToast } = useToast();

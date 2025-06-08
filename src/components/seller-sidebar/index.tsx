@@ -9,6 +9,7 @@ import {
   ChevronDown,
   BarChart,
   Users,
+  FileBox
 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/stores/store";
 import { closeSidebar, openSidebar } from "@/stores/difference-slice";
@@ -20,19 +21,10 @@ const sidebarItems = [
     label: "Dashboard",
     icon: LayoutDashboard,
     href: "/seller/dashboard",
-    dropdownKey: "dashboard",
-    subItems: [
-      {
-        label: "Doanh thu & Thống kê",
-        href: "/seller/analytics",
-        icon: BarChart,
-      },
-    ],
   },
   {
     label: "Quản lý sản phẩm",
-    icon: Package,
-    href: "/seller/allproduct",
+    icon: FileBox,
     dropdownKey: "products",
     subItems: [
       {
@@ -43,6 +35,23 @@ const sidebarItems = [
       {
         label: "Thêm sản phẩm",
         href: "/seller/create-product",
+        icon: PlusSquare,
+      },
+    ],
+  },
+  {
+    label: "Quản lý túi mù",
+    icon: Package,
+    dropdownKey: "blindbox",
+    subItems: [
+      {
+        label: "Tất cả túi mù",
+        href: "/seller/allblindboxes",
+        icon: ListOrdered,
+      },
+      {
+        label: "Thêm túi mù",
+        href: "/seller/blindbox",
         icon: PlusSquare,
       },
     ],
@@ -136,7 +145,7 @@ export default function SellerSidebar() {
             >
               {staffState.openSidebar ? (
                 <div className="transition-all duration-300 truncate w-full opacity-100">
-                  MENU
+                  DANH MỤC
                 </div>
               ) : (
                 <div className="flex items-center justify-center w-8 h-8">
@@ -145,77 +154,71 @@ export default function SellerSidebar() {
               )}
             </li>
 
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              const isDropdown = !!item.subItems;
-              const isOpen = openDropdown === item.dropdownKey;
-
-              return (
-                <li key={item.label}>
-                  <button
-                    onClick={() =>
-                      isDropdown ? toggleDropdown(item.dropdownKey!) : null
-                    }
-                    className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded-md"
-                  >
-                    <Link
-                      href={item.href}
-                      className="flex items-center space-x-2"
-                      onClick={() => {
-                        if (isMobile) dispatch(closeSidebar());
-                      }}
-                    >
-                      <div className="flex items-center justify-center w-8 h-8">
-                        <Icon size={20} />
-                      </div>
-                      <span
-                        className={`${staffState.openSidebar || isMobile
-                          ? "block"
-                          : "hidden"
-                          } truncate`}
+            <ul className="space-y-1">
+              {sidebarItems.map((item) => {
+                const Icon = item.icon;
+                const hasDropdown = !!item.subItems;
+                const isOpen = openDropdown === item.dropdownKey;
+                if (hasDropdown) {
+                  return (
+                    <li key={item.label}>
+                      <button
+                        onClick={() => toggleDropdown(item.dropdownKey!)}
+                        className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded-md"
                       >
+                        <div className="flex items-center space-x-2">
+                          <Icon size={20} />
+                          <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
+                            {item.label}
+                          </span>
+                        </div>
+
+                        {staffState.openSidebar && (
+                          <ChevronDown
+                            className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""} text-gray-400`}
+                          />
+                        )}
+                      </button>
+
+                      {isOpen && staffState.openSidebar && (
+                        <ul className="pl-4 mt-1 space-y-1">
+                          {item.subItems!.map((sub) => {
+                            const SubIcon = sub.icon;
+                            return (
+                              <li key={sub.label}>
+                                <Link
+                                  href={sub.href}
+                                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded-md"
+                                  onClick={() => isMobile && dispatch(closeSidebar())}
+                                >
+                                  <SubIcon size={20} />
+                                  <span className="truncate">{sub.label}</span>
+                                </Link>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                }
+                return (
+                  <li key={item.label}>
+                    <Link
+                      href={item.href!}
+                      className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded-md"
+                      onClick={() => isMobile && dispatch(closeSidebar())}
+                    >
+                      <Icon size={20} />
+                      <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
                         {item.label}
                       </span>
                     </Link>
-                    {isDropdown &&
-                      staffState.openSidebar &&
-                      (
-                        <ChevronDown
-                          className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""
-                            } text-gray-400`}
-                        />
-                      )}
-                  </button>
+                  </li>
+                );
+              })}
+            </ul>
 
-                  {isDropdown &&
-                    isOpen &&
-                    staffState.openSidebar &&
-                    (
-                      <ul className="pl-4 mt-1 space-y-1">
-                        {item.subItems!.map((sub) => {
-                          const SubIcon = sub.icon;
-                          return (
-                            <li key={sub.label}>
-                              <Link
-                                href={sub.href}
-                                className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded-md"
-                                onClick={() => {
-                                  if (isMobile) dispatch(closeSidebar());
-                                }}
-                              >
-                                <div className="flex items-center justify-center w-8 h-8">
-                                  <SubIcon size={20} />
-                                </div>
-                                <span className="truncate">{sub.label}</span>
-                              </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                </li>
-              );
-            })}
           </ul>
         </div>
       </aside>

@@ -9,6 +9,7 @@ import { ProductStatus } from "@/const/products";
 import Pagination from "@/components/tables/Pagination";
 import useGetCategory from "@/app/staff/category-management/hooks/useGetCategory";
 import { Backdrop } from "@/components/backdrop";
+import { useRouter } from "next/navigation";
 
 export default function AllProduct() {
 
@@ -27,6 +28,7 @@ export default function AllProduct() {
   const { getAllProductWebApi, isPending } = useGetAllProductWeb()
   const [categories, setCategories] = useState<API.ResponseDataCategory>();
   const { getCategoryApi } = useGetCategory();
+  const router = useRouter();
 
   const [params, setParams] = useState<GetAllProducts>({
     pageIndex: 1,
@@ -54,6 +56,10 @@ export default function AllProduct() {
     setParams((prev) => ({ ...prev, pageIndex: newPage }))
   }
 
+  const handleViewDetail = (id: string) => {
+    router.push(`/detail/${id}`);
+  };
+
   return (
     <div className="mt-16 container mx-auto px-4 sm:px-6 lg:p-20 xl:px-20 2xl:px-20">
       <div className="flex flex-col lg:flex-row gap-6">
@@ -68,6 +74,7 @@ export default function AllProduct() {
               <ProductCard
                 key={product.id}
                 product={product}
+                onViewDetail={handleViewDetail}
               />
             ))}
           </div>
