@@ -9,6 +9,11 @@ html, body {
   padding: 0;
 }
 
+.glow-effect {
+  filter: drop-shadow(0 0 8px #ff7efb) drop-shadow(0 0 16px #ff4ad9);
+  animation: pulseGlow 2s infinite;
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -124,4 +129,10 @@ html, body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes pulseGlow {
+  0%   { filter: drop-shadow(0 0 6px #ff9dfa); }
+  50%  { filter: drop-shadow(0 0 18px #ff3fe0); }
+  100% { filter: drop-shadow(0 0 6px #ff9dfa); }
 }

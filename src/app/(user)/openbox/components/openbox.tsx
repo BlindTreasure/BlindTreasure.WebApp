@@ -1,9 +1,11 @@
 "use client"
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 export default function Openbox() {
     const [quantity, setQuantity] = useState<number>(1);
+    const router = useRouter();
 
     const handleDecrease = () => {
         if (quantity > 1) setQuantity(quantity - 1);
@@ -13,6 +15,9 @@ export default function Openbox() {
         setQuantity(quantity + 1);
     };
 
+    const handleOpenBox = () => {
+        router.push("/open-result");
+    };
     return (
         <div className="px-4 py-8 mt-36">
             <h2 className="text-2xl font-semibold text-center mb-6 pb-2 w-full max-w-md mx-auto">
@@ -72,7 +77,7 @@ export default function Openbox() {
                                     +
                                 </button>
                             </div>
-                            <Button className="px-4 py-2 hover:bg-white hover:text-black border border-gray-200 transition-colors duration-300 h-12">Mở Hộp</Button>
+                            <Button className="px-4 py-2 hover:bg-white hover:text-black border border-gray-200 transition-colors duration-300 h-12"  onClick={handleOpenBox}>Mở Hộp</Button>
                         </div>
                     </div>
                 </div>
