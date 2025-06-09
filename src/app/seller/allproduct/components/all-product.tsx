@@ -20,7 +20,6 @@ import moment from "moment"
 import { FaRegEdit } from "react-icons/fa"
 import { HiOutlineTrash } from "react-icons/hi"
 import { BsEye } from "react-icons/bs"
-import Pagination from "@/components/tables/Pagination";
 import { CiSearch } from "react-icons/ci";
 import { ProductSortBy } from "@/const/products"
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -36,6 +35,8 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import useDeleteProduct from "../hooks/useDeleteProduct"
+import ProductDetailDialog from "@/components/alldialog/dialogproduct"
+import { PaginationFooter } from "@/components/pagination-footer"
 
 export default function ProductTable() {
     const [products, setProducts] = useState<TProductResponse>()
@@ -52,13 +53,18 @@ export default function ProductTable() {
     })
 
     const [searchInput, setSearchInput] = useState("")
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [selectedProductToEdit, setSelectedProductToEdit] = useState<Product | null>(null);
+    const [selectedProductToView, setSelectedProductToView] = useState<Product | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
 
+    const openModal = (product: Product) => {
+        setSelectedProductToView(product);
+    };
+
     const handleEditClick = (product: Product) => {
-        setSelectedProduct(product);
+        setSelectedProductToEdit(product);
         setOpen(true);
     };
 
@@ -70,7 +76,7 @@ export default function ProductTable() {
     const handleConfirmDelete = () => {
         if (productToDelete) {
             onDelete(productToDelete, () => {
-                setParams({ ...params }); 
+                setParams({ ...params });
                 setProductToDelete(null);
             });
         }
@@ -95,9 +101,6 @@ export default function ProductTable() {
         if (newPage < 1 || newPage > (products?.totalPages || 1)) return
         setParams((prev) => ({ ...prev, pageIndex: newPage }))
     }
-
-    const startIndex = ((params.pageIndex ?? 1) - 1) * params.pageSize + 1;
-    const endIndex = Math.min((params.pageIndex ?? 1) * params.pageSize, products?.count || 0);
 
     return (
         <div>
@@ -249,7 +252,7 @@ export default function ProductTable() {
                                             >
                                                 <HiOutlineTrash className="w-4 h-4" />
                                             </Button>
-                                            <Button variant="outline" size="icon">
+                                            <Button variant="outline" size="icon" onClick={() => openModal(product)}>
                                                 <BsEye className="w-4 h-4" />
                                             </Button>
                                         </TableCell>
@@ -259,14 +262,22 @@ export default function ProductTable() {
                         </TableBody>
                     </Table>
 
+                    {selectedProductToView && (
+                        <ProductDetailDialog
+                            product={selectedProductToView}
+                            isOpen={true}
+                            onClose={() => setSelectedProductToView(null)}
+                        />
+                    )}
+
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle className="font-poppins text-xl">Cập nhật sản phẩm</DialogTitle>
                             </DialogHeader>
-                            {selectedProduct && (
+                            {selectedProductToEdit  && (
                                 <EditProductSeller
-                                    productData={selectedProduct}
+                                    productData={selectedProductToEdit }
                                     onUpdateSuccess={() => {
                                         setOpen(false);
                                         setParams({ ...params });
@@ -296,46 +307,20 @@ export default function ProductTable() {
                         </AlertDialogContent>
                     </AlertDialog>
 
-                    <div className="p-4 border-t bg-white dark:bg-gray-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                            <span>Hiển thị</span>
-                            <Select
-                                value={params.pageSize.toString()}
-                                onValueChange={(value) => {
-                                    const newSize = Number(value);
-                                    setParams((prev) => ({
-                                        ...prev,
-                                        pageSize: newSize,
-                                        pageIndex: 1,
-                                    }));
-                                }}
-                            >
-                                <SelectTrigger className="w-20">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="5">5</SelectItem>
-                                    <SelectItem value="10">10</SelectItem>
-                                    <SelectItem value="20">20</SelectItem>
-                                    <SelectItem value="50">50</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <span>mỗi trang</span>
-                        </div>
-                        <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400 text-sm">
-                            <span className="hidden sm:inline">
-                                Đang hiển thị {startIndex} - {endIndex} / {products?.count || 0} sản phẩm
-                            </span>
-                            <span className="inline sm:hidden">
-                                {startIndex} - {endIndex} / {products?.count || 0}
-                            </span>
-                        </div>
-                        <Pagination
-                            currentPage={params.pageIndex ?? 1}
-                            totalPages={products?.totalPages ?? 1}
-                            onPageChange={handlePageChange}
-                        />
-                    </div>
+                    <PaginationFooter
+                        currentPage={params.pageIndex}
+                        totalPages={products?.totalPages ?? 1}
+                        totalItems={products?.count ?? 0}
+                        pageSize={params.pageSize}
+                        onPageSizeChange={(newSize) => {
+                            setParams((prev) => ({
+                                ...prev,
+                                pageSize: newSize,
+                                pageIndex: 1,
+                            }));
+                        }}
+                        onPageChange={handlePageChange}
+                    />
                 </CardContent>
             </Card>
         </div>

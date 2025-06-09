@@ -28,3 +28,18 @@ export enum ProductStatus {
   New = "New",
   OutOfStock = "OutOfStock"
 }
+
+export enum BlindboxStatus {
+  Draft = "Draft",
+  PendingApproval = "PendingApproval",
+  Approved = "Approved",
+  Rejected = "Rejected"
+}
+
+export enum Rarity {
+  Common = "Common",
+  Epic = "Epic",
+  Rare = "Rare",
+  Secret = "Secret"
+}
+
