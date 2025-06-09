@@ -70,17 +70,10 @@ export default function CategoryPage() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearchTerm(value)
-    // Không cần xử lý thêm gì vì useEffect sẽ tự động handle
-  }
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Form submit không cần thiết nữa vì đã có auto search
   }
 
   const handleClearSearch = () => {
     setSearchTerm('')
-    // Không cần gọi fetchData ở đây vì useEffect sẽ tự động handle khi searchTerm thay đổi
   }
 
   const toggleExpand = (id: string) => {

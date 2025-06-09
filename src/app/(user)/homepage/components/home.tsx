@@ -25,6 +25,7 @@ import { GetAllProducts, TAllProductResponse } from "@/services/product/typings"
 import useGetAllProductWeb from "../../allproduct/hooks/useGetAllProductWeb";
 import { ProductStatus } from "@/const/products";
 import { Backdrop } from "@/components/backdrop";
+import CategoryGrid from "@/components/category-grid";
 
 
 interface Blindbox {
@@ -215,6 +216,8 @@ export default function HomePage() {
         DANH MỤC
         <span className="block w-24 h-[2px] bg-red-600 mt-1 mx-auto"></span>
       </motion.h1>
+
+      <CategoryGrid />
 
       <motion.div
         variants={fadeIn("left", 0.3)}
