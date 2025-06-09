@@ -1,15 +1,17 @@
 declare namespace REQUEST {
   type GetCategory = {
+    search?: string;
     pageIndex?: number;
     pageSize?: number;
   };
 
-  type CategoryInfo = {
+  type CategoryForm = {
     id?: string;
     name: string;
     description: string;
     parentId?: string;
-  }
+    imageUrl?: File;
+  };
 }
 
 declare namespace API {

@@ -1,92 +1,80 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Search, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import CategoryTable, { CategoryRow } from '@/components/category-table'
 import useGetCategory from '../hooks/useGetCategory'
-import useCreateCategory from '../hooks/useCreateCategory'
-import useUpdateCategory from '../hooks/useUpdateCategory'
-import useDeleteCategory from "../hooks/useDeleteCategory";
+import useDeleteCategory from '../hooks/useDeleteCategory'
 import useGetCategoryById from '../hooks/useGetCategoryById'
 import Pagination from '@/components/pagination'
-import CategoryFormModal from '@/components/category-form-modal'
 
 export default function CategoryPage() {
+  const router = useRouter()
   const [categories, setCategories] = useState<CategoryRow[]>([])
+  const [allCategories, setAllCategories] = useState<CategoryRow[]>([])
   const [expandedIds, setExpandedIds] = useState<string[]>([])
-  const [editingCategory, setEditingCategory] = useState<CategoryRow | null>(null)
-  const [showModal, setShowModal] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingEdit, setIsLoadingEdit] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
 
   const [pagination, setPagination] = useState({
     pageIndex: 1,
-    pageSize: 20
+    pageSize: 3 
   })
   const [totalPages, setTotalPages] = useState(0)
   const [totalRecords, setTotalRecords] = useState(0)
 
   const { getCategoryApi } = useGetCategory()
-  const { createCategoryApi, isPending: isCreating } = useCreateCategory()
-  const { updateCategoryApi, isPending: isUpdating } = useUpdateCategory()
-  const { deleteCategoryApi, isPending: isDeleting } = useDeleteCategory();
+  const { deleteCategoryApi, isPending: isDeleting } = useDeleteCategory()
   const { getCategoryByIdApi } = useGetCategoryById()
 
-  const buildNestedCategories = (flatList: CategoryRow[]): CategoryRow[] => {
-    const map = new Map<string, CategoryRow>()
-    const roots: CategoryRow[] = []
+  const fetchData = async (search?: string) => {
+    setIsSearching(true)
+    try {
+      const res = await getCategoryApi({
+        pageIndex: pagination.pageIndex,
+        pageSize: pagination.pageSize,
+        search: search || searchTerm || undefined
+      })
 
-    flatList.forEach((item) => {
-      map.set(item.id, { ...item, children: [] })
-    })
+      const result = res?.value?.data
+      const nestedCategories: CategoryRow[] = result?.result ?? []
 
-    map.forEach((item) => {
-      if (item.parentId && map.has(item.parentId)) {
-        map.get(item.parentId)!.children!.push(item)
-      } else {
-        roots.push(item)
-      }
-    })
-
-    return roots
-  }
-
-  const fetchData = async () => {
-    const res = await getCategoryApi({
-      pageIndex: pagination.pageIndex,
-      pageSize: pagination.pageSize
-    })
-
-    const flatList = res?.value?.data?.result ?? []
-    
-    // ✅ Filter chỉ lấy categories chưa bị xóa (isDeleted === false)
-    const activeCategories = flatList.filter((item) => item.isDeleted === false)
-
-    // ✅ Filter chỉ lấy categories cấp 0 để tính pagination
-    const rootCategories = activeCategories.filter((item) => !item.parentId)
-    
-    // ✅ Pagination chỉ dựa trên số lượng categories cấp 0
-    const rootCount = rootCategories.length
-    const totalPages = Math.ceil(rootCount / pagination.pageSize)
-
-    setTotalRecords(rootCount)
-    setTotalPages(totalPages)
-
-    const mapped: CategoryRow[] = activeCategories.map((item) => ({
-      id: item.id,
-      name: item.name,
-      description: item.description,
-      parentId: item.parentId,
-    }))
-
-    const nested = buildNestedCategories(mapped)
-    setCategories(nested)
+      setCategories(nestedCategories)
+      setAllCategories(nestedCategories)
+      setTotalRecords(result?.count ?? 0)
+      setTotalPages(result?.totalPages ?? 0)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    } finally {
+      setIsSearching(false)
+    }
   }
 
   useEffect(() => {
     fetchData()
   }, [pagination.pageIndex, pagination.pageSize])
+
+  // Debounce search - tự động search khi có thay đổi
+  useEffect(() => {
+    const delayedSearch = setTimeout(() => {
+      setPagination(prev => ({ ...prev, pageIndex: 1 }))
+      fetchData(searchTerm)
+    }, 500)
+
+    return () => clearTimeout(delayedSearch)
+  }, [searchTerm])
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchTerm(value)
+  }
+
+  const handleClearSearch = () => {
+    setSearchTerm('')
+  }
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) =>
@@ -94,85 +82,19 @@ export default function CategoryPage() {
     )
   }
 
-  // ✅ Sửa lại handleEdit để call API get by ID
   const handleEdit = async (category: CategoryRow) => {
-    try {
-      setIsLoadingEdit(true)
-      
-      // ✅ Gọi API để lấy chi tiết category
-      const categoryDetail = await getCategoryByIdApi(category.id)
-      
-      if (categoryDetail?.isSuccess) {
-        // ✅ Set dữ liệu chi tiết từ API thay vì dữ liệu từ table
-        setEditingCategory({
-          id: categoryDetail.value.data.id,
-          name: categoryDetail.value.data.name,
-          description: categoryDetail.value.data.description,
-          parentId: categoryDetail.value.data.parentId,
-        })
-        setShowModal(true)
-      } else {
-        // ✅ Fallback nếu API failed
-        console.error('Failed to fetch category details')
-        setEditingCategory(category)
-        setShowModal(true)
-      }
-    } catch (error) {
-      console.error('Error fetching category details:', error)
-      // ✅ Fallback nếu có lỗi
-      setEditingCategory(category)
-      setShowModal(true)
-    } finally {
-      setIsLoadingEdit(false)
-    }
+    router.push(`/staff/form/${category.id}`)
   }
 
   const handleDelete = async (categoryId: string) => {
-    const confirmed = window.confirm("Bạn có chắc chắn muốn xoá danh mục này?");
-    if (!confirmed) return;
-
-    const success = await deleteCategoryApi(categoryId);
-
+    const success = await deleteCategoryApi(categoryId)
     if (success?.isSuccess === true) {
-      await fetchData();
+      await fetchData()
     }
   }
 
   const handleAddNew = () => {
-    setEditingCategory(null)
-    setShowModal(true)
-  }
-
-  const handleSubmit = async (data: {
-    name: string
-    description: string
-    parentId: string
-  }) => {
-    setIsSubmitting(true)
-    let success
-
-    if (editingCategory) {
-      success = await updateCategoryApi(editingCategory.id, {
-        name: data.name,
-        description: data.description,
-        parentId: data.parentId
-      })
-    } else {
-      // ✅ Create new category
-      success = await createCategoryApi({
-        name: data.name,
-        description: data.description,
-        parentId: data.parentId
-      })
-    }
-
-    setIsSubmitting(false)
-
-    if (success?.isSuccess === true) {
-      setShowModal(false)
-      setEditingCategory(null)
-      await fetchData()
-    }
+    router.push('/staff/form')
   }
 
   const handlePageChange = (newPageIndex: number) => {
@@ -191,31 +113,61 @@ export default function CategoryPage() {
     })
   }
 
-  // ✅ Handle detail view (nếu cần)
   const handleDetail = async (category: CategoryRow) => {
     try {
       const categoryDetail = await getCategoryByIdApi(category.id)
-      if (categoryDetail?.isSuccess) {
-        // ✅ Xử lý hiển thị detail - có thể mở modal khác hoặc navigate
-        console.log('Category detail:', categoryDetail.value.data)
-        // Implement detail view logic here
-      }
+      // Optional: xử lý nếu cần hiển thị chi tiết
     } catch (error) {
       console.error('Error fetching category details:', error)
     }
   }
 
-  console.log(categories);
-
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={handleAddNew}>
+    <div className="space-y-6">
+      {/* Header với Search và Add button */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        {/* Search Bar */}
+        <div className="flex-1 max-w-md">
+          <div className="relative">
+            <div className="relative">
+              <Search 
+                size={20} 
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              />
+              <input
+                type="text"
+                placeholder="Tìm kiếm danh mục..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Xóa tìm kiếm"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+          {searchTerm && (
+            <div className="mt-1 text-sm text-gray-500">
+              {isSearching ? 'Đang tìm kiếm...' : `Kết quả cho: "${searchTerm}"`}
+            </div>
+          )}
+        </div>
+
+        {/* Add New Button */}
+        <Button onClick={handleAddNew} className="whitespace-nowrap">
           <Plus size={16} className="mr-1" />
           Thêm danh mục
         </Button>
       </div>
 
+      {/* Category Table */}
       <CategoryTable
         categories={categories}
         expandedIds={expandedIds}
@@ -226,6 +178,7 @@ export default function CategoryPage() {
         isLoadingEdit={isLoadingEdit}
       />
 
+      {/* Pagination */}
       <div className="mt-10 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -240,10 +193,11 @@ export default function CategoryPage() {
               <option value={10}>10</option>
               <option value={20}>20</option>
             </select>
-            <span className="text-sm text-gray-600">mục/trang</span>
+            <span className="text-sm text-gray-600">danh mục cha/trang</span>
           </div>
           <div className="text-sm text-gray-600">
-            Tổng cộng: {totalRecords} mục
+            Tổng cộng: {totalRecords} danh mục cha
+            {searchTerm && ` (đã lọc)`}
           </div>
         </div>
 
@@ -255,19 +209,6 @@ export default function CategoryPage() {
           />
         </div>
       </div>
-
-      <CategoryFormModal
-        open={showModal}
-        onClose={() => {
-          setShowModal(false)
-          setEditingCategory(null)
-        }}
-        initialData={editingCategory}
-        categories={categories}
-        isSubmitting={isSubmitting || isCreating || isUpdating}
-        onSubmit={handleSubmit}
-        isLoadingEdit={isLoadingEdit}
-      />
     </div>
   )
 }

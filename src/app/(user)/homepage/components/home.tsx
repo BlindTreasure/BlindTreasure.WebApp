@@ -25,6 +25,8 @@ import { GetAllProducts, TAllProductResponse } from "@/services/product/typings"
 import useGetAllProductWeb from "../../allproduct/hooks/useGetAllProductWeb";
 import { ProductStatus } from "@/const/products";
 import { Backdrop } from "@/components/backdrop";
+import CategoryGrid from "@/components/category-grid";
+
 
 interface Blindbox {
   id: string;
@@ -176,15 +178,17 @@ export default function HomePage() {
           </motion.div>
         </section>
 
-        <motion.h1
-          variants={fadeIn("up", 0.3)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.7 }}
-          className="text-4xl text-red-600 text-center font-montserrat">
-          DANH MỤC
-          <span className="block w-24 h-[2px] bg-red-600 mt-1 mx-auto"></span>
-        </motion.h1>
+      <motion.h1
+        variants={fadeIn("up", 0.3)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.7 }}
+        className="text-4xl text-red-600 text-center font-montserrat">
+        DANH MỤC
+        <span className="block w-24 h-[2px] bg-red-600 mt-1 mx-auto"></span>
+      </motion.h1>
+
+      <CategoryGrid />
 
         <motion.div
           variants={fadeIn("left", 0.3)}

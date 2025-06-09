@@ -6,7 +6,7 @@ import { handleError } from "@/hooks/error";
 export const useServiceCreateCategory = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<any>, TMeta, REQUEST.CategoryInfo>({
+  return useMutation<TResponseData<any>, TMeta, REQUEST.CategoryForm>({
     mutationFn: createCategory,
     onSuccess: (data) => {
       addToast({
@@ -53,14 +53,13 @@ export const useServiceDeleteCategory = () => {
   });
 };
 
-// ✅ Updated useServiceUpdateCategory với type chính xác
 export const useServiceUpdateCategory = () => {
   const { addToast } = useToast();
 
   return useMutation<
     TResponseData<any>, 
     TMeta, 
-    REQUEST.CategoryInfo & { categoryId: string }
+    REQUEST.CategoryForm & { categoryId: string }
   >({
     mutationFn: updateCategory,
     onSuccess: (data) => {

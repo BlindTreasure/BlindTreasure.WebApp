@@ -1,14 +1,16 @@
 'use client'
 
 import React from 'react'
-import { ChevronDown, ChevronRight, Pencil, Trash2, Eye } from 'lucide-react'
+import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import DeleteConfirmDialog from '@/components/delete-confirm-dialog'
 
 export type CategoryRow = {
   id: string
   name: string
   description: string
   parentId?: string
+  imageUrl?: string // ✅ Thêm trường ảnh
   children?: CategoryRow[]
 }
 
@@ -16,10 +18,10 @@ type Props = {
   categories: CategoryRow[]
   expandedIds: string[]
   onToggleExpand: (id: string) => void
-  onEdit?: (category: CategoryRow) => void // ✅ Nhận category object thay vì chỉ ID
+  onEdit?: (category: CategoryRow) => void
   onDelete?: (categoryId: string) => void
-  onDetail?: (category: CategoryRow) => void // ✅ Nhận category object thay vì chỉ ID
-  isLoadingEdit?: boolean // ✅ Loading state cho edit
+  onDetail?: (category: CategoryRow) => void
+  isLoadingEdit?: boolean
 }
 
 export default function CategoryTable({
@@ -29,7 +31,7 @@ export default function CategoryTable({
   onEdit,
   onDelete,
   onDetail,
-  isLoadingEdit = false
+  isLoadingEdit = false,
 }: Props) {
   const renderRow = (category: CategoryRow, level = 0): JSX.Element[] => {
     const isExpanded = expandedIds.includes(category.id)
@@ -57,28 +59,47 @@ export default function CategoryTable({
             <span className="font-medium text-gray-900">{category.name}</span>
           </div>
         </td>
-        <td className="px-4 py-3 bg-white text-gray-700">{category.description}</td>
+
+        <td className="px-4 py-3 bg-white text-gray-700">
+          {category.description}
+        </td>
+
+        <td className="px-4 py-3 bg-white text-gray-700">
+          {category.imageUrl ? (
+            <img
+              src={category.imageUrl}
+              alt={category.name}
+              className="w-10 h-10 object-cover rounded"
+            />
+          ) : (
+            <span className="text-gray-400 italic">Không có ảnh</span>
+          )}
+        </td>
+
         <td className="px-4 py-3 bg-white text-right space-x-2">
-          
+          {onDelete && !hasChildren && (
+            <DeleteConfirmDialog
+              onConfirm={() => onDelete(category.id)}
+              isPending={isLoadingEdit}
+              title="Xác nhận xoá danh mục"
+              description={`Bạn có chắc chắn muốn xoá danh mục "${category.name}"?`}
+              trigger={
+                <Button variant="destructive" size="sm">
+                  <Trash2 size={16} className="mr-1" /> Xoá
+                </Button>
+              }
+            />
+          )}
+
           {onEdit && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => onEdit(category)}
               disabled={isLoadingEdit}
             >
-              <Pencil size={16} className="mr-1" /> 
+              <Pencil size={16} className="mr-1" />
               {isLoadingEdit ? 'Đang tải...' : 'Sửa'}
-            </Button>
-          )}
-
-          {onDelete && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => onDelete(category.id)}
-            >
-              <Trash2 size={16} className="mr-1" /> Xoá
             </Button>
           )}
         </td>
@@ -95,11 +116,12 @@ export default function CategoryTable({
 
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm px-2 sm:px-4">
-      <table className="w-full min-w-[600px] bg-white text-sm">
+      <table className="w-full min-w-[700px] bg-white text-sm">
         <thead className="bg-white text-gray-700 border-b border-gray-200">
           <tr>
             <th className="px-4 py-3 text-left">Tên danh mục</th>
             <th className="px-4 py-3 text-left">Mô tả</th>
+            <th className="px-4 py-3 text-left">Ảnh</th>
             <th className="px-4 py-3 text-right">Hành động</th>
           </tr>
         </thead>
