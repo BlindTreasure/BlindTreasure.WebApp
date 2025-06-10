@@ -191,6 +191,7 @@ export default function ProductTable() {
                                 <TableHead>Tên</TableHead>
                                 <TableHead>Giá</TableHead>
                                 <TableHead>Kho</TableHead>
+                                <TableHead>Loại hàng</TableHead>
                                 <TableHead>Trạng thái</TableHead>
                                 <TableHead>Ngày tạo</TableHead>
                                 <TableHead>Hành động</TableHead>
@@ -204,6 +205,7 @@ export default function ProductTable() {
                                         <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-10" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                         <TableCell><Skeleton className="h-8 w-24" /></TableCell>
@@ -228,6 +230,16 @@ export default function ProductTable() {
                                         <TableCell>{product.name}</TableCell>
                                         <TableCell>{product.price.toLocaleString()}₫</TableCell>
                                         <TableCell>{product.stock}</TableCell>
+                                        <TableCell>
+                                            <span
+                                                className={`px-2 py-1 rounded text-xs font-medium ${product.productType === "DirectSale"
+                                                    ? "bg-green-100 text-green-700"
+                                                    : "bg-red-100 text-red-700"
+                                                    }`}
+                                            >
+                                                {product.productType}
+                                            </span>
+                                        </TableCell>
                                         <TableCell>
                                             <span
                                                 className={`px-2 py-1 rounded text-xs font-medium ${product.status === "Active"

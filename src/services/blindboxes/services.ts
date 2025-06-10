@@ -1,8 +1,17 @@
 import useToast from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { handleError } from "@/hooks/error";
-import { BlindBoxItemsRequest, BlindBoxListResponse, CreateBlindboxForm } from "./typings";
-import { createBlindbox, createBlindboxItems, submitBlindbox } from "./api-services";
+import {
+  BlindBoxItemsRequest,
+  BlindBoxListResponse,
+  CreateBlindboxForm,
+  CreateBlindboxItemsParam,
+} from "./typings";
+import {
+  createBlindbox,
+  createBlindboxItems,
+  submitBlindbox,
+} from "./api-services";
 
 export const useServiceCreateBlindbox = () => {
   const { addToast } = useToast();
@@ -13,7 +22,11 @@ export const useServiceCreateBlindbox = () => {
       formData.append("name", data.name);
       formData.append("description", data.description);
       formData.append("price", data.price.toString());
-      formData.append("imageFile", data.imageFile);
+      if (data.imageFile) {
+        if (data.imageFile instanceof File) {
+          formData.append("imageFile", data.imageFile);
+        }
+      }
 
       if (data.totalQuantity !== undefined) {
         formData.append("totalQuantity", data.totalQuantity.toString());
@@ -49,7 +62,7 @@ export const useServiceCreateBlindboxItems = () => {
   return useMutation<
     TResponseData<BlindBoxListResponse>,
     Error,
-    BlindBoxItemsRequest & { blindboxesId: string }
+    CreateBlindboxItemsParam
   >({
     mutationFn: createBlindboxItems,
     onSuccess: (data) => {

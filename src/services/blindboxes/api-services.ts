@@ -1,6 +1,12 @@
 import request from "@/components/interceptor";
 import API_ENDPOINTS from "@/services/blindboxes/api-path";
-import { BlindBox, BlindBoxItemsRequest, BlindBoxListResponse, GetBlindBoxes } from "./typings";
+import {
+  BlindBox,
+  BlindBoxItemsRequest,
+  BlindBoxListResponse,
+  CreateBlindboxItemsParam,
+  GetBlindBoxes,
+} from "./typings";
 
 export const getAllBlindboxSeller = async ({
   search,
@@ -49,17 +55,16 @@ export const createBlindbox = async (body: FormData) => {
   return response.data;
 };
 
-
 export const createBlindboxItems = async (
-  body: BlindBoxItemsRequest & { blindboxesId: string }
+  body: CreateBlindboxItemsParam
 ): Promise<TResponseData<BlindBoxListResponse>> => {
-  const { blindboxesId, ...data } = body;
+  const { blindboxesId, items } = body;
 
   const response = await request<TResponseData<BlindBoxListResponse>>(
     API_ENDPOINTS.ADD_ITEMS(blindboxesId),
     {
       method: "POST",
-      data,
+      data: items,
     }
   );
 
@@ -78,5 +83,3 @@ export const submitBlindbox = async (
 
   return response.data;
 };
-
-

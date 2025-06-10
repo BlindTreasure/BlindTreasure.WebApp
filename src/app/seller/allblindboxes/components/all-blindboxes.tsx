@@ -19,7 +19,7 @@ import { HiOutlineTrash } from "react-icons/hi"
 import { BsEye } from "react-icons/bs"
 import { CiSearch } from "react-icons/ci";
 import { BlindboxStatus, ProductSortBy, Rarity } from "@/const/products"
-import { BlindBox, BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings"
+import { BlindBox, BlindBoxItemRequest, BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings"
 import useGetAllBlindBoxes from "../hooks/useGetAllBlindBoxes"
 import { IoIosArrowDown } from "react-icons/io";
 import { FiChevronRight } from "react-icons/fi";
@@ -30,10 +30,22 @@ import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import BlindboxDetailDialog from "@/components/alldialog/dialogblindbox"
 import { PaginationFooter } from "@/components/pagination-footer"
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import CreateBlindbox from "@/components/blindboxform/createBlindBox"
+import useGetAllProduct from "../../allproduct/hooks/useGetAllProduct"
+import { GetProduct, TProductResponse } from "@/services/product-seller/typings"
 export default function BlindboxTable() {
     const [blindboxes, setBlindBox] = useState<BlindBoxListResponse>()
+    const [products, setProducts] = useState<TProductResponse>()
     const [selecteddetailBlindbox, setSelectedDetailBlindbox] = useState<BlindBox | null>(null);
+    const [selectedBlindboxToEditBlindbox, setSelectedBlindboxToEditBlindbox] = useState<BlindBox | null>(null);
+    const [selectedBlindboxToEditItem, setSelectedBlindboxToEditBlindboxItem] = useState<BlindBoxItemRequest | null>(null);
+    const [openEditBlindbox, setOpenEditBlindbox] = useState(false);
+    const [openEditItem, setOpenEditItem] = useState(false);
     const { getAllBlindBoxesApi, isPending } = useGetAllBlindBoxes()
+    const [searchInput, setSearchInput] = useState("")
+    const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
     const [params, setParams] = useState<GetBlindBoxes>({
         search: "",
         SellerId: "",
@@ -47,11 +59,23 @@ export default function BlindboxTable() {
         pageSize: 5,
     })
 
-    const [searchInput, setSearchInput] = useState("")
-    const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-
     const openModal = (blindbox: BlindBox) => {
         setSelectedDetailBlindbox(blindbox);
+    };
+
+    const handleEditClick = (blindbox: BlindBox) => {
+        setSelectedBlindboxToEditBlindbox(blindbox);
+        setOpenEditBlindbox(true);
+    };
+
+    const handleEditItem = (item: BlindBoxItemRequest) => {
+        setSelectedBlindboxToEditBlindboxItem(item);
+        setOpenEditItem(true);
+    };
+
+    const handleUpdateBlindbox = (data: any, callback: () => void) => {
+        console.log("Fake update blindbox data:", data);
+        callback(); // Gọi callback để test đóng dialog nếu cần
     };
 
     function toUtcMidnightISOString(date: Date): string {
@@ -82,6 +106,7 @@ export default function BlindboxTable() {
         (async () => {
             const res = await getAllBlindBoxesApi(params)
             if (res) setBlindBox(res.value.data)
+                console.log("hello", res?.value.data)
         })()
     }, [params])
 
@@ -89,6 +114,36 @@ export default function BlindboxTable() {
         if (newPage < 1 || newPage > (blindboxes?.totalPages || 1)) return
         setParams((prev) => ({ ...prev, pageIndex: newPage }))
     }
+
+    const { getAllProductApi } = useGetAllProduct()
+
+    const [productParams, setProductParams] = useState<GetProduct>({
+        pageIndex: 1,
+        pageSize: 5,
+        search: "",
+        status: "",
+        categoryId: "",
+        sortBy: undefined,
+        desc: undefined,
+    })
+
+    useEffect(() => {
+        (async () => {
+            const res = await getAllBlindBoxesApi(params)
+            if (res) {
+                setBlindBox(res.value.data);
+                const boxIds = res.value.data.result.map((box: any) => box.id);
+                console.log("Danh sách Box ID:", boxIds);
+            }
+        })()
+    }, [params])
+
+    useEffect(() => {
+        (async () => {
+            const res = await getAllProductApi(productParams)
+            if (res) setProducts(res.value.data)
+        })()
+    }, [productParams])
 
     return (
         <div>
@@ -244,10 +299,14 @@ export default function BlindboxTable() {
                                                 onClick={() => toggleExpand(blindbox.id)}
                                             >
                                                 <TableCell className="flex items-center gap-2 min-w-[150px]">
-                                                    {isExpanded ? (
-                                                        <IoIosArrowDown className="w-4 h-4 shrink-0" />
+                                                    {blindbox.items && blindbox.items.length > 0 ? (
+                                                        isExpanded ? (
+                                                            <IoIosArrowDown className="w-4 h-4 shrink-0" />
+                                                        ) : (
+                                                            <FiChevronRight className="w-4 h-4 shrink-0" />
+                                                        )
                                                     ) : (
-                                                        <FiChevronRight className="w-4 h-4 shrink-0" />
+                                                        <span className="w-4 h-4" />
                                                     )}
                                                     {blindbox.imageUrl ? (
                                                         <img
@@ -286,9 +345,14 @@ export default function BlindboxTable() {
                                                 </TableCell>
 
                                                 <TableCell className="flex gap-4">
-                                                    <Button variant="outline" size="icon" onClick={(e) => { e.stopPropagation(); }}>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={() => handleEditClick(blindbox)}
+                                                    >
                                                         <FaRegEdit className="w-4 h-4" />
                                                     </Button>
+
                                                     {!blindbox.items || blindbox.items.length === 0 ? (
                                                         <Button
                                                             variant="outline"
@@ -345,13 +409,17 @@ export default function BlindboxTable() {
                                                             <Button
                                                                 variant="outline"
                                                                 size="icon"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-
+                                                                onClick={() => {
+                                                                    setSelectedBlindboxToEditBlindboxItem({
+                                                                        ...item,
+                                                                        rarity: item.rarity as Rarity,
+                                                                    });
+                                                                    setOpenEditItem(true);
                                                                 }}
                                                             >
                                                                 <FaRegEdit className="w-4 h-4" />
                                                             </Button>
+
                                                             <Button
                                                                 variant="outline"
                                                                 size="icon"
@@ -381,6 +449,49 @@ export default function BlindboxTable() {
                             onClose={() => setSelectedDetailBlindbox(null)}
                         />
                     )}
+
+                    <Dialog open={openEditBlindbox} onOpenChange={setOpenEditBlindbox}>
+                        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle className="font-poppins text-xl">Cập nhật tùi mù</DialogTitle>
+                            </DialogHeader>
+                            {selectedBlindboxToEditBlindbox && (
+                                <CreateBlindbox
+                                    mode="edit"
+                                    blindbox={selectedBlindboxToEditBlindbox}
+                                    onSubmitCreateBox={handleUpdateBlindbox}
+                                />
+                            )}
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* <Dialog open={openEditItem} onOpenChange={setOpenEditItem}>
+                        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle className="font-poppins text-xl">Cập nhật vật phẩm</DialogTitle>
+                            </DialogHeader>
+                            {selectedBlindboxToEditItem && blindboxes && products && (
+                                <BlindboxTabs
+                                    blindboxes={blindboxes}
+                                    products={products}
+                                    selectedBoxId={selectedBoxId}
+                                    setSelectedBoxId={setSelectedBoxId}
+                                    selectedRarities={selectedRarities}
+                                    setSelectedRarities={setSelectedRarities}
+                                    rarityRates={rarityRates}
+                                    setRarityRates={setRarityRates}
+                                    items={items}
+                                    handleItemChange={handleItemChange}
+                                    handleRarityChange={handleRarityChange}
+                                    removeItem={removeItem}
+                                    setItems={setItems}
+                                    addItem={addItem}
+                                    onSubmit={onSubmit}
+                                    isPending={isPending}
+                                />
+                            )}
+                        </DialogContent>
+                    </Dialog> */}
 
                     <PaginationFooter
                         currentPage={params.pageIndex}

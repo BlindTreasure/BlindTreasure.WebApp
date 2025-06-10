@@ -14,7 +14,6 @@ export const CreateProductBody = z
     status: z.nativeEnum(Status, {
       errorMap: () => ({ message: "Trạng thái không hợp lệ" }),
     }),
-
     height: z.number().optional(),
     material: z.string().optional(),
     productType: z.nativeEnum(ProductType).nullable().optional(),

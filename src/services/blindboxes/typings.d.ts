@@ -56,7 +56,7 @@ export type CreateBlindboxForm = {
   totalQuantity?: number;
   releaseDate?: string;
   description: string;
-  imageFile: File;
+  imageFile?: string | File | null;
   hasSecretItem?: boolean;
   secretProbability?: number;
 };
@@ -69,3 +69,8 @@ export type BlindBoxItemRequest = {
 };
 
 export type BlindBoxItemsRequest = BlindBoxItemRequest[];
+
+type CreateBlindboxItemsParam = {
+  blindboxesId: string;
+  items: BlindBoxItemRequest[]; 
+};

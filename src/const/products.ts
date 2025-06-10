@@ -19,27 +19,27 @@ export enum ProductType {
 
 export enum Status {
   Active = "Active",
-  InActive = "InActive"
+  InActive = "InActive",
 }
 
 export enum ProductStatus {
   Active = "Active",
   InActive = "InActive",
   New = "New",
-  OutOfStock = "OutOfStock"
+  OutOfStock = "OutOfStock",
 }
 
 export enum BlindboxStatus {
   Draft = "Draft",
   PendingApproval = "PendingApproval",
   Approved = "Approved",
-  Rejected = "Rejected"
+  Rejected = "Rejected",
 }
 
 export enum Rarity {
   Common = "Common",
   Epic = "Epic",
   Rare = "Rare",
-  Secret = "Secret"
+  Secret = "Secret",
 }
 

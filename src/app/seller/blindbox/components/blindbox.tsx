@@ -1,259 +1,233 @@
-'use client';
+// components/BlindboxTabs.tsx
+"use client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect, useState } from "react";
+import useCreateBlindboxForm from "../hooks/useCreateBlindbox";
+import useGetAllBlindBoxes from "../../allblindboxes/hooks/useGetAllBlindBoxes";
+import { BlindBox, BlindBoxItemRequest, BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings";
+import { GetProduct, TProductResponse } from "@/services/product-seller/typings";
+import useGetAllProduct from "../../allproduct/hooks/useGetAllProduct";
+import useCreateBlindboxItemForm from "../hooks/useCreateItem";
+import { Rarity } from "@/const/products";
+import { AddItemToBlindboxForm } from "@/components/blindboxform/addItems";
+import CreateBlindbox from "@/components/blindboxform/createBlindBox";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Backdrop } from '@/components/backdrop';
-import { LuImagePlus } from 'react-icons/lu';
-import { X } from 'lucide-react';
-import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { isBefore, startOfDay } from "date-fns";
-
-interface BlindBoxFormData {
-    name: string;
-    price: number;
-    totalQuantity: number;
-    releaseDate: string;
-    description: string;
-    imageFile: File | null;
-    hasSecretItem: boolean;
-    secretProbability: number;
-}
-
-export default function CreateBlindBoxForm({
-    isPending = false,
-    onSubmit,
-}: {
-    isPending?: boolean;
-    onSubmit?: (data: FormData) => void;
-}) {
+export default function BlindboxTabs() {
     const {
-        register,
-        handleSubmit,
-        setValue,
-        watch,
-        reset,
-        formState: { errors },
-    } = useForm<BlindBoxFormData>({
-        defaultValues: {
-            imageFile: null,
-            hasSecretItem: false,
-            secretProbability: 0,
-        }
-    });
+        onSubmit: onSubmitCreateBox,
+    } = useCreateBlindboxForm();
 
-    const [hasSecret, setHasSecret] = useState(false);
-    const imageFile = watch('imageFile');
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [selectedBoxId, setSelectedBoxId] = useState<string>("");
+    const [selectedRarities, setSelectedRarities] = useState<Rarity[]>([]);
+    const [rarityRates, setRarityRates] = useState<Record<string, number>>({});
+    const [items, setItems] = useState<BlindBoxItemRequest[]>([]);
+    const { getAllProductApi } = useGetAllProduct()
+    const [blindboxes, setBlindBox] = useState<BlindBoxListResponse>()
+    const [products, setProducts] = useState<TProductResponse>()
+    const { getAllBlindBoxesApi, isPending } = useGetAllBlindBoxes()
+    const [rarityRateError, setRarityRateError] = useState<string | undefined>(undefined);
+
+    const {
+        onSubmit,
+        error,
+        setError,
+    } = useCreateBlindboxItemForm(selectedBoxId, items, () => setItems([]), selectedRarities);
+
+
+    const [params, setParams] = useState<GetBlindBoxes>({
+        search: "",
+        SellerId: "",
+        categoryId: "",
+        status: "",
+        minPrice: undefined,
+        maxPrice: undefined,
+        ReleaseDateFrom: "",
+        ReleaseDateTo: "",
+        pageIndex: 1,
+        pageSize: 5,
+    })
+
+    const [productParams, setProductParams] = useState<GetProduct>({
+        pageIndex: 1,
+        pageSize: 100,
+        search: "",
+        status: "",
+        categoryId: "",
+        sortBy: undefined,
+        desc: undefined,
+    })
 
     useEffect(() => {
-        if (selectedDate) {
-            setValue('releaseDate', selectedDate.toISOString(), { shouldValidate: true });
-        }
-    }, [selectedDate, setValue]);
+        (async () => {
+            const res = await getAllBlindBoxesApi(params)
+            if (res) {
+                setBlindBox(res.value.data);
+                const boxIds = res.value.data.result.map((box: any) => box.id);
+                console.log("Danh sách Box ID:", boxIds);
+            }
+        })()
+    }, [params])
 
     useEffect(() => {
-        if (imageFile) {
-            const url = URL.createObjectURL(imageFile);
-            setImagePreview(url);
+        (async () => {
+            const res = await getAllProductApi(productParams)
+            if (res) setProducts(res.value.data)
+        })()
+    }, [productParams])
 
-            return () => {
-                URL.revokeObjectURL(url);
-                setImagePreview(null);
-            };
+
+    const handleItemChange = (
+        index: number,
+        field: keyof BlindBoxItemRequest,
+        value: string | number
+    ) => {
+        const updatedItems = [...items];
+        updatedItems[index] = {
+            ...updatedItems[index],
+            [field]: value,
+        };
+        setItems(updatedItems);
+    };
+
+    const totalRarityRate = Object.entries(rarityRates)
+        .filter(([rarity]) => selectedRarities.includes(rarity as Rarity))
+        .reduce((sum, [_, rate]) => sum + Number(rate), 0);
+
+    useEffect(() => {
+        const total = selectedRarities.reduce((sum, rarity) => sum + (rarityRates[rarity] || 0), 0);
+
+        if (total !== 100) {
+            setRarityRateError("Tổng tỉ lệ các độ hiếm phải bằng 100%");
         } else {
-            setImagePreview(null);
+            setRarityRateError(undefined);
         }
-    }, [imageFile]);
+    }, [rarityRates, selectedRarities]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] || null;
-        setValue('imageFile', file, { shouldValidate: true });
+    const addItem = () => {
+        if (selectedRarities.length === 0) return;
+        const rarity = selectedRarities[0];
+
+        const totalRate = rarityRates[rarity] || 0;
+        const sameRarityItems = items.filter((item) => item.rarity === rarity);
+        const newCount = sameRarityItems.length + 1;
+
+        const ratePerItem = parseFloat((totalRate / newCount).toFixed(4));
+
+        const updatedItems = items.map((item) =>
+            item.rarity === rarity
+                ? { ...item, dropRate: ratePerItem }
+                : item
+        );
+
+        updatedItems.push({
+            productId: "",
+            quantity: 1,
+            dropRate: ratePerItem,
+            rarity: rarity as Rarity,
+        });
+
+        setItems(updatedItems);
     };
 
-    const handleRemoveImage = () => {
-        setValue('imageFile', null, { shouldValidate: true });
-    };
+    const handleRarityChange = (index: number, newRarity: string) => {
+        if (!Object.values(Rarity).includes(newRarity as Rarity)) return;
 
-    const handleFormSubmit = (data: BlindBoxFormData) => {
-        const formData = new FormData();
-        formData.append('Name', data.name);
-        formData.append('Price', data.price.toString());
-        formData.append('TotalQuantity', data.totalQuantity.toString());
-        formData.append('ReleaseDate', data.releaseDate);
-        formData.append('Description', data.description);
-        formData.append('HasSecretItem', hasSecret.toString());
-        formData.append('SecretProbability', data.secretProbability.toString());
-        if (data.imageFile) {
-            formData.append('ImageFile', data.imageFile);
+        const updated = [...items];
+        updated[index].rarity = newRarity as Rarity;
+
+        const rarityGroups: Record<Rarity, BlindBoxItemRequest[]> = {
+            [Rarity.Common]: [],
+            [Rarity.Rare]: [],
+            [Rarity.Epic]: [],
+            [Rarity.Secret]: [],
+        };
+
+        updated.forEach(item => {
+            if (Object.values(Rarity).includes(item.rarity)) {
+                rarityGroups[item.rarity].push(item);
+            }
+        });
+
+        const rateMap = new Map<string, number>();
+        for (const rarity of Object.values(Rarity)) {
+            const itemsOfRarity = rarityGroups[rarity];
+            const totalRate = rarityRates[rarity] || 0;
+            const perItemRate = itemsOfRarity.length > 0
+                ? parseFloat((totalRate / itemsOfRarity.length).toFixed(4))
+                : 0;
+            itemsOfRarity.forEach(item => {
+                rateMap.set(item.productId, perItemRate);
+            });
         }
 
-        if (onSubmit) onSubmit(formData);
+        const finalItems = updated.map(item => ({
+            ...item,
+            dropRate: rateMap.get(item.productId) ?? item.dropRate,
+        }));
+
+        setItems(finalItems);
     };
 
+
+
+    const removeItem = (index: number) => {
+        const updatedItems = [...items];
+        updatedItems.splice(index, 1);
+        setItems(updatedItems);
+    };
+
+    if (!blindboxes || !products) {
+        return <div className="p-4">Đang tải dữ liệu túi mù và sản phẩm...</div>;
+    }
     return (
-        <form
-            onSubmit={handleSubmit(handleFormSubmit)}
-            className="space-y-6 bg-white p-6 rounded-lg shadow-md"
-        >
-            <h2 className="text-xl font-semibold mb-4">Thông tin túi mù</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Tabs defaultValue="blindbox" className="w-full">
+            <TabsList className="grid max-w-[400px] grid-cols-2 h-14 gap-2">
+                <TabsTrigger
+                    value="blindbox"
+                    className="data-[state=active]:bg-black data-[state=active]:text-white h-12 bg-white"
+                >
+                    Tạo túi mù
+                </TabsTrigger>
+                <TabsTrigger
+                    value="items"
+                    className="data-[state=active]:bg-black data-[state=active]:text-white h-12 bg-white"
+                >
+                    Thêm sản phẩm vào túi
+                </TabsTrigger>
+            </TabsList>
+            <div className="shadow-lg rounded-lg bg-white border border-gray-200 p-8">
+                <TabsContent value="blindbox">
+                    <h2 className="text-xl font-semibold mb-4">Thông tin túi mù</h2>
+                    <CreateBlindbox mode="create" onSubmitCreateBox={onSubmitCreateBox} />
+                </TabsContent>
 
-                <div>
-                    <Label htmlFor="name">Tên Blind Box</Label>
-                    <Input id="name" {...register('name', { required: true })} />
-                    {errors.name && <p className="text-red-600 text-sm">Tên bắt buộc</p>}
-                </div>
-
-                <div>
-                    <Label htmlFor="price">Giá</Label>
-                    <Input
-                        id="price"
-                        type="number"
-                        min={1}
-                        {...register('price', { required: true, valueAsNumber: true })}
+                <TabsContent value="items">
+                    <h2 className="text-xl font-semibold mb-4">Thông tin sản phẩm trong túi</h2>
+                    <AddItemToBlindboxForm
+                        blindboxes={blindboxes}
+                        products={products}
+                        selectedBoxId={selectedBoxId}
+                        setSelectedBoxId={setSelectedBoxId}
+                        selectedRarities={selectedRarities}
+                        setSelectedRarities={setSelectedRarities}
+                        rarityRates={rarityRates}
+                        setRarityRates={setRarityRates}
+                        items={items}
+                        handleItemChange={handleItemChange}
+                        handleRarityChange={handleRarityChange}
+                        removeItem={removeItem}
+                        addItem={addItem}
+                        onSubmit={onSubmit}
+                        isPending={isPending}
+                        error={error}
+                        setError={setError}
+                        rarityRateError={rarityRateError}
+                        setrarityRateError={setRarityRateError}
                     />
-                    {errors.price && <p className="text-red-600 text-sm">Giá bắt buộc</p>}
-                </div>
-
-
-                <div>
-                    <Label htmlFor="totalQuantity">Số lượng</Label>
-                    <Input
-                        id="totalQuantity"
-                        type="number"
-                        min={1}
-                        {...register('totalQuantity', { required: true, valueAsNumber: true })}
-                    />
-                    {errors.totalQuantity && <p className="text-red-600 text-sm">Số lượng bắt buộc</p>}
-                </div>
-
-                <div>
-                    <Label htmlFor="releaseDate">Ngày phát hành</Label>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant={'outline'}
-                                className={cn(
-                                    'w-full justify-between text-left font-normal',
-                                    !selectedDate && 'text-muted-foreground'
-                                )}
-                            >
-                                {selectedDate ? format(selectedDate, 'dd/MM/yyyy') : 'Chọn ngày phát hành'}
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={selectedDate}
-                                onSelect={setSelectedDate}
-                                initialFocus
-                                disabled={(date) => isBefore(date, startOfDay(new Date()))}
-                            />
-                        </PopoverContent>
-                    </Popover>
-                    {errors.releaseDate && <p className="text-red-600 text-sm">Ngày phát hành bắt buộc</p>}
-                </div>
-
-                <div>
-                    <Label htmlFor="secretProbability">Tỉ lệ vật phẩm bí mật</Label>
-                    <Input
-                        id="secretProbability"
-                        type="number"
-                        step="0.01"
-                        {...register('secretProbability', {
-                            valueAsNumber: true,
-                            required: true,
-                            min: 0,
-                            max: 1,
-                        })}
-                    />
-                    {errors.secretProbability && (
-                        <p className="text-red-600 text-sm">Tỉ lệ hợp lệ từ 0 đến 1</p>
-                    )}
-                </div>
+                </TabsContent>
             </div>
-
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                <div>
-                    <Label htmlFor="description">Mô tả</Label>
-                    <Textarea id="description" {...register('description', { required: true })} />
-                    {errors.description && <p className="text-red-600 text-sm">Mô tả bắt buộc</p>}
-                </div>
-
-                <div>
-                    <Label className="block text-base mb-2">Upload ảnh đại diện</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-                        {imagePreview ? (
-                            <div className="relative border-2 rounded overflow-hidden border-blue-500 group w-full h-32">
-                                <img
-                                    src={imagePreview}
-                                    alt="Ảnh preview"
-                                    className="w-full h-full object-cover cursor-pointer"
-
-                                />
-                                <span className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-0.5 rounded">
-                                    Ảnh bìa
-                                </span>
-                                <button
-                                    type="button"
-                                    onClick={handleRemoveImage}
-                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-80 hover:opacity-100"
-                                >
-                                    <X size={14} />
-                                </button>
-                            </div>
-                        ) : (
-                            <label
-                                htmlFor="uploadFile1"
-                                className="w-full h-32 flex flex-col items-center justify-center cursor-pointer border-2 border-gray-300 border-dashed rounded bg-white text-slate-500 font-semibold text-base"
-                            >
-                                <LuImagePlus className="text-3xl" />
-                                Thêm hình ảnh (0/1)
-                                <input
-                                    id="uploadFile1"
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleFileChange}
-                                    multiple={false}
-                                />
-                                <p className="text-xs font-medium text-slate-400 mt-2 text-center">
-                                    Cho phép sử dụng PNG, JPG, SVG, WEBP, và GIF.
-                                </p>
-                            </label>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-                <Checkbox
-                    id="hasSecretItem"
-                    checked={hasSecret}
-                    onCheckedChange={(val) => setHasSecret(!!val)}
-                />
-                <Label htmlFor="hasSecretItem">Có vật phẩm bí mật</Label>
-            </div>
-
-            <div className="flex justify-end">
-                <Button type="submit" className="bg-[#d02a2a] text-white hover:bg-opacity-80">
-                    Tạo mới
-                </Button>
-            </div>
-
-            <Backdrop open={isPending} />
-        </form>
+        </Tabs>
     );
 }

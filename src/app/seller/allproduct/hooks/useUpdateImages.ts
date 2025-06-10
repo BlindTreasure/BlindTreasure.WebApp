@@ -1,12 +1,8 @@
 import { Status } from "@/const/products";
 import {
-  useServiceCreateProduct,
   useServiceUpdateImageProduct,
 } from "@/services/product-seller/services";
-import { CreateProductForm } from "@/services/product-seller/typings";
 import {
-  CreateProductBody,
-  CreateProductBodyType,
   UpdateProductImages,
   UpdateProductImagesType,
 } from "@/utils/schema-validations/create-product.schema";
