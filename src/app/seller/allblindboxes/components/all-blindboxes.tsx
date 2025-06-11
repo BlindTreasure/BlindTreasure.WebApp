@@ -9,7 +9,17 @@ import {
     TableHead,
     TableHeader,
     TableRow
-} from "@/components/ui/table"
+} from "@/components/ui/table";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,6 +44,7 @@ import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTr
 import CreateBlindbox from "@/components/blindboxform/createBlindBox"
 import useGetAllProduct from "../../allproduct/hooks/useGetAllProduct"
 import { GetProduct, TProductResponse } from "@/services/product-seller/typings"
+import useSubmitBlindbox from "../hooks/useSubmitBlindbox"
 export default function BlindboxTable() {
     const [blindboxes, setBlindBox] = useState<BlindBoxListResponse>()
     const [products, setProducts] = useState<TProductResponse>()
@@ -45,6 +56,9 @@ export default function BlindboxTable() {
     const { getAllBlindBoxesApi, isPending } = useGetAllBlindBoxes()
     const [searchInput, setSearchInput] = useState("")
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+    const [submitBlindbox, setSubmitBlindbox] = useState<string | null>(null);
+    const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+    const { onSubmit, isPending: isSubmitting } = useSubmitBlindbox();
 
     const [params, setParams] = useState<GetBlindBoxes>({
         search: "",
@@ -72,6 +86,22 @@ export default function BlindboxTable() {
         setSelectedBlindboxToEditBlindboxItem(item);
         setOpenEditItem(true);
     };
+
+    const handleSubmitBlindbox = (blindbox: string) => {
+        setSubmitBlindbox(blindbox);
+        setSubmitDialogOpen(true);
+    };
+
+    const handleConfirmSubmit = () => {
+        if (submitBlindbox) {
+            onSubmit(submitBlindbox, () => {
+                setParams({ ...params });
+                setSubmitBlindbox(null);
+            });
+        }
+        setSubmitDialogOpen(false);
+    };
+
 
     const handleUpdateBlindbox = (data: any, callback: () => void) => {
         console.log("Fake update blindbox data:", data);
@@ -106,7 +136,7 @@ export default function BlindboxTable() {
         (async () => {
             const res = await getAllBlindBoxesApi(params)
             if (res) setBlindBox(res.value.data)
-                console.log("hello", res?.value.data)
+            console.log("hello", res?.value.data)
         })()
     }, [params])
 
@@ -273,6 +303,7 @@ export default function BlindboxTable() {
                                 <TableHead>Ngày phát hành</TableHead>
                                 <TableHead>Trạng thái</TableHead>
                                 <TableHead>Hành động</TableHead>
+
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -292,22 +323,36 @@ export default function BlindboxTable() {
                             ) : (
                                 blindboxes?.result.map((blindbox) => {
                                     const isExpanded = expandedIds.has(blindbox.id);
+                                    const canSubmit =
+                                        (blindbox.status === BlindboxStatus.Draft || blindbox.status === BlindboxStatus.Rejected) &&
+                                        blindbox.items && blindbox.items.length > 0;
                                     return (
                                         <React.Fragment key={blindbox.id}>
                                             <TableRow
-                                                className="cursor-pointer select-none"
-                                                onClick={() => toggleExpand(blindbox.id)}
                                             >
                                                 <TableCell className="flex items-center gap-2 min-w-[150px]">
                                                     {blindbox.items && blindbox.items.length > 0 ? (
                                                         isExpanded ? (
-                                                            <IoIosArrowDown className="w-4 h-4 shrink-0" />
+                                                            <IoIosArrowDown
+                                                                className="w-4 h-4 shrink-0 cursor-pointer"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    toggleExpand(blindbox.id);
+                                                                }}
+                                                            />
                                                         ) : (
-                                                            <FiChevronRight className="w-4 h-4 shrink-0" />
+                                                            <FiChevronRight
+                                                                className="w-4 h-4 shrink-0 cursor-pointer"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    toggleExpand(blindbox.id);
+                                                                }}
+                                                            />
                                                         )
                                                     ) : (
                                                         <span className="w-4 h-4" />
                                                     )}
+
                                                     {blindbox.imageUrl ? (
                                                         <img
                                                             src={blindbox.imageUrl}
@@ -353,19 +398,46 @@ export default function BlindboxTable() {
                                                         <FaRegEdit className="w-4 h-4" />
                                                     </Button>
 
-                                                    {!blindbox.items || blindbox.items.length === 0 ? (
-                                                        <Button
-                                                            variant="outline"
-                                                            size="icon"
-                                                            className="text-red-500"
-                                                            onClick={(e) => { e.stopPropagation(); }}
-                                                        >
-                                                            <HiOutlineTrash className="w-4 h-4" />
-                                                        </Button>
-                                                    ) : null}
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className={
+                                                            !blindbox.items || blindbox.items.length === 0
+                                                                ? "text-red-500"
+                                                                : "invisible"
+                                                        }
+                                                        onClick={(e) => { e.stopPropagation(); }}
+                                                        disabled={!!(blindbox.items && blindbox.items.length > 0)}
+                                                    >
+                                                        <HiOutlineTrash className="w-4 h-4" />
+                                                    </Button>
+
                                                     <Button variant="outline" size="icon" onClick={() => openModal(blindbox)}>
                                                         <BsEye className="w-4 h-4" />
                                                     </Button>
+
+                                                    {blindbox.status === BlindboxStatus.PendingApproval ? (
+                                                        <Button variant="outline" disabled className="text-yellow-600 cursor-not-allowed">
+                                                            Đã gửi duyệt
+                                                        </Button>
+                                                    ) : blindbox.status === BlindboxStatus.Approved ? (
+                                                        <Button variant="outline" disabled className="text-green-600 cursor-not-allowed">
+                                                            Đã duyệt
+                                                        </Button>
+                                                    ) : !canSubmit ? (
+                                                        <Button variant="outline" disabled className="text-gray-400 cursor-not-allowed">
+                                                            Thêm item trước
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            variant="outline"
+                                                            className="text-blue-600"
+                                                            onClick={() => handleSubmitBlindbox(blindbox.id)}
+                                                            disabled={isSubmitting}
+                                                        >
+                                                            Gửi duyệt
+                                                        </Button>
+                                                    )}
                                                 </TableCell>
                                             </TableRow>
 
@@ -464,6 +536,26 @@ export default function BlindboxTable() {
                             )}
                         </DialogContent>
                     </Dialog>
+
+                    <AlertDialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận gửi duyệt Blindbox</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Bạn có chắc chắn muốn gửi duyệt blindbox này? Sau khi gửi, bạn sẽ không thể chỉnh sửa cho đến khi được phản hồi.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={handleConfirmSubmit}
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                >
+                                    Gửi duyệt
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
 
                     {/* <Dialog open={openEditItem} onOpenChange={setOpenEditItem}>
                         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">

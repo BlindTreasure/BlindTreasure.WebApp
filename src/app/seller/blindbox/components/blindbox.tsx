@@ -46,7 +46,7 @@ export default function BlindboxTabs() {
         ReleaseDateFrom: "",
         ReleaseDateTo: "",
         pageIndex: 1,
-        pageSize: 5,
+        pageSize: 100,
     })
 
     const [productParams, setProductParams] = useState<GetProduct>({
@@ -169,8 +169,6 @@ export default function BlindboxTabs() {
 
         setItems(finalItems);
     };
-
-
 
     const removeItem = (index: number) => {
         const updatedItems = [...items];
