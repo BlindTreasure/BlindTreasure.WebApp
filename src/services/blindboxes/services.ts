@@ -10,6 +10,7 @@ import {
 import {
   createBlindbox,
   createBlindboxItems,
+  deleteAllItemBlindbox,
   submitBlindbox,
 } from "./api-services";
 
@@ -83,6 +84,24 @@ export const useServiceSubmitBlindbox = () => {
 
   return useMutation<TResponseData<BlindBoxListResponse>, Error, string>({
     mutationFn: submitBlindbox,
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
+    },
+  });
+};
+
+export const useServiceDeleteAllItemBlindbox = () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<BlindBoxListResponse>, Error, string>({
+    mutationFn: deleteAllItemBlindbox,
     onSuccess: (data) => {
       addToast({
         type: "success",

@@ -45,6 +45,9 @@ import CreateBlindbox from "@/components/blindboxform/createBlindBox"
 import useGetAllProduct from "../../allproduct/hooks/useGetAllProduct"
 import { GetProduct, TProductResponse } from "@/services/product-seller/typings"
 import useSubmitBlindbox from "../hooks/useSubmitBlindbox"
+import useDeleteAllItemsBlindbox from "../hooks/useDeleteAllItemBlindbox";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { MdOutlineCleaningServices } from "react-icons/md";
 export default function BlindboxTable() {
     const [blindboxes, setBlindBox] = useState<BlindBoxListResponse>()
     const [products, setProducts] = useState<TProductResponse>()
@@ -58,7 +61,10 @@ export default function BlindboxTable() {
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
     const [submitBlindbox, setSubmitBlindbox] = useState<string | null>(null);
     const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+    const [deleteAllItemDialogOpen, setDeleteAllItemDialogOpen] = useState(false);
+    const [allItemToDelete, setAllItemToDelete] = useState<string | null>(null);
     const { onSubmit, isPending: isSubmitting } = useSubmitBlindbox();
+    const { onDeleteAllItem, isPending: isDeletingAllItem } = useDeleteAllItemsBlindbox();
 
     const [params, setParams] = useState<GetBlindBoxes>({
         search: "",
@@ -92,6 +98,11 @@ export default function BlindboxTable() {
         setSubmitDialogOpen(true);
     };
 
+    const handleDeleteAllItem = (blindbox: string) => {
+        setAllItemToDelete(blindbox);
+        setDeleteAllItemDialogOpen(true);
+    };
+
     const handleConfirmSubmit = () => {
         if (submitBlindbox) {
             onSubmit(submitBlindbox, () => {
@@ -102,10 +113,19 @@ export default function BlindboxTable() {
         setSubmitDialogOpen(false);
     };
 
+    const handleConfirmDeleteAllItem = () => {
+        if (allItemToDelete) {
+            onDeleteAllItem(allItemToDelete, () => {
+                setParams({ ...params });
+                setAllItemToDelete(null);
+            });
+        }
+        setDeleteAllItemDialogOpen(false);
+    };
 
     const handleUpdateBlindbox = (data: any, callback: () => void) => {
         console.log("Fake update blindbox data:", data);
-        callback(); // Gọi callback để test đóng dialog nếu cần
+        callback();
     };
 
     function toUtcMidnightISOString(date: Date): string {
@@ -398,23 +418,42 @@ export default function BlindboxTable() {
                                                         <FaRegEdit className="w-4 h-4" />
                                                     </Button>
 
-                                                    <Button
-                                                        variant="outline"
-                                                        size="icon"
-                                                        className={
-                                                            !blindbox.items || blindbox.items.length === 0
-                                                                ? "text-red-500"
-                                                                : "invisible"
-                                                        }
-                                                        onClick={(e) => { e.stopPropagation(); }}
-                                                        disabled={!!(blindbox.items && blindbox.items.length > 0)}
-                                                    >
-                                                        <HiOutlineTrash className="w-4 h-4" />
-                                                    </Button>
-
                                                     <Button variant="outline" size="icon" onClick={() => openModal(blindbox)}>
                                                         <BsEye className="w-4 h-4" />
                                                     </Button>
+
+                                                    <TooltipProvider>
+                                                        {blindbox.items && blindbox.items.length > 0 ? (
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="icon"
+                                                                        className="text-orange-500"
+                                                                        onClick={() => handleDeleteAllItem(blindbox.id)}
+                                                                        disabled={isDeletingAllItem}
+                                                                    >
+                                                                        <MdOutlineCleaningServices className="w-4 h-4" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>Xóa tất cả sản phẩm</TooltipContent>
+                                                            </Tooltip>
+                                                        ) : (
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="icon"
+                                                                        className="text-red-500"
+
+                                                                    >
+                                                                        <HiOutlineTrash className="w-4 h-4" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>Xóa blindbox</TooltipContent>
+                                                            </Tooltip>
+                                                        )}
+                                                    </TooltipProvider>
 
                                                     {blindbox.status === BlindboxStatus.PendingApproval ? (
                                                         <Button variant="outline" disabled className="text-yellow-600 cursor-not-allowed">
@@ -537,7 +576,7 @@ export default function BlindboxTable() {
                         </DialogContent>
                     </Dialog>
 
-                    <AlertDialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
+                    <AlertDialog open={deleteAllItemDialogOpen} onOpenChange={setSubmitDialogOpen}>
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Xác nhận gửi duyệt Blindbox</AlertDialogTitle>
@@ -552,6 +591,26 @@ export default function BlindboxTable() {
                                     className="bg-blue-600 hover:bg-blue-700"
                                 >
                                     Gửi duyệt
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+
+                    <AlertDialog open={deleteAllItemDialogOpen} onOpenChange={setDeleteAllItemDialogOpen}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận xóa tất cả sản phẩm</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Bạn có chắc chắn muốn xóa tất cả sản phẩm trong blindbox này? Hành động này không thể hoàn tác.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={handleConfirmDeleteAllItem}
+                                    className="bg-red-600 hover:bg-red-700"
+                                >
+                                    Xóa tất cả
                                 </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
