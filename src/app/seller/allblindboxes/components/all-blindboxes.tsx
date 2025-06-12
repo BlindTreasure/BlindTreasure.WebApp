@@ -591,7 +591,7 @@ export default function BlindboxTable() {
                                 <CreateBlindbox
                                     mode="edit"
                                     blindbox={selectedBlindboxToEditBlindbox}
-                                    onSubmitCreateBox={handleUpdateBlindbox}
+                                    onSubmit={handleUpdateBlindbox}
                                 />
                             )}
                         </DialogContent>

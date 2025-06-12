@@ -15,9 +15,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export default function BlindboxTabs() {
-    const {
-        onSubmit: onSubmitCreateBox,
-    } = useCreateBlindboxForm();
 
     const [selectedBoxId, setSelectedBoxId] = useState<string>("");
     const [selectedRarities, setSelectedRarities] = useState<Rarity[]>([]);
@@ -159,7 +156,6 @@ export default function BlindboxTabs() {
         }
     }, [totalItemsToAdd]);
 
-
     const addItem = () => {
         if (selectedRarities.length === 0) return;
         const rarity = selectedRarities[0];
@@ -178,7 +174,6 @@ export default function BlindboxTabs() {
         const updatedItems = redistributeDropRates([...items, ...newItems], rarityRates);
         setItems(updatedItems);
     };
-
 
     const handleRarityChange = (index: number, newRarity: string) => {
         if (!Object.values(Rarity).includes(newRarity as Rarity)) return;
@@ -220,7 +215,7 @@ export default function BlindboxTabs() {
             <div className="shadow-lg rounded-lg bg-white border border-gray-200 p-8">
                 <TabsContent value="blindbox">
                     <h2 className="text-xl font-semibold mb-4">Thông tin túi mù</h2>
-                    <CreateBlindbox mode="create" onSubmitCreateBox={onSubmitCreateBox} />
+                    <CreateBlindbox mode="create" />
                 </TabsContent>
 
                 <TabsContent value="items">

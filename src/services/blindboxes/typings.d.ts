@@ -52,7 +52,7 @@ export type BlindBoxListResponse = {
 
 export type CreateBlindboxForm = {
   name: string;
-  price: number;
+  price?: number;
   totalQuantity?: number;
   releaseDate?: string;
   description: string;

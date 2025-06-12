@@ -11,21 +11,24 @@ import { Calendar } from "../ui/calendar"
 import { Textarea } from "../ui/textarea"
 import { LuImagePlus } from "react-icons/lu"
 import useCreateBlindboxForm from "@/app/seller/blindbox/hooks/useCreateBlindbox"
-import { BlindBox } from "@/services/blindboxes/typings"
+import { BlindBox, CreateBlindboxForm } from "@/services/blindboxes/typings"
 import { Checkbox } from "../ui/checkbox"
 
 type Props = {
     mode?: "create" | "edit";
     blindboxId?: string;
     blindbox?: BlindBox;
-    onSubmitCreateBox: (data: any, callback: () => void) => void;
+    defaultValues?: CreateBlindboxForm;
+    onSubmit?: (data: CreateBlindboxForm,
+        clearImages: () => void) => void;
 };
 
 export default function CreateBlindbox({
     mode = "create",
     blindboxId,
     blindbox,
-    onSubmitCreateBox,
+    defaultValues,
+    onSubmit
 }: Props) {
     const {
         register,
@@ -36,20 +39,26 @@ export default function CreateBlindbox({
         isPending: isCreatingBox,
         setValue,
         reset,
-    } = useCreateBlindboxForm();
+        onSubmit: onSubmitCreateBox,
+    } = useCreateBlindboxForm(defaultValues);
 
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const hasSecretItem = watch("hasSecretItem", false);
     const imageFile = watch('imageFile');
+    const [clearSignal, setClearSignal] = useState(0);
+
+    const releaseDate = watch("releaseDate");
+
+    const displayDate = releaseDate ? new Date(releaseDate) : undefined;
 
     useEffect(() => {
         if (mode === "edit" && blindbox) {
+            const editDate = new Date(blindbox.releaseDate);
             reset({
                 name: blindbox.name,
                 price: blindbox.price,
                 totalQuantity: blindbox.totalQuantity,
-                releaseDate: blindbox.releaseDate,
+                releaseDate: editDate.toISOString().split('T')[0], 
                 description: blindbox.description,
                 hasSecretItem: blindbox.hasSecretItem,
                 secretProbability: blindbox.secretProbability,
@@ -57,6 +66,7 @@ export default function CreateBlindbox({
             });
         }
     }, [mode, blindbox, reset]);
+
 
     useEffect(() => {
         if (imageFile) {
@@ -75,21 +85,6 @@ export default function CreateBlindbox({
         }
     }, [imageFile]);
 
-    useEffect(() => {
-        if (blindbox?.releaseDate) {
-            setSelectedDate(new Date(blindbox.releaseDate));
-            setValue("releaseDate", new Date(blindbox.releaseDate).toISOString());
-        }
-    }, [blindbox, setValue]);
-
-    const handleDateChange = (date: Date | undefined) => {
-        setSelectedDate(date);
-        if (date) {
-            setValue("releaseDate", date.toISOString());
-        }
-    };
-
-
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
         setValue('imageFile', file, { shouldValidate: true });
@@ -99,10 +94,25 @@ export default function CreateBlindbox({
         setValue('imageFile', null, { shouldValidate: true });
     };
 
+    const clearImages = () => {
+        setClearSignal(prev => prev + 1);
+    };
+
+    const handleSubmitForm = (data: CreateBlindboxForm) => {
+        const transformedData = {
+            ...data,
+            releaseDate: data.releaseDate ? new Date(data.releaseDate).toISOString() : undefined
+        };
+
+        if (onSubmit) {
+            onSubmit(transformedData, clearImages);
+        } else {
+            onSubmitCreateBox(transformedData, clearImages);
+        }
+    };
+
     return (
-        <form className="space-y-4" onSubmit={handleSubmit((data) => {
-            onSubmitCreateBox(data, () => { });
-        })}>
+        <form className="space-y-4" onSubmit={handleSubmit(handleSubmitForm)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <Label htmlFor="name">Tên túi mù <span className='text-red-600'>*</span></Label>
@@ -161,41 +171,32 @@ export default function CreateBlindbox({
                         id="totalQuantity"
                         type="number"
                         min={1}
-                        onWheel={(e) => e.currentTarget.blur()} 
+                        onWheel={(e) => e.currentTarget.blur()}
                         {...register("totalQuantity", { valueAsNumber: true })}
                     />
                 </div>
+
                 <div>
                     <Label htmlFor="releaseDate">Ngày phát hành</Label>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant="outline"
-                                className={cn(
-                                    "w-full justify-between text-left font-normal",
-                                    !selectedDate && "text-muted-foreground"
-                                )}
-                            >
-                                {selectedDate
-                                    ? format(new Date(selectedDate), "dd/MM/yyyy")
-                                    : "Chọn ngày phát hành"}
-                                <CalendarIcon className="ml-2 h-4 w-4" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={selectedDate}
-                                onSelect={handleDateChange}
-                                disabled={(date) => isBefore(date, startOfDay(new Date()))}
-                            />
-                        </PopoverContent>
-                    </Popover>
-                    <Input type="hidden" {...register("releaseDate", { required: "Ngày phát hành là bắt buộc" })} />
+                    <Input
+                        id="releaseDate"
+                        type="date"
+                        min={new Date().toISOString().split('T')[0]} 
+                        {...register("releaseDate", {
+                            required: "Ngày phát hành là bắt buộc",
+                            validate: (value) => {
+                                if (!value) return true; 
+                                const selectedDate = new Date(value);
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                            }
+                        })}
+                    />
                     {errors.releaseDate && (
                         <p className="text-sm text-red-600">{errors.releaseDate.message}</p>
                     )}
                 </div>
+
                 {hasSecretItem && (
                     <div>
                         <Label htmlFor="secretProbability">Tỉ lệ vật phẩm bí mật (%)</Label>
@@ -275,9 +276,19 @@ export default function CreateBlindbox({
                 <Label htmlFor="hasSecretItem">Có vật phẩm bí mật</Label>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-4">
+                <Button
+                    type="button"
+                    onClick={() => {
+                        reset(defaultValues);
+                        clearImages();
+                    }}
+                    className="px-4 py-2 bg-white text-gray-800 rounded hover:bg-gray-300"
+                >
+                    Hủy
+                </Button>
                 <Button type="submit" className="bg-[#d02a2a] text-white hover:bg-opacity-80">
-                    Tạo mới
+                    Lưu
                 </Button>
             </div>
         </form>
