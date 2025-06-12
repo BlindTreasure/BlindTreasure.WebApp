@@ -96,3 +96,16 @@ export const deleteAllItemBlindbox = async (
 
   return response.data;
 };
+
+export const deleteBlindbox = async (
+  blindboxesId: string
+): Promise<TResponseData<BlindBoxListResponse>> => {
+  const response = await request<TResponseData<BlindBoxListResponse>>(
+    API_ENDPOINTS.BLINDBOXES_All_WITH_ID(blindboxesId),
+    {
+      method: "DELETE",
+    }
+  );
+
+  return response.data;
+};

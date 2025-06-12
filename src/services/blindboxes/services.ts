@@ -11,6 +11,7 @@ import {
   createBlindbox,
   createBlindboxItems,
   deleteAllItemBlindbox,
+  deleteBlindbox,
   submitBlindbox,
 } from "./api-services";
 
@@ -102,6 +103,24 @@ export const useServiceDeleteAllItemBlindbox = () => {
 
   return useMutation<TResponseData<BlindBoxListResponse>, Error, string>({
     mutationFn: deleteAllItemBlindbox,
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
+    },
+  });
+};
+
+export const useServiceDeleteBlindbox = () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<BlindBoxListResponse>, Error, string>({
+    mutationFn: deleteBlindbox,
     onSuccess: (data) => {
       addToast({
         type: "success",
