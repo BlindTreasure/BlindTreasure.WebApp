@@ -26,6 +26,8 @@ import useGetAllProductWeb from "../../allproduct/hooks/useGetAllProductWeb";
 import { ProductStatus } from "@/const/products";
 import { Backdrop } from "@/components/backdrop";
 import CategoryGrid from "@/components/category-grid";
+import { BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings";
+import useGetAllBlindBoxes from "@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes";
 
 
 interface Blindbox {
@@ -68,9 +70,36 @@ export default function HomePage() {
   ]
 
   const [products, setProducts] = useState<TAllProductResponse>()
+  const [blindboxes, setBlindBox] = useState<BlindBoxListResponse>()
   const { getAllProductWebApi, isPending } = useGetAllProductWeb()
+  const { getAllBlindBoxesApi, isPending: isBlindBox } = useGetAllBlindBoxes()
   const [loadingPage, setLoadingPage] = useState(false);
   const router = useRouter();
+
+
+  const [params, setParams] = useState<GetAllProducts>({
+    pageIndex: 1,
+    pageSize: 5,
+    search: "",
+    productStatus: undefined,
+    sellerId: "",
+    categoryId: "",
+    sortBy: undefined,
+    desc: undefined,
+  })
+
+  const [blindBoxParams, setBlindBoxParams] = useState<GetBlindBoxes>({
+    search: "",
+    SellerId: "",
+    categoryId: "",
+    status: "",
+    minPrice: undefined,
+    maxPrice: undefined,
+    ReleaseDateFrom: "",
+    ReleaseDateTo: "",
+    pageIndex: 1,
+    pageSize: 5,
+  })
 
   const handleClick = (id: string) => {
     if (id === "1") {
@@ -87,22 +116,19 @@ export default function HomePage() {
     router.push(`/detail/${id}`);
   };
 
-
-  const [params, setParams] = useState<GetAllProducts>({
-    pageIndex: 1,
-    pageSize: 5,
-    search: "",
-    productStatus: undefined,
-    sellerId: "",
-    categoryId: "",
-    sortBy: undefined,
-    desc: undefined,
-  })
-
   useEffect(() => {
     (async () => {
       const res = await getAllProductWebApi(params)
       if (res) setProducts(res.value.data)
+    })()
+  }, [params])
+
+  useEffect(() => {
+    (async () => {
+      const res = await getAllBlindBoxesApi(blindBoxParams)
+      if (res) {
+        setBlindBox(res.value.data);
+      }
     })()
   }, [params])
 
@@ -178,17 +204,17 @@ export default function HomePage() {
           </motion.div>
         </section>
 
-      <motion.h1
-        variants={fadeIn("up", 0.3)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.7 }}
-        className="text-4xl text-red-600 text-center font-montserrat">
-        DANH MỤC
-        <span className="block w-24 h-[2px] bg-red-600 mt-1 mx-auto"></span>
-      </motion.h1>
+        <motion.h1
+          variants={fadeIn("up", 0.3)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.7 }}
+          className="text-4xl text-red-600 text-center font-montserrat">
+          DANH MỤC
+          <span className="block w-24 h-[2px] bg-red-600 mt-1 mx-auto"></span>
+        </motion.h1>
 
-      <CategoryGrid />
+        <CategoryGrid />
 
         <motion.div
           variants={fadeIn("left", 0.3)}
@@ -349,7 +375,7 @@ export default function HomePage() {
                     // price={box.price.toLocaleString("vi-VN") + "₫"}
                     key={product.id}
                     product={product}
-                     onViewDetail={handleViewDetail}
+                    onViewDetail={handleViewDetail}
                   // type="normal"
                   // tags={["sale"]}
                   // percent={10}
@@ -406,7 +432,7 @@ export default function HomePage() {
                 .filter((product) => product.productType === "BlindBoxOnly")
                 .map((product) => (
                   <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
-                    <ProductCard product={product} onViewDetail={handleViewDetail}/>
+                    <ProductCard product={product} onViewDetail={handleViewDetail} />
                   </CarouselItem>
                 ))}
             </CarouselContent>

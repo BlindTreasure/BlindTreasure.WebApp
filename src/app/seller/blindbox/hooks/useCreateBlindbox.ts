@@ -15,6 +15,7 @@ export default function useCreateBlindboxForm(
     watch,
     handleSubmit,
     setError,
+    control,
     setValue,
     formState: { errors },
     reset,
@@ -23,7 +24,7 @@ export default function useCreateBlindboxForm(
     defaultValues: {
       name: "",
       description: "",
-      price: 0,
+      price: undefined,
       imageFile: null,
       totalQuantity: undefined,
       releaseDate: "",
@@ -51,6 +52,7 @@ export default function useCreateBlindboxForm(
   return {
     register,
     handleSubmit,
+    control,
     onSubmit,
     watch,
     errors,

@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 import { CalendarIcon, X } from "lucide-react"
 import { format, isBefore, startOfDay } from "date-fns"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { useState, useEffect } from "react"
 import { Label } from "../ui/label"
 import { Input } from "../ui/input"
@@ -12,6 +12,7 @@ import { Textarea } from "../ui/textarea"
 import { LuImagePlus } from "react-icons/lu"
 import useCreateBlindboxForm from "@/app/seller/blindbox/hooks/useCreateBlindbox"
 import { BlindBox } from "@/services/blindboxes/typings"
+import { Checkbox } from "../ui/checkbox"
 
 type Props = {
     mode?: "create" | "edit";
@@ -30,6 +31,7 @@ export default function CreateBlindbox({
         register,
         handleSubmit,
         watch,
+        control,
         errors,
         isPending: isCreatingBox,
         setValue,
@@ -38,6 +40,7 @@ export default function CreateBlindbox({
 
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [imagePreview, setImagePreview] = useState<string | null>(null)
+    const hasSecretItem = watch("hasSecretItem", false);
     const imageFile = watch('imageFile');
 
     useEffect(() => {
@@ -105,18 +108,62 @@ export default function CreateBlindbox({
                     <Label htmlFor="name">Tên túi mù <span className='text-red-600'>*</span></Label>
                     <Input {...register("name")} />
                 </div>
-                <div>
-                    <Label htmlFor="price">Giá <span className='text-red-600'>*</span></Label>
-                    <Input
-                        id="price"
-                        type="number"
-                        min={1}
-                        {...register("price", { valueAsNumber: true })}
-                    />
-                </div>
+                <Controller
+                    name="price"
+                    control={control}
+                    defaultValue={undefined}
+                    render={({ field }) => {
+                        const formatCurrency = (value: number | undefined) => {
+                            if (!value) return "";
+                            return new Intl.NumberFormat("vi-VN").format(value);
+                        };
+
+                        const parseCurrency = (value: string) => {
+                            return Number(value.replace(/[^0-9]/g, ""));
+                        };
+
+                        return (
+                            <div className="w-full">
+                                <Label htmlFor="price">
+                                    Giá (VNĐ) <span className="text-red-600">*</span>
+                                </Label>
+
+                                <div className="relative">
+                                    <Input
+                                        id="price"
+                                        type="text"
+                                        inputMode="numeric"
+                                        className="pr-14"
+                                        value={field.value === undefined ? "" : formatCurrency(field.value)}
+                                        onChange={(e) => {
+                                            const numberValue = parseCurrency(e.target.value);
+                                            field.onChange(numberValue);
+                                        }}
+                                        onFocus={(e) => {
+                                            e.target.value = field.value?.toString() || "";
+                                        }}
+                                        onBlur={(e) => {
+                                            const numberValue = parseCurrency(e.target.value);
+                                            e.target.value = formatCurrency(numberValue);
+                                        }}
+                                    />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
+                                        VNĐ
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    }}
+                />
                 <div>
                     <Label htmlFor="totalQuantity">Số lượng</Label>
-                    <Input type="number" min={1} {...register("totalQuantity", { valueAsNumber: true })} />
+                    <Input
+                        id="totalQuantity"
+                        type="number"
+                        min={1}
+                        onWheel={(e) => e.currentTarget.blur()} 
+                        {...register("totalQuantity", { valueAsNumber: true })}
+                    />
                 </div>
                 <div>
                     <Label htmlFor="releaseDate">Ngày phát hành</Label>
@@ -149,24 +196,25 @@ export default function CreateBlindbox({
                         <p className="text-sm text-red-600">{errors.releaseDate.message}</p>
                     )}
                 </div>
-                <div>
-                    <Label htmlFor="secretProbability">Tỉ lệ vật phẩm bí mật (%)</Label>
-                    <Input
-                        type="number"
-                        step="0.01"
-                        min={0}
-                        max={100}
-                        {...register("secretProbability", {
-                            valueAsNumber: true,
-                            required: "Tỉ lệ là bắt buộc",
-                            min: { value: 0, message: "Tối thiểu là 0%" },
-                            max: { value: 100, message: "Tối đa là 100%" },
-                        })}
-                    />
-                    {errors.secretProbability && (
-                        <p className="text-red-600 text-sm">{errors.secretProbability.message}</p>
-                    )}
-                </div>
+                {hasSecretItem && (
+                    <div>
+                        <Label htmlFor="secretProbability">Tỉ lệ vật phẩm bí mật (%)</Label>
+                        <Input
+                            type="number"
+                            min={0}
+                            max={100}
+                            {...register("secretProbability", {
+                                valueAsNumber: true,
+                                required: "Tỉ lệ là bắt buộc",
+                                min: { value: 0, message: "Tối thiểu là 0%" },
+                                max: { value: 100, message: "Tối đa là 100%" },
+                            })}
+                        />
+                        {errors.secretProbability && (
+                            <p className="text-red-600 text-sm">{errors.secretProbability.message}</p>
+                        )}
+                    </div>
+                )}
             </div>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
@@ -218,13 +266,14 @@ export default function CreateBlindbox({
                     </div>
                 </div>
             </div>
-            <div>
-                <Label htmlFor="hasSecretItem" className="flex items-center space-x-2">
-                    <input type="checkbox" id="hasSecretItem" {...register("hasSecretItem")} />
-                    <span>Có vật phẩm bí mật</span>
-                </Label>
+            <div className="flex items-center space-x-2">
+                <Checkbox
+                    id="hasSecretItem"
+                    checked={hasSecretItem}
+                    onCheckedChange={(checked) => setValue("hasSecretItem", checked === true)}
+                />
+                <Label htmlFor="hasSecretItem">Có vật phẩm bí mật</Label>
             </div>
-
 
             <div className="flex justify-end">
                 <Button type="submit" className="bg-[#d02a2a] text-white hover:bg-opacity-80">

@@ -9,7 +9,6 @@ export const CreateProductBody = z
     price: z.number().min(1, { message: "Giá phải lớn hơn 0" }),
     stock: z
       .number()
-      .int()
       .min(0, { message: "Số lượng phải là số nguyên lớn hơn hoặc bằng 0" }),
     status: z.nativeEnum(Status, {
       errorMap: () => ({ message: "Trạng thái không hợp lệ" }),

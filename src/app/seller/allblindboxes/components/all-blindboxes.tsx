@@ -576,7 +576,7 @@ export default function BlindboxTable() {
                         </DialogContent>
                     </Dialog>
 
-                    <AlertDialog open={deleteAllItemDialogOpen} onOpenChange={setSubmitDialogOpen}>
+                    <AlertDialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Xác nhận gửi duyệt Blindbox</AlertDialogTitle>
