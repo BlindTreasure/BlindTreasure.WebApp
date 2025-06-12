@@ -49,6 +49,7 @@ import useDeleteAllItemsBlindbox from "../hooks/useDeleteAllItemBlindbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MdOutlineCleaningServices } from "react-icons/md";
 import useDeleteBlindbox from "../hooks/useDeleteBlindbox";
+import { CreateBlindBoxBodyType } from "@/utils/schema-validations/create-blindbox.schema";
 export default function BlindboxTable() {
     const [blindboxes, setBlindBox] = useState<BlindBoxListResponse>()
     const [products, setProducts] = useState<TProductResponse>()
@@ -90,11 +91,6 @@ export default function BlindboxTable() {
     const handleEditClick = (blindbox: BlindBox) => {
         setSelectedBlindboxToEditBlindbox(blindbox);
         setOpenEditBlindbox(true);
-    };
-
-    const handleEditItem = (item: BlindBoxItemRequest) => {
-        setSelectedBlindboxToEditBlindboxItem(item);
-        setOpenEditItem(true);
     };
 
     const handleSubmitBlindbox = (blindbox: string) => {
@@ -142,11 +138,6 @@ export default function BlindboxTable() {
         setDeleteBlindboxDialogOpen(false);
     };
 
-    const handleUpdateBlindbox = (data: any, callback: () => void) => {
-        console.log("Fake update blindbox data:", data);
-        callback();
-    };
-
     function toUtcMidnightISOString(date: Date): string {
         const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
         return utcDate.toISOString();
@@ -163,6 +154,7 @@ export default function BlindboxTable() {
             return newSet;
         });
     };
+
 
     useEffect(() => {
         const delay = setTimeout(() => {
@@ -196,16 +188,19 @@ export default function BlindboxTable() {
         desc: undefined,
     })
 
+    const fetchBlindboxes = async () => {
+        const res = await getAllBlindBoxesApi(params);
+        if (res) {
+            setBlindBox(res.value.data);
+            const boxIds = res.value.data.result.map((box: any) => box.id);
+            console.log("Danh sách Box ID:", boxIds);
+        }
+    };
+
     useEffect(() => {
-        (async () => {
-            const res = await getAllBlindBoxesApi(params)
-            if (res) {
-                setBlindBox(res.value.data);
-                const boxIds = res.value.data.result.map((box: any) => box.id);
-                console.log("Danh sách Box ID:", boxIds);
-            }
-        })()
-    }, [params])
+        fetchBlindboxes();
+    }, [params]);
+
 
     useEffect(() => {
         (async () => {
@@ -213,6 +208,8 @@ export default function BlindboxTable() {
             if (res) setProducts(res.value.data)
         })()
     }, [productParams])
+
+
 
     return (
         <div>
@@ -590,8 +587,12 @@ export default function BlindboxTable() {
                             {selectedBlindboxToEditBlindbox && (
                                 <CreateBlindbox
                                     mode="edit"
+                                    blindboxId={selectedBlindboxToEditBlindbox?.id}
                                     blindbox={selectedBlindboxToEditBlindbox}
-                                    onSubmit={handleUpdateBlindbox}
+                                    onSuccess={() => {
+                                        setOpenEditBlindbox(false);
+                                        fetchBlindboxes();
+                                    }}
                                 />
                             )}
                         </DialogContent>
@@ -642,7 +643,7 @@ export default function BlindboxTable() {
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Xác nhận xóa túi mù</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                     Bạn có chắc chắn muốn xóa túi mù này? Hành động này không thể hoàn tác.
+                                    Bạn có chắc chắn muốn xóa túi mù này? Hành động này không thể hoàn tác.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

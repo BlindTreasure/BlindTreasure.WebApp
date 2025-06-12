@@ -13,14 +13,19 @@ import { LuImagePlus } from "react-icons/lu"
 import useCreateBlindboxForm from "@/app/seller/blindbox/hooks/useCreateBlindbox"
 import { BlindBox, CreateBlindboxForm } from "@/services/blindboxes/typings"
 import { Checkbox } from "../ui/checkbox"
+import useUpdateBlindboxForm from "@/app/seller/allblindboxes/hooks/useUpdateBllindbox"
 
 type Props = {
     mode?: "create" | "edit";
     blindboxId?: string;
     blindbox?: BlindBox;
     defaultValues?: CreateBlindboxForm;
-    onSubmit?: (data: CreateBlindboxForm,
-        clearImages: () => void) => void;
+    onSubmit?: (
+        data: CreateBlindboxForm,
+        clearImages: () => void,
+        onSuccessCallback?: () => void
+    ) => void;
+    onSuccess?: () => void;
 };
 
 export default function CreateBlindbox({
@@ -28,8 +33,14 @@ export default function CreateBlindbox({
     blindboxId,
     blindbox,
     defaultValues,
-    onSubmit
+    onSubmit,
+    onSuccess
 }: Props) {
+
+    const updateHook = mode === "edit" && blindboxId
+        ? useUpdateBlindboxForm(blindboxId, defaultValues)
+        : null;
+
     const {
         register,
         handleSubmit,
@@ -58,7 +69,7 @@ export default function CreateBlindbox({
                 name: blindbox.name,
                 price: blindbox.price,
                 totalQuantity: blindbox.totalQuantity,
-                releaseDate: editDate.toISOString().split('T')[0], 
+                releaseDate: editDate.toISOString().split('T')[0],
                 description: blindbox.description,
                 hasSecretItem: blindbox.hasSecretItem,
                 secretProbability: blindbox.secretProbability,
@@ -103,8 +114,12 @@ export default function CreateBlindbox({
             ...data,
             releaseDate: data.releaseDate ? new Date(data.releaseDate).toISOString() : undefined
         };
-
-        if (onSubmit) {
+        
+        if (mode === "edit" && updateHook) {
+            updateHook.onSubmit(transformedData, clearImages, () => {
+                onSuccess?.();
+            });
+        } else if (onSubmit) {
             onSubmit(transformedData, clearImages);
         } else {
             onSubmitCreateBox(transformedData, clearImages);
@@ -181,11 +196,11 @@ export default function CreateBlindbox({
                     <Input
                         id="releaseDate"
                         type="date"
-                        min={new Date().toISOString().split('T')[0]} 
+                        min={new Date().toISOString().split('T')[0]}
                         {...register("releaseDate", {
                             required: "Ngày phát hành là bắt buộc",
                             validate: (value) => {
-                                if (!value) return true; 
+                                if (!value) return true;
                                 const selectedDate = new Date(value);
                                 const today = new Date();
                                 today.setHours(0, 0, 0, 0);

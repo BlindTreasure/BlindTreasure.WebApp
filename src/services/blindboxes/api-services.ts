@@ -109,3 +109,17 @@ export const deleteBlindbox = async (
 
   return response.data;
 };
+
+export const updateBlindBox = async (blindboxesId: string, body: FormData) => {
+  const response = await request<TResponseData<BlindBoxListResponse>>(
+    API_ENDPOINTS.BLINDBOXES_All_WITH_ID(blindboxesId),
+    {
+      method: "PUT",
+      data: body,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return response.data;
+};
