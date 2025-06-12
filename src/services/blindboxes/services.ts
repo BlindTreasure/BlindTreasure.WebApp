@@ -23,7 +23,9 @@ export const useServiceCreateBlindbox = () => {
       const formData = new FormData();
       formData.append("name", data.name);
       formData.append("description", data.description);
-      formData.append("price", data.price.toString());
+      if (data.price !== undefined) {
+        formData.append("price", data.price.toString());
+      }
       if (data.imageFile) {
         if (data.imageFile instanceof File) {
           formData.append("imageFile", data.imageFile);
