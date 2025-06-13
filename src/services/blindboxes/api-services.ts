@@ -6,6 +6,7 @@ import {
   BlindBoxListResponse,
   CreateBlindboxItemsParam,
   GetBlindBoxes,
+  BlindBoxReviewRequest
 } from "./typings";
 
 export const getAllBlindboxSeller = async ({
@@ -36,6 +37,16 @@ export const getAllBlindboxSeller = async ({
         pageIndex,
         pageSize,
       },
+    }
+  );
+  return response.data;
+};
+
+export const getBlindboxById = async (blindboxesId : string): Promise<TResponseData<BlindBox>> => {
+  const response = await request<TResponseData<BlindBox>>(
+    API_ENDPOINTS.BLINDBOXES_All_WITH_ID(blindboxesId),
+    {
+      method: "GET",
     }
   );
   return response.data;
@@ -91,6 +102,25 @@ export const deleteAllItemBlindbox = async (
     API_ENDPOINTS.DELETE_ITEMS(blindboxesId),
     {
       method: "DELETE",
+    }
+  );
+
+  return response.data;
+};
+
+
+export const reviewBlindbox = async (
+  blindboxesId: string,
+  body: BlindBoxReviewRequest
+): Promise<TResponseData<BlindBoxListResponse>> => {
+  const response = await request<TResponseData<BlindBoxListResponse>>(
+    API_ENDPOINTS.REVIEW_BLINDBOXES(blindboxesId),
+    {
+      method: "POST",
+      data: body,
+      headers: {
+        "Content-Type": "application/json",
+      },
     }
   );
 

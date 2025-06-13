@@ -21,7 +21,7 @@ interface BlindBoxItem {
   productName: string;
   quantity: number;
   dropRate: number;
-  rarity: 'Common' | 'Rare' | 'Epic' | 'Secret';
+  rarity: string;
   imageUrl: string;
 }
 
@@ -33,17 +33,19 @@ export interface BlindBoxData {
   totalQuantity: number;
   imageUrl: string;
   releaseDate: string;
-  status: 'PendingApproval' | 'Approved' | 'Rejected';
+  status: string;
   hasSecretItem: boolean;
   secretProbability: number;
   items: BlindBoxItem[];
+  rejectReason?: string;
 }
 
 interface BlindBoxDetailProps {
   blindBoxData: BlindBoxData;
-  onApprove: (id: string) => void;
-  onReject: (id: string) => void;
+  onApprove: () => void; // Đã có blindBoxData.id rồi nên không cần truyền id
+  onReject: () => void;   // Tương tự
   onBack: () => void;
+  isReviewPending?: boolean; // Thêm prop này
   loading?: boolean;
 }
 
@@ -52,6 +54,7 @@ const BlindBoxDetail: React.FC<BlindBoxDetailProps> = ({
   onApprove, 
   onReject, 
   onBack,
+  isReviewPending = false, // Default value
   loading = false 
 }) => {
   const formatPrice = (price: number) => {
@@ -125,11 +128,11 @@ const BlindBoxDetail: React.FC<BlindBoxDetailProps> = ({
   };
 
   const handleApprove = () => {
-    onApprove(blindBoxData.id);
+    onApprove();
   };
 
   const handleReject = () => {
-    onReject(blindBoxData.id);
+    onReject();
   };
 
   // Sort items by rarity (Common -> Rare -> Epic -> Secret)
@@ -278,6 +281,21 @@ const BlindBoxDetail: React.FC<BlindBoxDetailProps> = ({
               </div>
             </div>
 
+            {/* Reject Reason Card - Show only if status is Rejected */}
+            {blindBoxData.status === 'Rejected' && blindBoxData.rejectReason && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-red-100 rounded-lg">
+                    <XCircle className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-red-900 mb-2">Lý do từ chối</h4>
+                    <p className="text-red-700">{blindBoxData.rejectReason}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Items List */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100">
               <div className="p-6 border-b border-gray-100">
@@ -346,15 +364,23 @@ const BlindBoxDetail: React.FC<BlindBoxDetailProps> = ({
                 <div className="space-y-3">
                   <button
                     onClick={handleApprove}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-sm"
+                    disabled={isReviewPending}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
+                    {isReviewPending && (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    )}
                     <Check className="w-4 h-4" />
                     Duyệt Blind Box
                   </button>
                   <button
                     onClick={handleReject}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold shadow-sm"
+                    disabled={isReviewPending}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
+                    {isReviewPending && (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    )}
                     <XCircle className="w-4 h-4" />
                     Từ chối
                   </button>
@@ -378,32 +404,31 @@ const BlindBoxDetail: React.FC<BlindBoxDetailProps> = ({
                   <span className="font-bold text-gray-900 text-lg">{totalDropRate}%</span>
                 </div>
                 <div className="space-y-3 pt-2">
-                    {['Common', 'Rare', 'Epic', 'Secret'].map((rarity) => {
-                        const colorMap: Record<string, { dot: string; text: string }> = {
-                        Common: { dot: 'bg-gray-400', text: 'text-gray-700' },
-                        Rare: { dot: 'bg-blue-500', text: 'text-blue-600' },
-                        Epic: { dot: 'bg-purple-500', text: 'text-purple-600' },
-                        Secret: { dot: 'bg-gradient-to-r from-amber-400 to-yellow-500', text: 'text-amber-600' },
-                        };
+                  {['Common', 'Rare', 'Epic', 'Secret'].map((rarity) => {
+                    const colorMap: Record<string, { dot: string; text: string }> = {
+                      Common: { dot: 'bg-gray-400', text: 'text-gray-700' },
+                      Rare: { dot: 'bg-blue-500', text: 'text-blue-600' },
+                      Epic: { dot: 'bg-purple-500', text: 'text-purple-600' },
+                      Secret: { dot: 'bg-gradient-to-r from-amber-400 to-yellow-500', text: 'text-amber-600' },
+                    };
 
-                        const items = blindBoxData.items.filter(item => item.rarity === rarity);
-                        const quantity = items.length;
-                        const dropRate = items.reduce((sum, item) => sum + item.dropRate, 0);
+                    const items = blindBoxData.items.filter(item => item.rarity === rarity);
+                    const quantity = items.length;
+                    const dropRate = items.reduce((sum, item) => sum + item.dropRate, 0);
 
-                        return (
-                        <div key={rarity} className="flex justify-between items-center">
-                            <span className="text-gray-600 flex items-center gap-2">
-                            <span className={`w-3 h-3 ${colorMap[rarity].dot} rounded-full`}></span>
-                            {rarity}:
-                            </span>
-                            <span className={`font-bold ${colorMap[rarity].text}`}>
-                            {dropRate.toFixed(2)}% ({quantity} item{quantity !== 1 ? 's' : ''})
-                            </span>
-                        </div>
-                        );
-                    })}
-                    </div>
-
+                    return (
+                      <div key={rarity} className="flex justify-between items-center">
+                        <span className="text-gray-600 flex items-center gap-2">
+                          <span className={`w-3 h-3 ${colorMap[rarity].dot} rounded-full`}></span>
+                          {rarity}:
+                        </span>
+                        <span className={`font-bold ${colorMap[rarity].text}`}>
+                          {dropRate.toFixed(2)}% ({quantity} item{quantity !== 1 ? 's' : ''})
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 

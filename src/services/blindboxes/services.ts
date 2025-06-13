@@ -6,12 +6,14 @@ import {
   BlindBoxListResponse,
   CreateBlindboxForm,
   CreateBlindboxItemsParam,
+  ReviewBlindboxParams
 } from "./typings";
 import {
   createBlindbox,
   createBlindboxItems,
   deleteAllItemBlindbox,
   submitBlindbox,
+  reviewBlindbox
 } from "./api-services";
 
 export const useServiceCreateBlindbox = () => {
@@ -102,6 +104,30 @@ export const useServiceDeleteAllItemBlindbox = () => {
 
   return useMutation<TResponseData<BlindBoxListResponse>, Error, string>({
     mutationFn: deleteAllItemBlindbox,
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
+    },
+  });
+};
+
+export const useServiceReviewBlindbox = () => {
+  const { addToast } = useToast();
+
+  return useMutation<
+    TResponseData<BlindBoxListResponse>,
+    Error,
+    ReviewBlindboxParams
+  >({
+    mutationFn: async ({ blindboxesId, reviewData }: ReviewBlindboxParams) => {
+      return await reviewBlindbox(blindboxesId, reviewData);
+    },
     onSuccess: (data) => {
       addToast({
         type: "success",
