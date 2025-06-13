@@ -48,6 +48,8 @@ import useSubmitBlindbox from "../hooks/useSubmitBlindbox"
 import useDeleteAllItemsBlindbox from "../hooks/useDeleteAllItemBlindbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MdOutlineCleaningServices } from "react-icons/md";
+import useDeleteBlindbox from "../hooks/useDeleteBlindbox";
+import { CreateBlindBoxBodyType } from "@/utils/schema-validations/create-blindbox.schema";
 export default function BlindboxTable() {
     const [blindboxes, setBlindBox] = useState<BlindBoxListResponse>()
     const [products, setProducts] = useState<TProductResponse>()
@@ -63,8 +65,11 @@ export default function BlindboxTable() {
     const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
     const [deleteAllItemDialogOpen, setDeleteAllItemDialogOpen] = useState(false);
     const [allItemToDelete, setAllItemToDelete] = useState<string | null>(null);
+    const [deleteBlindboxDialogOpen, setDeleteBlindboxDialogOpen] = useState(false);
+    const [blindBoxToDelete, setBlindBoxToDelete] = useState<string | null>(null);
     const { onSubmit, isPending: isSubmitting } = useSubmitBlindbox();
     const { onDeleteAllItem, isPending: isDeletingAllItem } = useDeleteAllItemsBlindbox();
+    const { onDeleteBlindbox, isPending: isDeletingBlindbox } = useDeleteBlindbox();
 
     const [params, setParams] = useState<GetBlindBoxes>({
         search: "",
@@ -88,11 +93,6 @@ export default function BlindboxTable() {
         setOpenEditBlindbox(true);
     };
 
-    const handleEditItem = (item: BlindBoxItemRequest) => {
-        setSelectedBlindboxToEditBlindboxItem(item);
-        setOpenEditItem(true);
-    };
-
     const handleSubmitBlindbox = (blindbox: string) => {
         setSubmitBlindbox(blindbox);
         setSubmitDialogOpen(true);
@@ -101,6 +101,11 @@ export default function BlindboxTable() {
     const handleDeleteAllItem = (blindbox: string) => {
         setAllItemToDelete(blindbox);
         setDeleteAllItemDialogOpen(true);
+    };
+
+    const handleDeleteBlindbox = (blindbox: string) => {
+        setBlindBoxToDelete(blindbox);
+        setDeleteBlindboxDialogOpen(true);
     };
 
     const handleConfirmSubmit = () => {
@@ -123,9 +128,14 @@ export default function BlindboxTable() {
         setDeleteAllItemDialogOpen(false);
     };
 
-    const handleUpdateBlindbox = (data: any, callback: () => void) => {
-        console.log("Fake update blindbox data:", data);
-        callback();
+    const handleConfirmDeleteBlindbox = () => {
+        if (blindBoxToDelete) {
+            onDeleteBlindbox(blindBoxToDelete, () => {
+                setParams({ ...params });
+                setBlindBoxToDelete(null);
+            });
+        }
+        setDeleteBlindboxDialogOpen(false);
     };
 
     function toUtcMidnightISOString(date: Date): string {
@@ -144,6 +154,7 @@ export default function BlindboxTable() {
             return newSet;
         });
     };
+
 
     useEffect(() => {
         const delay = setTimeout(() => {
@@ -177,16 +188,19 @@ export default function BlindboxTable() {
         desc: undefined,
     })
 
+    const fetchBlindboxes = async () => {
+        const res = await getAllBlindBoxesApi(params);
+        if (res) {
+            setBlindBox(res.value.data);
+            const boxIds = res.value.data.result.map((box: any) => box.id);
+            console.log("Danh sách Box ID:", boxIds);
+        }
+    };
+
     useEffect(() => {
-        (async () => {
-            const res = await getAllBlindBoxesApi(params)
-            if (res) {
-                setBlindBox(res.value.data);
-                const boxIds = res.value.data.result.map((box: any) => box.id);
-                console.log("Danh sách Box ID:", boxIds);
-            }
-        })()
-    }, [params])
+        fetchBlindboxes();
+    }, [params]);
+
 
     useEffect(() => {
         (async () => {
@@ -194,6 +208,8 @@ export default function BlindboxTable() {
             if (res) setProducts(res.value.data)
         })()
     }, [productParams])
+
+
 
     return (
         <div>
@@ -445,6 +461,8 @@ export default function BlindboxTable() {
                                                                         variant="outline"
                                                                         size="icon"
                                                                         className="text-red-500"
+                                                                        onClick={() => handleDeleteBlindbox(blindbox.id)}
+                                                                        disabled={isDeletingBlindbox}
 
                                                                     >
                                                                         <HiOutlineTrash className="w-4 h-4" />
@@ -569,14 +587,18 @@ export default function BlindboxTable() {
                             {selectedBlindboxToEditBlindbox && (
                                 <CreateBlindbox
                                     mode="edit"
+                                    blindboxId={selectedBlindboxToEditBlindbox?.id}
                                     blindbox={selectedBlindboxToEditBlindbox}
-                                    onSubmitCreateBox={handleUpdateBlindbox}
+                                    onSuccess={() => {
+                                        setOpenEditBlindbox(false);
+                                        fetchBlindboxes();
+                                    }}
                                 />
                             )}
                         </DialogContent>
                     </Dialog>
 
-                    <AlertDialog open={deleteAllItemDialogOpen} onOpenChange={setSubmitDialogOpen}>
+                    <AlertDialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Xác nhận gửi duyệt Blindbox</AlertDialogTitle>
@@ -616,33 +638,25 @@ export default function BlindboxTable() {
                         </AlertDialogContent>
                     </AlertDialog>
 
-                    {/* <Dialog open={openEditItem} onOpenChange={setOpenEditItem}>
-                        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle className="font-poppins text-xl">Cập nhật vật phẩm</DialogTitle>
-                            </DialogHeader>
-                            {selectedBlindboxToEditItem && blindboxes && products && (
-                                <BlindboxTabs
-                                    blindboxes={blindboxes}
-                                    products={products}
-                                    selectedBoxId={selectedBoxId}
-                                    setSelectedBoxId={setSelectedBoxId}
-                                    selectedRarities={selectedRarities}
-                                    setSelectedRarities={setSelectedRarities}
-                                    rarityRates={rarityRates}
-                                    setRarityRates={setRarityRates}
-                                    items={items}
-                                    handleItemChange={handleItemChange}
-                                    handleRarityChange={handleRarityChange}
-                                    removeItem={removeItem}
-                                    setItems={setItems}
-                                    addItem={addItem}
-                                    onSubmit={onSubmit}
-                                    isPending={isPending}
-                                />
-                            )}
-                        </DialogContent>
-                    </Dialog> */}
+                    <AlertDialog open={deleteBlindboxDialogOpen} onOpenChange={setDeleteBlindboxDialogOpen}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận xóa túi mù</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Bạn có chắc chắn muốn xóa túi mù này? Hành động này không thể hoàn tác.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={handleConfirmDeleteBlindbox}
+                                    className="bg-red-600 hover:bg-red-700"
+                                >
+                                    Xóa
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
 
                     <PaginationFooter
                         currentPage={params.pageIndex}

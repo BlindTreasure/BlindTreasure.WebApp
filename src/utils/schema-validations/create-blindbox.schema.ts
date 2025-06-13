@@ -4,7 +4,7 @@ import { z } from "zod";
 export const CreateBlindBox = z.object({
   name: z.string().min(1, "Tên không được để trống"),
   description: z.string().min(1, "Mô tả không được để trống"),
-  price: z.number().min(1, { message: "Giá phải lớn hơn 0" }),
+  price: z.number().min(1, { message: "Giá phải lớn hơn 0" }).optional(),
   imageFile: z
     .union([
       z.instanceof(File, { message: "Vui lòng chọn file ảnh" }),

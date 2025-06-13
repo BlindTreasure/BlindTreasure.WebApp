@@ -102,6 +102,17 @@ export default function ProductTable() {
         setParams((prev) => ({ ...prev, pageIndex: newPage }))
     }
 
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case "Active":
+                return "Đang hoạt động";
+            case "Inactive":
+                return "Ngừng hoạt động";
+            default:
+                return status;
+        }
+    };
+
     return (
         <div>
             <Card className="mt-6 shadow-lg rounded-lg border border-gray-200">
@@ -247,7 +258,7 @@ export default function ProductTable() {
                                                     : "bg-red-100 text-red-700"
                                                     }`}
                                             >
-                                                {product.status}
+                                                {getStatusLabel(product.status)}
                                             </span>
                                         </TableCell>
                                         <TableCell>{moment(product.createdAt).format("DD/MM/YYYY")}</TableCell>
@@ -287,9 +298,9 @@ export default function ProductTable() {
                             <DialogHeader>
                                 <DialogTitle className="font-poppins text-xl">Cập nhật sản phẩm</DialogTitle>
                             </DialogHeader>
-                            {selectedProductToEdit  && (
+                            {selectedProductToEdit && (
                                 <EditProductSeller
-                                    productData={selectedProductToEdit }
+                                    productData={selectedProductToEdit}
                                     onUpdateSuccess={() => {
                                         setOpen(false);
                                         setParams({ ...params });

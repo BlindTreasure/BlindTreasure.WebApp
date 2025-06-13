@@ -9,6 +9,17 @@ interface ProductDetailDialogProps {
 }
 
 const ProductDetailDialog: React.FC<ProductDetailDialogProps> = ({ product, isOpen, onClose }) => {
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case "Active":
+                return "Đang hoạt động";
+            case "Inactive":
+                return "Ngừng hoạt động";
+            default:
+                return status;
+        }
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -40,7 +51,7 @@ const ProductDetailDialog: React.FC<ProductDetailDialogProps> = ({ product, isOp
                             <strong>Thương hiệu:</strong> {product.brand}
                         </div>
                         <div>
-                            <strong>Trạng thái:</strong> {product.status}
+                            <strong>Trạng thái:</strong> {getStatusLabel(product.status)}
                         </div>
                         <div>
                             <strong>Ngày tạo:</strong> {new Date(product.createdAt).toLocaleString()}

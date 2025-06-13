@@ -15,9 +15,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export default function BlindboxTabs() {
-    const {
-        onSubmit: onSubmitCreateBox,
-    } = useCreateBlindboxForm();
 
     const [selectedBoxId, setSelectedBoxId] = useState<string>("");
     const [selectedRarities, setSelectedRarities] = useState<Rarity[]>([]);
@@ -28,6 +25,7 @@ export default function BlindboxTabs() {
     const [products, setProducts] = useState<TProductResponse>()
     const { getAllBlindBoxesApi, isPending } = useGetAllBlindBoxes()
     const [rarityRateError, setRarityRateError] = useState<string | undefined>(undefined);
+    const [totalItemsToAdd, setTotalItemsToAdd] = useState<number | null>(null);
 
     const {
         onSubmit,
@@ -91,6 +89,35 @@ export default function BlindboxTabs() {
         setItems(updatedItems);
     };
 
+    function redistributeDropRates(
+        items: BlindBoxItemRequest[],
+        rarityRates: Record<Rarity, number>
+    ): BlindBoxItemRequest[] {
+        const rarityGroups: Record<Rarity, BlindBoxItemRequest[]> = {
+            [Rarity.Common]: [],
+            [Rarity.Rare]: [],
+            [Rarity.Epic]: [],
+            [Rarity.Secret]: [],
+        };
+
+        items.forEach(item => {
+            rarityGroups[item.rarity]?.push(item);
+        });
+
+        return items.map(item => {
+            const group = rarityGroups[item.rarity];
+            const totalRate = rarityRates[item.rarity] || 0;
+            const perItemRate = group.length > 0
+                ? parseFloat((totalRate / group.length).toFixed(4))
+                : 0;
+
+            return {
+                ...item,
+                dropRate: perItemRate,
+            };
+        });
+    }
+
     const totalRarityRate = Object.entries(rarityRates)
         .filter(([rarity]) => selectedRarities.includes(rarity as Rarity))
         .reduce((sum, [_, rate]) => sum + Number(rate), 0);
@@ -105,29 +132,46 @@ export default function BlindboxTabs() {
         }
     }, [rarityRates, selectedRarities]);
 
+    useEffect(() => {
+        if (totalItemsToAdd !== null && selectedRarities.length > 0) {
+            const rarity = selectedRarities[0];
+
+            if (items.length < totalItemsToAdd) {
+                const itemsLeft = totalItemsToAdd - items.length;
+
+                const newItems: BlindBoxItemRequest[] = Array.from({ length: itemsLeft }, () => ({
+                    productId: "",
+                    quantity: 1,
+                    dropRate: 0,
+                    rarity,
+                }));
+
+                const updatedItems = redistributeDropRates([...items, ...newItems], rarityRates);
+                setItems(updatedItems);
+            } else if (items.length > totalItemsToAdd) {
+                const trimmedItems = items.slice(0, totalItemsToAdd);
+                const updatedItems = redistributeDropRates(trimmedItems, rarityRates);
+                setItems(updatedItems);
+            }
+        }
+    }, [totalItemsToAdd]);
+
     const addItem = () => {
         if (selectedRarities.length === 0) return;
         const rarity = selectedRarities[0];
 
-        const totalRate = rarityRates[rarity] || 0;
-        const sameRarityItems = items.filter((item) => item.rarity === rarity);
-        const newCount = sameRarityItems.length + 1;
+        const itemsLeft = totalItemsToAdd !== null ? totalItemsToAdd - items.length : 0;
 
-        const ratePerItem = parseFloat((totalRate / newCount).toFixed(4));
+        if (itemsLeft <= 0) return; 
 
-        const updatedItems = items.map((item) =>
-            item.rarity === rarity
-                ? { ...item, dropRate: ratePerItem }
-                : item
-        );
-
-        updatedItems.push({
+        const newItems: BlindBoxItemRequest[] = Array.from({ length: itemsLeft }, () => ({
             productId: "",
             quantity: 1,
-            dropRate: ratePerItem,
-            rarity: rarity as Rarity,
-        });
+            dropRate: 0,
+            rarity,
+        }));
 
+        const updatedItems = redistributeDropRates([...items, ...newItems], rarityRates);
         setItems(updatedItems);
     };
 
@@ -137,44 +181,17 @@ export default function BlindboxTabs() {
         const updated = [...items];
         updated[index].rarity = newRarity as Rarity;
 
-        const rarityGroups: Record<Rarity, BlindBoxItemRequest[]> = {
-            [Rarity.Common]: [],
-            [Rarity.Rare]: [],
-            [Rarity.Epic]: [],
-            [Rarity.Secret]: [],
-        };
-
-        updated.forEach(item => {
-            if (Object.values(Rarity).includes(item.rarity)) {
-                rarityGroups[item.rarity].push(item);
-            }
-        });
-
-        const rateMap = new Map<string, number>();
-        for (const rarity of Object.values(Rarity)) {
-            const itemsOfRarity = rarityGroups[rarity];
-            const totalRate = rarityRates[rarity] || 0;
-            const perItemRate = itemsOfRarity.length > 0
-                ? parseFloat((totalRate / itemsOfRarity.length).toFixed(4))
-                : 0;
-            itemsOfRarity.forEach(item => {
-                rateMap.set(item.productId, perItemRate);
-            });
-        }
-
-        const finalItems = updated.map(item => ({
-            ...item,
-            dropRate: rateMap.get(item.productId) ?? item.dropRate,
-        }));
-
+        const finalItems = redistributeDropRates(updated, rarityRates);
         setItems(finalItems);
     };
+
 
     const removeItem = (index: number) => {
         const updatedItems = [...items];
         updatedItems.splice(index, 1);
-        setItems(updatedItems);
+        setItems(redistributeDropRates(updatedItems, rarityRates));
     };
+
 
     if (!blindboxes || !products) {
         return <div className="p-4">Đang tải dữ liệu túi mù và sản phẩm...</div>;
@@ -198,7 +215,7 @@ export default function BlindboxTabs() {
             <div className="shadow-lg rounded-lg bg-white border border-gray-200 p-8">
                 <TabsContent value="blindbox">
                     <h2 className="text-xl font-semibold mb-4">Thông tin túi mù</h2>
-                    <CreateBlindbox mode="create" onSubmitCreateBox={onSubmitCreateBox} />
+                    <CreateBlindbox mode="create" />
                 </TabsContent>
 
                 <TabsContent value="items">
@@ -223,6 +240,8 @@ export default function BlindboxTabs() {
                         setError={setError}
                         rarityRateError={rarityRateError}
                         setrarityRateError={setRarityRateError}
+                        onTotalItemsChange={(value) => setTotalItemsToAdd(value)}
+                        totalItemsToAdd={totalItemsToAdd}
                     />
                 </TabsContent>
             </div>

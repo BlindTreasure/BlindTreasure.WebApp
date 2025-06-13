@@ -25,6 +25,7 @@ export default function ProductForm({ defaultValues, onSubmit, isPending, showIm
     register,
     handleSubmit,
     onSubmit: onSubmitHook,
+    control,
     errors,
     setValue,
     reset,
@@ -116,6 +117,7 @@ export default function ProductForm({ defaultValues, onSubmit, isPending, showIm
               errors={errors}
               setValue={setValue}
               watch={watch}
+              control={control}
             />
           </section>
         </div>
