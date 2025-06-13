@@ -2,6 +2,7 @@ import request from "@/components/interceptor";
 import API_ENDPOINTS from "@/services/blindboxes/api-path";
 import {
   BlindBox,
+  BlindBoxDetail,
   BlindBoxItemsRequest,
   BlindBoxListResponse,
   CreateBlindboxItemsParam,
@@ -17,6 +18,7 @@ export const getAllBlindboxSeller = async ({
   maxPrice,
   ReleaseDateFrom,
   ReleaseDateTo,
+  HasItem,
   pageIndex,
   pageSize,
 }: GetBlindBoxes): Promise<TResponseData<BlindBoxListResponse>> => {
@@ -33,9 +35,22 @@ export const getAllBlindboxSeller = async ({
         maxPrice,
         ReleaseDateFrom,
         ReleaseDateTo,
+        HasItem,
         pageIndex,
         pageSize,
       },
+    }
+  );
+  return response.data;
+};
+
+export const getBlindBoxById = async (
+  blindboxesId: string
+): Promise<TResponseData<BlindBoxDetail>> => {
+  const response = await request<TResponseData<BlindBoxDetail>>(
+    API_ENDPOINTS.BLINDBOXES_All_WITH_ID(blindboxesId),
+    {
+      method: "GET",
     }
   );
   return response.data;

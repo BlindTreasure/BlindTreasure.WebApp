@@ -1,4 +1,5 @@
-'use client'
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Thumbs, Navigation } from 'swiper/modules';
@@ -6,30 +7,46 @@ import 'swiper/css';
 import 'swiper/css/thumbs';
 import 'swiper/css/navigation';
 import type { Swiper as SwiperType } from 'swiper';
-import { ProductTabs } from '@/components/tabs';
 import { motion } from "framer-motion";
 import { fadeIn } from '@/utils/variants';
-import { AllProduct } from '@/services/product/typings';
-import useGetProductByIdWeb from '../hooks/useGetProductByIdWeb';
+import useGetBlindboxByIdWeb from '../hooks/useGetBlindboxById';
+import { BlindBox, BlindBoxDetail } from '@/services/blindboxes/typings';
 import { Backdrop } from '@/components/backdrop';
+import { ProductTabs } from '@/components/tabs';
+import { Rarity } from '@/const/products';
+import { BlindboxItemSheet } from '@/components/thumbnail-blindbox';
 
-interface DetailProps {
-    detailId: string;
+interface BlindboxProps {
+    blindBoxId: string;
 }
 
-export default function Detail({ detailId }: DetailProps) {
+export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
-    const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
-    const [products, setProducts] = useState<AllProduct | null>(null);
-    const { getProductByIdWebApi, isPending } = useGetProductByIdWeb();
+    const [blindbox, setBlindbox] = useState<BlindBoxDetail | null>(null);
+    const { getBlindboxByIdWebApi, isPending } = useGetBlindboxByIdWeb();
+
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+    const openSheet = () => {
+        setIsSheetOpen(true);
+    };
+
+    const closeSheet = () => {
+        setIsSheetOpen(false);
+    };
 
     useEffect(() => {
         (async () => {
-            const res = await getProductByIdWebApi(detailId);
-            if (res) setProducts(res.value.data);
+            const res = await getBlindboxByIdWebApi(blindBoxId);
+            const box = res?.value?.data;
+            if (box) {
+                setBlindbox(box);
+            }
         })();
-    }, [detailId]);
+    }, [blindBoxId]);
+
+
 
     const handleDecrease = () => {
         if (quantity > 1) setQuantity(quantity - 1);
@@ -39,7 +56,10 @@ export default function Detail({ detailId }: DetailProps) {
         setQuantity(quantity + 1);
     };
 
-    const images = products?.imageUrls?.length ? products.imageUrls : [];
+    const images = [
+        blindbox?.imageUrl || "/images/cart.webp",
+        ...(blindbox?.items?.map(item => item.imageUrl) || []),
+    ];
 
     return (
         <div className="p-6 mt-32 sm:px-16">
@@ -57,6 +77,7 @@ export default function Detail({ detailId }: DetailProps) {
                             </SwiperSlide>
                         ))}
                     </Swiper>
+
                     <div className="mt-4 relative">
                         <Swiper
                             onSwiper={setThumbsSwiper}
@@ -73,6 +94,7 @@ export default function Detail({ detailId }: DetailProps) {
                                         src={img}
                                         alt={`Thumb ${idx}`}
                                         className="w-full h-20 object-cover rounded-md cursor-pointer border-2 hover:border-black"
+                                        onClick={openSheet}
                                     />
                                 </SwiperSlide>
                             ))}
@@ -85,23 +107,38 @@ export default function Detail({ detailId }: DetailProps) {
                     initial="hidden"
                     whileInView="show"
                     viewport={{ once: true, amount: 0.7 }}
-                    className='space-y-4'>
-                    <h2 className="text-3xl font-bold font-paytone mb-4">{products?.name}</h2>
+                    className='space-y-4'
+                >
+                    <h2 className="text-3xl font-bold font-roboto mb-4">{blindbox?.name}</h2>
                     <div className='flex gap-8'>
-                        <p className='text-xl'>Thương hiệu: <span className='text-[#00579D] uppercase'>{products?.brand}</span></p>
-                        <div className="w-px h-5 bg-gray-300" />
-                        <p>Tình trạng: <span className='text-[#00579D]'></span></p>
+                        <div className='flex gap-8'>
+                            <p className='text-xl'>Thương hiệu: <span className='text-[#00579D] uppercase'></span></p>
+                            <div className="w-px h-5 bg-gray-300" />
+                            <p className='text-xl'>Tình trạng: <span className='text-[#00579D]'></span></p>
+                            <div className="w-px h-5 bg-gray-300" />
+                        </div>
+                        {blindbox?.hasSecretItem && (
+                            <p className='text-xl'>Xác suất bí mật: <span className='text-[#EF1104]'>{blindbox.secretProbability}%</span></p>
+                        )}
                     </div>
-                    <p className="text-4xl font-semibold mt-2 text-[#EF1104]">{products?.price.toLocaleString("vi-VN")}₫</p>
-                    <p className='text-xl'>Ngày phát hành: <span className='text-gray-600 text-xl'> {products?.createdAt
-                        ? new Date(products.createdAt).toLocaleDateString("vi-VN")
-                        : ""}</span></p>
-                    <p className='text-xl'>Kích cỡ (cao): <span className='text-gray-600 text-xl'>{products?.height} cm</span></p>
-                    <p className='text-xl'>Chất liệu: <span className='text-gray-600 text-xl'>{products?.material}</span></p>
+                    <p className="text-4xl font-semibold mt-2 text-[#EF1104]">
+                        {blindbox?.price.toLocaleString("vi-VN")}₫
+                    </p>
+                    
+                    <div className="mb-6">
+                        <p className="mb-2">Chọn bộ:</p>
+                        <div className="flex gap-4">
+                            {["Loại A", "Loại B", "Loại C"].map((variant, idx) => (
+                                <div
+                                    key={idx}
+                                    className="px-4 py-2 rounded-md border bg-white text-black border-gray-300 cursor-default"
+                                >
+                                    {variant}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
-                    {selectedVariant && (
-                        <p className="text-sm text-gray-500">Đã chọn: <strong>{selectedVariant}</strong></p>
-                    )}
                     <div className="flex items-center gap-4 mt-6">
                         <div className="flex items-center border border-gray-400 rounded-full overflow-hidden">
                             <button
@@ -131,22 +168,28 @@ export default function Detail({ detailId }: DetailProps) {
                 </motion.div>
             </div>
 
-            {/* <div className="flex items-center justify-between bg-gray-100 rounded-lg p-4 mt-8">
-                <div className="flex items-center gap-3">
-                    <img
-                        src={products?.seller?.avatar || "/default-avatar.png"}
-                        alt="Seller Avatar"
-                        className="w-12 h-12 rounded-full object-cover border"
-                    />
-                    <div>
-                        <p className="font-semibold text-lg">{products?.seller?.name || "Người bán"}</p>
-                        <p className="text-sm text-gray-500">{products?.seller?.email || ""}</p>
-                    </div>
+            <motion.div
+                variants={fadeIn("up", 0.3)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.7 }}
+                className='py-8'
+            >
+                <div className="space-y-2">
+                    <ul className="list-disc list-inside text-sm text-gray-700">
+                        {blindbox?.items && (
+                            <BlindboxItemSheet
+                                open={isSheetOpen}
+                                onClose={closeSheet}
+                                items={blindbox.items.map(item => ({
+                                    ...item,
+                                    rarity: item.rarity as Rarity,
+                                }))}
+                            />
+                        )}
+                    </ul>
                 </div>
-                <button className="bg-[#00579D] text-white px-6 py-2 rounded hover:bg-[#003f6d] transition">
-                    Chat ngay
-                </button>
-            </div> */}
+            </motion.div>
 
             <motion.div
                 variants={fadeIn("up", 0.3)}
@@ -154,8 +197,9 @@ export default function Detail({ detailId }: DetailProps) {
                 whileInView="show"
                 viewport={{ once: true, amount: 0.7 }}
                 className='py-8'>
-                <ProductTabs description={products?.description || ""} />
+                <ProductTabs description={blindbox?.description || ""} />
             </motion.div>
+
             <Backdrop open={isPending} />
         </div>
     );

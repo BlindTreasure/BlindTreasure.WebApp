@@ -15,6 +15,7 @@ export type GetBlindBoxes = {
   maxPrice?: number;
   ReleaseDateFrom: string;
   ReleaseDateTo: string;
+  HasItem?: boolean;
   pageIndex: number;
   pageSize: number;
 };
@@ -39,6 +40,22 @@ export type BlindBox = {
   status: BlindboxStatus;
   hasSecretItem: boolean;
   secretProbability: number;
+  items: BlindBoxItem[];
+};
+
+export type BlindBoxDetail = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  totalQuantity: number;
+  imageUrl: string;
+  releaseDate: string;
+  status: BlindboxStatus;
+  hasSecretItem: boolean;
+  secretProbability: number;
+  rejectReason: string;
+  isDeleted: boolean;
   items: BlindBoxItem[];
 };
 

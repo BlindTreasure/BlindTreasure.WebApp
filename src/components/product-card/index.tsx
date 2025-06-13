@@ -22,15 +22,24 @@ import { Backdrop } from "../backdrop";
 interface ProductCardProps {
   product: Product;
   onViewDetail: (id: string) => void;
+  ribbonTypes?: ("new" | "sale" | "blindbox")[];
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbonTypes = [] }) => {
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
   const [mainSwiper, setMainSwiper] = useState<SwiperType | null>(null);
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const images = product.imageUrls.length > 0 ? product.imageUrls : ["/images/cart.webp"];
+  const [quantity, setQuantity] = useState<number>(1);
 
+  const handleDecrease = () => {
+    if (quantity > 1) setQuantity(quantity - 1);
+  };
+
+  const handleIncrease = () => {
+    setQuantity(quantity + 1);
+  };
   useEffect(() => {
     if (!open) {
       mainSwiper?.destroy(true, false);
@@ -42,116 +51,158 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail }) => {
 
 
   return (
-    
-      <div className="relative p-2 mt-6 transition-all duration-300 transform hover:scale-105">
-        <Ribbon createdAt={product.createdAt} />
-        <Card className="relative w-full rounded-xl overflow-hidden p-4 shadow-lg bg-white">
-          <div className="w-full h-48 overflow-hidden rounded-md relative group">
-            <img
-              src={images[0]}
-              alt="Product"
-              className="w-full h-full object-cover"
-            />
 
-            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
-                  <Button className="text-xs px-3 py-2 rounded-md bg-white text-black hover:bg-gray-300">
-                    Xem nhanh
-                  </Button>
-                </DialogTrigger>
+    <div className="relative p-2 mt-6 transition-all duration-300 transform hover:scale-105">
+      <Ribbon createdAt={product.createdAt} types={ribbonTypes}/>
+      <Card className="relative w-full rounded-xl overflow-hidden p-4 shadow-lg bg-white">
+        <div className="w-full h-48 overflow-hidden rounded-md relative group">
+          <img
+            src={images[0]}
+            alt="Product"
+            className="w-full h-full object-cover"
+          />
 
-                <DialogContent
-                  className="max-w-96 sm:max-w-xl md:max-w-2xl lg:max-w-4xl p-6"
-                  onOpenAutoFocus={(e) => e.preventDefault()}
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      {open && (
-                        <>
+          <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button className="text-xs px-3 py-2 rounded-md bg-white text-black hover:bg-gray-300">
+                  Xem nhanh
+                </Button>
+              </DialogTrigger>
+
+              <DialogContent
+                className="max-w-96 sm:max-w-xl md:max-w-2xl lg:max-w-4xl p-6"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    {open && (
+                      <>
+                        <Swiper
+                          spaceBetween={10}
+                          thumbs={{ swiper: thumbsSwiper }}
+                          modules={[Thumbs]}
+                          onSwiper={setMainSwiper}
+                        >
+                          {images.map((img, idx) => (
+                            <SwiperSlide key={`main-${idx}`}>
+                              <img
+                                src={img}
+                                alt={`Product ${idx}`}
+                                className="w-full h-80 object-cover rounded-xl"
+                              />
+                            </SwiperSlide>
+                          ))}
+                        </Swiper>
+
+                        <div className="mt-4">
                           <Swiper
+                            onSwiper={setThumbsSwiper}
                             spaceBetween={10}
-                            thumbs={{ swiper: thumbsSwiper }}
-                            modules={[Thumbs]}
-                            onSwiper={setMainSwiper}
+                            slidesPerView={4}
+                            watchSlidesProgress
+                            modules={[Thumbs, Navigation]}
+                            navigation
                           >
                             {images.map((img, idx) => (
-                              <SwiperSlide key={`main-${idx}`}>
+                              <SwiperSlide key={`thumb-${idx}`}>
                                 <img
                                   src={img}
-                                  alt={`Product ${idx}`}
-                                  className="w-full h-80 object-cover rounded-xl"
+                                  alt={`Thumbnail ${idx}`}
+                                  className="w-full h-20 object-cover rounded-md cursor-pointer border-2 hover:border-black"
                                 />
                               </SwiperSlide>
                             ))}
                           </Swiper>
+                        </div>
+                      </>
+                    )}
+                  </div>
 
-                          <div className="mt-4">
-                            <Swiper
-                              onSwiper={setThumbsSwiper}
-                              spaceBetween={10}
-                              slidesPerView={4}
-                              watchSlidesProgress
-                              modules={[Thumbs, Navigation]}
-                              navigation
+                  <div className="flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <h2 className="text-2xl font-semibold">{product.name}</h2>
+                      <div className='flex gap-2'>
+                        <p>Thương hiệu: <span className='text-[#00579D] text-sm uppercase'>{product.brand}</span></p>
+                        <div className="w-px h-5 bg-gray-300" />
+                        <p>Tình trạng: <span className='text-[#00579D] text-xs'></span></p>
+                        <div className="w-px h-5 bg-gray-300" />
+                      </div>
+                      <p className="text-red-600 font-bold text-3xl">
+                        {product.price.toLocaleString("vi-VN")}₫
+                      </p>
+                      <p>Mô tả: <span className='text-gray-600 text-sm line-clamp-2'>{product.description}</span></p>
+                      <div className="mb-6">
+                        <p className="mb-2">Chọn bộ:</p>
+                        <div className="flex gap-4">
+                          {["Loại A", "Loại B", "Loại C"].map((variant, idx) => (
+                            <div
+                              key={idx}
+                              className="px-4 py-2 rounded-md border bg-white text-black border-gray-300 cursor-default"
                             >
-                              {images.map((img, idx) => (
-                                <SwiperSlide key={`thumb-${idx}`}>
-                                  <img
-                                    src={img}
-                                    alt={`Thumbnail ${idx}`}
-                                    className="w-full h-20 object-cover rounded-md cursor-pointer border-2 hover:border-black"
-                                  />
-                                </SwiperSlide>
-                              ))}
-                            </Swiper>
-                          </div>
-                        </>
-                      )}
-                    </div>
+                              {variant}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
 
-                    <div className="flex flex-col justify-between">
-                      <div className="space-y-4">
-                        <h2 className="text-2xl font-semibold">{product.name}</h2>
-                        <p className="text-red-600 font-bold text-lg">
-                          {product.price.toLocaleString("vi-VN")}₫
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {product.description}
-                        </p>
-                        <Button className="bg-black text-white w-full">
+                      <div className="flex items-center gap-4 mt-6">
+                        <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
+                          <button
+                            onClick={handleDecrease}
+                            className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center"
+                          >
+                            −
+                          </button>
+                          <input
+                            type="text"
+                            value={quantity}
+                            readOnly
+                            className="w-12 h-9 text-center"
+                          />
+                          <button
+                            onClick={handleIncrease}
+                            className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <Button className="py-5">
                           Mua ngay
                         </Button>
                       </div>
+
                     </div>
                   </div>
-                </DialogContent>
-              </Dialog>
+                </div>
+              </DialogContent>
+            </Dialog>
 
-              <Button className="text-xs px-3 py-2 rounded-md bg-white text-black hover:bg-gray-300"  onClick={() => onViewDetail(product.id)}>
-                Xem chi tiết
-              </Button>
-
-            </div>
-          </div>
-
-          <div className="mt-4 text-sm">
-            <p className="truncate font-semibold text-gray-800">{product.name}</p>
-            <p className="text-red-600 font-bold text-lg">
-              {product.price.toLocaleString("vi-VN")}₫
-            </p>
-          </div>
-
-          <div className="mt-4 flex justify-between items-center">
-            <Button className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
-              Thêm vào giỏ hàng
+            <Button className="text-xs px-3 py-2 rounded-md bg-white text-black hover:bg-gray-300" onClick={() => onViewDetail(product.id)}>
+              Xem chi tiết
             </Button>
-            <FaRegHeart className="text-2xl cursor-pointer hover:text-red-500" />
+
           </div>
-        </Card>
-      </div>
-     
-   
+        </div>
+
+        <div className="mt-4 text-sm">
+          <p className="truncate font-semibold text-gray-800">{product.name}</p>
+          <p className="text-red-600 font-bold text-lg">
+            {product.price.toLocaleString("vi-VN")}₫
+          </p>
+        </div>
+
+        <div className="mt-4 flex justify-between items-center">
+          <Button className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
+            Thêm vào giỏ hàng
+          </Button>
+          <FaRegHeart className="text-2xl cursor-pointer hover:text-red-500" />
+        </div>
+      </Card>
+    </div>
+
+
   );
 };
 
