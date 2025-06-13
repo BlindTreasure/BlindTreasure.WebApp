@@ -152,13 +152,3 @@ export const reviewBlindbox = async (
 
   return response.data;
 };
-
-export const getBlindboxById = async (blindboxesId : string): Promise<TResponseData<BlindBox>> => {
-  const response = await request<TResponseData<BlindBox>>(
-    API_ENDPOINTS.BLINDBOXES_All_WITH_ID(blindboxesId),
-    {
-      method: "GET",
-    }
-  );
-  return response.data;
-};
