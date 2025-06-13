@@ -12,7 +12,9 @@ import { fadeIn } from '@/utils/variants';
 import { AllProduct } from '@/services/product/typings';
 import useGetProductByIdWeb from '../hooks/useGetProductByIdWeb';
 import { Backdrop } from '@/components/backdrop';
-
+import LightboxGallery from '@/components/lightbox-gallery';
+import { Gallery, Item } from "react-photoswipe-gallery";
+import "photoswipe/style.css";
 interface DetailProps {
     detailId: string;
 }
@@ -53,30 +55,38 @@ export default function Detail({ detailId }: DetailProps) {
                     <Swiper spaceBetween={10} thumbs={{ swiper: thumbsSwiper }} modules={[Thumbs]}>
                         {images.map((img, idx) => (
                             <SwiperSlide key={`main-${idx}`}>
-                                <img src={img} alt={`Image ${idx}`} className="w-full h-80 object-cover rounded-xl" />
+                                <LightboxGallery images={[img]} />
                             </SwiperSlide>
                         ))}
                     </Swiper>
                     <div className="mt-4 relative">
-                        <Swiper
-                            onSwiper={setThumbsSwiper}
-                            spaceBetween={10}
-                            slidesPerView={4}
-                            watchSlidesProgress
-                            navigation
-                            modules={[Thumbs, Navigation]}
-                            className="thumbnail-swiper px-8"
-                        >
-                            {images.map((img, idx) => (
-                                <SwiperSlide key={`thumb-${idx}`}>
-                                    <img
-                                        src={img}
-                                        alt={`Thumb ${idx}`}
-                                        className="w-full h-20 object-cover rounded-md cursor-pointer border-2 hover:border-black"
-                                    />
-                                </SwiperSlide>
-                            ))}
-                        </Swiper>
+                        <Gallery>
+                            <Swiper
+                                onSwiper={setThumbsSwiper}
+                                spaceBetween={10}
+                                slidesPerView={4}
+                                watchSlidesProgress
+                                navigation
+                                modules={[Thumbs, Navigation]}
+                                className="thumbnail-swiper px-8"
+                            >
+                                {images.map((img, idx) => (
+                                    <SwiperSlide key={`thumb-${idx}`}>
+                                        <Item original={img} thumbnail={img} width="1200" height="800">
+                                            {({ ref, open }) => (
+                                                <img
+                                                    ref={ref}
+                                                    onClick={open}
+                                                    src={img}
+                                                    alt={`Thumb ${idx}`}
+                                                    className="w-full h-20 object-cover rounded-md cursor-pointer border-2 hover:border-black"
+                                                />
+                                            )}
+                                        </Item>
+                                    </SwiperSlide>
+                                ))}
+                            </Swiper>
+                        </Gallery>
                     </div>
                 </motion.div>
 

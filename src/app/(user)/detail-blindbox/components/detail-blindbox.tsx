@@ -15,6 +15,7 @@ import { Backdrop } from '@/components/backdrop';
 import { ProductTabs } from '@/components/tabs';
 import { Rarity } from '@/const/products';
 import { BlindboxItemSheet } from '@/components/thumbnail-blindbox';
+import LightboxGallery from '@/components/lightbox-gallery';
 
 interface BlindboxProps {
     blindBoxId: string;
@@ -73,7 +74,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                     <Swiper spaceBetween={10} thumbs={{ swiper: thumbsSwiper }} modules={[Thumbs]}>
                         {images.map((img, idx) => (
                             <SwiperSlide key={`main-${idx}`}>
-                                <img src={img} alt={`Image ${idx}`} className="w-full h-80 object-cover rounded-xl" />
+                                <LightboxGallery images={[img]} />
                             </SwiperSlide>
                         ))}
                     </Swiper>
