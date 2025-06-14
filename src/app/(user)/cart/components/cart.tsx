@@ -4,10 +4,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X, Plus, Minus } from 'lucide-react';
+import { X, Plus, Minus, Trash2 } from 'lucide-react';
 import useGetCartByCustomer from '../hooks/useGetCartByCustomer';
 import useUpdateCartQuantity from "../hooks/useUpdateQuantityItemCart";
 import useDeleteCartItem from "../hooks/useDeleteCartItem";
+import useClearAllCartItem from "../hooks/useClearAllCartItem";
 import useDebounce from '@/hooks/use-debounce';
 
 const QuantitySelector = ({ 
@@ -89,9 +90,11 @@ const QuantitySelector = ({
 const Cart: React.FC = () => {
   const { isPending, getCartApi } = useGetCartByCustomer();
   const { isPending: isDeleting, deleteCartItemApi } = useDeleteCartItem();
+  const { isPending: isClearing, clearAllCartItemApi } = useClearAllCartItem();
   const [cartItems, setCartItems] = useState<API.CartItem[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const fetchCart = useCallback(async () => {
     try {
@@ -133,14 +136,12 @@ const Cart: React.FC = () => {
     }
   }, [debouncedQuantities, updateCartItemApi]);
 
-
   const toggleSelect = useCallback((id: string) => {
     setSelectedItems((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   }, []);
 
-  // Thêm function để toggle select all
   const toggleSelectAll = useCallback(() => {
     if (selectedItems.length === cartItems.length) {
       setSelectedItems([]);
@@ -162,6 +163,20 @@ const Cart: React.FC = () => {
     }
   }, [deleteCartItemApi]);
 
+  // Handler cho clear all cart
+  const handleClearCart = useCallback(async () => {
+    try {
+      const res = await clearAllCartItemApi();
+      if (res) {
+        setCartItems([]);
+        setSelectedItems([]);
+        setQuantities({});
+        setShowClearConfirm(false);
+      }
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+    }
+  }, [clearAllCartItemApi]);
 
   const handleQuantityChange = useCallback((id: string, newQuantity: number) => {
     setQuantities((prev) => ({ ...prev, [id]: newQuantity }));
@@ -176,7 +191,6 @@ const Cart: React.FC = () => {
 
   const handleCheckout = useCallback(async () => {
     try {
-      // TODO: Implement checkout logic
       console.log('Proceeding to checkout with total:', total);
     } catch (error) {
       console.error('Error during checkout:', error);
@@ -184,7 +198,6 @@ const Cart: React.FC = () => {
   }, [total]);
 
   const handleContinueShopping = useCallback(() => {
-    // TODO: Navigate to shopping page
     console.log('Continue shopping');
   }, []);
 
@@ -215,9 +228,50 @@ const Cart: React.FC = () => {
       ) : (
         <div className="flex flex-col lg:flex-row gap-6">
           <Card className="w-full lg:flex-1">
-            <CardContent className="p-4 sm:p-6">
+            <CardContent className="p-4 sm:p-6 relative">
+              {/* Nút Clear All ở góc phải trên */}
+              <div className="absolute top-4 right-4 z-10">
+                {!showClearConfirm ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowClearConfirm(true)}
+                    className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                    disabled={isClearing}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    <span className="hidden sm:inline">Xóa tất cả</span>
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded-lg shadow-lg">
+                    <span className="text-sm text-red-700 whitespace-nowrap">
+                      Xóa tất cả?
+                    </span>
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={handleClearCart}
+                        disabled={isClearing}
+                        className="h-7 px-2 text-xs"
+                      >
+                        {isClearing ? 'Xóa...' : 'OK'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowClearConfirm(false)}
+                        className="h-7 px-2 text-xs"
+                      >
+                        Hủy
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Header với checkbox chọn tất cả */}
-              <div className="flex items-center gap-3 pb-4 border-b mb-4">
+              <div className="flex items-center gap-3 pb-4 border-b mb-4 pr-20">
                 <Checkbox
                   checked={isAllSelected}
                   // @ts-ignore - shadcn checkbox hỗ trợ indeterminate

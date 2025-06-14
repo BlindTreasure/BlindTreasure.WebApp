@@ -1,16 +1,16 @@
 import useToast from "@/hooks/use-toast";
-import { deleteCartItemByCustomer } from "@/services/cart-item/api-services";
+import { deleteAllCartItemByCustomer } from "@/services/cart-item/api-services";
 import { isTResponseData } from "@/utils/compare";
 import { useCallback, useState } from "react";
 
-export default function useDeleteCartItem() {
+export default function useClearAllCartItem() {
   const { addToast } = useToast();
   const [isPending, setPending] = useState(false);
 
-  const deleteCartItemApi = useCallback(async (cartItemId: string) => {
+  const clearAllCartItemApi = useCallback(async () => {
     setPending(true);
     try {
-      const res = await deleteCartItemByCustomer(cartItemId);
+      const res = await deleteAllCartItemByCustomer();
       if (isTResponseData(res)) {
          addToast({
         type: "success",
@@ -36,5 +36,5 @@ export default function useDeleteCartItem() {
     }
   }, [addToast]);
 
-  return { isPending, deleteCartItemApi };
+  return { isPending, clearAllCartItemApi };
 }

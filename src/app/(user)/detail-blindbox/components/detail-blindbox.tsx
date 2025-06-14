@@ -10,6 +10,7 @@ import type { Swiper as SwiperType } from 'swiper';
 import { motion } from "framer-motion";
 import { fadeIn } from '@/utils/variants';
 import useGetBlindboxByIdWeb from '../hooks/useGetBlindboxById';
+import useAddBlindboxToCart from "../hooks/useAddBlindboxToCart"
 import { BlindBox, BlindBoxDetail } from '@/services/blindboxes/typings';
 import { Backdrop } from '@/components/backdrop';
 import { ProductTabs } from '@/components/tabs';
@@ -25,7 +26,10 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
     const [blindbox, setBlindbox] = useState<BlindBoxDetail | null>(null);
+    const [selectedVariant, setSelectedVariant] = useState<string>("Loại A");
+    
     const { getBlindboxByIdWebApi, isPending } = useGetBlindboxByIdWeb();
+    const { addBlindboxToCartApi, isPending: isAddingToCart } = useAddBlindboxToCart();
 
     const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -47,14 +51,51 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
         })();
     }, [blindBoxId]);
 
-
-
     const handleDecrease = () => {
         if (quantity > 1) setQuantity(quantity - 1);
     };
 
     const handleIncrease = () => {
         setQuantity(quantity + 1);
+    };
+
+    const handleAddToCart = async () => {
+        console.log('handleAddToCart clicked'); // Debug log
+        console.log('blindbox:', blindbox); // Debug log
+        console.log('blindbox.id:', blindbox?.id); // Debug log
+        
+        if (!blindbox) {
+            console.log('No blindbox found');
+            return;
+        }
+        
+        if (!blindbox.id) {
+            console.log('Blindbox ID not found');
+            return;
+        }
+        
+        try {
+            const cartData = {
+                blindBoxId: blindbox.id,
+                quantity: quantity
+            };
+            
+            console.log('Adding blindbox to cart with data:', cartData); // Debug log
+            
+            const result = await addBlindboxToCartApi(cartData);
+            
+            if (result) {
+                console.log('Đã thêm blindbox vào giỏ hàng thành công');
+                // Reset quantity nếu muốn
+                // setQuantity(1);
+            }
+        } catch (error) {
+            console.error('Lỗi khi thêm blindbox vào giỏ hàng:', error);
+        }
+    };
+
+    const handleVariantSelect = (variant: string) => {
+        setSelectedVariant(variant);
     };
 
     const images = [
@@ -115,7 +156,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                         <div className='flex gap-8'>
                             <p className='text-xl'>Thương hiệu: <span className='text-[#00579D] uppercase'></span></p>
                             <div className="w-px h-5 bg-gray-300" />
-                            <p className='text-xl'>Tình trạng: <span className='text-[#00579D]'></span></p>
+                            <p className='text-xl'>Tình trạng: <span className='text-[#00579D]'>Còn hàng</span></p>
                             <div className="w-px h-5 bg-gray-300" />
                         </div>
                         {blindbox?.hasSecretItem && (
@@ -132,19 +173,28 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                             {["Loại A", "Loại B", "Loại C"].map((variant, idx) => (
                                 <div
                                     key={idx}
-                                    className="px-4 py-2 rounded-md border bg-white text-black border-gray-300 cursor-default"
+                                    onClick={() => handleVariantSelect(variant)}
+                                    className={`px-4 py-2 rounded-md border cursor-pointer transition-colors ${
+                                        selectedVariant === variant
+                                            ? 'bg-[#252424] text-white border-[#252424]'
+                                            : 'bg-white text-black border-gray-300 hover:border-gray-400'
+                                    }`}
                                 >
                                     {variant}
                                 </div>
                             ))}
                         </div>
+                        {selectedVariant && (
+                            <p className="text-sm text-gray-500 mt-2">Đã chọn: <strong>{selectedVariant}</strong></p>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-4 mt-6">
                         <div className="flex items-center border border-gray-400 rounded-full overflow-hidden">
                             <button
                                 onClick={handleDecrease}
-                                className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center"
+                                disabled={quantity <= 1}
+                                className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center hover:bg-gray-700 transition-colors disabled:opacity-50"
                             >
                                 −
                             </button>
@@ -156,14 +206,29 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                             />
                             <button
                                 onClick={handleIncrease}
-                                className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center"
+                                className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center hover:bg-gray-700 transition-colors"
                             >
                                 +
                             </button>
                         </div>
 
-                        <button className="bg-[#252424] text-white px-6 py-2 rounded">
-                            Thêm vào giỏ hàng
+                        <button 
+                            onClick={handleAddToCart}
+                            disabled={isAddingToCart || !blindbox}
+                            className="bg-[#252424] text-white px-6 py-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 z-10 relative"
+                            style={{pointerEvents: 'auto'}}
+                        >
+                            {isAddingToCart ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    Đang thêm...
+                                </>
+                            ) : (
+                                'Thêm vào giỏ hàng'
+                            )}
                         </button>
                     </div>
                 </motion.div>
@@ -201,7 +266,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                 <ProductTabs description={blindbox?.description || ""} />
             </motion.div>
 
-            <Backdrop open={isPending} />
+            <Backdrop open={isPending || isAddingToCart} />
         </div>
     );
 }
