@@ -2,18 +2,18 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface CartState {
   items: API.CartItem[];
-  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  status: "idle" | "loading" | "succeeded" | "failed";
   error?: string | null;
 }
 
 const initialState: CartState = {
   items: [],
-  status: 'idle',
-  error: null
+  status: "idle",
+  error: null,
 };
 
 const cartSlice = createSlice({
-  name: 'cart',
+  name: "cart",
   initialState,
   reducers: {
     // Gán toàn bộ cart từ server
@@ -27,9 +27,10 @@ const cartSlice = createSlice({
   },
 });
 
-export const {
-  setCart,
-  clearCart,
-} = cartSlice.actions;
+export const { setCart, clearCart } = cartSlice.actions;
 
 export default cartSlice.reducer;
+
+import { RootState } from "@/stores/store";
+export const selectTotalItems = (state: RootState) =>
+  state.cartSlice.items.reduce((sum, item) => sum + item.quantity, 0);

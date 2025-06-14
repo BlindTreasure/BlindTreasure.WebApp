@@ -17,6 +17,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { selectTotalItems } from "@/stores/cart-slice";
 
 const Header: React.FC = () => {
   const userState = useAppSelector((state) => state.userSlice);
@@ -24,6 +25,8 @@ const Header: React.FC = () => {
   const currentPath = usePathname();
   const router = useRouter();
   const [avatarTooltip, setAvatarTooltip] = useState(false);
+  const totalItems = useAppSelector(selectTotalItems);
+  const isLoggedIn = useAppSelector((state) => !!state.userSlice.user);
 
   const navLinks = [
     { href: "/", label: "Trang chủ" },
@@ -42,6 +45,14 @@ const Header: React.FC = () => {
 
   const handleNavigate = () => {
     router.push("/");
+  };
+
+  const handleClickCart = () => {
+    if (!isLoggedIn) {
+      router.push("/login");
+    } else {
+      router.push("/cart");
+    }
   };
 
   return (
@@ -71,9 +82,16 @@ const Header: React.FC = () => {
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/cart" className="text-gray-600 hover:text-[#d02a2a] text-2xl">
-              <BsCart3 />
-            </Link>
+            <div className="relative cursor-pointer" onClick={handleClickCart}>
+              <div className="text-gray-600 hover:text-[#d02a2a] text-2xl">
+                <BsCart3 />
+              </div>
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                  {totalItems}
+                </span>
+              )}
+            </div>
             {userState.user === null ? (
               <Link
                 href="/login"

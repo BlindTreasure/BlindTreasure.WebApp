@@ -125,13 +125,13 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
                     Địa chỉ
                   </li>
                   <li onClick={() => handleNavigate(1)} className="cursor-pointer px-3 py-1 rounded hover:bg-gray-100 text-gray-700">
-                    Thông tin tài khoản
+                    Hồ sơ
                   </li>
                 </ul>
               )}
             </li>
           </ul>
-          
+
           <li>
             <div
               className="flex items-center justify-between px-4 py-2 bg-white rounded-lg hover:bg-gray-200 cursor-pointer"

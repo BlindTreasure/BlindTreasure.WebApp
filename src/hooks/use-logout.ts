@@ -1,10 +1,11 @@
 import { useServiceLogout } from "@/services/auth/services";
-import { useAppDispatch } from "@/stores/store";
+import { persistor, store, useAppDispatch } from "@/stores/store";
 import useToast from "./use-toast";
 import { useRouter } from "next/navigation";
 import { removeStorageItem } from "@/utils/local-storage";
 import { clearUser } from "@/stores/user-slice";
 import { resetProfile } from "@/stores/account-slice";
+import { clearCart } from "@/stores/cart-slice";
 
 export default function useLogout() {
   const { mutate: logout } = useServiceLogout();
@@ -14,14 +15,18 @@ export default function useLogout() {
 
   const handleLogout = () => {
     logout(undefined, {
-      onSuccess: (data) => {
+      onSuccess: async (data) => {
         removeStorageItem("accessToken");
         removeStorageItem("refreshToken");
         dispatch(clearUser());
         dispatch(resetProfile());
+        dispatch(clearCart());
+        persistor.pause();
+        await persistor.flush();
+        await persistor.purge();
         router.push("/login");
       },
-      onError: (error: any) => {
+      onError: async (error: any) => {
         const status = error?.response?.status;
         const message =
           error?.response?.data?.error?.message ||
@@ -44,6 +49,10 @@ export default function useLogout() {
         removeStorageItem("refreshToken");
         dispatch(clearUser());
         dispatch(resetProfile());
+        dispatch(clearCart());
+        persistor.pause();
+        await persistor.flush();
+        await persistor.purge();
       },
     });
   };

@@ -170,23 +170,9 @@ export const useServiceForgotPasswordChange = () => {
 };
 
 export const useServiceLogout = () => {
-  const { addToast } = useToast();
-  const dispatch = useAppDispatch();
   const router = useRouter();
   return useMutation<TResponseData, TMeta>({
     mutationFn: logout,
-    onSuccess: (data) => {
-      removeStorageItem("accessToken");
-      removeStorageItem("refreshToken");
-      dispatch(clearUser());
-      dispatch(resetProfile());
-      addToast({
-        type: "success",
-        description: data.value.message,
-        duration: 5000,
-      });
-      router.push("/login");
-    },
   });
 };
 
