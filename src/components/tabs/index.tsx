@@ -5,7 +5,12 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 
-export function ProductTabs() {
+type ProductTabsProps = {
+    description: string;
+};
+
+
+export function ProductTabs({ description }: ProductTabsProps) {
     return (
         <Tabs defaultValue="description" className="relative">
             <TabsList className="grid max-w-[400px] grid-cols-2 h-14">
@@ -25,6 +30,12 @@ export function ProductTabs() {
 
             <div className="mt-2 max-w-[1000px] border border-gray-300 p-4 rounded-md text-sm leading-relaxed">
                 <TabsContent value="description" className="space-y-3">
+                    {description && (
+                        <>
+                            <p className="font-semibold">→ MÔ TẢ SẢN PHẨM :</p>
+                            <p className="whitespace-pre-line">{description}</p>
+                        </>
+                    )}
                     <p className="font-semibold">→ THÔNG TIN CHI TIẾT :</p>
                     <ol className="list-decimal list-inside space-y-1">
                         <li>

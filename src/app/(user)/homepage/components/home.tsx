@@ -28,8 +28,8 @@ import { Backdrop } from "@/components/backdrop";
 import CategoryGrid from "@/components/category-grid";
 import { BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings";
 import useGetAllBlindBoxes from "@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes";
-
-
+import BlindboxCard from "@/components/blindbox-card";
+import { getRibbonTypes } from "@/utils/getRibbonTypes";
 interface Blindbox {
   id: string;
   type: "blindbox" | "normal";
@@ -79,7 +79,7 @@ export default function HomePage() {
 
   const [params, setParams] = useState<GetAllProducts>({
     pageIndex: 1,
-    pageSize: 5,
+    pageSize: 100,
     search: "",
     productStatus: undefined,
     sellerId: "",
@@ -97,6 +97,7 @@ export default function HomePage() {
     maxPrice: undefined,
     ReleaseDateFrom: "",
     ReleaseDateTo: "",
+    HasItem: undefined,
     pageIndex: 1,
     pageSize: 5,
   })
@@ -114,6 +115,11 @@ export default function HomePage() {
   const handleViewDetail = (id: string) => {
     setLoadingPage(true);
     router.push(`/detail/${id}`);
+  };
+
+  const handleViewBlindboxDetail = (id: string) => {
+    setLoadingPage(true);
+    router.push(`/detail-blindbox/${id}`);
   };
 
   useEffect(() => {
@@ -258,6 +264,7 @@ export default function HomePage() {
           <Button
             variant="outline"
             className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#252424] hover:text-white transition-colors duration-300"
+            onClick={() => router.push("/all-new-products")}
           >
             Xem thêm
           </Button>
@@ -268,24 +275,52 @@ export default function HomePage() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.7 }}
-          className="flex justify-center pb-8">
+          className="flex justify-center pb-8"
+        >
           <Carousel
-            opts={{
-              align: "start",
-            }}
+            opts={{ align: "start" }}
             className="w-96 sm:w-full max-w-[1400px]"
           >
             <CarouselContent>
-              {products?.result.map((product) => (
-                <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onViewDetail={handleViewDetail}
-                  />
-                </CarouselItem>
-              ))}
+              {[
+                ...(products?.result.filter((product) => {
+                  if (product.productType === "BlindBoxOnly") return false;
+                  const createdDate = new Date(product.createdAt);
+                  const diffInDays = (new Date().getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+                  return diffInDays <= 7;
+                }) ?? []),
+                ...(blindboxes?.result.filter((box) => {
+                  if (!box.items || box.items.length === 0) return false;
+                  const createdDate = new Date(box.releaseDate);
+                  const diffInDays = (new Date().getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+                  return diffInDays <= 7;
+                }) ?? []),
+              ]
+                .slice(0, 8)
+                .map((item) => {
+                  const isBlindbox = !("productType" in item); 
+                  const ribbonTypes = getRibbonTypes(item);
+
+                  return isBlindbox ? (
+                    <CarouselItem key={`blindbox-${item.id}`} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
+                      <BlindboxCard
+                        blindbox={item}
+                        ribbonTypes={ribbonTypes}
+                        onViewDetail={handleViewBlindboxDetail}
+                      />
+                    </CarouselItem>
+                  ) : (
+                    <CarouselItem key={item.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
+                      <ProductCard
+                        product={item}
+                        ribbonTypes={ribbonTypes}
+                        onViewDetail={handleViewDetail}
+                      />
+                    </CarouselItem>
+                  );
+                })}
             </CarouselContent>
+
             <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
             <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
           </Carousel>
@@ -351,7 +386,7 @@ export default function HomePage() {
           </Button>
         </motion.div>
 
-        <motion.div
+        {/* <motion.div
           variants={fadeIn("up", 0.3)}
           initial="hidden"
           whileInView="show"
@@ -386,7 +421,7 @@ export default function HomePage() {
             <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
             <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
           </Carousel>
-        </motion.div>
+        </motion.div> */}
 
         <motion.h1
           id="4"
@@ -410,6 +445,7 @@ export default function HomePage() {
           <Button
             variant="outline"
             className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:bg-[#252424] hover:border-[#ACACAC] hover:text-white transition-colors duration-300"
+            onClick={() => router.push("/all-blindbox")}
           >
             Xem thêm
           </Button>
@@ -428,13 +464,15 @@ export default function HomePage() {
             className="w-96 sm:w-full max-w-[1400px]"
           >
             <CarouselContent>
-              {products?.result
-                .filter((product) => product.productType === "BlindBoxOnly")
-                .map((product) => (
-                  <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
-                    <ProductCard product={product} onViewDetail={handleViewDetail} />
-                  </CarouselItem>
-                ))}
+              {blindboxes?.result.filter((box) => box.items && box.items.length > 0).map((box) => (
+                <CarouselItem key={`blindbox-${box.id}`} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
+                  <BlindboxCard
+                    blindbox={box}
+                    onViewDetail={handleViewBlindboxDetail}
+                    ribbonTypes={["blindbox"]}
+                  />
+                </CarouselItem>
+              ))}
             </CarouselContent>
             <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
             <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
