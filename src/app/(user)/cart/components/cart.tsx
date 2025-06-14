@@ -88,36 +88,35 @@ const QuantitySelector = ({
 };
 
 const Cart: React.FC = () => {
-  const { isPending, getCartApi } = useGetCartByCustomer();
+  // Lấy dữ liệu từ Redux thông qua hook
+  const { isPending, data } = useGetCartByCustomer();
+  const cartItems = data?.items || [];
+  
   const { isPending: isDeleting, deleteCartItemApi } = useDeleteCartItem();
   const { isPending: isClearing, clearAllCartItemApi } = useClearAllCartItem();
-  const [cartItems, setCartItems] = useState<API.CartItem[]>([]);
+  
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  const fetchCart = useCallback(async () => {
-    try {
-      const res = await getCartApi();
-      if (res?.value?.data?.items) {
-        const items = res.value.data.items;
-        setCartItems(items);
-        setSelectedItems(items.map((item: API.CartItem) => item.id));
-        
-        const initialQuantities: Record<string, number> = {};
-        items.forEach((item: API.CartItem) => {
-          initialQuantities[item.id] = item.quantity;
-        });
-        setQuantities(initialQuantities);
-      }
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-    }
-  }, [getCartApi]);
-
+  // Khởi tạo selectedItems và quantities khi cartItems thay đổi
   useEffect(() => {
-    fetchCart();
-  }, [fetchCart]);
+    if (cartItems.length > 0) {
+      // Chọn tất cả items mặc định
+      setSelectedItems(cartItems.map((item: API.CartItem) => item.id));
+      
+      // Khởi tạo quantities từ dữ liệu Redux
+      const initialQuantities: Record<string, number> = {};
+      cartItems.forEach((item: API.CartItem) => {
+        initialQuantities[item.id] = item.quantity;
+      });
+      setQuantities(initialQuantities);
+    } else {
+      // Reset khi cart trống
+      setSelectedItems([]);
+      setQuantities({});
+    }
+  }, [cartItems]);
 
   const debouncedQuantities = useDebounce(quantities, 500);
 
@@ -127,14 +126,19 @@ const Cart: React.FC = () => {
     const updateQuantity = async (): Promise<void> => {
       for (const id in debouncedQuantities) {
         const quantity = debouncedQuantities[id];
-        await updateCartItemApi({ cartItemId: id, quantity });
+        const originalItem = cartItems.find(item => item.id === id);
+        
+        // Chỉ update nếu quantity thay đổi so với dữ liệu gốc
+        if (originalItem && originalItem.quantity !== quantity) {
+          await updateCartItemApi({ cartItemId: id, quantity });
+        }
       }
     };
 
     if (Object.keys(debouncedQuantities).length > 0) {
       updateQuantity();
     }
-  }, [debouncedQuantities, updateCartItemApi]);
+  }, [debouncedQuantities, updateCartItemApi, cartItems]);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedItems((prev) =>
@@ -153,7 +157,8 @@ const Cart: React.FC = () => {
   const handleRemove = useCallback(async (id: string) => {
     const res = await deleteCartItemApi(id);
     if (res) {
-      setCartItems(prev => prev.filter(item => item.id !== id));
+      // Sau khi xóa thành công, Redux sẽ tự động cập nhật
+      // Chỉ cần cleanup local state
       setSelectedItems(prev => prev.filter(itemId => itemId !== id));
       setQuantities(prev => {
         const newQuantities = { ...prev };
@@ -163,12 +168,11 @@ const Cart: React.FC = () => {
     }
   }, [deleteCartItemApi]);
 
-  // Handler cho clear all cart
   const handleClearCart = useCallback(async () => {
     try {
       const res = await clearAllCartItemApi();
       if (res) {
-        setCartItems([]);
+        // Redux sẽ tự động cập nhật, cleanup local state
         setSelectedItems([]);
         setQuantities({});
         setShowClearConfirm(false);
@@ -204,6 +208,7 @@ const Cart: React.FC = () => {
   const isAllSelected = cartItems.length > 0 && selectedItems.length === cartItems.length;
   const isIndeterminate = selectedItems.length > 0 && selectedItems.length < cartItems.length;
 
+  // Chỉ hiển thị loading khi thực sự cần thiết (nếu hook trả về isPending = true)
   if (isPending) {
     return (
       <div className="mt-36 p-4 sm:px-8 lg:px-20">

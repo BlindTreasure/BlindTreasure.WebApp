@@ -2,11 +2,14 @@ import useToast from "@/hooks/use-toast";
 import { addCartItemByCustomer } from "@/services/cart-item/api-services";
 import { isTResponseData } from "@/utils/compare";
 import { useRef, useState } from "react";
+import { useAppDispatch } from "@/stores/store";
+import { setCart } from "@/stores/cart-slice";
 
 export default function useAddBlindboxToCart() {
   const { addToast } = useToast();
   const [isPending, setPending] = useState(false);
   const hasFetchedData = useRef(false);
+  const dispatch = useAppDispatch();
 
   const addBlindboxToCartApi = async ({blindBoxId, quantity} : REQUEST.AddItemToCart) => {
     setPending(true);
@@ -14,6 +17,10 @@ export default function useAddBlindboxToCart() {
       const res = await addCartItemByCustomer({blindBoxId, quantity});
       
       if (isTResponseData(res)) {
+        const newCart = (res as TResponseData<API.ResponseDataCart>).value.data;
+
+        dispatch(setCart(newCart.items));
+        
         // Thành công - hiển thị toast thành công
         addToast({
           type: "success",

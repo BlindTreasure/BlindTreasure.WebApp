@@ -1,26 +1,19 @@
-import { getCartByCustomer } from "@/services/cart-item/api-services";
-import { isTResponseData } from "@/utils/compare";
-import { useCallback, useRef, useState } from "react";
+import { useAppSelector } from "@/stores/store";
 
 export default function useGetCartByCustomer() {
-  const [isPending, setPending] = useState(false);
-  const hasFetchedData = useRef(false);
+  const cartItems = useAppSelector((state) => state.cartSlice.items);
+  const isPending = false; // vì lấy từ redux nên không cần loading
 
-  const getCartApi = useCallback(async () => {
-    setPending(true);
-    try {
-      const res = await getCartByCustomer();
-      if (isTResponseData(res)) {
-        return res as TResponseData<API.ResponseDataCart>;
-      } else {
-        return null;
-      }
-    } catch (error) {
-      return null;
-    } finally {
-      setPending(false);
-    }
-  }, []);
+  const totalQuantity = cartItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
 
-  return { isPending, getCartApi };
+  return {
+    isPending,
+    data: {
+      items: cartItems,
+      totalQuantity,
+    },
+  };
 }

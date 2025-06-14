@@ -24,6 +24,7 @@ declare namespace API {
     unitPrice: number;
     totalPrice: number;
     createdAt: string;
+    isValid?: boolean;
   };
 
   type ResponseDataCart = {

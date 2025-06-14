@@ -14,6 +14,8 @@ import useToast from "@/hooks/use-toast";
 import { useAppDispatch } from "@/stores/store";
 import { setUser } from "@/stores/user-slice";
 import { handleError } from "@/hooks/error";
+import { getCartByCustomer } from "@/services/cart-item/api-services";
+import { setCart } from "@/stores/cart-slice";
 
 export function useLoginForm() {
   const router = useRouter();
@@ -65,6 +67,10 @@ export function useLoginForm() {
                   return router.push("/seller");
                 case "Customer":
                 default:
+                  const cartRes = await getCartByCustomer();
+                  if (cartRes?.value?.data?.items) {
+                    dispatch(setCart(cartRes.value.data.items));
+                  }
                   return router.push("/");
               }
             } else {
