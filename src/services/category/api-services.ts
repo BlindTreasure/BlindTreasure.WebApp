@@ -1,4 +1,4 @@
-import request from "@/components/interceptor";
+import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/category/api-path";
 
 export const getAllCategory = async ({
@@ -26,11 +26,15 @@ export const createCategory = async (
   const formData = new FormData();
   formData.append("Name", data.name);
   formData.append("Description", data.description);
-  
+
   if (data.imageUrl instanceof File) {
     formData.append("ImageFile", data.imageUrl);
   }
-  if (data.parentId !== undefined && data.parentId !== null && data.parentId !== '') {
+  if (
+    data.parentId !== undefined &&
+    data.parentId !== null &&
+    data.parentId !== ""
+  ) {
     formData.append("ParentId", String(data.parentId));
   }
 
@@ -51,20 +55,24 @@ export const updateCategory = async (
   payload: REQUEST.CategoryForm & { categoryId: string }
 ): Promise<TResponseData<API.ResponseDataCategory>> => {
   const { categoryId, ...data } = payload;
-  
+
   const formData = new FormData();
   formData.append("Name", data.name);
   formData.append("Description", data.description);
-  
+
   if (data.imageUrl instanceof File) {
     formData.append("ImageFile", data.imageUrl);
   }
-  if (data.parentId !== undefined && data.parentId !== null && data.parentId !== '') {
+  if (
+    data.parentId !== undefined &&
+    data.parentId !== null &&
+    data.parentId !== ""
+  ) {
     formData.append("ParentId", String(data.parentId));
   }
-  
+
   const response = await request<TResponseData<API.ResponseDataCategory>>(
-    API_ENDPOINTS.CATEGORY_WITH_ID(categoryId), 
+    API_ENDPOINTS.CATEGORY_WITH_ID(categoryId),
     {
       method: "PUT",
       data: formData,
@@ -77,16 +85,21 @@ export const updateCategory = async (
 };
 
 export const deleteCategory = async (categoryId: string) => {
-  const response = await request<TResponseData<API.ResponseDataCategory>>(API_ENDPOINTS.CATEGORY_WITH_ID(categoryId), {
-    method: "DELETE",
-  });
+  const response = await request<TResponseData<API.ResponseDataCategory>>(
+    API_ENDPOINTS.CATEGORY_WITH_ID(categoryId),
+    {
+      method: "DELETE",
+    }
+  );
   return response.data;
 };
 
 export const getCategoryById = async (categoryId: string) => {
-  const response = await request<TResponseData<API.ResponseDataCategory>>(API_ENDPOINTS.CATEGORY_WITH_ID(categoryId), {
-    method: "GET",
-  });
+  const response = await request<TResponseData<API.ResponseDataCategory>>(
+    API_ENDPOINTS.CATEGORY_WITH_ID(categoryId),
+    {
+      method: "GET",
+    }
+  );
   return response.data;
 };
-

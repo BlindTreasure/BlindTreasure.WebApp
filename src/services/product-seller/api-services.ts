@@ -1,4 +1,4 @@
-import request from "@/components/interceptor";
+import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/product-seller/api-path";
 import { GetProduct, Product, TProductResponse, UpdateInfor } from "./typings";
 
@@ -68,7 +68,6 @@ export const deleteProduct = async (productId: string) => {
   );
   return response.data;
 };
-
 
 export const updateImageProduct = async (productId: string, body: FormData) => {
   const response = await request<TResponseData<Product>>(

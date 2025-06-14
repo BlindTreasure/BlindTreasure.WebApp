@@ -1,5 +1,4 @@
-
-import request from "@/components/interceptor";
+import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/seller/api-path";
 
 export const getAllStatusSeller = async ({
@@ -21,14 +20,19 @@ export const getAllStatusSeller = async ({
   return response.data;
 };
 
-export const uploadSellerDocument = async (formData: FormData): Promise<TResponseData<any>> => {
-  const response = await request<TResponseData<any>>(API_ENDPOINTS.SELLER_UPLOAD_DOCUMENT, {
-    method: "POST",
-    data: formData,
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+export const uploadSellerDocument = async (
+  formData: FormData
+): Promise<TResponseData<any>> => {
+  const response = await request<TResponseData<any>>(
+    API_ENDPOINTS.SELLER_UPLOAD_DOCUMENT,
+    {
+      method: "POST",
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
   return response.data;
 };
 

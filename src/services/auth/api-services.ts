@@ -1,4 +1,4 @@
-import request from "@/components/interceptor";
+import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/auth/api-path";
 import { getStorageItem } from "@/utils/local-storage";
 import {
@@ -9,32 +9,8 @@ import {
 } from "@/utils/schema-validations/auth.schema";
 
 export const login = async (body: LoginBodyType) => {
-  const response = await request<TResponseData<API.TAuthResponse>>(API_ENDPOINTS.LOGIN, {
-    method: "POST",
-    data: body,
-  });
-  return response.data;
-};
-
-export const register = async (body: RegisterBodyWithoutConfirm): Promise<TResponseData<API.TRegisterResponse>> => {
-  const response = await request<TResponseData<API.TRegisterResponse>>(API_ENDPOINTS.REGISTER, {
-    method: "POST",
-    data: body,
-  });
-  return response.data;
-};
-
-export const registerSeller = async (body: RegisterSellerBodyWithoutConfirm): Promise<TResponseData<API.TRegisterSellerResponse>> => {
-  const response = await request<TResponseData<API.TRegisterSellerResponse>>(API_ENDPOINTS.REGISTER_SELLER, {
-    method: "POST",
-    data: body,
-  });
-  return response.data;
-};
-
-export const verifyOtp = async (body: API.TAuthVerifyOtp) => {
-  const response = await request<TResponseData>(
-    API_ENDPOINTS.VERIFY_OTP,
+  const response = await request<TResponseData<API.TAuthResponse>>(
+    API_ENDPOINTS.LOGIN,
     {
       method: "POST",
       data: body,
@@ -43,16 +19,49 @@ export const verifyOtp = async (body: API.TAuthVerifyOtp) => {
   return response.data;
 };
 
-export const logout = async () => {
-  const response = await request<TResponseData>(API_ENDPOINTS.LOGOUT, {
-    method: "POST",
-    headers: {
-      'Authorization': `Bearer ${getStorageItem("accessToken")}`
+export const register = async (
+  body: RegisterBodyWithoutConfirm
+): Promise<TResponseData<API.TRegisterResponse>> => {
+  const response = await request<TResponseData<API.TRegisterResponse>>(
+    API_ENDPOINTS.REGISTER,
+    {
+      method: "POST",
+      data: body,
     }
+  );
+  return response.data;
+};
+
+export const registerSeller = async (
+  body: RegisterSellerBodyWithoutConfirm
+): Promise<TResponseData<API.TRegisterSellerResponse>> => {
+  const response = await request<TResponseData<API.TRegisterSellerResponse>>(
+    API_ENDPOINTS.REGISTER_SELLER,
+    {
+      method: "POST",
+      data: body,
+    }
+  );
+  return response.data;
+};
+
+export const verifyOtp = async (body: API.TAuthVerifyOtp) => {
+  const response = await request<TResponseData>(API_ENDPOINTS.VERIFY_OTP, {
+    method: "POST",
+    data: body,
   });
   return response.data;
 };
 
+export const logout = async () => {
+  const response = await request<TResponseData>(API_ENDPOINTS.LOGOUT, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getStorageItem("accessToken")}`,
+    },
+  });
+  return response.data;
+};
 
 export const forgotPasswordEmail = async (
   body: API.TAuthForgotPasswordEmail
@@ -92,10 +101,13 @@ export const forgotPasswordChange = async (
 };
 
 export const refreshToken = async (body: API.TAuthRefreshToken) => {
-  const response = await request<TResponseData<API.TRefreshTokenResponse>>(API_ENDPOINTS.REFRESH_TOKEN, {
-    method: "POST",
-    data: body,
-  });
+  const response = await request<TResponseData<API.TRefreshTokenResponse>>(
+    API_ENDPOINTS.REFRESH_TOKEN,
+    {
+      method: "POST",
+      data: body,
+    }
+  );
   return response.data;
 };
 

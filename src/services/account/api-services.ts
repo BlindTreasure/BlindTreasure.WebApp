@@ -1,4 +1,4 @@
-import request from "@/components/interceptor";
+import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/account/api-path";
 import { getStorageItem } from "@/utils/local-storage";
 
@@ -39,23 +39,29 @@ export const updateInfoProfile = async (body: REQUEST.TUpdateInfoProfile) => {
 
 // Lấy thông tin seller hiện tại
 export const getSellerProfile = async () => {
-  const response = await request<TResponseData<API.Seller>>(API_ENDPOINTS.GET_ACCOUNT_SELLER_PROFILE, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${getStorageItem("accessToken")}`,
-    },
-  });
+  const response = await request<TResponseData<API.Seller>>(
+    API_ENDPOINTS.GET_ACCOUNT_SELLER_PROFILE,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${getStorageItem("accessToken")}`,
+      },
+    }
+  );
   return response.data;
 };
 
 // Cập nhật thông tin seller
 export const updateSellerProfile = async (body: REQUEST.UpdateSellerInfo) => {
-  const response = await request<TResponseData<API.Seller>>(API_ENDPOINTS.UPDATE_INFO_SELLER_PROFILE, {
-    method: "PUT",
-    data: body,
-    headers: {
-      Authorization: `Bearer ${getStorageItem("accessToken")}`,
-    },
-  });
+  const response = await request<TResponseData<API.Seller>>(
+    API_ENDPOINTS.UPDATE_INFO_SELLER_PROFILE,
+    {
+      method: "PUT",
+      data: body,
+      headers: {
+        Authorization: `Bearer ${getStorageItem("accessToken")}`,
+      },
+    }
+  );
   return response.data;
 };

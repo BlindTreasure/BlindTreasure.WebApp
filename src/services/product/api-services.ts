@@ -1,4 +1,4 @@
-import request from "@/components/interceptor";
+import request from "@/services/interceptor";
 import { AllProduct, GetAllProducts, TAllProductResponse } from "./typings";
 import API_ENDPOINTS from "@/services/product/api-path";
 
@@ -42,4 +42,3 @@ export const getProductById = async (
   );
   return response.data;
 };
-

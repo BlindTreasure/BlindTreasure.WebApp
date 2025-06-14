@@ -1,4 +1,4 @@
-import request from "@/components/interceptor";
+import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/blindboxes/api-path";
 import {
   BlindBox,
@@ -7,7 +7,7 @@ import {
   BlindBoxListResponse,
   CreateBlindboxItemsParam,
   GetBlindBoxes,
-  BlindBoxReviewRequest
+  BlindBoxReviewRequest,
 } from "./typings";
 
 export const getAllBlindboxSeller = async ({
