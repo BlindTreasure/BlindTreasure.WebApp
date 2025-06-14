@@ -169,7 +169,7 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
 
                 <div className="mt-4 flex justify-between items-center">
                     <Button className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
-                        Mua ngay
+                        Thêm vào giỏ hàng
                     </Button>
                     <FaRegHeart className="text-2xl cursor-pointer hover:text-red-500" />
                 </div>

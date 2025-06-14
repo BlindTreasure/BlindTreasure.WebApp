@@ -106,9 +106,7 @@ export default function EditPersonal({
                     Số điện thoại
                   </label>
                   <div className="flex gap-x-3">
-                    <div className="basis-1/12 p-1 border bg-[#f2f4f7] rounded-md text-center">
-                      <span className="text-xs text-gray-400">+84</span>
-                    </div>
+                    
                     <div className="flex-1">
                       <Input
                         type="text"

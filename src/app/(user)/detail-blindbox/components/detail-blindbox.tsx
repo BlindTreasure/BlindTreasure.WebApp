@@ -27,7 +27,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
     const [quantity, setQuantity] = useState<number>(1);
     const [blindbox, setBlindbox] = useState<BlindBoxDetail | null>(null);
     const [selectedVariant, setSelectedVariant] = useState<string>("Loại A");
-    
+
     const { getBlindboxByIdWebApi, isPending } = useGetBlindboxByIdWeb();
     const { addBlindboxToCartApi, isPending: isAddingToCart } = useAddBlindboxToCart();
 
@@ -63,27 +63,27 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
         console.log('handleAddToCart clicked'); // Debug log
         console.log('blindbox:', blindbox); // Debug log
         console.log('blindbox.id:', blindbox?.id); // Debug log
-        
+
         if (!blindbox) {
             console.log('No blindbox found');
             return;
         }
-        
+
         if (!blindbox.id) {
             console.log('Blindbox ID not found');
             return;
         }
-        
+
         try {
             const cartData = {
                 blindBoxId: blindbox.id,
                 quantity: quantity
             };
-            
+
             console.log('Adding blindbox to cart with data:', cartData); // Debug log
-            
+
             const result = await addBlindboxToCartApi(cartData);
-            
+
             if (result) {
                 console.log('Đã thêm blindbox vào giỏ hàng thành công');
                 // Reset quantity nếu muốn
@@ -166,7 +166,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                     <p className="text-4xl font-semibold mt-2 text-[#EF1104]">
                         {blindbox?.price.toLocaleString("vi-VN")}₫
                     </p>
-                    
+
                     <div className="mb-6">
                         <p className="mb-2">Chọn bộ:</p>
                         <div className="flex gap-4">
@@ -174,11 +174,10 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                                 <div
                                     key={idx}
                                     onClick={() => handleVariantSelect(variant)}
-                                    className={`px-4 py-2 rounded-md border cursor-pointer transition-colors ${
-                                        selectedVariant === variant
+                                    className={`px-4 py-2 rounded-md border cursor-pointer transition-colors ${selectedVariant === variant
                                             ? 'bg-[#252424] text-white border-[#252424]'
                                             : 'bg-white text-black border-gray-300 hover:border-gray-400'
-                                    }`}
+                                        }`}
                                 >
                                     {variant}
                                 </div>
@@ -193,8 +192,8 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                         <div className="flex items-center border border-gray-400 rounded-full overflow-hidden">
                             <button
                                 onClick={handleDecrease}
+                                className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center hover:bg-gray-700 transition-colors"
                                 disabled={quantity <= 1}
-                                className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center hover:bg-gray-700 transition-colors disabled:opacity-50"
                             >
                                 −
                             </button>
@@ -212,11 +211,11 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                             </button>
                         </div>
 
-                        <button 
+                        <button
                             onClick={handleAddToCart}
                             disabled={isAddingToCart || !blindbox}
                             className="bg-[#252424] text-white px-6 py-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 z-10 relative"
-                            style={{pointerEvents: 'auto'}}
+                            style={{ pointerEvents: 'auto' }}
                         >
                             {isAddingToCart ? (
                                 <>

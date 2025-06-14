@@ -140,7 +140,7 @@ export default function ProfileComponent() {
                   <div className="flex flex-col gap-y-2">
                     <label className="text-sm font-medium text-gray-400">Giới tính</label>
                     <h5 className="text-base text-gray-650">
-                      {profileInfo.gender === true ? "Male" : "Female"}
+                      {profileInfo.gender === true ? "Nam" : "Nữ"}
                     </h5>
                   </div>
                 </div>

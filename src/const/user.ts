@@ -1,11 +1,11 @@
 export const Genders = [
   {
     value: true,
-    label: "Male",
+    label: "Nam",
   },
   {
     value: false,
-    label: "Female",
+    label: "Nữ",
   },
 ];
 
