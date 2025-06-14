@@ -25,7 +25,27 @@ export const updateCartItemByCustomer = async (
 };
 
 export const deleteCartItemByCustomer = async (cartItemId: string) => {
-  const response = await request<TResponseData<API.ResponseDataCategory>>(API_ENDPOINTS.DELETE_CART_ITEM(cartItemId), {
+  const response = await request<TResponseData<API.ResponseDataCart>>(API_ENDPOINTS.DELETE_CART_ITEM(cartItemId), {
+    method: "DELETE",
+  });
+  return response.data;
+};
+
+export const addCartItemByCustomer = async (
+    body: REQUEST.AddItemToCart
+): Promise<TResponseData<API.ResponseDataCart>> => {
+  const response = await request<TResponseData<API.ResponseDataCart>>(
+    API_ENDPOINTS.CART_ITEM,
+    {
+      method: "POST",
+      data: body
+    }
+  );
+  return response.data;
+};
+
+export const deleteAllCartItemByCustomer = async () => {
+  const response = await request<TResponseData<API.ResponseDataCart>>(API_ENDPOINTS.CLEAR_ALL_CART, {
     method: "DELETE",
   });
   return response.data;

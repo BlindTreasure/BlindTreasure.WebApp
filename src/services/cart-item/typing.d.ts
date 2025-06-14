@@ -3,6 +3,12 @@ declare namespace REQUEST {
     cartItemId: string;
     quantity: number;
   }
+
+  type AddItemToCart = {
+    productId?: string;
+    blindBoxId?: string;
+    quantity:number
+  }
 }
 
 declare namespace API {

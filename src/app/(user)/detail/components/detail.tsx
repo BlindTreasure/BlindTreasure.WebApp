@@ -11,10 +11,12 @@ import { motion } from "framer-motion";
 import { fadeIn } from '@/utils/variants';
 import { AllProduct } from '@/services/product/typings';
 import useGetProductByIdWeb from '../hooks/useGetProductByIdWeb';
+import useAddProductToCart from "../hooks/useAddProductToCart"
 import { Backdrop } from '@/components/backdrop';
 import LightboxGallery from '@/components/lightbox-gallery';
 import { Gallery, Item } from "react-photoswipe-gallery";
 import "photoswipe/style.css";
+
 interface DetailProps {
     detailId: string;
 }
@@ -24,8 +26,10 @@ export default function Detail({ detailId }: DetailProps) {
     const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
     const [products, setProducts] = useState<AllProduct | null>(null);
+    
     const { getProductByIdWebApi, isPending } = useGetProductByIdWeb();
-
+    const { addProductToCartApi, isPending: isAddingToCart } = useAddProductToCart();
+    
     useEffect(() => {
         (async () => {
             const res = await getProductByIdWebApi(detailId);
@@ -41,8 +45,35 @@ export default function Detail({ detailId }: DetailProps) {
         setQuantity(quantity + 1);
     };
 
+    const handleAddToCart = async () => {
+        if (!products) return;
+        
+        try {
+            const cartItem = {
+                productId: products.id,
+                quantity: quantity,
+                variant: selectedVariant,
+                // Thêm các thông tin khác nếu cần
+            };
+            
+            const result = await addProductToCartApi(cartItem);
+            
+            if (result) {
+                // Thành công - có thể hiển thị thông báo
+                console.log('Đã thêm vào giỏ hàng thành công');
+                // Reset quantity hoặc hiển thị toast notification
+                // setQuantity(1);
+            }
+        } catch (error) {
+            console.error('Lỗi khi thêm vào giỏ hàng:', error);
+            // Hiển thị thông báo lỗi
+        }
+    };
+
     const images = products?.imageUrls?.length ? products.imageUrls : [];
 
+    console.log(products);
+    
     return (
         <div className="p-6 mt-32 sm:px-16">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -100,7 +131,7 @@ export default function Detail({ detailId }: DetailProps) {
                     <div className='flex gap-8'>
                         <p className='text-xl'>Thương hiệu: <span className='text-[#00579D] uppercase'>{products?.brand}</span></p>
                         <div className="w-px h-5 bg-gray-300" />
-                        <p>Tình trạng: <span className='text-[#00579D]'></span></p>
+                        <p>Tình trạng: <span className='text-[#00579D]'>Còn hàng</span></p>
                     </div>
                     <p className="text-4xl font-semibold mt-2 text-[#EF1104]">{products?.price.toLocaleString("vi-VN")}₫</p>
                     <p className='text-xl'>Ngày phát hành: <span className='text-gray-600 text-xl'> {products?.createdAt
@@ -116,7 +147,8 @@ export default function Detail({ detailId }: DetailProps) {
                         <div className="flex items-center border border-gray-400 rounded-full overflow-hidden">
                             <button
                                 onClick={handleDecrease}
-                                className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center"
+                                className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center hover:bg-gray-700 transition-colors"
+                                disabled={quantity <= 1}
                             >
                                 −
                             </button>
@@ -128,14 +160,28 @@ export default function Detail({ detailId }: DetailProps) {
                             />
                             <button
                                 onClick={handleIncrease}
-                                className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center"
+                                className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center hover:bg-gray-700 transition-colors"
                             >
                                 +
                             </button>
                         </div>
 
-                        <button className="bg-[#252424] text-white px-6 py-2 rounded">
-                            Thêm vào giỏ hàng
+                        <button 
+                            onClick={handleAddToCart}
+                            disabled={isAddingToCart || !products}
+                            className="bg-[#252424] text-white px-6 py-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                            {isAddingToCart ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    Đang thêm...
+                                </>
+                            ) : (
+                                'Thêm vào giỏ hàng'
+                            )}
                         </button>
                     </div>
                 </motion.div>
@@ -166,7 +212,7 @@ export default function Detail({ detailId }: DetailProps) {
                 className='py-8'>
                 <ProductTabs description={products?.description || ""} />
             </motion.div>
-            <Backdrop open={isPending} />
+            <Backdrop open={isPending || isAddingToCart} />
         </div>
     );
 }
