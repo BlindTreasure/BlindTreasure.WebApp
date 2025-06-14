@@ -10,13 +10,15 @@ import useUpdateCartQuantity from "../hooks/useUpdateQuantityItemCart";
 import useDeleteCartItem from "../hooks/useDeleteCartItem";
 import useClearAllCartItem from "../hooks/useClearAllCartItem";
 import useDebounce from '@/hooks/use-debounce';
+import Image from 'next/image';
+import { SlHandbag } from "react-icons/sl";
 
-const QuantitySelector = ({ 
-  value, 
-  onChange, 
-  min = 1, 
-  max = 999, 
-  className = "" 
+const QuantitySelector = ({
+  value,
+  onChange,
+  min = 1,
+  max = 999,
+  className = ""
 }: {
   value: number;
   onChange: (value: number) => void;
@@ -38,12 +40,12 @@ const QuantitySelector = ({
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    
+
     if (inputValue === '') {
       onChange(min);
       return;
     }
-    
+
     const numericValue = parseInt(inputValue, 10);
     if (!isNaN(numericValue)) {
       const clampedValue = Math.max(min, Math.min(max, numericValue));
@@ -63,7 +65,7 @@ const QuantitySelector = ({
       >
         <Minus className="h-2.5 w-2.5" />
       </Button>
-      
+
       <Input
         type="text"
         value={value.toString()}
@@ -72,7 +74,7 @@ const QuantitySelector = ({
         min={min}
         max={max}
       />
-      
+
       <Button
         variant="ghost"
         size="sm"
@@ -91,10 +93,10 @@ const Cart: React.FC = () => {
   // Lấy dữ liệu từ Redux thông qua hook
   const { isPending, data } = useGetCartByCustomer();
   const cartItems = data?.items || [];
-  
+
   const { isPending: isDeleting, deleteCartItemApi } = useDeleteCartItem();
   const { isPending: isClearing, clearAllCartItemApi } = useClearAllCartItem();
-  
+
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -104,7 +106,7 @@ const Cart: React.FC = () => {
     if (cartItems.length > 0) {
       // Chọn tất cả items mặc định
       setSelectedItems(cartItems.map((item: API.CartItem) => item.id));
-      
+
       // Khởi tạo quantities từ dữ liệu Redux
       const initialQuantities: Record<string, number> = {};
       cartItems.forEach((item: API.CartItem) => {
@@ -127,7 +129,7 @@ const Cart: React.FC = () => {
       for (const id in debouncedQuantities) {
         const quantity = debouncedQuantities[id];
         const originalItem = cartItems.find(item => item.id === id);
-        
+
         // Chỉ update nếu quantity thay đổi so với dữ liệu gốc
         if (originalItem && originalItem.quantity !== quantity) {
           await updateCartItemApi({ cartItemId: id, quantity });
@@ -221,14 +223,25 @@ const Cart: React.FC = () => {
 
   return (
     <div className="mt-36 p-4 sm:px-8 lg:px-20">
-      <h2 className="text-lg sm:text-xl font-semibold mb-4">
-        Tổng sản phẩm ({cartItems.length} sản phẩm)
-      </h2>
-      
+      {cartItems.length > 0 && (
+        <h2 className="text-lg sm:text-xl font-semibold mb-4">
+          Tổng sản phẩm ({cartItems.length} sản phẩm)
+        </h2>
+      )}
+
+
       {cartItems.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-gray-500 mb-4">Giỏ hàng của bạn đang trống</div>
-          <Button onClick={handleContinueShopping}>Tiếp tục mua sắm</Button>
+        <div className="text-center pb-12 space-y-8">
+          <Image
+            src="/images/cart-empty.jpg"
+            alt="Empty cart"
+            width={300}
+            height={300}
+            className="mx-auto mb-4"
+          />
+          <div className="text-gray-500 mb-4 text-4xl">Giỏ hàng đang <span className='text-red-600'>Trống!</span></div>
+          <p className='text-gray-400'>Bạn phải thêm sản phẩm vào giỏ hàng trước khi thanh toán</p>
+          <Button className="py-6" onClick={handleContinueShopping} ><SlHandbag />Trở lại mua sắm</Button>
         </div>
       ) : (
         <div className="flex flex-col lg:flex-row gap-6">
@@ -334,7 +347,7 @@ const Cart: React.FC = () => {
                       <div className="text-xs px-2 py-0.5 bg-gray-200 w-fit rounded">
                         {variant}
                       </div>
-                      
+
                       <div className="flex items-center gap-2 text-gray-600 text-xs">
                         <span className="min-w-[50px]">Số lượng:</span>
                         <QuantitySelector
@@ -345,7 +358,7 @@ const Cart: React.FC = () => {
                           className="shadow-sm"
                         />
                       </div>
-                      
+
                       <div className="text-gray-600 text-xs">
                         Đơn giá: <span className="font-medium">{item.unitPrice.toLocaleString('vi-VN')}₫</span>
                       </div>
@@ -375,15 +388,15 @@ const Cart: React.FC = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                <Button 
-                  className="w-full" 
+                <Button
+                  className="w-full"
                   onClick={handleCheckout}
                   disabled={selectedItems.length === 0 || total === 0}
                 >
                   Thanh toán ({selectedItems.length} sản phẩm)
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full"
                   onClick={handleContinueShopping}
                 >
