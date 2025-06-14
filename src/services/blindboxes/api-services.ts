@@ -7,6 +7,7 @@ import {
   BlindBoxListResponse,
   CreateBlindboxItemsParam,
   GetBlindBoxes,
+  BlindBoxReviewRequest
 } from "./typings";
 
 export const getAllBlindboxSeller = async ({
@@ -136,5 +137,23 @@ export const updateBlindBox = async (blindboxesId: string, body: FormData) => {
       },
     }
   );
+  return response.data;
+};
+
+export const reviewBlindbox = async (
+  blindboxesId: string,
+  body: BlindBoxReviewRequest
+): Promise<TResponseData<BlindBoxListResponse>> => {
+  const response = await request<TResponseData<BlindBoxListResponse>>(
+    API_ENDPOINTS.REVIEW_BLINDBOXES(blindboxesId),
+    {
+      method: "POST",
+      data: body,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
   return response.data;
 };

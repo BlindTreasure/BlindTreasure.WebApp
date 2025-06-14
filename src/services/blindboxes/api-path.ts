@@ -4,13 +4,15 @@ const BLINDBOXES_All_WITH_ID = (blindboxesId: string) =>
 const ADD_ITEMS = (blindboxesId: string) => `${BLINDBOXES_All}/${blindboxesId}/items`;
 const DELETE_ITEMS = (blindboxesId: string) => `${BLINDBOXES_All}/${blindboxesId}/items`;
 const SUBMIT_FORM = (blindboxesId: string) => `${BLINDBOXES_All}/${blindboxesId}/submit`;
+const REVIEW_BLINDBOXES = (blindboxesId: string) => `${BLINDBOXES_All}/${blindboxesId}/review`
 
 export default {
   BLINDBOXES_All,
   BLINDBOXES_All_WITH_ID,
   ADD_ITEMS,
   DELETE_ITEMS,
-  SUBMIT_FORM
+  SUBMIT_FORM,
+  REVIEW_BLINDBOXES
 };
 
 

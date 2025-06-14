@@ -7,6 +7,7 @@ import {
   BlindBoxListResponse,
   CreateBlindboxForm,
   CreateBlindboxItemsParam,
+  ReviewBlindboxParams
 } from "./typings";
 import {
   createBlindbox,
@@ -15,6 +16,7 @@ import {
   deleteBlindbox,
   submitBlindbox,
   updateBlindBox,
+  reviewBlindbox
 } from "./api-services";
 
 export const buildBlindboxFormData = (data: CreateBlindboxForm) => {
@@ -189,6 +191,30 @@ export const useServiceUpdateBlindBox = () => {
         description: data.value.message,
         duration: 5000,
       });
+    },
+  });
+};
+
+export const useServiceReviewBlindbox = () => {
+  const { addToast } = useToast();
+
+  return useMutation<
+    TResponseData<BlindBoxListResponse>,
+    Error,
+    ReviewBlindboxParams
+  >({
+    mutationFn: async ({ blindboxesId, reviewData }: ReviewBlindboxParams) => {
+      return await reviewBlindbox(blindboxesId, reviewData);
+    },
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
     },
   });
 };

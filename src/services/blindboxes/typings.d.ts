@@ -41,6 +41,7 @@ export type BlindBox = {
   hasSecretItem: boolean;
   secretProbability: number;
   items: BlindBoxItem[];
+  rejectReason?: string;
 };
 
 export type BlindBoxDetail = {
@@ -85,9 +86,19 @@ export type BlindBoxItemRequest = {
   rarity: Rarity;
 };
 
+export type BlindBoxReviewRequest = {
+  approve: boolean;
+  rejectReason?: string;
+}
+
 export type BlindBoxItemsRequest = BlindBoxItemRequest[];
 
 type CreateBlindboxItemsParam = {
   blindboxesId: string;
   items: BlindBoxItemRequest[]; 
 };
+
+type ReviewBlindboxParams = {
+  blindboxesId: string;
+  reviewData: BlindBoxReviewRequest;
+}
