@@ -22,6 +22,8 @@ export const CreateBlindBox = z.object({
     })
     .optional(),
 
+  brand: z.string(),
+
   hasSecretItem: z.boolean().optional(),
 
   secretProbability: z

@@ -30,6 +30,7 @@ import { BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typin
 import useGetAllBlindBoxes from "@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes";
 import BlindboxCard from "@/components/blindbox-card";
 import { getRibbonTypes } from "@/utils/getRibbonTypes";
+import { now } from "moment";
 interface Blindbox {
   id: string;
   type: "blindbox" | "normal";
@@ -137,6 +138,35 @@ export default function HomePage() {
       }
     })()
   }, [params])
+
+  const filteredItems = [
+    ...(products?.result.filter((product) => {
+      if (product.productType === "BlindBoxOnly") return false;
+
+      const createdDate = new Date(product.createdAt);
+      const diffInDays = (new Date().getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+
+      return diffInDays <= 7;
+    }) ?? []),
+
+    ...(blindboxes?.result.filter((box) => {
+      if (!box.items || box.items.length === 0) return false;
+
+      const releaseDate = new Date(box.releaseDate);
+      const now = new Date();
+
+      releaseDate.setHours(0, 0, 0, 0);
+      now.setHours(0, 0, 0, 0);
+
+      const diffInDays = (now.getTime() - releaseDate.getTime()) / (1000 * 60 * 60 * 24);
+      return releaseDate <= now && diffInDays <= 7;
+    }) ?? []),
+  ].slice(0, 8);
+
+  const visibleBlindboxes = blindboxes?.result.filter(
+    (box) => box.items && box.items.length > 0
+  ) ?? [];
+
 
   return (
     <>
@@ -270,35 +300,18 @@ export default function HomePage() {
           </Button>
         </motion.div>
 
-        <motion.div
-          variants={fadeIn("up", 0.3)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.7 }}
-          className="flex justify-center pb-8"
-        >
-          <Carousel
-            opts={{ align: "start" }}
-            className="w-96 sm:w-full max-w-[1400px]"
+        {filteredItems.length > 0 && (
+          <motion.div
+            variants={fadeIn("up", 0.3)}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.7 }}
+            className="flex justify-center pb-8"
           >
-            <CarouselContent>
-              {[
-                ...(products?.result.filter((product) => {
-                  if (product.productType === "BlindBoxOnly") return false;
-                  const createdDate = new Date(product.createdAt);
-                  const diffInDays = (new Date().getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
-                  return diffInDays <= 7;
-                }) ?? []),
-                ...(blindboxes?.result.filter((box) => {
-                  if (!box.items || box.items.length === 0) return false;
-                  const createdDate = new Date(box.releaseDate);
-                  const diffInDays = (new Date().getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
-                  return diffInDays <= 7;
-                }) ?? []),
-              ]
-                .slice(0, 8)
-                .map((item) => {
-                  const isBlindbox = !("productType" in item); 
+            <Carousel opts={{ align: "start" }} className="w-96 sm:w-full max-w-[1400px]">
+              <CarouselContent>
+                {filteredItems.map((item) => {
+                  const isBlindbox = !("productType" in item);
                   const ribbonTypes = getRibbonTypes(item);
 
                   return isBlindbox ? (
@@ -319,12 +332,17 @@ export default function HomePage() {
                     </CarouselItem>
                   );
                 })}
-            </CarouselContent>
+              </CarouselContent>
 
-            <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
-            <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
-          </Carousel>
-        </motion.div>
+              {filteredItems.length > 4 && (
+                <>
+                  <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+                  <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+                </>
+              )}
+            </Carousel>
+          </motion.div>
+        )}
 
         <div className="my-12 text-center">
           <motion.h1
@@ -456,16 +474,18 @@ export default function HomePage() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.7 }}
-          className="flex justify-center pb-8">
+          className="flex justify-center pb-8"
+        >
           <Carousel
-            opts={{
-              align: "start",
-            }}
+            opts={{ align: "start" }}
             className="w-96 sm:w-full max-w-[1400px]"
           >
             <CarouselContent>
-              {blindboxes?.result.filter((box) => box.items && box.items.length > 0).map((box) => (
-                <CarouselItem key={`blindbox-${box.id}`} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
+              {visibleBlindboxes.map((box) => (
+                <CarouselItem
+                  key={`blindbox-${box.id}`}
+                  className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative"
+                >
                   <BlindboxCard
                     blindbox={box}
                     onViewDetail={handleViewBlindboxDetail}
@@ -474,10 +494,16 @@ export default function HomePage() {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
-            <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+
+            {visibleBlindboxes.length > 4 && (
+              <>
+                <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+                <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+              </>
+            )}
           </Carousel>
         </motion.div>
+
 
         <motion.h1
           variants={fadeIn("up", 0.3)}

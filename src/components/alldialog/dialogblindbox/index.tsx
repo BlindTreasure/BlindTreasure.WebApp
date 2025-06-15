@@ -1,5 +1,6 @@
 
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import { StockStatus, stockStatusMap } from "@/const/products";
 import { BlindBox } from "@/services/blindboxes/typings";
 import { useState } from "react";
 
@@ -28,6 +29,9 @@ const BlindboxDetailDialog: React.FC<BlindboxDetailDialogProps> = ({ blindbox, i
                                 <div className="text-gray-700 dark:text-gray-300">
                                     <strong>Số lượng:</strong> {blindbox.totalQuantity}
                                 </div>
+                                <div className="text-gray-700 dark:text-gray-300">
+                                    <strong>Thương hiệu:</strong> {blindbox.brand}
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <div className="text-gray-700 dark:text-gray-300">
@@ -41,6 +45,9 @@ const BlindboxDetailDialog: React.FC<BlindboxDetailDialogProps> = ({ blindbox, i
                                 </div>
                                 <div className="text-gray-700 dark:text-gray-300">
                                     <strong>Xác suất Secret:</strong> {(blindbox.secretProbability * 100).toFixed(2)}%
+                                </div>
+                                <div className="text-gray-700 dark:text-gray-300">
+                                    <strong>Tình trạng kho:</strong> {stockStatusMap[blindbox.stockStatus as StockStatus]}
                                 </div>
                             </div>
                         </div>

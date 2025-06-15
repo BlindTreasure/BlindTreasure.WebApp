@@ -43,3 +43,12 @@ export enum Rarity {
   Secret = "Secret",
 }
 
+export enum StockStatus {
+  InStock = "InStock",
+  OutOfStock = "OutOfStock",
+}
+
+export const stockStatusMap: Record<StockStatus, string> = {
+  [StockStatus.InStock]: "Còn hàng",
+  [StockStatus.OutOfStock]: "Hết hàng",
+};

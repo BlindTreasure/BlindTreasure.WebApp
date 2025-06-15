@@ -41,6 +41,8 @@ export const buildBlindboxFormData = (data: CreateBlindboxForm) => {
     formData.append("releaseDate", data.releaseDate);
   }
 
+  formData.append("brand", data.brand);
+
   if (data.hasSecretItem !== undefined) {
     formData.append("hasSecretItem", data.hasSecretItem.toString());
   }

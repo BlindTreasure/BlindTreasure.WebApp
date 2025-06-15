@@ -70,6 +70,7 @@ export default function CreateBlindbox({
                 price: blindbox.price,
                 totalQuantity: blindbox.totalQuantity,
                 releaseDate: editDate.toISOString().split('T')[0],
+                brand: blindbox.brand,
                 description: blindbox.description,
                 hasSecretItem: blindbox.hasSecretItem,
                 secretProbability: blindbox.secretProbability,
@@ -210,6 +211,11 @@ export default function CreateBlindbox({
                     {errors.releaseDate && (
                         <p className="text-sm text-red-600">{errors.releaseDate.message}</p>
                     )}
+                </div>
+
+                <div>
+                    <Label htmlFor="brand">Thương hiệu<span className='text-red-600'>*</span></Label>
+                    <Input {...register("brand")} />
                 </div>
 
                 {hasSecretItem && (

@@ -35,6 +35,8 @@ export type BlindBox = {
   description: string;
   price: number;
   totalQuantity: number;
+  stockStatus: StockStatus;
+  brand: string;
   imageUrl: string;
   releaseDate: string;
   status: BlindboxStatus;
@@ -50,6 +52,8 @@ export type BlindBoxDetail = {
   description: string;
   price: number;
   totalQuantity: number;
+  stockStatus: StockStatus;
+  brand: string;
   imageUrl: string;
   releaseDate: string;
   status: BlindboxStatus;
@@ -73,6 +77,7 @@ export type CreateBlindboxForm = {
   price?: number;
   totalQuantity?: number;
   releaseDate?: string;
+  brand: string;
   description: string;
   imageFile?: string | File | null;
   hasSecretItem?: boolean;

@@ -14,7 +14,7 @@ import useAddBlindboxToCart from "../hooks/useAddBlindboxToCart"
 import { BlindBox, BlindBoxDetail } from '@/services/blindboxes/typings';
 import { Backdrop } from '@/components/backdrop';
 import { ProductTabs } from '@/components/tabs';
-import { Rarity } from '@/const/products';
+import { Rarity, StockStatus, stockStatusMap } from '@/const/products';
 import { BlindboxItemSheet } from '@/components/thumbnail-blindbox';
 import LightboxGallery from '@/components/lightbox-gallery';
 
@@ -103,6 +103,20 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
         ...(blindbox?.items?.map(item => item.imageUrl) || []),
     ];
 
+    const isReleased = (() => {
+        if (!blindbox?.releaseDate) return false;
+
+        const today = new Date();
+        const release = new Date(blindbox.releaseDate);
+
+        // Reset time về 00:00:00 cho cả hai ngày
+        today.setHours(0, 0, 0, 0);
+        release.setHours(0, 0, 0, 0);
+
+        return release <= today;
+    })();
+
+
     return (
         <div className="p-6 mt-32 sm:px-16">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -154,9 +168,9 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                     <h2 className="text-3xl font-bold font-roboto mb-4">{blindbox?.name}</h2>
                     <div className='flex gap-8'>
                         <div className='flex gap-8'>
-                            <p className='text-xl'>Thương hiệu: <span className='text-[#00579D] uppercase'></span></p>
+                            <p className='text-xl'>Thương hiệu: <span className='text-[#00579D] uppercase'>{blindbox?.brand}</span></p>
                             <div className="w-px h-5 bg-gray-300" />
-                            <p className='text-xl'>Tình trạng: <span className='text-[#00579D]'>Còn hàng</span></p>
+                            <p className='text-xl'>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[blindbox?.stockStatus as StockStatus]}</span></p>
                             <div className="w-px h-5 bg-gray-300" />
                         </div>
                         {blindbox?.hasSecretItem && (
@@ -166,17 +180,29 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                     <p className="text-4xl font-semibold mt-2 text-[#EF1104]">
                         {blindbox?.price.toLocaleString("vi-VN")}₫
                     </p>
+                    {blindbox && (
+                        <p className='text-xl'>
+                            Ngày phát hành:{" "}
+                            {isReleased ? (
+                                <span className='text-gray-600 text-xl'>
+                                    {new Date(blindbox.releaseDate).toLocaleDateString("vi-VN")}
+                                </span>
+                            ) : (
+                                <span className='text-xl italic text-red-500'>Chưa phát hành</span>
+                            )}
+                        </p>
+                    )}
 
                     <div className="mb-6">
-                        <p className="mb-2">Chọn bộ:</p>
+                        <p className="mb-2 text-xl">Chọn bộ:</p>
                         <div className="flex gap-4">
                             {["Loại A", "Loại B", "Loại C"].map((variant, idx) => (
                                 <div
                                     key={idx}
                                     onClick={() => handleVariantSelect(variant)}
                                     className={`px-4 py-2 rounded-md border cursor-pointer transition-colors ${selectedVariant === variant
-                                            ? 'bg-[#252424] text-white border-[#252424]'
-                                            : 'bg-white text-black border-gray-300 hover:border-gray-400'
+                                        ? 'bg-[#252424] text-white border-[#252424]'
+                                        : 'bg-white text-black border-gray-300 hover:border-gray-400'
                                         }`}
                                 >
                                     {variant}
