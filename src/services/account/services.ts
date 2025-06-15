@@ -1,7 +1,11 @@
 import useToast from "@/hooks/use-toast";
 import { getQueryClient } from "@/lib/query";
 import {
+  createAddress,
+  deleteAddress,
   getAccountProfile,
+  setDefaultAddress,
+  updateAddress,
   updateAvatarProfile,
   updateInfoProfile,
 } from "@/services/account/api-services";
@@ -117,6 +121,85 @@ export const useServiceUpdateSellerProfile = () => {
         description: "Cập nhật thất bại. Vui lòng thử lại.",
         duration: 5000,
       });
+    },
+  });
+};
+
+export const useServiceAddress = () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<API.ResponseAddress>, Error, REQUEST.TCreateAddress>({
+    mutationFn: async (data: REQUEST.TCreateAddress) => {
+      return await createAddress(data);
+    },
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+  });
+};
+
+export const useServicesUpdateAddress = () => {
+  const { addToast } = useToast();
+
+  return useMutation<
+    TResponseData<API.ResponseAddress>,
+    Error,
+    REQUEST.TUpdateAddress & { addressId: string }
+  >({
+    mutationFn: updateAddress,
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
+    },
+  });
+};
+
+export const useServiceSetDefaultAddress = () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<API.ResponseAddress>, Error, string>({
+    mutationFn: async (addressId: string) => {
+      return await setDefaultAddress(addressId);
+    },
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
+    },
+  });
+};
+
+export const useServiceDeleteAddress = () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<API.ResponseAddress>, Error, string>({
+    mutationFn: async (addressId: string) => {
+      return await deleteAddress(addressId);
+    },
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
     },
   });
 };

@@ -1,4 +1,3 @@
-// components/ProvinceSelect.tsx
 "use client"
 
 import {
@@ -31,14 +30,12 @@ export default function ProvinceSelect({ onChange }: Props) {
   const [district, setDistrict] = useState<District | null>(null)
   const [ward, setWard] = useState<Ward | null>(null)
 
-  // Load provinces
   useEffect(() => {
     fetch("https://provinces.open-api.vn/api/?depth=1")
       .then((res) => res.json())
       .then((data) => setProvinces(data))
   }, [])
 
-  // Load districts when province selected
   useEffect(() => {
     if (province) {
       fetch(`https://provinces.open-api.vn/api/p/${province.code}?depth=2`)
@@ -50,7 +47,6 @@ export default function ProvinceSelect({ onChange }: Props) {
     }
   }, [province])
 
-  // Load wards when district selected
   useEffect(() => {
     if (district) {
       fetch(`https://provinces.open-api.vn/api/d/${district.code}?depth=2`)
@@ -60,14 +56,12 @@ export default function ProvinceSelect({ onChange }: Props) {
     }
   }, [district])
 
-  // Emit selected values
   useEffect(() => {
     onChange({ province, district, ward })
   }, [province, district, ward])
 
   return (
     <div className="space-y-4">
-      {/* Province */}
       <Select onValueChange={(value) => {
         const p = provinces.find((p) => p.code.toString() === value)
         setProvince(p ?? null)
@@ -84,7 +78,6 @@ export default function ProvinceSelect({ onChange }: Props) {
         </SelectContent>
       </Select>
 
-      {/* District */}
       <Select
         disabled={!province}
         onValueChange={(value) => {
@@ -104,7 +97,6 @@ export default function ProvinceSelect({ onChange }: Props) {
         </SelectContent>
       </Select>
 
-      {/* Ward */}
       <Select
         disabled={!district}
         onValueChange={(value) => {

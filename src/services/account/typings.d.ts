@@ -25,6 +25,25 @@ declare namespace REQUEST {
   type TVerifyChangePassword = {
     userId: string;
   };
+
+  type TCreateAddress = {
+    fullName: string;
+    phone: string;
+    addressLine1: string;
+    city: string;
+    province: string;
+    postalCode?: string;
+    isDefault?: boolean;
+  };
+
+  type TUpdateAddress = {
+    fullName: string;
+    phone: string;
+    addressLine1: string;
+    city: string;
+    province: string;
+    postalCode?: string;
+  };
 }
 
 declare namespace API {
@@ -43,5 +62,19 @@ declare namespace API {
 
   type TUpdateAvatar = {
     avatarUrl: string;
+  };
+
+  type ResponseAddress = {
+    id: string;
+    userId: string;
+    fullName: string;
+    phone: string;
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    province: string;
+    postalCode: string;
+    country: string;
+    isDefault: boolean;
   };
 }

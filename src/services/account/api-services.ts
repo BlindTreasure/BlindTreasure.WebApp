@@ -12,6 +12,27 @@ export const getAccountProfile = async () => {
   return response.data;
 };
 
+export const getAddresses = async () => {
+  const response = await request<TResponseData<API.ResponseAddress []>>(
+    API_ENDPOINTS.GET_ADDRESSES,
+    {
+      method: "GET",
+    }
+  );
+  return response.data;
+};
+
+export const getAddressById = async (addressId: string) => {
+  const response = await request<TResponseData<API.ResponseAddress >>(
+    API_ENDPOINTS.ADDRESS_BY_ID(addressId),
+    {
+      method: "GET",
+    }
+  );
+  return response.data;
+};
+
+
 export const updateAvatarProfile = async (body: FormData) => {
   const response = await request<TResponseData<API.TUpdateAvatar>>(
     API_ENDPOINTS.UPDATE_AVATAR_PROFILE,
@@ -63,5 +84,61 @@ export const updateSellerProfile = async (body: REQUEST.UpdateSellerInfo) => {
       },
     }
   );
+  return response.data;
+};
+
+export const createAddress = async (
+  body: REQUEST.TCreateAddress
+): Promise<TResponseData<API.ResponseAddress>> => {
+  const response = await request<TResponseData<API.ResponseAddress>>(
+    API_ENDPOINTS.ADD_ADDRESS,
+    {
+      method: "POST",
+      data: body,
+    }
+  );
+
+  return response.data;
+};
+
+export const setDefaultAddress = async (
+  addressId: string
+): Promise<TResponseData<API.ResponseAddress>> => {
+  const response = await request<TResponseData<API.ResponseAddress>>(
+    API_ENDPOINTS.SET_DEFAULT_ADDRESS(addressId),
+    {
+      method: "PUT",
+    }
+  );
+
+  return response.data;
+};
+
+export const deleteAddress = async (
+  addressId: string
+): Promise<TResponseData<API.ResponseAddress>> => {
+  const response = await request<TResponseData<API.ResponseAddress>>(
+    API_ENDPOINTS.ADDRESS_BY_ID(addressId),
+    {
+      method: "DELETE",
+    }
+  );
+
+  return response.data;
+};
+
+export const updateAddress = async (
+  body: REQUEST.TUpdateAddress & { addressId: string }
+): Promise<TResponseData<API.ResponseAddress>> => {
+  const { addressId, ...data } = body;
+
+  const response = await request<TResponseData<API.ResponseAddress>>(
+    API_ENDPOINTS.ADDRESS_BY_ID(addressId),
+    {
+      method: "PUT",
+      data,
+    }
+  );
+
   return response.data;
 };

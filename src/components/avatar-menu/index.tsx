@@ -48,7 +48,7 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
         break;
       }
       case 4: {
-        router.push("/uploadfile");
+        router.push("/address-list");
         onCloseTooltip();
         break;
       }
@@ -121,7 +121,7 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
 
               {isOpen && (
                 <ul className="ml-12 mt-2 space-y-1">
-                  <li className="cursor-pointer px-3 py-1 rounded hover:bg-gray-100 text-gray-700">
+                  <li onClick={() => handleNavigate(4)} className="cursor-pointer px-3 py-1 rounded hover:bg-gray-100 text-gray-700">
                     Địa chỉ
                   </li>
                   <li onClick={() => handleNavigate(1)} className="cursor-pointer px-3 py-1 rounded hover:bg-gray-100 text-gray-700">
