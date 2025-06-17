@@ -5,8 +5,20 @@ import { useRouter } from "next/navigation";
 import { FaTimesCircle } from "react-icons/fa";
 import { Button } from "@/components/ui/button"
 import { GoArrowLeft } from "react-icons/go";
+import useToast from "@/hooks/use-toast";
+import { useEffect } from "react";
 export default function PaymentFailedPage() {
   const router = useRouter()
+  const { addToast } = useToast();
+
+  useEffect(() => {
+    addToast({
+      type: "error",
+      description:
+        "Thanh toán thất bại.",
+      duration: 3500,
+    });
+  }, []);
 
   return (
 
