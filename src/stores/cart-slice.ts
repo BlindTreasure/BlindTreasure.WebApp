@@ -33,4 +33,4 @@ export default cartSlice.reducer;
 
 import { RootState } from "@/stores/store";
 export const selectTotalItems = (state: RootState) =>
-  state.cartSlice.items.reduce((sum, item) => sum + item.quantity, 0);
+  state.cartSlice.items.length;
