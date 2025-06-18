@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Product } from "@/services/product-seller/typings";
 import { Backdrop } from "../backdrop";
+import useAddProductToCart from "@/app/(user)/detail/hooks/useAddProductToCart"
 
 interface ProductCardProps {
   product: Product;
@@ -32,6 +33,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
   const router = useRouter();
   const images = product.imageUrls.length > 0 ? product.imageUrls : ["/images/cart.webp"];
   const [quantity, setQuantity] = useState<number>(1);
+  const { addProductToCartApi, isPending: isAddingToCart } = useAddProductToCart();
 
   const handleDecrease = () => {
     if (quantity > 1) setQuantity(quantity - 1);
@@ -40,6 +42,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
   const handleIncrease = () => {
     setQuantity(quantity + 1);
   };
+
+  const handleAddToCart = async () => {
+    if (!product) return;
+        
+    try {
+      const cartItem = {
+          productId: product.id,
+          quantity: 1,
+        };
+          
+      const result = await addProductToCartApi(cartItem);          
+      } catch (error) {
+        console.error('Lỗi khi thêm vào giỏ hàng:', error);
+      }
+    };
+
   useEffect(() => {
     if (!open) {
       mainSwiper?.destroy(true, false);
@@ -194,7 +212,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
         </div>
 
         <div className="mt-4 flex justify-between items-center">
-          <Button className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
+          <Button onClick={handleAddToCart} className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
             Thêm vào giỏ hàng
           </Button>
           <FaRegHeart className="text-2xl cursor-pointer hover:text-red-500" />
