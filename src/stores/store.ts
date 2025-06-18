@@ -18,12 +18,13 @@ import authSlice from "@/stores/auth-slice";
 import accountSlice from "@/stores/account-slice";
 import differenceSlice from "@/stores/difference-slice";
 import cartSlice from "@/stores/cart-slice"
+import filterSlice from "@/stores/filter-product-slice"
 
 const persistConfig = {
   key: "root",
   version: 1,
   storage,
-  whitelist: ["cartSlice", "userSlice", "authSlice"],
+  whitelist: ["cartSlice", "userSlice", "authSlice", "filterSlice"],
   blacklist: ["accountSlice", "differenceSlice"],
 };
 
@@ -32,7 +33,8 @@ const rootReducer = combineReducers({
   authSlice: authSlice,
   accountSlice: accountSlice,
   differenceSlice: differenceSlice,
-  cartSlice: cartSlice
+  cartSlice: cartSlice,
+  filterSlice: filterSlice
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

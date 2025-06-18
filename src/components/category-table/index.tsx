@@ -5,22 +5,13 @@ import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import DeleteConfirmDialog from '@/components/delete-confirm-dialog'
 
-export type CategoryRow = {
-  id: string
-  name: string
-  description: string
-  parentId?: string
-  imageUrl?: string // ✅ Thêm trường ảnh
-  children?: CategoryRow[]
-}
-
 type Props = {
-  categories: CategoryRow[]
+  categories: API.Category[]
   expandedIds: string[]
   onToggleExpand: (id: string) => void
-  onEdit?: (category: CategoryRow) => void
+  onEdit?: (category: API.Category) => void
   onDelete?: (categoryId: string) => void
-  onDetail?: (category: CategoryRow) => void
+  onDetail?: (category: API.Category) => void
   isLoadingEdit?: boolean
 }
 
@@ -33,7 +24,7 @@ export default function CategoryTable({
   onDetail,
   isLoadingEdit = false,
 }: Props) {
-  const renderRow = (category: CategoryRow, level = 0): JSX.Element[] => {
+  const renderRow = (category: API.Category, level = 0): JSX.Element[] => {
     const isExpanded = expandedIds.includes(category.id)
     const hasChildren = category.children && category.children.length > 0
 

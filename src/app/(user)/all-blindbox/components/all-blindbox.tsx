@@ -6,15 +6,49 @@ import { Backdrop } from "@/components/backdrop";
 import { useRouter } from "next/navigation";
 import useGetAllBlindBoxes from "@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes";
 import Pagination from "@/components/pagination";
+import ProductFilterSidebar from "@/components/product-filter-sidebar";
+import useGetCategory from "@/app/staff/category-management/hooks/useGetCategory";
+import { useAppDispatch, useAppSelector } from "@/stores/store";
+import { 
+  setCategoryId, 
+  setMinPrice, 
+  setMaxPrice, 
+  setReleaseDateFrom,
+  setReleaseDateTo,
+  clearFilters 
+} from "@/stores/filter-product-slice";
 
 export default function AllBlindBoxes() {
+  // Redux state and dispatch
+  const dispatch = useAppDispatch();
+  const filters = useAppSelector(state => state.filterSlice);
+
+  const prices = [
+    "Dưới 200.000₫",
+    "200.000 - 500.000₫", 
+    "500.000 - 1.000.000₫",
+    "1.000.000 - 2.000.000₫",
+    "2.000.000 - 4.000.000₫",
+    "Trên 4.000.000₫",
+  ];
+
+  const releaseDateRanges = [
+    "1 tháng qua",
+    "3 tháng qua", 
+    "6 tháng qua",
+    "1 năm qua",
+    "Trên 1 năm",
+  ];
+
   const [blindboxes, setBlindboxes] = useState<BlindBoxListResponse>();
+  const [categories, setCategories] = useState<API.ResponseDataCategory>();
   const { getAllBlindBoxesApi, isPending: isPendingBlindbox } = useGetAllBlindBoxes();
+  const { getCategoryApi } = useGetCategory();
   const router = useRouter();
 
-  const [blindBoxParams] = useState<GetBlindBoxes>({
+  const [blindBoxParams, setBlindBoxParams] = useState<GetBlindBoxes>({
     pageIndex: 1,
-    pageSize: 9999,
+    pageSize: 8,
     search: "",
     SellerId: "",
     categoryId: "",
@@ -26,47 +60,200 @@ export default function AllBlindBoxes() {
     HasItem: undefined,
   });
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 8;
-
-  useEffect(() => {
-    (async () => {
-      const res = await getAllBlindBoxesApi(blindBoxParams);
-      if (res) setBlindboxes(res.value.data);
-    })();
-  }, []);
-
-  const allItems = blindboxes?.result.filter((b) => b.items && b.items.length > 0) ?? [];
-
-  const totalPages = Math.ceil(allItems.length / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const currentItems = allItems.slice(startIndex, startIndex + pageSize);
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > totalPages) return;
-    setCurrentPage(newPage);
+  // Convert Redux filters to API params
+  const buildApiParams = (): GetBlindBoxes => {
+    return {
+      ...blindBoxParams,
+      categoryId: filters.categoryId || "",
+      minPrice: filters.minPrice || undefined,
+      maxPrice: filters.maxPrice || undefined,
+      ReleaseDateFrom: filters.releaseDateFrom || "",
+      ReleaseDateTo: filters.releaseDateTo || "",
+    };
   };
 
+  // Fetch data when filters or params change
+  useEffect(() => {
+    (async () => {
+      const apiParams = buildApiParams();
+      const res = await getAllBlindBoxesApi(apiParams);
+      if (res) setBlindboxes(res.value.data);
+
+      // Only fetch categories once
+      if (!categories) {
+        const catRes = await getCategoryApi({});
+        if (catRes) setCategories(catRes.value.data || []);
+      }
+    })();
+  }, [blindBoxParams, filters]); // Dependencies include both params and filters
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > (blindboxes?.totalPages || 1)) return;
+    setBlindBoxParams((prev) => ({ ...prev, pageIndex: newPage }));
+  };
+
+  // Filter handlers using Redux dispatch
+  const handleCategoryFilter = (categoryId: string) => {
+    dispatch(setCategoryId(categoryId));
+    // Reset to page 1 when filter changes
+    setBlindBoxParams(prev => ({ ...prev, pageIndex: 1 }));
+  };
+
+  const handlePriceFilter = (priceRange: string) => {
+    let minPrice: number | null = null;
+    let maxPrice: number | null = null;
+
+    switch (priceRange) {
+      case "Dưới 200.000₫":
+        maxPrice = 200000;
+        break;
+      case "200.000 - 500.000₫":
+        minPrice = 200000;
+        maxPrice = 500000;
+        break;
+      case "500.000 - 1.000.000₫":
+        minPrice = 500000;
+        maxPrice = 1000000;
+        break;
+      case "1.000.000 - 2.000.000₫":
+        minPrice = 1000000;
+        maxPrice = 2000000;
+        break;
+      case "2.000.000 - 4.000.000₫":
+        minPrice = 2000000;
+        maxPrice = 4000000;
+        break;
+      case "Trên 4.000.000₫":
+        minPrice = 4000000;
+        break;
+    }
+
+    dispatch(setMinPrice(minPrice));
+    dispatch(setMaxPrice(maxPrice));
+    setBlindBoxParams(prev => ({ ...prev, pageIndex: 1 }));
+  };
+
+  const handleReleaseDateFilter = (dateRange: string) => {
+    const now = new Date();
+    let fromDate: string | null = null;
+    
+    switch (dateRange) {
+      case "1 tháng qua":
+        fromDate = new Date(now.setMonth(now.getMonth() - 1)).toISOString();
+        break;
+      case "3 tháng qua":
+        fromDate = new Date(now.setMonth(now.getMonth() - 3)).toISOString();
+        break;
+      case "6 tháng qua":
+        fromDate = new Date(now.setMonth(now.getMonth() - 6)).toISOString();
+        break;
+      case "1 năm qua":
+        fromDate = new Date(now.setFullYear(now.getFullYear() - 1)).toISOString();
+        break;
+      case "Trên 1 năm":
+        dispatch(setReleaseDateTo(new Date(now.setFullYear(now.getFullYear() - 1)).toISOString()));
+        break;
+    }
+
+    if (fromDate) {
+      dispatch(setReleaseDateFrom(fromDate));
+      dispatch(setReleaseDateTo(null)); // Clear "to" date for "from" filters
+    }
+    
+    setBlindBoxParams(prev => ({ ...prev, pageIndex: 1 }));
+  };
+
+  const handleClearFilters = () => {
+    dispatch(clearFilters());
+    setBlindBoxParams(prev => ({ ...prev, pageIndex: 1 }));
+  };
+
+  // Filter blindboxes that have items
+  const filteredBlindboxes = blindboxes?.result.filter((b) => b.items && b.items.length > 0) ?? [];
+
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6 text-center mt-40">Tất cả Blindbox</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {currentItems.map((box) => (
-          <BlindboxCard
-            key={box.id}
-            blindbox={box}
-            ribbonTypes={["blindbox"]}
-            onViewDetail={(id) => router.push(`/detail-blindbox/${id}`)}
+    <div className="mt-16 container mx-auto px-4 sm:px-6 lg:p-20 xl:px-20 2xl:px-20">
+      <h1 className="text-3xl font-bold mb-6 text-center">Tất cả Blindbox</h1>
+      
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Sidebar Filter */}
+        <div className="w-full lg:w-auto lg:shrink-0">
+          <ProductFilterSidebar 
+            categories={categories} 
+            prices={prices} 
+            releaseDateRanges={releaseDateRanges}
+            filters={filters} // Pass current filters to sidebar
+            onCategoryFilter={handleCategoryFilter}
+            onPriceFilter={handlePriceFilter}
+            onReleaseDateFilter={handleReleaseDateFilter}
+            onClearFilters={handleClearFilters}
           />
-        ))}
+        </div>
+
+        <main className="w-full">
+          {/* Filter summary */}
+          <div className="mb-4 flex flex-wrap gap-2">
+            {filters.categoryId && (
+              <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                Category: {categories?.result.find(c => c.id === filters.categoryId)?.name}
+                <button 
+                  onClick={() => dispatch(setCategoryId(null))}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {(filters.minPrice || filters.maxPrice) && (
+              <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                Price: {filters.minPrice?.toLocaleString() || '0'}₫ - {filters.maxPrice?.toLocaleString() || '∞'}₫
+                <button 
+                  onClick={() => {
+                    dispatch(setMinPrice(null));
+                    dispatch(setMaxPrice(null));
+                  }}
+                  className="ml-2 text-green-600 hover:text-green-800"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {filters.releaseDateFrom && (
+              <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                Release Date: From {new Date(filters.releaseDateFrom).toLocaleDateString()}
+                <button 
+                  onClick={() => dispatch(setReleaseDateFrom(null))}
+                  className="ml-2 text-purple-600 hover:text-purple-800"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+          </div>
+
+          {/* Blindbox Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            {filteredBlindboxes.map((box) => (
+              <BlindboxCard
+                key={box.id}
+                blindbox={box}
+                ribbonTypes={["blindbox"]}
+                onViewDetail={(id) => router.push(`/detail-blindbox/${id}`)}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          <div className="mt-8">
+            <Pagination
+              currentPage={blindBoxParams.pageIndex ?? 1}
+              totalPages={blindboxes?.totalPages ?? 1}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        </main>
       </div>
-      <div className="mt-8 flex justify-center">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      </div>
+      
       <Backdrop open={isPendingBlindbox} />
     </div>
   );

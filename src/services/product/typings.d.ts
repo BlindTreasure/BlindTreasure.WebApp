@@ -11,6 +11,10 @@ export type GetAllProducts = {
   productStatus?: ProductStatus;
   sellerId: string;
   sortBy?: ProductSortBy;
+  minPrice?: number;
+  maxPrice?: number;
+  releaseDateFrom?: string;
+  releaseDateTo?: string;
   desc?: boolean;
   pageIndex: number;
   pageSize: number;
