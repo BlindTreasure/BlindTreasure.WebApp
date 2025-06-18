@@ -100,8 +100,8 @@ export default function AllBlindBoxes() {
   };
 
   const handlePriceFilter = (priceRange: string) => {
-    let minPrice: number | null = null;
-    let maxPrice: number | null = null;
+    let minPrice: number | undefined = undefined;
+    let maxPrice: number | undefined = undefined;
 
     switch (priceRange) {
       case "Dưới 200.000₫":
@@ -157,7 +157,7 @@ export default function AllBlindBoxes() {
 
     if (fromDate) {
       dispatch(setReleaseDateFrom(fromDate));
-      dispatch(setReleaseDateTo(null)); // Clear "to" date for "from" filters
+      dispatch(setReleaseDateTo(undefined));
     }
     
     setBlindBoxParams(prev => ({ ...prev, pageIndex: 1 }));
@@ -197,7 +197,7 @@ export default function AllBlindBoxes() {
               <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                 Category: {categories?.result.find(c => c.id === filters.categoryId)?.name}
                 <button 
-                  onClick={() => dispatch(setCategoryId(null))}
+                  onClick={() => dispatch(setCategoryId(undefined))}
                   className="ml-2 text-blue-600 hover:text-blue-800"
                 >
                   ×
@@ -209,8 +209,8 @@ export default function AllBlindBoxes() {
                 Price: {filters.minPrice?.toLocaleString() || '0'}₫ - {filters.maxPrice?.toLocaleString() || '∞'}₫
                 <button 
                   onClick={() => {
-                    dispatch(setMinPrice(null));
-                    dispatch(setMaxPrice(null));
+                    dispatch(setMinPrice(undefined));
+                    dispatch(setMaxPrice(undefined));
                   }}
                   className="ml-2 text-green-600 hover:text-green-800"
                 >
@@ -222,7 +222,7 @@ export default function AllBlindBoxes() {
               <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
                 Release Date: From {new Date(filters.releaseDateFrom).toLocaleDateString()}
                 <button 
-                  onClick={() => dispatch(setReleaseDateFrom(null))}
+                  onClick={() => dispatch(setReleaseDateFrom(undefined))}
                   className="ml-2 text-purple-600 hover:text-purple-800"
                 >
                   ×
