@@ -12,6 +12,10 @@ import useClearAllCartItem from "../hooks/useClearAllCartItem";
 import useDebounce from '@/hooks/use-debounce';
 import Image from 'next/image';
 import { SlHandbag } from "react-icons/sl";
+import useGetAllAddress from '../../address-list/hooks/useGetAllAddress';
+import useCreateOrder from '../hooks/useCreateOrder';
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialogHeader } from '@/components/ui/alert-dialog';
 
 const QuantitySelector = ({
   value,
@@ -26,6 +30,7 @@ const QuantitySelector = ({
   max?: number;
   className?: string;
 }) => {
+
   const handleDecrement = useCallback(() => {
     if (value > min) {
       onChange(value - 1);
@@ -100,6 +105,26 @@ const Cart: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const { getAllAddressApi, isPending: isGettingAddress, defaultAddress } = useGetAllAddress();
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const { createOrder, isPending: isCreatingOrder } = useCreateOrder();
+  const [orderItems, setOrderItems] = useState<REQUEST.CreateOrderItem[]>([]);
+  const [pendingOrderData, setPendingOrderData] = useState<REQUEST.CreateOrderList | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const res = await getAllAddressApi();
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (defaultAddress) {
+      setSelectedAddressId(defaultAddress.id);
+    }
+  }, [defaultAddress]);
+
 
   // Khởi tạo selectedItems và quantities khi cartItems thay đổi
   useEffect(() => {
@@ -195,13 +220,65 @@ const Cart: React.FC = () => {
       return acc + quantity * item.unitPrice;
     }, 0);
 
+  // const handleCheckout = useCallback(async () => {
+  //   try {
+  //     console.log('Proceeding to checkout with total:', total);
+  //   } catch (error) {
+  //     console.error('Error during checkout:', error);
+  //   }
+  // }, [total]);
+
+  const handlePreviewOrder = useCallback(() => {
+    const items: REQUEST.CreateOrderItem[] = cartItems
+      .filter(item => selectedItems.includes(item.id))
+      .map(item => ({
+        productId: item.productId ?? "",
+        productName: item.productName ?? "",
+        blindBoxId: item.blindBoxId ?? "",
+        blindBoxName: item.blindBoxName ?? "",
+        quantity: quantities[item.id] ?? item.quantity,
+        unitPrice: item.unitPrice,
+        totalPrice: (quantities[item.id] ?? item.quantity) * item.unitPrice,
+      }));
+
+    const payload: REQUEST.CreateOrderList = {
+      shippingAddressId: selectedAddressId!,
+      items,
+    };
+
+    setPendingOrderData(payload);
+    setShowConfirmModal(true);
+  }, [cartItems, selectedItems, quantities, selectedAddressId]);
+
+
   const handleCheckout = useCallback(async () => {
-    try {
-      console.log('Proceeding to checkout with total:', total);
-    } catch (error) {
-      console.error('Error during checkout:', error);
+    if (!selectedAddressId) {
+      return;
     }
-  }, [total]);
+
+    const items: REQUEST.CreateOrderItem[] = cartItems
+      .filter(item => selectedItems.includes(item.id))
+      .map(item => ({
+        productId: item.productId ?? "",
+        productName: item.productName ?? "",
+        blindBoxId: item.blindBoxId ?? "",
+        blindBoxName: item.blindBoxName ?? "",
+        quantity: quantities[item.id] ?? item.quantity,
+        unitPrice: item.unitPrice,
+        totalPrice: (quantities[item.id] ?? item.quantity) * item.unitPrice,
+      }));
+
+    const payload: REQUEST.CreateOrderList = {
+      shippingAddressId: selectedAddressId,
+      items,
+    };
+
+    const url = await createOrder(payload);
+    if (url) {
+      window.location.href = url;
+    }
+  }, [selectedAddressId, selectedItems, cartItems, quantities, createOrder]);
+
 
   const handleContinueShopping = useCallback(() => {
     console.log('Continue shopping');
@@ -389,12 +466,29 @@ const Cart: React.FC = () => {
               </div>
               <div className="flex flex-col gap-2">
                 <Button
+                  variant="outline"
+                  onClick={handlePreviewOrder}
+                  disabled={
+                    selectedItems.length === 0 ||
+                    total === 0 ||
+                    !selectedAddressId
+                  }
+                  className="w-full sm:w-auto"
+                >
+                  Xem trước đơn hàng
+                </Button>
+                <Button
                   className="w-full"
                   onClick={handleCheckout}
-                  disabled={selectedItems.length === 0 || total === 0}
+                  disabled={
+                    selectedItems.length === 0 ||
+                    total === 0 ||
+                    !selectedAddressId
+                  }
                 >
                   Thanh toán ({selectedItems.length} sản phẩm)
                 </Button>
+
                 <Button
                   variant="outline"
                   className="w-full"
@@ -407,6 +501,53 @@ const Cart: React.FC = () => {
           </Card>
         </div>
       )}
+      <Dialog open={showConfirmModal} onOpenChange={() => setShowConfirmModal(false)}>
+        <DialogContent className="max-w-lg">
+          <AlertDialogHeader>
+            <DialogTitle>Xác nhận đơn hàng</DialogTitle>
+          </AlertDialogHeader>
+
+          <div className="max-h-[300px] overflow-auto space-y-4">
+            {pendingOrderData?.items.map((item, index) => (
+              <div key={index} className="flex justify-between text-sm">
+                <div>
+                  <p className="font-medium">{item.productName || item.blindBoxName}</p>
+                  <p>Số lượng: {item.quantity}</p>
+                </div>
+                <div className="text-right">
+                  <p>₫{item.unitPrice.toLocaleString()}</p>
+                  <p className="text-muted-foreground">Tổng: ₫{item.totalPrice.toLocaleString()}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 font-semibold text-right">
+            Tổng cộng: ₫
+            {pendingOrderData?.items
+              .reduce((sum, item) => sum + item.totalPrice, 0)
+              .toLocaleString()}
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
+              Hủy
+            </Button>
+            <Button
+              onClick={async () => {
+                setShowConfirmModal(false);
+                if (pendingOrderData) {
+                  const url = await createOrder(pendingOrderData);
+                  if (url) window.location.href = url;
+                }
+              }}
+            >
+              Xác nhận & Thanh toán
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };  
