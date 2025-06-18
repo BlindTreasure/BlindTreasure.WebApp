@@ -4,6 +4,7 @@ import {
   ProductType,
   Rarity,
   Status,
+  StockStatus,
 } from "@/const/products";
 
 export type GetBlindBoxes = {
@@ -35,7 +36,7 @@ export type BlindBox = {
   description: string;
   price: number;
   totalQuantity: number;
-  stockStatus: StockStatus;
+  blindBoxStockStatus: StockStatus;
   brand: string;
   imageUrl: string;
   releaseDate: string;
@@ -52,7 +53,7 @@ export type BlindBoxDetail = {
   description: string;
   price: number;
   totalQuantity: number;
-  stockStatus: StockStatus;
+  blindBoxStockStatus: StockStatus;
   brand: string;
   imageUrl: string;
   releaseDate: string;

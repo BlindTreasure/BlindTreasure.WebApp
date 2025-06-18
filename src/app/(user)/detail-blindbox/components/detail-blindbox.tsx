@@ -170,7 +170,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                         <div className='flex gap-8'>
                             <p className='text-xl'>Thương hiệu: <span className='text-[#00579D] uppercase'>{blindbox?.brand}</span></p>
                             <div className="w-px h-5 bg-gray-300" />
-                            <p className='text-xl'>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[blindbox?.stockStatus as StockStatus]}</span></p>
+                            <p className='text-xl'>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[blindbox?.blindBoxStockStatus as StockStatus]}</span></p>
                             <div className="w-px h-5 bg-gray-300" />
                         </div>
                         {blindbox?.hasSecretItem && (

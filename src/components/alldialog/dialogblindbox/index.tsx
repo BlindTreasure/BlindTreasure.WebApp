@@ -47,7 +47,7 @@ const BlindboxDetailDialog: React.FC<BlindboxDetailDialogProps> = ({ blindbox, i
                                     <strong>Xác suất Secret:</strong> {(blindbox.secretProbability * 100).toFixed(2)}%
                                 </div>
                                 <div className="text-gray-700 dark:text-gray-300">
-                                    <strong>Tình trạng kho:</strong> {stockStatusMap[blindbox.stockStatus as StockStatus]}
+                                    <strong>Tình trạng kho:</strong> {stockStatusMap[blindbox.blindBoxStockStatus as StockStatus]}
                                 </div>
                             </div>
                         </div>
