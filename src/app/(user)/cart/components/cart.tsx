@@ -16,6 +16,7 @@ import useGetAllAddress from '../../address-list/hooks/useGetAllAddress';
 import useCreateOrder from '../hooks/useCreateOrder';
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialogHeader } from '@/components/ui/alert-dialog';
+import useToast from '@/hooks/use-toast';
 
 const QuantitySelector = ({
   value,
@@ -112,6 +113,7 @@ const Cart: React.FC = () => {
   const [orderItems, setOrderItems] = useState<REQUEST.CreateOrderItem[]>([]);
   const [pendingOrderData, setPendingOrderData] = useState<REQUEST.CreateOrderList | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const { addToast } = useToast();
 
   useEffect(() => {
     (async () => {
@@ -253,9 +255,14 @@ const Cart: React.FC = () => {
 
   const handleCheckout = useCallback(async () => {
     if (!selectedAddressId) {
+      addToast({
+        type: "error",
+        description:
+          "Vui lòng cập nhật địa chỉ giao hàng trước khi thanh toán.",
+        duration: 3500,
+      });
       return;
     }
-
     const items: REQUEST.CreateOrderItem[] = cartItems
       .filter(item => selectedItems.includes(item.id))
       .map(item => ({
@@ -468,11 +475,7 @@ const Cart: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={handlePreviewOrder}
-                  disabled={
-                    selectedItems.length === 0 ||
-                    total === 0 ||
-                    !selectedAddressId
-                  }
+                  disabled={selectedItems.length === 0 || total === 0}
                   className="w-full sm:w-auto"
                 >
                   Xem trước đơn hàng
@@ -480,11 +483,7 @@ const Cart: React.FC = () => {
                 <Button
                   className="w-full"
                   onClick={handleCheckout}
-                  disabled={
-                    selectedItems.length === 0 ||
-                    total === 0 ||
-                    !selectedAddressId
-                  }
+                  disabled={selectedItems.length === 0 || total === 0}
                 >
                   Thanh toán ({selectedItems.length} sản phẩm)
                 </Button>
