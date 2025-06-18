@@ -1,10 +1,22 @@
 import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/order/api-path";
+import { OrderResponse } from "./typings";
 
-export const getCartByCustomer = async (): Promise<
-  TResponseData<API.ResponseDataCart>
-> => {
-  const response = await request<TResponseData<API.ResponseDataCart>>(
+// export const getOrderByCustomer = async (): Promise<
+//   TResponseData<OrderResponse[]>
+// > => {
+//   const response = await request<TResponseData<OrderResponse[]>>(
+//     API_ENDPOINTS.ORDER,
+//     {
+//       method: "GET",
+//     }
+//   );
+//   return response.data;
+// };
+
+
+export const getOrderByCustomer = async () => {
+  const response = await request<TResponseData<OrderResponse[]>>(
     API_ENDPOINTS.ORDER,
     {
       method: "GET",

@@ -10,6 +10,10 @@ import { useRouter } from "next/navigation";
 import { FaReceipt } from "react-icons/fa";
 import useLogout from "@/hooks/use-logout";
 import { useState } from "react";
+import { CiBag1 } from "react-icons/ci";
+import { CiViewList } from "react-icons/ci";
+import { FiUser } from "react-icons/fi";
+import { BsRobot } from "react-icons/bs";
 
 interface AvatarMenuProps {
   onCloseTooltip: () => void;
@@ -90,13 +94,26 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
               onClick={() => handleNavigate(5)}
             >
               <div className="flex items-center">
-                <FaReceipt
+                <CiBag1
                   className="p-1 bg-gray-300 text-black rounded-full mr-2"
                   size={30}
                 />
                 <span className="text-black">Sản phẩm đã mua</span>
               </div>
-              <FiChevronRight className="text-gray-500" size={24} />
+            </div>
+          </li>
+          <li>
+            <div
+              className="flex items-center justify-between px-4 py-2 bg-white rounded-lg hover:bg-gray-200 cursor-pointer"
+              onClick={() => handleNavigate(5)}
+            >
+              <div className="flex items-center">
+                <CiViewList
+                  className="p-1 bg-gray-300 text-black rounded-full mr-2"
+                  size={30}
+                />
+                <span className="text-black">Đơn mua</span>
+              </div>
             </div>
           </li>
           <ul className="space-y-2">
@@ -106,7 +123,7 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
                 className="cursor-pointer flex items-center justify-between px-4 py-2 bg-white rounded-lg hover:bg-gray-200"
               >
                 <div className="flex items-center">
-                  <IoSettingsSharp
+                  <FiUser 
                     className="p-1 bg-gray-300 text-black rounded-full mr-2"
                     size={30}
                   />
@@ -138,13 +155,12 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
               onClick={() => handleNavigate(3)}
             >
               <div className="flex items-center">
-                <FaQuestionCircle
+                <BsRobot 
                   className="p-1 bg-gray-300 text-black rounded-full mr-2"
                   size={30}
                 />
                 <span className="text-black">Chat hỗ trợ</span>
               </div>
-              <FiChevronRight className="text-gray-500" size={24} />
             </div>
           </li>
         </ul>

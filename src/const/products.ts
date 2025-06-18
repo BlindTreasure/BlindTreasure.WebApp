@@ -52,3 +52,35 @@ export const stockStatusMap: Record<StockStatus, string> = {
   [StockStatus.InStock]: "Còn hàng",
   [StockStatus.OutOfStock]: "Hết hàng",
 };
+
+export enum PaymentStatus {
+  PENDING = "Pending",
+  PAID = "Paid",
+  FAILED = "Failed",
+  CANCELLED = "Cancelled",
+  EXPIRED = "Expired",
+  COMPLETED = "Completed",
+}
+
+export const PaymentStatusText: Record<PaymentStatus, string> = {
+  [PaymentStatus.PENDING]: "Chờ thanh toán",
+  [PaymentStatus.CANCELLED]: "Đã hủy",
+  [PaymentStatus.PAID]: "Đã thanh toán",
+  [PaymentStatus.FAILED]: "Thanh toán thất bại",
+  [PaymentStatus.COMPLETED]: "Hoàn tất",
+  [PaymentStatus.EXPIRED]: "Hết hạn",
+};
+
+export enum OrderStatus {
+  PENDING = "PENDING",
+  SHIPPING = "SHIPPING",
+  DELIVERED = "DELIVERED",
+  CANCELLED = "CANCELLED",
+}
+
+export const OrderStatusText: Record<OrderStatus, string> = {
+  [OrderStatus.PENDING]: "Chờ xác nhận",
+  [OrderStatus.SHIPPING]: "Đang vận chuyển",
+  [OrderStatus.DELIVERED]: "Đã giao hàng",
+  [OrderStatus.CANCELLED]: "Đã hủy",
+};
