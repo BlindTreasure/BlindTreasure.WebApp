@@ -16,6 +16,7 @@ import { Backdrop } from '@/components/backdrop';
 import LightboxGallery from '@/components/lightbox-gallery';
 import { Gallery, Item } from "react-photoswipe-gallery";
 import "photoswipe/style.css";
+import { StockStatus, stockStatusMap } from '@/const/products';
 
 interface DetailProps {
     detailId: string;
@@ -128,7 +129,7 @@ export default function Detail({ detailId }: DetailProps) {
                     <div className='flex gap-8'>
                         <p className='text-xl'>Thương hiệu: <span className='text-[#00579D] uppercase'>{products?.brand}</span></p>
                         <div className="w-px h-5 bg-gray-300" />
-                        <p>Tình trạng: <span className='text-[#00579D]'>Còn hàng</span></p>
+                        <p>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[products?.productStockStatus as StockStatus]}</span></p>
                     </div>
                     <p className="text-4xl font-semibold mt-2 text-[#EF1104]">{products?.price.toLocaleString("vi-VN")}₫</p>
                     <p className='text-xl'>Ngày phát hành: <span className='text-gray-600 text-xl'> {products?.createdAt

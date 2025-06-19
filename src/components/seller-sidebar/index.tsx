@@ -148,7 +148,7 @@ export default function SellerSidebar() {
                   DANH MỤC
                 </div>
               ) : (
-                <div className="flex items-center justify-center w-8 h-8">
+                <div className="flex items-center w-8 h-8">
                   <BsThreeDots size={20} />
                 </div>
               )}

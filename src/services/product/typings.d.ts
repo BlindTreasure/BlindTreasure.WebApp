@@ -3,6 +3,7 @@ import {
   ProductStatus,
   ProductType,
   Status,
+  StockStatus,
 } from "@/const/products";
 
 export type GetAllProducts = {
@@ -27,6 +28,7 @@ export type AllProduct = {
   categoryId: string;
   price: number;
   stock: number;
+  productStockStatus: StockStatus;
   height: number;
   material: string;
   productType: string;

@@ -150,20 +150,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
                         {product.price.toLocaleString("vi-VN")}₫
                       </p>
                       <p>Mô tả: <span className='text-gray-600 text-sm line-clamp-2'>{product.description}</span></p>
-                      <div className="mb-6">
-                        <p className="mb-2">Chọn bộ:</p>
-                        <div className="flex gap-4">
-                          {["Loại A", "Loại B", "Loại C"].map((variant, idx) => (
-                            <div
-                              key={idx}
-                              className="px-4 py-2 rounded-md border bg-white text-black border-gray-300 cursor-default"
-                            >
-                              {variant}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
                       <div className="flex items-center gap-4 mt-6">
                         <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
                           <button

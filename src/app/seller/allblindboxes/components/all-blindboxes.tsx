@@ -29,7 +29,7 @@ import { HiOutlineTrash } from "react-icons/hi"
 import { BsEye } from "react-icons/bs"
 import { CiSearch } from "react-icons/ci";
 import { BlindboxStatus, ProductSortBy, Rarity } from "@/const/products"
-import { BlindBox, BlindBoxItemRequest, BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings"
+import { BlindBox, BlindBoxItem, BlindBoxItemRequest, BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings"
 import useGetAllBlindBoxes from "../hooks/useGetAllBlindBoxes"
 import { IoIosArrowDown } from "react-icons/io";
 import { FiChevronRight } from "react-icons/fi";
@@ -50,10 +50,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { MdOutlineCleaningServices } from "react-icons/md";
 import useDeleteBlindbox from "../hooks/useDeleteBlindbox";
 import { CreateBlindBoxBodyType } from "@/utils/schema-validations/create-blindbox.schema";
+import BlindboxItemDetailDialog from "@/components/alldialog/dialogblindboxitem";
 export default function BlindboxTable() {
     const [blindboxes, setBlindBox] = useState<BlindBoxListResponse>()
     const [products, setProducts] = useState<TProductResponse>()
     const [selecteddetailBlindbox, setSelectedDetailBlindbox] = useState<BlindBox | null>(null);
+    const [selectedItemDetail, setSelectedItemDetail] = useState<BlindBoxItem | null>(null);
     const [selectedBlindboxToEditBlindbox, setSelectedBlindboxToEditBlindbox] = useState<BlindBox | null>(null);
     const [selectedBlindboxToEditItem, setSelectedBlindboxToEditBlindboxItem] = useState<BlindBoxItemRequest | null>(null);
     const [openEditBlindbox, setOpenEditBlindbox] = useState(false);
@@ -538,27 +540,9 @@ export default function BlindboxTable() {
                                                             <Button
                                                                 variant="outline"
                                                                 size="icon"
-                                                                onClick={() => {
-                                                                    setSelectedBlindboxToEditBlindboxItem({
-                                                                        ...item,
-                                                                        rarity: item.rarity as Rarity,
-                                                                    });
-                                                                    setOpenEditItem(true);
-                                                                }}
+                                                                onClick={() => setSelectedItemDetail(item)}
                                                             >
-                                                                <FaRegEdit className="w-4 h-4" />
-                                                            </Button>
-
-                                                            <Button
-                                                                variant="outline"
-                                                                size="icon"
-                                                                className="text-red-500"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-
-                                                                }}
-                                                            >
-                                                                <HiOutlineTrash className="w-4 h-4" />
+                                                                <BsEye className="w-4 h-4" />
                                                             </Button>
                                                         </TableCell>
                                                     </TableRow>
@@ -576,6 +560,14 @@ export default function BlindboxTable() {
                             blindbox={selecteddetailBlindbox}
                             isOpen={true}
                             onClose={() => setSelectedDetailBlindbox(null)}
+                        />
+                    )}
+
+                    {selectedItemDetail && (
+                        <BlindboxItemDetailDialog
+                            item={selectedItemDetail}
+                            isOpen={!!selectedItemDetail}
+                            onClose={() => setSelectedItemDetail(null)}
                         />
                     )}
 

@@ -47,7 +47,7 @@ const BlindboxDetailDialog: React.FC<BlindboxDetailDialogProps> = ({ blindbox, i
                                     <strong>Xác suất Secret:</strong> {(blindbox.secretProbability * 100).toFixed(2)}%
                                 </div>
                                 <div className="text-gray-700 dark:text-gray-300">
-                                    <strong>Tình trạng kho:</strong> {stockStatusMap[blindbox.stockStatus as StockStatus]}
+                                    <strong>Tình trạng kho:</strong> {stockStatusMap[blindbox.blindBoxStockStatus as StockStatus]}
                                 </div>
                             </div>
                         </div>
@@ -63,20 +63,23 @@ const BlindboxDetailDialog: React.FC<BlindboxDetailDialogProps> = ({ blindbox, i
                         </div>
 
                         <div className="mb-4">
-                            <h3 className="text-md font-semibold mb-2 text-gray-800 dark:text-gray-200">Danh sách vật phẩm</h3>
-                            <div className="grid gap-4">
+                            <h3 className="text-md font-semibold mb-2 text-gray-800 dark:text-gray-200">
+                                Danh sách vật phẩm
+                            </h3>
+                            <div className="grid gap-3">
                                 {blindbox.items.map((item) => (
                                     <div
                                         key={item.productId}
-                                        className="p-3 border rounded-md flex items-center gap-4 bg-gray-50 dark:bg-gray-800"
+                                        className="flex items-center gap-4 p-2 rounded-md border bg-white dark:bg-gray-800 shadow-sm"
                                     >
-                                        <img src={item.imageUrl} alt={item.productName} className="w-16 h-16 object-cover rounded" />
-                                        <div>
-                                            <p className="font-medium text-gray-800 dark:text-white">{item.productName}</p>
-                                            <p className="text-sm text-gray-500 dark:text-gray-300">Rarity: {item.rarity}</p>
-                                            <p className="text-sm text-gray-500 dark:text-gray-300">Drop rate: {item.dropRate}%</p>
-                                            <p className="text-sm text-gray-500 dark:text-gray-300">Số lượng: {item.quantity}</p>
-                                        </div>
+                                        <img
+                                            src={item.imageUrl}
+                                            alt={item.productName}
+                                            className="w-14 h-14 object-cover rounded-md border"
+                                        />
+                                        <p className="text-sm font-medium text-gray-800 dark:text-white">
+                                            {item.productName}
+                                        </p>
                                     </div>
                                 ))}
                             </div>

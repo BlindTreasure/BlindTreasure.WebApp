@@ -17,7 +17,7 @@ export default function AllNewProducts() {
     const [blindboxes, setBlindboxes] = useState<BlindBoxListResponse>();
     const { getAllProductWebApi, isPending } = useGetAllProductWeb();
     const { getAllBlindBoxesApi, isPending: isPendingBlindbox } = useGetAllBlindBoxes();
-    const [params, setParams] = useState<GetAllProducts>({
+    const [params] = useState<GetAllProducts>({
         pageIndex: 1,
         pageSize: 9999,
         search: "",
@@ -59,9 +59,23 @@ export default function AllNewProducts() {
         })();
     }, []);
 
+    const now = new Date();
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(now.getDate() - 14);
+
+    const filteredProducts = products?.result.filter((p) => {
+        const created = new Date(p.createdAt);
+        return p.productType !== "BlindBoxOnly" && created >= fourteenDaysAgo;
+    });
+
+    const filteredBlindboxes = blindboxes?.result.filter((b) => {
+        const released = new Date(b.releaseDate);
+        return b.items && b.items.length > 0 && released >= fourteenDaysAgo;
+    });
+
     const allItems = [
-        ...(products?.result.filter((p) => p.productType !== "BlindBoxOnly") ?? []),
-        ...(blindboxes?.result.filter((b) => b.items && b.items.length > 0) ?? []),
+        ...(filteredProducts ?? []),
+        ...(filteredBlindboxes ?? []),
     ];
 
     const totalPages = Math.ceil(allItems.length / pageSize);
@@ -75,11 +89,15 @@ export default function AllNewProducts() {
 
     return (
         <div className="container mx-auto py-10">
-            <h1 className="text-3xl font-bold mb-6 text-center mt-40">Tất cả sản phẩm mới</h1>
+            <h1 className="text-3xl font-bold mb-6 text-center mt-40">
+                Tất cả sản phẩm mới
+            </h1>
+            <div className="text-center text-gray-500 text-sm mb-4">
+                Đang hiển thị {allItems.length} sản phẩm được tạo trong 14 ngày gần đây.
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {currentItems.map((item) => {
                     const ribbonTypes = getRibbonTypes(item);
-
                     return "productType" in item ? (
                         <ProductCard
                             key={item.id}
@@ -96,7 +114,6 @@ export default function AllNewProducts() {
                         />
                     );
                 })}
-
             </div>
             <div className="mt-8 flex justify-center">
                 <Pagination
