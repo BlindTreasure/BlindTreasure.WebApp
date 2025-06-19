@@ -1,4 +1,4 @@
-import { OrderStatus, PaymentStatus } from "@/const/products";
+import { OrderStatus, PaymentInfoStatus, PaymentStatus } from "@/const/products";
 
 export type OrderResponse = {
   id: string;
@@ -41,7 +41,7 @@ export type PaymentInfo = {
   discountRate: number;
   netAmount: number;
   method: string;
-  status: PaymentStatus;
+  status: PaymentInfoStatus;
   transactionId: string;
   paidAt: string;
   refundedAmount: number;

@@ -3,39 +3,27 @@
 import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { OrderResponse } from "@/services/order/typings";
-import { PaymentStatus } from "@/const/products";
+import { PaymentInfoStatus, PaymentStatus } from "@/const/products";
 import useGetAllOrder from "../hooks/useGetOrderByCustomer";
 import OrderCard from "@/components/order-card";
 
 export const TAB_MAP = [
     { value: "all", label: "Tất cả" },
-    { value: "pending", label: "Chờ thanh toán", statuses: [PaymentStatus.PENDING] },
-    { value: "completed", label: "Đã thanh toán", statuses: [PaymentStatus.PAID, PaymentStatus.COMPLETED] },
-    { value: "cancelled", label: "Đã hủy", statuses: [PaymentStatus.CANCELLED, PaymentStatus.FAILED, PaymentStatus.EXPIRED] },
+    { value: "pending", label: "Chờ thanh toán", statuses: [PaymentInfoStatus.PENDING] },
+    { value: "completed", label: "Đã thanh toán", statuses: [PaymentInfoStatus.PAID, PaymentInfoStatus.COMPLETED] },
+    { value: "cancelled", label: "Đã hủy", statuses: [PaymentInfoStatus.CANCELLED, PaymentInfoStatus.FAILED, PaymentInfoStatus.EXPIRED] },
 ];
 
 export default function Purchased() {
     const [orders, setOrders] = useState<OrderResponse[]>([]);
     const { getAllOrderApi, isPending } = useGetAllOrder();
 
-    const normalizeOrderStatus = (status: string): PaymentStatus => {
-        const normalized = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-        return normalized as PaymentStatus;
-    };
-
 
     useEffect(() => {
         const fetchOrders = async () => {
             const res = await getAllOrderApi();
             if (res?.value.data) {
-                const normalized = res.value.data.map((order: any) => ({
-                    ...order,
-                    payment: {
-                        ...order.payment,
-                        status: normalizeOrderStatus(order.payment.status),
-                    },
-                }));
-                setOrders(normalized);
+                setOrders(res.value.data);
             }
         };
         fetchOrders();
@@ -49,7 +37,7 @@ export default function Purchased() {
 
         if (tab && tab.statuses) {
             filteredOrders = orders.filter((order) =>
-                tab.statuses!.includes(order.payment?.status)
+                tab.statuses!.includes(order.payment?.status as PaymentInfoStatus)
             );
         }
 

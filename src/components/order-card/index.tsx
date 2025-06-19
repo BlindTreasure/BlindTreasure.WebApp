@@ -1,7 +1,7 @@
 "use client";
 
 import { OrderDetail, PaymentInfo } from "@/services/order/typings";
-import { PaymentStatus, PaymentStatusText } from "@/const/products";
+import { PaymentInfoStatus, PaymentInfoStatusText, PaymentStatus, PaymentStatusText } from "@/const/products";
 import {
     Dialog,
     DialogTrigger,
@@ -50,7 +50,7 @@ export default function OrderCard({
                     </button>
                 </div>
                 <div className="text-sm font-semibold text-red-500 uppercase">
-                    {PaymentStatusText[payment.status] || "Không xác định"}
+                    {PaymentInfoStatusText[payment.status] || "Không xác định"}
                 </div>
             </div>
 
@@ -106,12 +106,12 @@ export default function OrderCard({
                                 <DialogTitle>Hóa đơn đơn hàng</DialogTitle>
                                 <span
                                     className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase w-fit
-    ${payment.status === PaymentStatus.PAID || payment.status === PaymentStatus.COMPLETED
+    ${payment.status === PaymentInfoStatus.PAID || payment.status === PaymentInfoStatus.COMPLETED
                                             ? "bg-green-100 text-green-700"
                                             : "bg-red-100 text-red-700"
                                         }`}
                                 >
-                                    {PaymentStatusText[payment.status]}
+                                    {PaymentInfoStatusText[payment.status]}
                                 </span>
                             </DialogHeader>
 
