@@ -3,13 +3,16 @@ import { useState, useEffect } from "react";
 import PaginationBar from "@/components/pagination";
 import ProductFilterSidebar from "@/components/product-filter-sidebar";
 import ProductCard from "@/components/product-card";
+import BlindboxCard from "@/components/blindbox-card";
 import useGetAllProductWeb from "../hooks/useGetAllProductWeb";
+import useGetAllBlindBoxes from "@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes";
+import { BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings";
 import { GetAllProducts, TAllProductResponse } from "@/services/product/typings";
 import { ProductStatus } from "@/const/products";
 import Pagination from "@/components/tables/Pagination";
 import useGetCategory from "@/app/staff/category-management/hooks/useGetCategory";
 import { Backdrop } from "@/components/backdrop";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { 
   setCategoryId, 
@@ -24,6 +27,7 @@ export default function AllProduct() {
   // Redux state and dispatch
   const dispatch = useAppDispatch();
   const filters = useAppSelector(state => state.filterSlice);
+  const searchParams = useSearchParams();
 
   const prices = [
     "Dưới 200.000₫",
@@ -42,14 +46,72 @@ export default function AllProduct() {
     "Trên 1 năm",
   ];
 
-  const [products, setProducts] = useState<TAllProductResponse>()
-  const { getAllProductWebApi, isPending } = useGetAllProductWeb()
+  // States
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
+  const [isFromHome, setIsFromHome] = useState(false);
+
+  const [blindBoxParams, setBlindBoxParams] = useState<GetBlindBoxes>({
+    pageIndex: 1,
+    pageSize: 8,
+    search: "",
+    SellerId: "",
+    categoryId: "",
+    status: "",
+    minPrice: undefined,
+    maxPrice: undefined,
+    ReleaseDateFrom: "",
+    ReleaseDateTo: "",
+    HasItem: undefined,
+  });
+
+  const [products, setProducts] = useState<TAllProductResponse>();
+  const [blindboxes, setBlindboxes] = useState<BlindBoxListResponse>();
   const [categories, setCategories] = useState<API.ResponseDataCategory>();
+
+  // Hooks
+  const { getAllProductWebApi, isPending: isPendingProducts } = useGetAllProductWeb();
+  const { getAllBlindBoxesApi, isPending: isPendingBlindbox } = useGetAllBlindBoxes();
   const { getCategoryApi } = useGetCategory();
   const router = useRouter();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5;
+  // Check if coming from home with category filter
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get('category');
+    if (categoryFromUrl && !filters.categoryId) {
+      dispatch(setCategoryId(categoryFromUrl));
+      setIsFromHome(true);
+    }
+  }, [searchParams, dispatch, filters.categoryId]);
+
+  const buildBlindBoxApiParams = (): GetBlindBoxes => {
+    return {
+      ...blindBoxParams,
+      pageIndex: currentPage,
+      categoryId: filters.categoryId || "",
+      minPrice: filters.minPrice || undefined,
+      maxPrice: filters.maxPrice || undefined,
+      ReleaseDateFrom: filters.releaseDateFrom || "",
+      ReleaseDateTo: filters.releaseDateTo || "",
+    };
+  };
+
+  const buildProductApiParams = (): GetAllProducts => {
+    return {
+      pageIndex: currentPage,
+      pageSize: pageSize,
+      search: "",
+      productStatus: undefined,
+      sellerId: "",
+      categoryId: filters.categoryId || "",
+      minPrice: filters.minPrice || undefined,
+      maxPrice: filters.maxPrice || undefined,
+      releaseDateFrom: filters.releaseDateFrom || undefined,
+      releaseDateTo: filters.releaseDateTo || undefined,
+      sortBy: undefined,
+      desc: undefined,
+    };
+  };
 
   // Fetch categories once on mount
   useEffect(() => {
@@ -60,33 +122,38 @@ export default function AllProduct() {
     fetchCategories();
   }, []);
 
-  // Fetch products when filters or page change
+  // Fetch data when filters or page change
   useEffect(() => {
-    const fetchProducts = async () => {
-      const apiParams: GetAllProducts = {
-        pageIndex: currentPage,
-        pageSize: pageSize,
-        search: "",
-        productStatus: undefined,
-        sellerId: "",
-        categoryId: filters.categoryId || "",
-        minPrice: filters.minPrice || undefined,
-        maxPrice: filters.maxPrice || undefined,
-        releaseDateFrom: filters.releaseDateFrom || undefined,
-        releaseDateTo: filters.releaseDateTo || undefined,
-        sortBy: undefined,
-        desc: undefined,
-      };
-    
-      const res = await getAllProductWebApi(apiParams);
-      if (res) setProducts(res.value.data);
+    const fetchData = async () => {
+      const productParams = buildProductApiParams();
+      const productRes = await getAllProductWebApi(productParams);
+      if (productRes) setProducts(productRes.value.data);
+
+      const blindboxParams = buildBlindBoxApiParams();
+      const blindboxRes = await getAllBlindBoxesApi(blindboxParams);
+      if (blindboxRes) setBlindboxes(blindboxRes.value.data);
     };
 
-    fetchProducts();
+    fetchData();
+  }, [filters, currentPage]);
+
+  useEffect(() => {
+    setBlindBoxParams(prev => ({
+      ...prev,
+      pageIndex: currentPage,
+      categoryId: filters.categoryId || "",
+      minPrice: filters.minPrice || undefined,
+      maxPrice: filters.maxPrice || undefined,
+      ReleaseDateFrom: filters.releaseDateFrom || "",
+      ReleaseDateTo: filters.releaseDateTo || "",
+    }));
   }, [filters, currentPage]);
 
   const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > (products?.totalPages || 1)) return;
+    const totalItems = (products?.result?.length || 0) + (blindboxes?.result?.length || 0);
+    const maxPages = Math.ceil(totalItems / pageSize);
+    
+    if (newPage < 1 || newPage > maxPages) return;
     setCurrentPage(newPage);
   };
 
@@ -94,19 +161,23 @@ export default function AllProduct() {
     router.push(`/detail/${id}`);
   };
 
+  const handleViewBlindboxDetail = (id: string) => {
+    router.push(`/detail-blindbox/${id}`);
+  };
+
   // Filter handlers using Redux dispatch
   const handleCategoryFilter = (categoryId: string) => {
-    // If clicking the same category, clear it
     if (filters.categoryId === categoryId) {
       dispatch(setCategoryId(undefined));
+      setIsFromHome(false);
     } else {
       dispatch(setCategoryId(categoryId));
+      setIsFromHome(false);
     }
-    setCurrentPage(1); // Reset to page 1 when filter changes
+    setCurrentPage(1);
   };
 
   const handlePriceFilter = (priceRange: string) => {
-    // If clicking the same price range, clear it
     const currentPriceRange = getCurrentPriceRange();
     if (currentPriceRange === priceRange) {
       dispatch(setMinPrice(undefined));
@@ -149,7 +220,6 @@ export default function AllProduct() {
   };
 
   const handleReleaseDateFilter = (dateRange: string) => {
-    // If clicking the same date range, clear it
     const currentDateRange = getCurrentReleaseDateRange();
     if (currentDateRange === dateRange) {
       dispatch(setReleaseDateFrom(undefined));
@@ -161,7 +231,6 @@ export default function AllProduct() {
     let fromDate: string | undefined = undefined;
     let toDate: string | undefined = undefined;
     
-    // Create a fresh date object for each calculation
     const now = new Date();
     
     switch (dateRange) {
@@ -182,8 +251,7 @@ export default function AllProduct() {
         toDate = now.toISOString();
         break;
       case "Trên 1 năm":
-        // For "older than 1 year": from very old date to 1 year ago
-        fromDate = new Date(2000, 0, 1).toISOString(); // Start from year 2000
+        fromDate = new Date(2000, 0, 1).toISOString();
         toDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).toISOString();
         break;
     }
@@ -195,10 +263,11 @@ export default function AllProduct() {
 
   const handleClearFilters = () => {
     dispatch(clearFilters());
+    setIsFromHome(false);
     setCurrentPage(1);
   };
 
-  // Helper functions (moved here to access current filters)
+  // Helper functions
   const getCurrentPriceRange = (): string => {
     const { minPrice, maxPrice } = filters;
     
@@ -224,11 +293,9 @@ export default function AllProduct() {
     const fromDate = new Date(filters.releaseDateFrom);
     const toDate = new Date(filters.releaseDateTo);
     
-    // Check if toDate is approximately now (within 1 day)
     const isToDateNow = Math.abs(toDate.getTime() - now.getTime()) < 24 * 60 * 60 * 1000;
     
     if (isToDateNow) {
-      // For ranges ending at "now"
       if (Math.abs(fromDate.getTime() - oneMonthAgo.getTime()) < 24 * 60 * 60 * 1000) {
         return "1 tháng qua";
       }
@@ -242,7 +309,6 @@ export default function AllProduct() {
         return "1 năm qua";
       }
     } else {
-      // For "Trên 1 năm" case: from very old date to 1 year ago
       const isFromOldDate = fromDate.getFullYear() <= 2000;
       const isToOneYearAgo = Math.abs(toDate.getTime() - oneYearAgo.getTime()) < 30 * 24 * 60 * 60 * 1000;
       
@@ -271,13 +337,77 @@ export default function AllProduct() {
     return findInArray(categories.result);
   };
 
+  // Get filtered categories for sidebar (only show selected category and its children when category is selected)
+  const getFilteredCategories = () => {
+    if (!filters.categoryId || !categories?.result) {
+      return categories;
+    }
+
+    const findCategoryWithChildren = (arr: any[], targetId: string): any => {
+      for (const cat of arr) {
+        if (cat.id === targetId) {
+          return cat;
+        }
+        if (cat.children && cat.children.length > 0) {
+          const found = findCategoryWithChildren(cat.children, targetId);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const selectedCategory = findCategoryWithChildren(categories.result, filters.categoryId);
+    if (selectedCategory) {
+      return {
+        ...categories,
+        result: [selectedCategory]
+      };
+    }
+
+    return categories;
+  };
+
+  // Get mixed data with pagination (6 items per page total)
+  const getDisplayData = () => {
+    const allProducts = products?.result || [];
+    const allBlindboxes = blindboxes?.result || [];
+    
+    // Combine and mix the arrays
+    const mixedData: Array<{type: 'product' | 'blindbox', data: any}> = [];
+    
+    // Add products
+    allProducts.forEach(product => {
+      mixedData.push({ type: 'product', data: product });
+    });
+    
+    // Add blindboxes
+    allBlindboxes.forEach(blindbox => {
+      mixedData.push({ type: 'blindbox', data: blindbox });
+    });
+    
+    // Calculate pagination
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedData = mixedData.slice(startIndex, endIndex);
+    
+    return {
+      items: paginatedData,
+      totalItems: mixedData.length,
+      totalPages: Math.ceil(mixedData.length / pageSize)
+    };
+  };
+
+  const displayData = getDisplayData();
+  const isPending = isPendingProducts || isPendingBlindbox;
+  const filteredCategories = getFilteredCategories();
+
   return (
     <div className="mt-16 container mx-auto px-4 sm:px-6 lg:p-20 xl:px-20 2xl:px-20">
       <div className="flex flex-col lg:flex-row gap-6">
 
         <div className="w-full lg:w-auto lg:shrink-0">
           <ProductFilterSidebar 
-            categories={categories} 
+            categories={filteredCategories} 
             prices={prices} 
             releaseDateRanges={releaseDateRanges}
             filters={filters}
@@ -289,13 +419,17 @@ export default function AllProduct() {
         </div>
 
         <main className="w-full">
-          {/* Filter summary */}
+
+          {/* Filter summary - Don't show category tag if from home */}
           <div className="mb-4 flex flex-wrap gap-2">
-            {filters.categoryId && (
+            {filters.categoryId && !isFromHome && (
               <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                 Category: {findCategoryName(filters.categoryId)}
                 <button 
-                  onClick={() => dispatch(setCategoryId(undefined))}
+                  onClick={() => {
+                    dispatch(setCategoryId(undefined));
+                    setIsFromHome(false);
+                  }}
                   className="ml-2 text-blue-600 hover:text-blue-800"
                 >
                   ×
@@ -332,20 +466,38 @@ export default function AllProduct() {
             )}
           </div>
 
+          {/* Mixed Grid - Products and BlindBoxes together with pagination */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-            {products?.result.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onViewDetail={handleViewDetail}
-              />
+            {displayData.items.map((item, index) => (
+              item.type === 'product' ? (
+                <ProductCard
+                  key={`product-${item.data.id}-${index}`}
+                  product={item.data}
+                  onViewDetail={handleViewDetail}
+                />
+              ) : (
+                <BlindboxCard
+                  key={`blindbox-${item.data.id}-${index}`}
+                  blindbox={item.data}
+                  ribbonTypes={["blindbox"]}
+                  onViewDetail={handleViewBlindboxDetail}
+                />
+              )
             ))}
           </div>
 
+          {/* No results message */}
+          {displayData.items.length === 0 && !isPending && (
+            <div className="text-center py-8 text-gray-500">
+              Không tìm thấy sản phẩm phù hợp với bộ lọc của bạn.
+            </div>
+          )}
+
+          {/* Pagination */}
           <div className="mt-8">
             <Pagination
               currentPage={currentPage}
-              totalPages={products?.totalPages ?? 1}
+              totalPages={displayData.totalPages}
               onPageChange={handlePageChange}
             />
           </div>

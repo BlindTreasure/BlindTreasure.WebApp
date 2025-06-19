@@ -72,7 +72,6 @@ export default function AllBlindBoxes() {
     };
   };
 
-  // Fetch data when filters or params change
   useEffect(() => {
     (async () => {
       const apiParams = buildApiParams();
@@ -85,7 +84,7 @@ export default function AllBlindBoxes() {
         if (catRes) setCategories(catRes.value.data || []);
       }
     })();
-  }, [blindBoxParams, filters]); // Dependencies include both params and filters
+  }, [blindBoxParams, filters]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > (blindboxes?.totalPages || 1)) return;
