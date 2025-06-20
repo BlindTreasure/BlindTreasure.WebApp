@@ -6,6 +6,7 @@ export interface FilterState {
   maxPrice: number | undefined;
   releaseDateFrom: string | undefined;
   releaseDateTo: string | undefined;
+  selectedCategoryId?: string | undefined
 }
 
 const initialState: FilterState = {
@@ -44,6 +45,12 @@ const filterSlice = createSlice({
       state.releaseDateTo = action.payload.to;
     },
     clearFilters: () => initialState,
+    clearFiltersExceptCategory: (state) => {
+      state.minPrice = undefined;
+      state.maxPrice = undefined;
+      state.releaseDateFrom = undefined;
+      state.releaseDateTo = undefined;
+    },
   },
 });
 
@@ -56,6 +63,7 @@ export const {
   setReleaseDateTo,
   setDateRange,
   clearFilters,
+  clearFiltersExceptCategory
 } = filterSlice.actions;
 
 export default filterSlice.reducer;

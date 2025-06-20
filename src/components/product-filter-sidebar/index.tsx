@@ -28,6 +28,7 @@ type SidebarProps = {
   onPriceFilter: (priceRange: string) => void;
   onReleaseDateFilter: (dateRange: string) => void;
   onClearFilters: () => void;
+  hasActiveFilters?: boolean;
 };
 
 export default function ProductFilterSidebar({ 
@@ -38,7 +39,8 @@ export default function ProductFilterSidebar({
   onCategoryFilter,
   onPriceFilter,
   onReleaseDateFilter,
-  onClearFilters
+  onClearFilters,
+  hasActiveFilters
 }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
@@ -144,20 +146,18 @@ export default function ProductFilterSidebar({
   };
 
   const handleCategoryClick = (categoryId: string) => {
-    // Check if this category is currently selected
     const isCurrentlySelected = filters.categoryId === categoryId;
+    if (isCurrentlySelected) {
+      return;
+    }
     
+    // Chỉ gọi onCategoryFilter khi chưa được chọn
     onCategoryFilter(categoryId);
     
     const category = findCategoryById(categoryId);
     if (category && category.children && category.children.length > 0) {
-      if (isCurrentlySelected) {
-        // If clicking on already selected category, collapse it
-        setExpandedCategories(expandedCategories.filter(id => id !== categoryId));
-      } else {
-        // If selecting new category with children, collapse all others and expand this one
-        setExpandedCategories([categoryId]);
-      }
+      // If selecting new category with children, collapse all others and expand this one
+      setExpandedCategories([categoryId]);
     } else {
       // If selecting a category without children, collapse all expanded categories
       setExpandedCategories([]);
@@ -199,7 +199,7 @@ export default function ProductFilterSidebar({
           size="sm" 
           onClick={handleClearAll}
           className="text-gray-500 hover:text-[#d02a2a]"
-          disabled={getActiveFiltersCount() === 0}
+          disabled={getActiveFiltersCount() === 0 || !hasActiveFilters}
         >
           <X className="h-4 w-4 mr-1" />
           Xóa tất cả

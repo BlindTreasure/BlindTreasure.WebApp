@@ -12,7 +12,7 @@ import { ProductStatus } from "@/const/products";
 import Pagination from "@/components/tables/Pagination";
 import useGetCategory from "@/app/staff/category-management/hooks/useGetCategory";
 import { Backdrop } from "@/components/backdrop";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { 
   setCategoryId, 
@@ -20,7 +20,8 @@ import {
   setMaxPrice, 
   setReleaseDateFrom,
   setReleaseDateTo,
-  clearFilters 
+  clearFilters,
+  clearFiltersExceptCategory  // Thêm action mới này
 } from "@/stores/filter-product-slice";
 
 export default function AllProduct() {
@@ -28,6 +29,7 @@ export default function AllProduct() {
   const dispatch = useAppDispatch();
   const filters = useAppSelector(state => state.filterSlice);
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const prices = [
     "Dưới 200.000₫",
@@ -49,7 +51,6 @@ export default function AllProduct() {
   // States
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
-  const [isFromHome, setIsFromHome] = useState(false);
 
   const [blindBoxParams, setBlindBoxParams] = useState<GetBlindBoxes>({
     pageIndex: 1,
@@ -68,6 +69,7 @@ export default function AllProduct() {
   const [products, setProducts] = useState<TAllProductResponse>();
   const [blindboxes, setBlindboxes] = useState<BlindBoxListResponse>();
   const [categories, setCategories] = useState<API.ResponseDataCategory>();
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Hooks
   const { getAllProductWebApi, isPending: isPendingProducts } = useGetAllProductWeb();
@@ -75,20 +77,69 @@ export default function AllProduct() {
   const { getCategoryApi } = useGetCategory();
   const router = useRouter();
 
-  // Check if coming from home with category filter
+  // Lấy categoryId từ URL query
+  const categoryIdFromQuery = searchParams.get('categoryId');
+
+  // SOLUTION 1: Xóa Redux state khi component unmount (chuyển trang)
   useEffect(() => {
-    const categoryFromUrl = searchParams.get('category');
-    if (categoryFromUrl && !filters.categoryId) {
-      dispatch(setCategoryId(categoryFromUrl));
-      setIsFromHome(true);
+    // Cleanup function sẽ chạy khi component unmount
+    return () => {
+      console.log('Component unmounting, clearing filters...');
+      dispatch(clearFilters());
+    };
+  }, [dispatch]);
+
+  // ALTERNATIVE: Nếu muốn xóa khi pathname thay đổi
+  useEffect(() => {
+    const handleRouteChange = () => {
+      // Chỉ clear khi rời khỏi trang allproduct
+      if (!pathname.includes('/allproduct')) {
+        console.log('Leaving allproduct page, clearing filters...');
+        dispatch(clearFilters());
+      }
+    };
+
+    // Lắng nghe sự thay đổi pathname
+    handleRouteChange();
+  }, [pathname, dispatch]);
+
+  // Khởi tạo Redux state từ URL khi mới vào trang
+  useEffect(() => {
+    // Clear filters trước khi set từ URL để tránh conflict
+    dispatch(clearFilters());
+    
+    if (categoryIdFromQuery) {
+      console.log('Setting categoryId to Redux:', categoryIdFromQuery);
+      dispatch(setCategoryId(categoryIdFromQuery));
+      setIsInitialized(true);
+    } else {
+      setIsInitialized(true);
     }
-  }, [searchParams, dispatch, filters.categoryId]);
+  }, [categoryIdFromQuery, dispatch]);
+
+  const updateUrlWithCategory = (categoryId: string | undefined) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    
+    if (categoryId) {
+      current.set('categoryId', categoryId);
+    } else {
+      current.delete('categoryId');
+    }
+    
+    const search = current.toString();
+    const query = search ? `?${search}` : '';
+    
+    window.history.replaceState({}, '', `${window.location.pathname}${query}`);
+  };
 
   const buildBlindBoxApiParams = (): GetBlindBoxes => {
+    const categoryId = filters.categoryId || "";
+    console.log('buildBlindBoxApiParams categoryId:', categoryId);
+    
     return {
       ...blindBoxParams,
       pageIndex: currentPage,
-      categoryId: filters.categoryId || "",
+      categoryId: categoryId,
       minPrice: filters.minPrice || undefined,
       maxPrice: filters.maxPrice || undefined,
       ReleaseDateFrom: filters.releaseDateFrom || "",
@@ -97,13 +148,16 @@ export default function AllProduct() {
   };
 
   const buildProductApiParams = (): GetAllProducts => {
+    const categoryId = filters.categoryId || "";
+    console.log('buildProductApiParams categoryId:', categoryId);
+    
     return {
       pageIndex: currentPage,
       pageSize: pageSize,
       search: "",
       productStatus: undefined,
       sellerId: "",
-      categoryId: filters.categoryId || "",
+      categoryId: categoryId,
       minPrice: filters.minPrice || undefined,
       maxPrice: filters.maxPrice || undefined,
       releaseDateFrom: filters.releaseDateFrom || undefined,
@@ -122,21 +176,30 @@ export default function AllProduct() {
     fetchCategories();
   }, []);
 
-  // Fetch data when filters or page change
+  // Fetch data chỉ khi đã khởi tạo xong và có categories
   useEffect(() => {
+    if (!isInitialized || !categories) return;
+
     const fetchData = async () => {
+      console.log('Fetching data with filters:', filters);
+      
       const productParams = buildProductApiParams();
+      console.log('Product params:', productParams);
+      
       const productRes = await getAllProductWebApi(productParams);
       if (productRes) setProducts(productRes.value.data);
 
       const blindboxParams = buildBlindBoxApiParams();
+      console.log('Blindbox params:', blindboxParams);
+      
       const blindboxRes = await getAllBlindBoxesApi(blindboxParams);
       if (blindboxRes) setBlindboxes(blindboxRes.value.data);
     };
 
     fetchData();
-  }, [filters, currentPage]);
+  }, [filters, currentPage, isInitialized, categories]);
 
+  // Cập nhật blindBoxParams khi filters thay đổi
   useEffect(() => {
     setBlindBoxParams(prev => ({
       ...prev,
@@ -165,15 +228,17 @@ export default function AllProduct() {
     router.push(`/detail-blindbox/${id}`);
   };
 
-  // Filter handlers using Redux dispatch
   const handleCategoryFilter = (categoryId: string) => {
     if (filters.categoryId === categoryId) {
-      dispatch(setCategoryId(undefined));
-      setIsFromHome(false);
-    } else {
-      dispatch(setCategoryId(categoryId));
-      setIsFromHome(false);
+      dispatch(setCategoryId(undefined)); // hoặc setCategoryId('')
+      updateUrlWithCategory(undefined);
+      setCurrentPage(1);
+      return;
     }
+    
+    // Nếu chưa chọn hoặc chọn category khác, thì chọn category mới
+    dispatch(setCategoryId(categoryId));
+    updateUrlWithCategory(categoryId);
     setCurrentPage(1);
   };
 
@@ -261,10 +326,16 @@ export default function AllProduct() {
     setCurrentPage(1);
   };
 
+  // Cập nhật hàm handleClearFilters để chỉ xóa filters khác, giữ lại category
   const handleClearFilters = () => {
-    dispatch(clearFilters());
-    setIsFromHome(false);
+    dispatch(clearFiltersExceptCategory()); // Sử dụng action mới
+    // Không cập nhật URL vì category vẫn còn
     setCurrentPage(1);
+  };
+
+  // Kiểm tra có filter nào được áp dụng không (ngoại trừ category)
+  const hasActiveFilters = () => {
+    return !!(filters.minPrice || filters.maxPrice || filters.releaseDateFrom || filters.releaseDateTo);
   };
 
   // Helper functions
@@ -320,72 +391,55 @@ export default function AllProduct() {
     return "";
   };
 
-  const findCategoryName = (categoryId: string): string => {
-    if (!categories?.result) return "";
+  const getCategoriesForDisplay = () => {
+    const activeCategoryId = filters.categoryId;
     
-    const findInArray = (arr: any[]): string => {
-      for (const cat of arr) {
-        if (cat.id === categoryId) return cat.name;
-        if (cat.children && cat.children.length > 0) {
-          const found = findInArray(cat.children);
-          if (found) return found;
-        }
-      }
-      return "";
-    };
-    
-    return findInArray(categories.result);
-  };
-
-  // Get filtered categories for sidebar (only show selected category and its children when category is selected)
-  const getFilteredCategories = () => {
-    if (!filters.categoryId || !categories?.result) {
+    if (!activeCategoryId || !categories?.result) {
       return categories;
     }
 
-    const findCategoryWithChildren = (arr: any[], targetId: string): any => {
+    const findParentWithChild = (arr: any[], targetId: string): any | null => {
       for (const cat of arr) {
         if (cat.id === targetId) {
           return cat;
         }
+        if (cat.children && cat.children.some((child: any) => child.id === targetId)) {
+          return cat;
+        }
         if (cat.children && cat.children.length > 0) {
-          const found = findCategoryWithChildren(cat.children, targetId);
+          const found = findParentWithChild(cat.children, targetId);
           if (found) return found;
         }
       }
       return null;
     };
 
-    const selectedCategory = findCategoryWithChildren(categories.result, filters.categoryId);
-    if (selectedCategory) {
+    const parentCategory = findParentWithChild(categories.result, activeCategoryId);
+    
+    if (parentCategory) {
       return {
         ...categories,
-        result: [selectedCategory]
+        result: [parentCategory]
       };
     }
 
     return categories;
   };
 
-  // Get mixed data with pagination (6 items per page total)
   const getDisplayData = () => {
     const allProducts = products?.result || [];
     const allBlindboxes = blindboxes?.result || [];
     
-    // Combine and mix the arrays
     const mixedData: Array<{type: 'product' | 'blindbox', data: any}> = [];
     
-    // Add products
     allProducts.forEach(product => {
       mixedData.push({ type: 'product', data: product });
     });
     
-    // Add blindboxes
     allBlindboxes.forEach(blindbox => {
       mixedData.push({ type: 'blindbox', data: blindbox });
     });
     
-    // Calculate pagination
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const paginatedData = mixedData.slice(startIndex, endIndex);
@@ -399,7 +453,6 @@ export default function AllProduct() {
 
   const displayData = getDisplayData();
   const isPending = isPendingProducts || isPendingBlindbox;
-  const filteredCategories = getFilteredCategories();
 
   return (
     <div className="mt-16 container mx-auto px-4 sm:px-6 lg:p-20 xl:px-20 2xl:px-20">
@@ -407,35 +460,24 @@ export default function AllProduct() {
 
         <div className="w-full lg:w-auto lg:shrink-0">
           <ProductFilterSidebar 
-            categories={filteredCategories} 
+            categories={getCategoriesForDisplay()}
             prices={prices} 
             releaseDateRanges={releaseDateRanges}
-            filters={filters}
+            filters={{
+              ...filters,
+              selectedCategoryId: filters.categoryId || undefined
+            }}
             onCategoryFilter={handleCategoryFilter}
             onPriceFilter={handlePriceFilter}
             onReleaseDateFilter={handleReleaseDateFilter}
             onClearFilters={handleClearFilters}
+            hasActiveFilters={hasActiveFilters()}
           />
         </div>
 
         <main className="w-full">
 
-          {/* Filter summary - Don't show category tag if from home */}
           <div className="mb-4 flex flex-wrap gap-2">
-            {filters.categoryId && !isFromHome && (
-              <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                Category: {findCategoryName(filters.categoryId)}
-                <button 
-                  onClick={() => {
-                    dispatch(setCategoryId(undefined));
-                    setIsFromHome(false);
-                  }}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
-                >
-                  ×
-                </button>
-              </span>
-            )}
             {(filters.minPrice || filters.maxPrice) && (
               <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                 Price: {getCurrentPriceRange()}
@@ -466,7 +508,6 @@ export default function AllProduct() {
             )}
           </div>
 
-          {/* Mixed Grid - Products and BlindBoxes together with pagination */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {displayData.items.map((item, index) => (
               item.type === 'product' ? (
@@ -486,14 +527,12 @@ export default function AllProduct() {
             ))}
           </div>
 
-          {/* No results message */}
           {displayData.items.length === 0 && !isPending && (
             <div className="text-center py-8 text-gray-500">
               Không tìm thấy sản phẩm phù hợp với bộ lọc của bạn.
             </div>
           )}
 
-          {/* Pagination */}
           <div className="mt-8">
             <Pagination
               currentPage={currentPage}

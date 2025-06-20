@@ -183,18 +183,21 @@ export default function HomePage() {
   })();
 }, [categoriesParams]);
 
-
   const handleCategoryClick = (category: API.Category) => {
-    console.log('Selected category:', category);
-    // Set loading state
     setLoadingPage(true);
     
     // Dispatch action để set category filter trong Redux store
     dispatch(clearFilters()); // Reset các filter khác trước
     dispatch(setCategoryId(category.id));
     
-    // Navigate đến trang allproduct
-    router.push('/allproduct');
+    // Tạo URL với query parameters
+    const queryParams = new URLSearchParams({
+      categoryId: category.id.toString(),
+      categoryName: encodeURIComponent(category.name)
+    });
+    
+    // Navigate đến trang allproduct với query parameters
+    router.push(`/allproduct?${queryParams.toString()}`);
   };
 
   const filteredItems = [
