@@ -14,7 +14,7 @@ export default function useCreateOrder() {
     } catch (error) {
       addToast({
         type: "error",
-        description: "Tạo đơn hàng thất bại. Vui lòng thử lại.",
+        description: "Tạo đơn hàng thất bại. Vui lòng cập nhật địa chỉ giao hàng trước khi thanh toán.",
       });
       return null;
     } finally {

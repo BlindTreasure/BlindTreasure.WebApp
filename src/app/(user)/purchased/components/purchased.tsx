@@ -56,6 +56,7 @@ export default function Purchased() {
                 return (
                     <OrderCard
                         key={order.id}
+                        orderId={order.id}
                         shopName="Blind Treasure"
                         details={order.details}
                         total={order.totalAmount}

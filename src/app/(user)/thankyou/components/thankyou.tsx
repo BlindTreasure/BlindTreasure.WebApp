@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { GoArrowLeft } from "react-icons/go";
-import { useAppDispatch } from '@/stores/store';
-import { setCart } from '@/stores/cart-slice';
-import { getCartByCustomer } from '@/services/cart-item/api-services';
-import useToast from '@/hooks/use-toast';
+import { useAppDispatch } from "@/stores/store";
+import { setCart } from "@/stores/cart-slice";
+import { getCartByCustomer } from "@/services/cart-item/api-services";
+import useToast from "@/hooks/use-toast";
+import { CheckCircle2 } from "lucide-react";
 
 export default function ThankYouPage() {
     const searchParams = useSearchParams();
-    const orderId = searchParams.get('order_id');
+    const orderId = searchParams.get("order_id");
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { addToast } = useToast();
@@ -32,44 +32,46 @@ export default function ThankYouPage() {
 
         addToast({
             type: "success",
-            description:
-                "Thanh toán thành công! Cảm ơn bạn đã đặt hàng. ",
+            description: "Thanh toán thành công! Cảm ơn bạn đã đặt hàng.",
             duration: 3500,
         });
-
     }, [dispatch]);
 
     return (
-        <main className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4 py-10 text-center">
-            <div className="max-w-md bg-white shadow-lg rounded-2xl p-8">
-                <div className="w-28 h-28 mx-auto mb-4 rounded-full bg-green-500 flex items-center justify-center">
-                    <svg className="w-20 h-20 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
+        <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10">
+            <div className="max-w-lg w-full bg-white rounded-2xl shadow-xl p-8 text-center space-y-6">
+                <div className="flex justify-center">
+                    <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
+                        <CheckCircle2 className="w-16 h-16 text-green-600" />
+                    </div>
                 </div>
 
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">Cảm ơn bạn đã đặt hàng</h1>
-                <p className="text-gray-600">
-                    Thanh toán thành công! Chúng tôi đã nhận được đơn hàng của bạn.
+                <h1 className="text-2xl font-bold text-gray-800">
+                    Cảm ơn bạn đã đặt hàng!
+                </h1>
+                <p className="text-gray-600 text-sm">
+                    Đơn hàng của bạn đã được xác nhận và đang được xử lý. Chúng tôi sẽ sớm gửi đến bạn.
                 </p>
 
-                {/* {orderId && (
-          <div className="mt-6">
-            <p className="text-gray-800 mb-2">
-              Mã đơn hàng: <span className="font-semibold">{orderId}</span>
-            </p>
-            <Link
-              href={`/order/${orderId}`}
-              className="inline-block px-5 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition"
-            >
-              Xem đơn hàng của bạn
-            </Link>
-          </div>
-        )} */}
+                <div className="flex flex-col items-center gap-3 mt-4">
+                    {orderId && (
+                        <Button
+                            onClick={() => router.push(`/orderhistory/${orderId}`)}
+                            className="w-full max-w-xs bg-green-600 hover:bg-green-700 text-white"
+                        >
+                            Xem đơn hàng của bạn
+                        </Button>
+                    )}
 
-                <Button className='bg-green-600 hover:bg-green-500 mt-4' onClick={() => router.push('/')}>
-                    <GoArrowLeft /> Quay về trang chủ
-                </Button>
+                    <Button
+                        variant="outline"
+                        className="w-full max-w-xs text-gray-700 border-gray-300 hover:bg-gray-100"
+                        onClick={() => router.push("/")}
+                    >
+                        <GoArrowLeft className="mr-2 h-4 w-4" />
+                        Quay về trang chủ
+                    </Button>
+                </div>
             </div>
         </main>
     );

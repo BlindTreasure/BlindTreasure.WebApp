@@ -175,8 +175,7 @@ export default function RegisterForm() {
           </div>
         </form>
       </div>
-      <Backdrop open={isPending} />
-      <Backdrop open={isPendingGoogle} />
+      <Backdrop open={isPending || isPendingGoogle} />
     </div>
   );
 }

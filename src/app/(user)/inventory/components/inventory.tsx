@@ -9,6 +9,7 @@ import Link from 'next/link'
 import useGetAllOrder from '../../purchased/hooks/useGetOrderByCustomer'
 import { OrderResponse } from '@/services/order/typings'
 import { PaymentStatus } from '@/const/products'
+import { Backdrop } from '@/components/backdrop'
 
 interface InventoryItem {
     id: string
@@ -27,7 +28,8 @@ export default function Inventory() {
     const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
     const { getAllOrderApi } = useGetAllOrder()
     const [orders, setOrders] = useState<OrderResponse[]>([])
-    
+    const [isLoading, setIsLoading] = useState(false)
+
     useEffect(() => {
         const fetchOrders = async () => {
             const res = await getAllOrderApi()
@@ -35,7 +37,6 @@ export default function Inventory() {
                 const paidOrders = res.value.data.filter(
                     (order) => order.status === PaymentStatus.PAID
                 )
-                console.log("📦 PAID Orders:", paidOrders)
 
                 setOrders(paidOrders)
 
@@ -58,8 +59,6 @@ export default function Inventory() {
                         }
                     })
                 ).filter(item => item.id)
-
-                console.log("🎁 Final Inventory Items:", allItems)
                 setInventoryItems(allItems)
             }
         }
@@ -79,18 +78,14 @@ export default function Inventory() {
     const startIndex = (currentPage - 1) * itemsPerPage
     const paginatedItems = filteredItems.slice(startIndex, startIndex + itemsPerPage)
 
-    const handleViewDetail = (id: string) => {
-        router.push(`/detail/${id}`)
-    }
+    const handleViewDetail = (id: string, type: 'blindbox' | 'regular') => {
+        setIsLoading(true);
+        const route = type === 'blindbox' ? `/detail-blindbox/${id}` : `/detail/${id}`;
+        router.push(route);
+    };
 
     const handleOpenBox = (id: string) => {
         console.log(`Opening box for product ${id}`)
-    }
-
-    const handlePageChange = (page: number) => {
-        if (page >= 1 && page <= totalPages) {
-            setCurrentPage(page)
-        }
     }
 
     return (
@@ -124,11 +119,12 @@ export default function Inventory() {
                         <CardFooter className="flex justify-between gap-2">
                             <Button
                                 variant="outline"
-                                onClick={() => handleViewDetail(item.id)}
+                                onClick={() => handleViewDetail(item.id, item.type)}
                                 className="flex-1 bg-[#252424] text-white"
                             >
                                 Xem chi tiết
                             </Button>
+
 
                             {item.status === 'unopened' && (
                                 <Link href="/openbox">
@@ -144,6 +140,7 @@ export default function Inventory() {
                     </Card>
                 ))}
             </div>
+            <Backdrop open={isLoading} />
         </div>
     )
 }

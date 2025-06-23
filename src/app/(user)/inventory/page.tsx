@@ -3,7 +3,7 @@ import Inventory from "./components/inventory";
 
 
 export const metadata: Metadata = {
-    title: "Túi đồ",
+    title: "Túi đồ | BlindTreasure",
     description: "Trang túi đồ của khách hàng BlindTreasure",
 };
 

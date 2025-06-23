@@ -14,6 +14,8 @@ import { CiBag1 } from "react-icons/ci";
 import { CiViewList } from "react-icons/ci";
 import { FiUser } from "react-icons/fi";
 import { BsRobot } from "react-icons/bs";
+import { LiaUserEditSolid } from "react-icons/lia";
+import { CiLocationOn } from "react-icons/ci";
 
 interface AvatarMenuProps {
   onCloseTooltip: () => void;
@@ -103,7 +105,7 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
                   className="p-1 bg-gray-300 text-black rounded-full mr-2"
                   size={30}
                 />
-                <span className="text-black">Sản phẩm đã mua</span>
+                <span className="text-black">Túi đồ</span>
               </div>
             </div>
           </li>
@@ -128,7 +130,7 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
                 className="cursor-pointer flex items-center justify-between px-4 py-2 bg-white rounded-lg hover:bg-gray-200"
               >
                 <div className="flex items-center">
-                  <FiUser 
+                  <FiUser
                     className="p-1 bg-gray-300 text-black rounded-full mr-2"
                     size={30}
                   />
@@ -143,10 +145,12 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
 
               {isOpen && (
                 <ul className="ml-12 mt-2 space-y-1">
-                  <li onClick={() => handleNavigate(4)} className="cursor-pointer px-3 py-1 rounded hover:bg-gray-100 text-gray-700">
+                  <li onClick={() => handleNavigate(4)} className="cursor-pointer px-3 py-1 rounded hover:bg-gray-100 text-gray-700 flex items-center gap-1 hover:text-[#d02a2a]">
+                    <CiLocationOn className="text-lg"/>
                     Địa chỉ
                   </li>
-                  <li onClick={() => handleNavigate(1)} className="cursor-pointer px-3 py-1 rounded hover:bg-gray-100 text-gray-700">
+                  <li onClick={() => handleNavigate(1)} className="cursor-pointer px-3 py-1 rounded hover:bg-gray-100 hover:text-[#d02a2a] text-gray-700 flex items-center gap-1">
+                    <LiaUserEditSolid className="text-lg" />
                     Hồ sơ
                   </li>
                 </ul>
@@ -160,7 +164,7 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
               onClick={() => handleNavigate(3)}
             >
               <div className="flex items-center">
-                <BsRobot 
+                <BsRobot
                   className="p-1 bg-gray-300 text-black rounded-full mr-2"
                   size={30}
                 />
