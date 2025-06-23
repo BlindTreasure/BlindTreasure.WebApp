@@ -21,7 +21,7 @@ import { FaRegEdit } from "react-icons/fa"
 import { HiOutlineTrash } from "react-icons/hi"
 import { BsEye } from "react-icons/bs"
 import { CiSearch } from "react-icons/ci";
-import { ProductSortBy } from "@/const/products"
+import { ProductSortBy, ProductType, ProductTypeText } from "@/const/products"
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import EditProductSeller from "../../create-product/components/edit-product"
 import {
@@ -37,6 +37,7 @@ import {
 import useDeleteProduct from "../hooks/useDeleteProduct"
 import ProductDetailDialog from "@/components/alldialog/dialogproduct"
 import { PaginationFooter } from "@/components/pagination-footer"
+import { cn } from "@/lib/utils"
 
 export default function ProductTable() {
     const [products, setProducts] = useState<TProductResponse>()
@@ -195,17 +196,17 @@ export default function ProductTable() {
                         </div>
                     </div>
 
-                    <Table>
+                    <Table className="table-fixed w-full">
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Ảnh</TableHead>
-                                <TableHead>Tên</TableHead>
-                                <TableHead>Giá</TableHead>
-                                <TableHead>Kho</TableHead>
-                                <TableHead>Loại hàng</TableHead>
-                                <TableHead>Trạng thái</TableHead>
-                                <TableHead>Ngày tạo</TableHead>
-                                <TableHead>Hành động</TableHead>
+                                <TableHead className="h-4 w-24">Ảnh</TableHead>
+                                <TableHead className="h-4 w-32">Tên</TableHead>
+                                <TableHead className="h-4 w-20">Giá</TableHead>
+                                <TableHead className="h-4 w-16">Kho</TableHead>
+                                <TableHead className="h-4 w-20">Loại hàng</TableHead>
+                                <TableHead className="h-4 w-20">Trạng thái</TableHead>
+                                <TableHead className="h-4 w-24">Ngày tạo</TableHead>
+                                <TableHead className="h-4 w-32">Hành động</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -238,31 +239,40 @@ export default function ProductTable() {
                                                 </div>
                                             )}
                                         </TableCell>
-                                        <TableCell>{product.name}</TableCell>
+                                        <TableCell className="truncate whitespace-nowrap" title={product.name}>{product.name}</TableCell>
                                         <TableCell>{product.price.toLocaleString()}₫</TableCell>
                                         <TableCell>{product.stock}</TableCell>
-                                        <TableCell>
+                                        <TableCell className="max-w-[120px]">
                                             <span
-                                                className={`px-2 py-1 rounded text-xs font-medium ${product.productType === "DirectSale"
-                                                    ? "bg-green-100 text-green-700"
-                                                    : "bg-red-100 text-red-700"
-                                                    }`}
+                                                className={cn(
+                                                    "block px-2 py-1 rounded text-xs font-medium truncate whitespace-nowrap overflow-hidden text-ellipsis",
+                                                    product.productType === "DirectSale"
+                                                        ? "bg-green-100 text-green-700"
+                                                        : product.productType === "BlindBoxOnly"
+                                                            ? "bg-blue-100 text-blue-700"
+                                                            : "bg-yellow-100 text-yellow-700"
+                                                )}
+                                                title={ProductTypeText[product.productType as ProductType]}
                                             >
-                                                {product.productType}
+                                                {ProductTypeText[product.productType as ProductType]}
                                             </span>
                                         </TableCell>
-                                        <TableCell>
+
+                                        <TableCell className="max-w-[120px]">
                                             <span
-                                                className={`px-2 py-1 rounded text-xs font-medium ${product.status === "Active"
-                                                    ? "bg-green-100 text-green-700"
-                                                    : "bg-red-100 text-red-700"
+                                                className={`block px-2 py-1 rounded text-xs font-medium truncate
+      ${product.status === "Active"
+                                                        ? "bg-green-100 text-green-700"
+                                                        : "bg-red-100 text-red-700"
                                                     }`}
+                                                title={getStatusLabel(product.status)}
                                             >
                                                 {getStatusLabel(product.status)}
                                             </span>
                                         </TableCell>
+
                                         <TableCell>{moment(product.createdAt).format("DD/MM/YYYY")}</TableCell>
-                                        <TableCell className="flex gap-4">
+                                        <TableCell className="flex md:gap-4 gap-2">
                                             <Button variant="outline" size="icon" onClick={() => handleEditClick(product)}>
                                                 <FaRegEdit className="w-4 h-4" />
                                             </Button>
