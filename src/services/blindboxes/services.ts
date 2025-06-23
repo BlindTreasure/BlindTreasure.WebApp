@@ -7,7 +7,7 @@ import {
   BlindBoxListResponse,
   CreateBlindboxForm,
   CreateBlindboxItemsParam,
-  ReviewBlindboxParams
+  ReviewBlindboxParams,
 } from "./typings";
 import {
   createBlindbox,
@@ -16,7 +16,7 @@ import {
   deleteBlindbox,
   submitBlindbox,
   updateBlindBox,
-  reviewBlindbox
+  reviewBlindbox,
 } from "./api-services";
 
 export const buildBlindboxFormData = (data: CreateBlindboxForm) => {
@@ -24,7 +24,7 @@ export const buildBlindboxFormData = (data: CreateBlindboxForm) => {
 
   formData.append("name", data.name);
   formData.append("description", data.description);
-
+  formData.append("categoryId", data.categoryId);
   if (data.price !== undefined) {
     formData.append("price", data.price.toString());
   }

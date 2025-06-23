@@ -42,23 +42,24 @@ export default function Detail({ register, setValue, errors, watch, categories, 
     const topLevelCats = categories?.result?.filter(c => !c.parentId) || [];
 
     function renderCategories(cats: API.Category[], level = 0): React.ReactElement[] {
-        return cats.flatMap(cat => {
+        return cats.flatMap((cat) => {
             const indent = Array(level).fill('\u00A0\u00A0\u00A0').join('');
             const label = cat.name;
+            const isLeaf = !!cat.parentId && Array.isArray(cat.children) && cat.children.length === 0;
             const currentItem = (
                 <SelectItem
                     key={cat.id}
                     value={cat.id}
+                    disabled={!isLeaf} 
                     className={level === 0 ? 'font-semibold' : 'font-normal'}
                 >
                     {indent}{label}
                 </SelectItem>
             );
 
-            if (cat.children?.length) {
-                return [currentItem, ...renderCategories(cat.children, level + 1)];
-            }
-            return [currentItem];
+            const children = Array.isArray(cat.children) ? cat.children : [];
+
+            return [currentItem, ...renderCategories(children, level + 1)];
         });
     }
 
@@ -70,13 +71,13 @@ export default function Detail({ register, setValue, errors, watch, categories, 
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                     <Label htmlFor="brand">Thương hiệu</Label>
                     <Input
                         id="brand"
                         {...register("brand")}
                     />
-                </div>
+                </div> */}
 
                 <div className="space-y-2">
                     <Label htmlFor="categoryId">
@@ -112,7 +113,7 @@ export default function Detail({ register, setValue, errors, watch, categories, 
                                 }
                             })}
                             type="number"
-                            min={0}
+                            min={1}
                             step="0.1"
                             onWheel={(e) => e.currentTarget.blur()}
                             placeholder="Cao"
@@ -185,35 +186,28 @@ export default function Detail({ register, setValue, errors, watch, categories, 
                     )}
                 </div>
 
-                <Controller
-                    control={control}
-                    name="stock"
-                    defaultValue={undefined}
-                    render={({ field }) => (
-                        <div className="space-y-2">
-                            <Label htmlFor="stock">Số lượng kho <span className="text-red-600">*</span></Label>
-                            <Input
-                                type="number"
-                                inputMode="numeric"
-                                id="stock"
-                                min={0}
-                                value={field.value ?? ""}
-                                onChange={(e) => {
-                                    const raw = e.target.value;
-                                    const parsed = parseInt(raw, 10);
-                                    field.onChange(raw === "" || isNaN(parsed) ? undefined : parsed);
-                                }}
-                                onWheel={(e) => e.currentTarget.blur()} // 👈 chặn scroll gây nhảy số
-                                onFocus={(e) => e.target.select()}
-                            />
-
-                            {errors.stock && (
-                                <p className="text-sm text-red-500">{errors.stock.message}</p>
-                            )}
-                        </div>
+                <div className="space-y-2">
+                    <Label htmlFor="stock">
+                        Số lượng kho <span className="text-red-600">*</span>
+                    </Label>
+                    <Input
+                        id="stock"
+                        type="number"
+                        inputMode="numeric"
+                        {...register("stock", {
+                            required: "Vui lòng nhập số lượng kho",
+                            setValueAs: (v) => {
+                                const n = parseInt(v);
+                                return isNaN(n) ? undefined : n;
+                            },
+                        })}
+                        onWheel={(e) => e.currentTarget.blur()}
+                        onFocus={(e) => e.target.select()}
+                    />
+                    {errors.stock && (
+                        <p className="text-sm text-red-500">{errors.stock.message}</p>
                     )}
-                />
-
+                </div>
 
                 <div className="space-y-2">
                     <Label htmlFor="productType">Loại sản phẩm</Label>

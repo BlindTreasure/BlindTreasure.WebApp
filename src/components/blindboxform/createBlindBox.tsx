@@ -14,7 +14,14 @@ import useCreateBlindboxForm from "@/app/seller/blindbox/hooks/useCreateBlindbox
 import { BlindBox, CreateBlindboxForm } from "@/services/blindboxes/typings"
 import { Checkbox } from "../ui/checkbox"
 import useUpdateBlindboxForm from "@/app/seller/allblindboxes/hooks/useUpdateBllindbox"
-
+import useGetCategory from "@/app/staff/category-management/hooks/useGetCategory"
+import {
+    Select,
+    SelectTrigger,
+    SelectContent,
+    SelectItem,
+    SelectValue,
+} from '@/components/ui/select';
 type Props = {
     mode?: "create" | "edit";
     blindboxId?: string;
@@ -27,6 +34,21 @@ type Props = {
     ) => void;
     onSuccess?: () => void;
 };
+
+function findCategoryLabelById(cats: API.Category[], id: string): string | undefined {
+    const traverse = (nodes: API.Category[], path: string[] = []): string | undefined => {
+        for (const node of nodes) {
+            const newPath = [...path, node.name];
+            if (node.id === id) return newPath.join(" > ");
+            if (node.children) {
+                const found = traverse(node.children, newPath);
+                if (found) return found;
+            }
+        }
+        return undefined;
+    };
+    return traverse(cats);
+}
 
 export default function CreateBlindbox({
     mode = "create",
@@ -56,11 +78,50 @@ export default function CreateBlindbox({
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const hasSecretItem = watch("hasSecretItem", false);
     const imageFile = watch('imageFile');
+    const [categories, setCategories] = useState<API.ResponseDataCategory>();
     const [clearSignal, setClearSignal] = useState(0);
 
     const releaseDate = watch("releaseDate");
-
+    const { getCategoryApi } = useGetCategory();
     const displayDate = releaseDate ? new Date(releaseDate) : undefined;
+
+    useEffect(() => {
+        (async () => {
+            const res = await getCategoryApi({});
+            if (res) {
+                setCategories(res.value.data || []);
+            }
+        })();
+    }, []);
+
+    const topLevelCats = categories?.result?.filter(c => !c.parentId) || [];
+
+    function renderCategories(cats: API.Category[], level = 0): React.ReactElement[] {
+        return cats.flatMap((cat) => {
+            const indent = Array(level).fill('\u00A0\u00A0\u00A0').join('');
+            const label = cat.name;
+            const isLeaf = !!cat.parentId && Array.isArray(cat.children) && cat.children.length === 0;
+            const currentItem = (
+                <SelectItem
+                    key={cat.id}
+                    value={cat.id}
+                    disabled={!isLeaf}
+                    className={level === 0 ? 'font-semibold' : 'font-normal'}
+                >
+                    {indent}{label}
+                </SelectItem>
+            );
+
+            const children = Array.isArray(cat.children) ? cat.children : [];
+
+            return [currentItem, ...renderCategories(children, level + 1)];
+        });
+    }
+
+    const selectedCategoryId = watch("categoryId");
+    const selectedCategoryLabel = selectedCategoryId && categories?.result
+        ? findCategoryLabelById(categories.result, selectedCategoryId)
+        : "";
 
     useEffect(() => {
         if (mode === "edit" && blindbox) {
@@ -115,7 +176,7 @@ export default function CreateBlindbox({
             ...data,
             releaseDate: data.releaseDate ? new Date(data.releaseDate).toISOString() : undefined
         };
-        
+
         if (mode === "edit" && updateHook) {
             updateHook.onSubmit(transformedData, clearImages, () => {
                 onSuccess?.();
@@ -134,6 +195,28 @@ export default function CreateBlindbox({
                     <Label htmlFor="name">Tên túi mù <span className='text-red-600'>*</span></Label>
                     <Input {...register("name")} />
                 </div>
+                <div>
+                    <Label htmlFor="categoryId">
+                        Danh mục <span className="text-red-600">*</span>
+                    </Label>
+                    <Select
+                        onValueChange={(value) => setValue("categoryId", value)}
+                        value={selectedCategoryId}
+                    >
+                        <SelectTrigger id="categoryId">
+                            <SelectValue placeholder="Chọn danh mục">
+                                {selectedCategoryLabel}
+                            </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="max-h-80 overflow-y-auto">
+                            {renderCategories(topLevelCats)}
+                        </SelectContent>
+                    </Select>
+                    {errors.categoryId && (
+                        <p className="text-red-500">{errors.categoryId.message}</p>
+                    )}
+                </div>
+
                 <Controller
                     name="price"
                     control={control}
@@ -213,10 +296,10 @@ export default function CreateBlindbox({
                     )}
                 </div>
 
-                <div>
+                {/* <div>
                     <Label htmlFor="brand">Thương hiệu<span className='text-red-600'>*</span></Label>
                     <Input {...register("brand")} />
-                </div>
+                </div> */}
 
                 {hasSecretItem && (
                     <div>
