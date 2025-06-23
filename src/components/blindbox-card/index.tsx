@@ -9,7 +9,7 @@ import {
 import { useState } from "react";
 import { FaRegHeart } from "react-icons/fa";
 import { BlindBox } from "@/services/blindboxes/typings";
-import { Rarity } from "@/const/products";
+import { Rarity, StockStatus, stockStatusMap } from "@/const/products";
 
 interface BlindboxCardProps {
     blindbox: BlindBox;
@@ -21,6 +21,7 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
     const [open, setOpen] = useState(false);
     const image = blindbox.imageUrl || "/images/cart.webp";
     const [quantity, setQuantity] = useState<number>(1);
+    const [selectedVariant, setSelectedVariant] = useState<string>("Loại A");
 
     const handleDecrease = () => {
         if (quantity > 1) setQuantity(quantity - 1);
@@ -30,24 +31,13 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
         setQuantity(quantity + 1);
     };
 
-    const getRarityLabel = (rarity: string): string => {
-        switch (rarity) {
-            case Rarity.Common:
-                return "Phổ biến";
-            case Rarity.Rare:
-                return "Cao Cấp";
-            case Rarity.Epic:
-                return "Hiếm";
-            case Rarity.Secret:
-                return "Cực hiếm";
-            default:
-                return rarity;
-        }
+    const handleVariantSelect = (variant: string) => {
+        setSelectedVariant(variant);
     };
-
+    
     return (
         <div className="relative p-2 mt-6 transition-all duration-300 transform hover:scale-105">
-            <Ribbon createdAt={blindbox.releaseDate} types={ribbonTypes}/>
+            <Ribbon createdAt={blindbox.releaseDate} types={ribbonTypes} />
             <Card className="relative w-full rounded-xl overflow-hidden p-4 shadow-lg bg-white">
                 <div className="w-full h-48 overflow-hidden rounded-md relative group">
                     <img
@@ -82,9 +72,9 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
                                             <h2 className="text-3xl font-semibold">{blindbox.name}</h2>
                                             <div className='flex gap-2'>
                                                 <div className='flex gap-2'>
-                                                    <p>Thương hiệu: <span className='text-[#00579D] text-sm uppercase'></span></p>
+                                                    <p>Thương hiệu: <span className='text-[#00579D] text-sm uppercase'>{blindbox.brand}</span></p>
                                                     <div className="w-px h-5 bg-gray-300" />
-                                                    <p>Tình trạng: <span className='text-[#00579D] text-xs'></span></p>
+                                                    <p>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[blindbox?.blindBoxStockStatus as StockStatus]}</span></p>
                                                     <div className="w-px h-5 bg-gray-300" />
                                                 </div>
                                                 {blindbox?.hasSecretItem && (
@@ -95,28 +85,25 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
                                                 {blindbox.price.toLocaleString("vi-VN")}₫
                                             </p>
                                             <p>Mô tả: <span className='text-gray-600 text-sm'>{blindbox.description}</span></p>
-                                            {/* <div className="mt-4 space-y-2">
-                                                <p className="font-semibold">Danh sách vật phẩm:</p>
-                                                <ul className="list-disc list-inside text-sm text-gray-700 max-h-40 overflow-y-auto">
-                                                    {blindbox.items.map((item, idx) => (
-                                                        <li key={idx}>
-                                                            {item.productName} ({getRarityLabel(item.rarity)}) - Tỷ lệ {item.dropRate}%
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div> */}
                                             <div className="mb-6">
-                                                <p className="mb-2">Chọn bộ:</p>
+                                                <p className="mb-2 text-xl">Chọn bộ:</p>
                                                 <div className="flex gap-4">
                                                     {["Loại A", "Loại B", "Loại C"].map((variant, idx) => (
                                                         <div
                                                             key={idx}
-                                                            className="px-4 py-2 rounded-md border bg-white text-black border-gray-300 cursor-default"
+                                                            onClick={() => handleVariantSelect(variant)}
+                                                            className={`px-4 py-2 rounded-md border cursor-pointer transition-colors ${selectedVariant === variant
+                                                                ? 'bg-[#252424] text-white border-[#252424]'
+                                                                : 'bg-white text-black border-gray-300 hover:border-gray-400'
+                                                                }`}
                                                         >
                                                             {variant}
                                                         </div>
                                                     ))}
                                                 </div>
+                                                {selectedVariant && (
+                                                    <p className="text-sm text-gray-500 mt-2">Đã chọn: <strong>{selectedVariant}</strong></p>
+                                                )}
                                             </div>
 
                                             <div className="flex items-center gap-4 mt-6">

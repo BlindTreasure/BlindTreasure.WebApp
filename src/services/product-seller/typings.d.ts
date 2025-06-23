@@ -1,4 +1,9 @@
-import { ProductSortBy, ProductType, Status } from "@/const/products";
+import {
+  ProductSortBy,
+  ProductType,
+  Status,
+  StockStatus,
+} from "@/const/products";
 
 export type GetProduct = {
   search?: string;
@@ -17,6 +22,7 @@ export type Product = {
   categoryId: string;
   price: number;
   stock: number;
+  productStockStatus: StockStatus;
   height: number;
   material: string;
   productType: string;

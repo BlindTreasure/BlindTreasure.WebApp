@@ -17,6 +17,7 @@ export default function AllNewProducts() {
     const [blindboxes, setBlindboxes] = useState<BlindBoxListResponse>();
     const { getAllProductWebApi, isPending } = useGetAllProductWeb();
     const { getAllBlindBoxesApi, isPending: isPendingBlindbox } = useGetAllBlindBoxes();
+    const [loadingPage, setLoadingPage] = useState(false);
     const [params] = useState<GetAllProducts>({
         pageIndex: 1,
         pageSize: 9999,
@@ -87,6 +88,16 @@ export default function AllNewProducts() {
         setCurrentPage(newPage);
     };
 
+    const handleViewBlindboxDetail = (id: string) => {
+        setLoadingPage(true);
+        router.push(`/detail-blindbox/${id}`);
+    };
+
+    const handleViewDetail = (id: string) => {
+    setLoadingPage(true);
+    router.push(`/detail/${id}`);
+  };
+
     return (
         <div className="container mx-auto py-10">
             <h1 className="text-3xl font-bold mb-6 text-center mt-40">
@@ -103,14 +114,14 @@ export default function AllNewProducts() {
                             key={item.id}
                             product={item}
                             ribbonTypes={ribbonTypes}
-                            onViewDetail={(id) => router.push(`/detail/${id}`)}
+                            onViewDetail={handleViewDetail}
                         />
                     ) : (
                         <BlindboxCard
                             key={item.id}
                             blindbox={item}
                             ribbonTypes={ribbonTypes}
-                            onViewDetail={(id) => router.push(`/detail-blindbox/${id}`)}
+                            onViewDetail={handleViewBlindboxDetail}
                         />
                     );
                 })}
@@ -122,7 +133,7 @@ export default function AllNewProducts() {
                     onPageChange={handlePageChange}
                 />
             </div>
-            <Backdrop open={isPending || isPendingBlindbox} />
+            <Backdrop open={isPending || isPendingBlindbox || loadingPage} />
         </div>
     );
 }

@@ -56,7 +56,7 @@ export const BlindboxItemSheet = ({ open, onClose, items }: Props) => {
         <Sheet open={open} onOpenChange={onClose}>
             <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto">
                 <SheetHeader>
-                    <SheetTitle className="text-xl">Sản phẩm bên trong hộp</SheetTitle>
+                    <SheetTitle className="text-xl pl-4">Sản phẩm bên trong hộp</SheetTitle>
                 </SheetHeader>
 
                 <div className="mt-6 space-y-6">
@@ -87,9 +87,6 @@ export const BlindboxItemSheet = ({ open, onClose, items }: Props) => {
                         </div>
                     ))}
                 </div>
-
-
-
             </SheetContent>
         </Sheet>
     );
