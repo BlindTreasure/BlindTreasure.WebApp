@@ -333,17 +333,20 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                 <ProductTabs description={blindbox?.description || ""} />
             </motion.div>
 
-            {relatedBlindboxes.length > 0 && (
+            {relatedBlindboxes.filter((box) => box.items?.length > 0).length > 0 && (
                 <div className="mt-12">
                     <h3 className="text-2xl font-semibold mb-6">Sản phẩm liên quan</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {relatedBlindboxes.map((item) => (
-                            <BlindboxCard
-                                blindbox={item}
-                                ribbonTypes={getRibbonTypes(item)}
-                                onViewDetail={handleViewBlindboxDetail}
-                            />
-                        ))}
+                        {relatedBlindboxes
+                            .filter((box) => box.items?.length > 0)
+                            .map((item) => (
+                                <BlindboxCard
+                                    key={item.id}
+                                    blindbox={item}
+                                    ribbonTypes={getRibbonTypes(item)}
+                                    onViewDetail={handleViewBlindboxDetail}
+                                />
+                            ))}
                     </div>
                 </div>
             )}
