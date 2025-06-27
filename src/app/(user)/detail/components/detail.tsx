@@ -54,7 +54,6 @@ export default function Detail({ detailId }: DetailProps) {
                 productId: products.id,
                 quantity: quantity,
                 variant: selectedVariant,
-                // Thêm các thông tin khác nếu cần
             };
             
             const result = await addProductToCartApi(cartItem);
@@ -62,8 +61,6 @@ export default function Detail({ detailId }: DetailProps) {
             if (result) {
                 // Thành công - có thể hiển thị thông báo
                 console.log('Đã thêm vào giỏ hàng thành công');
-                // Reset quantity hoặc hiển thị toast notification
-                // setQuantity(1);
             }
         } catch (error) {
             console.error('Lỗi khi thêm vào giỏ hàng:', error);

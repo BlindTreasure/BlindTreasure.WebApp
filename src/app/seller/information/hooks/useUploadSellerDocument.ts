@@ -7,10 +7,7 @@ type UploadFormData = {
   file: FileList;
 };
 
-
 export default function useUploadSellerDocument(onSuccessCallback?: () => void) {
-  const router = useRouter();
-  
   const {
     register,
     handleSubmit,
@@ -38,7 +35,7 @@ export default function useUploadSellerDocument(onSuccessCallback?: () => void) 
 
     mutate(formData, {
       onSuccess: () => {
-        router.push("/seller/pending");
+        // Chỉ gọi callback, không redirect
         onSuccessCallback?.();
         reset();
       },

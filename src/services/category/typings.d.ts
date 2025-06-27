@@ -19,10 +19,11 @@ declare namespace API {
     id: string;
     name: string;
     description: string;
-    parentId: string;
+    parentId?: string;
     isDeleted: boolean;
     createdAt: string ;
-    children: Category[];
+    imageUrl?: string;
+    children?: Category[];
   };
 
   type ResponseDataCategory = {
@@ -32,4 +33,10 @@ declare namespace API {
     currentPage: number;
     totalPages: number;
   };
+
+  type ShowCategory = {
+    id: string;
+    name: string;
+
+  }
 }

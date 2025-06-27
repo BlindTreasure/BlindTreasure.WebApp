@@ -377,7 +377,7 @@ const Cart: React.FC = () => {
                 <Checkbox
                   checked={isAllSelected}
                   // @ts-ignore - shadcn checkbox hỗ trợ indeterminate
-                  indeterminate={isIndeterminate}
+                  indeterminate={isIndeterminate || undefined}
                   onCheckedChange={toggleSelectAll}
                   aria-label="Chọn tất cả sản phẩm"
                 />
@@ -549,6 +549,6 @@ const Cart: React.FC = () => {
 
     </div>
   );
-};
+};  
 
 export default Cart;

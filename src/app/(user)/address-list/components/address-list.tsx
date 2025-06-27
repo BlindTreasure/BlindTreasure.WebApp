@@ -136,13 +136,17 @@ export default function AddressList() {
                     )}
                 </div>
 
-                <AddAddressDialog open={showDialog} onClose={async () => {
-                    setShowDialog(false);
-                    setEditingAddress(null);
-                    refreshList();
-                }}
-                    editingAddress={editingAddress}
-                />
+                {showDialog && (
+                    <AddAddressDialog
+                        open={showDialog}
+                        onClose={async () => {
+                            setShowDialog(false);
+                            setTimeout(() => setEditingAddress(null), 300);
+                            refreshList();
+                        }}
+                        editingAddress={editingAddress}
+                    />
+                )}
 
                 <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                     <AlertDialogContent>

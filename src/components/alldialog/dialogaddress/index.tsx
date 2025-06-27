@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
     Dialog,
@@ -6,30 +6,36 @@ import {
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import ProvinceSelect from "@/components/province-selected";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import useCreateAddress from "@/app/(user)/address-list/hooks/useCreateAddress";
-import { useEffect, useState } from "react";
-import { Controller } from "react-hook-form";
-import useUpdateAddress from "@/app/(user)/address-list/hooks/useUpdateAddress";
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import ProvinceSelect from "@/components/province-selected"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import useCreateAddress from "@/app/(user)/address-list/hooks/useCreateAddress"
+import { useEffect, useState } from "react"
+import { Controller } from "react-hook-form"
+import useUpdateAddress from "@/app/(user)/address-list/hooks/useUpdateAddress"
+import { convertAddressFromBE } from "@/utils/address"
 
-type Province = { name: string; code: number };
-type District = { name: string; code: number };
-type Ward = { name: string; code: number };
+type SimpleAddress = {
+    name: string
+    code: string
+}
+
+type Province = { code: string; name: string; districts: District[] };
+type District = { code: string; name: string; wards: Ward[] };
+type Ward = { code: string; name: string; level?: string };
 
 export default function AddressDialog({
     open,
     onClose,
     editingAddress,
 }: {
-    open: boolean;
-    onClose: () => void;
-    editingAddress: API.ResponseAddress | null;
+    open: boolean
+    onClose: () => void
+    editingAddress: API.ResponseAddress | null
 }) {
-    const isEditing = !!editingAddress;
+    const isEditing = !!editingAddress
     const {
         register,
         handleSubmit,
@@ -37,137 +43,167 @@ export default function AddressDialog({
         onSubmit,
         watch,
         errors,
-        setError,
         setValue,
         isPending,
         reset,
     } = isEditing
-            ? useUpdateAddress({
-                addressId: editingAddress.id,
-                fullName: editingAddress.fullName,
-                phone: editingAddress.phone,
-                addressLine1: editingAddress.addressLine1,
-                province: editingAddress.province,
-                city: editingAddress.city,
-                postalCode: editingAddress.postalCode ?? "",
-            })
-            : useCreateAddress();
-
-    useEffect(() => {
-        if (editingAddress && open) {
-            reset({
-                fullName: editingAddress.fullName,
-                phone: editingAddress.phone,
-                addressLine1: editingAddress.addressLine1,
-                province: editingAddress.province,
-                city: editingAddress.city,
-                postalCode: editingAddress.postalCode ?? "",
-            });
-
-            setAddress({
-                province: editingAddress.province ? { name: editingAddress.province, code: 0 } : null,
-                district: editingAddress.city ? { name: editingAddress.city, code: 0 } : null,
-                ward: editingAddress.postalCode ? { name: editingAddress.postalCode, code: 0 } : null,
-            });
-        } else if (open) {
-            reset({
-                fullName: "",
-                phone: "",
-                addressLine1: "",
-                province: "",
-                city: "",
-                postalCode: "",
-                isDefault: false,
-            });
-            setAddress({
-                province: null,
-                district: null,
-                ward: null,
-            });
-        }
-    }, [editingAddress, open, reset]);
-
+        ? useUpdateAddress({
+            addressId: editingAddress.id,
+            fullName: editingAddress.fullName,
+            phone: editingAddress.phone,
+            addressLine1: editingAddress.addressLine1,
+            province: editingAddress.province,
+            city: editingAddress.city,
+            postalCode: editingAddress.postalCode ?? "",
+        })
+        : useCreateAddress()
 
     const [address, setAddress] = useState<{
-        province: Province | null;
-        district: District | null;
-        ward: Ward | null;
+        province: SimpleAddress | null,
+        district: SimpleAddress | null,
+        ward: SimpleAddress | null,
     }>({
         province: null,
         district: null,
         ward: null,
     });
 
-    const handleSelectChange = (value: {
-        province: Province | null;
-        district: District | null;
-        ward: Ward | null;
-    }) => {
-        setAddress(value);
+    const [provincesData, setProvincesData] = useState<Province[]>([]);
 
-        if (value.province) setValue("province", value.province.name);
-        if (value.district) setValue("city", value.district.name);
-        if (value.ward) setValue("postalCode", value.ward.code.toString());
-    };
+   useEffect(() => {
+    fetch("/data/vietnamAddress.json")
+        .then(res => res.json())
+        .then(raw => {
+            const parsed = raw.map((p: any) => ({
+                name: p.Name,
+                code: p.Id,
+                districts: (p.Districts ?? []).map((d: any) => ({
+                    name: d.Name,
+                    code: d.Id,
+                    wards: (d.Wards ?? []).map((w: any) => ({
+                        name: w.Name,
+                        code: w.Id,
+                        level: w.Level
+                    }))
+                }))
+            }));
+            console.log("provincesData loaded:", parsed);
+            setProvincesData(parsed);
+        });
+}, []);
+
+useEffect(() => {
+    if (!open || provincesData.length === 0) return;
+
+    if (editingAddress) {
+        const addressObj = convertAddressFromBE(editingAddress, provincesData);
+        setAddress(addressObj);
+        reset({
+            fullName: editingAddress.fullName,
+            phone: editingAddress.phone,
+            addressLine1: editingAddress.addressLine1,
+            province: editingAddress.province,
+            city: editingAddress.city,
+            postalCode: editingAddress.postalCode ?? "",
+            isDefault: editingAddress.isDefault || false,
+        });
+    } else {
+        setAddress({
+            province: null,
+            district: null,
+            ward: null,
+        });
+        reset({
+            fullName: "",
+            phone: "",
+            addressLine1: "",
+            province: "",
+            city: "",
+            postalCode: "",
+            isDefault: false,
+        });
+    }
+}, [open, editingAddress, provincesData, reset]);
+
+useEffect(() => {
+    console.log("address state for ProvinceSelect:", address);
+}, [address]);
+
+    const handleSelectChange = (value: {
+        province: SimpleAddress | null
+        district: SimpleAddress | null
+        ward: SimpleAddress | null
+    }) => {
+        setAddress(value)
+        setValue("province", value.province?.name || "")
+        setValue("city", value.district?.name || "")
+        setValue("postalCode", value.ward?.code || "")
+    }
 
     return (
-        <Dialog open={open} onOpenChange={(open) => {
-            if (!open) {
-                reset();
-                onClose();
-            }
-        }}>
-            <DialogContent className="max-w-xl max-h-[100vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
+        <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="max-w-xl max-h-[100vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-semibold">Địa chỉ mới</DialogTitle>
+                    <DialogTitle className="text-xl font-semibold">
+                        {isEditing ? "Cập nhật địa chỉ" : "Thêm địa chỉ mới"}
+                    </DialogTitle>
                 </DialogHeader>
 
-                <form
-                    onSubmit={handleSubmit((data) => onSubmit(data, onClose))}
-                    className="space-y-4"
-                >
-
+                <form onSubmit={handleSubmit((data) => onSubmit(data, onClose))} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <input
-                            {...register("fullName")}
-                            className="border px-3 py-2 rounded w-full"
-                            placeholder="Họ và tên"
-                        />
-                        {errors.fullName && (
-                            <p className="text-red-500 text-sm">{errors.fullName.message}</p>
-                        )}
+                        <div>
+                            <input
+                                {...register("fullName")}
+                                className="border px-3 py-2 rounded w-full"
+                                placeholder="Họ và tên"
+                            />
+                            {errors.fullName && (
+                                <p className="text-red-500 text-sm mt-1">{errors.fullName.message}</p>
+                            )}
+                        </div>
 
-                        <input
-                            {...register("phone")}
-                            className="border px-3 py-2 rounded w-full"
-                            placeholder="Số điện thoại"
-                        />
-                        {errors.phone && (
-                            <p className="text-red-500 text-sm">{errors.phone.message}</p>
-                        )}
+                        <div>
+                            <input
+                                {...register("phone")}
+                                className="border px-3 py-2 rounded w-full"
+                                placeholder="Số điện thoại"
+                            />
+                            {errors.phone && (
+                                <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+                            )}
+                        </div>
                     </div>
 
-                    <ProvinceSelect onChange={handleSelectChange} />
-
-                    <input
-                        {...register("addressLine1")}
-                        className="w-full border px-3 py-2 rounded"
-                        placeholder="Địa chỉ cụ thể"
+                    <ProvinceSelect
+                        value={address}
+                        onChange={handleSelectChange}
+                        provincesData={provincesData}
                     />
+
+                    <div>
+                        <input
+                            {...register("addressLine1")}
+                            className="w-full border px-3 py-2 rounded"
+                            placeholder="Địa chỉ cụ thể"
+                        />
+                        {errors.addressLine1 && (
+                            <p className="text-red-500 text-sm mt-1">{errors.addressLine1.message}</p>
+                        )}
+                    </div>
 
                     {!isEditing && (
                         <div className="flex items-center gap-2">
                             <Controller
                                 control={control}
-                                defaultValue={false}
                                 name="isDefault"
                                 render={({ field }) => (
                                     <>
                                         <Checkbox
+                                            id="isDefault"
                                             checked={field.value}
-                                            onCheckedChange={(checked) => field.onChange(!!checked)}
+                                            onCheckedChange={field.onChange}
                                         />
-                                        <Label>Đặt làm mặc định</Label>
+                                        <Label htmlFor="isDefault">Đặt làm địa chỉ mặc định</Label>
                                     </>
                                 )}
                             />
@@ -175,22 +211,19 @@ export default function AddressDialog({
                     )}
 
                     <DialogFooter className="mt-6">
-                        <Button type="button" variant="outline" onClick={() => {
-                            reset();
-                            onClose();
-                        }}>
-                            Trở Lại
+                        <Button type="button" variant="outline" onClick={onClose}>
+                            Hủy
                         </Button>
                         <Button
                             type="submit"
                             className="bg-red-500 hover:bg-red-600 text-white"
                             disabled={isPending}
                         >
-                            {isPending ? "Đang lưu..." : "Hoàn thành"}
+                            {isPending ? "Đang xử lý..." : isEditing ? "Cập nhật" : "Thêm mới"}
                         </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>
-    );
+    )
 }

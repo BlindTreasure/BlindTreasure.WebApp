@@ -6,11 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import useRegisterSellerStep1 from "@/app/seller/information/hooks/useRegisterSellerStep1";
 import useUploadSellerDocument from "@/app/seller/information/hooks/useUploadSellerDocument";
 
 export default function RegisterSellerPage() {
   const [step, setStep] = useState("step1");
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const router = useRouter();
 
   const {
     register,
@@ -26,19 +31,38 @@ export default function RegisterSellerPage() {
     companyAddress: "",
   });
 
+  const handleRegistrationSuccess = () => {
+    setShowSuccessAlert(true);
+    
+    // Sau 3 giây sẽ redirect đến trang pending
+    setTimeout(() => {
+      router.push("/seller/pending");
+    }, 3000);
+  };
+
   const {
     register: registerUpload,
     handleSubmit,
     onSubmit,
     errors: uploadErrors,
     isSubmitting: isUploading,
-  } = useUploadSellerDocument(() => {
-    alert("Đăng ký thành công!");
-  });
+  } = useUploadSellerDocument(handleRegistrationSuccess);
+
+  // Success Alert Component
+  const SuccessAlert = () => (
+    <Alert className="mb-6 border-green-200 bg-green-50">
+      <CheckCircle className="h-4 w-4 text-green-600" />
+      <AlertDescription className="text-green-800">
+        <strong>Đăng ký thành công!</strong> Bạn sẽ được chuyển hướng đến trang quản lý trong giây lát...
+      </AlertDescription>
+    </Alert>
+  );
 
   return (
     <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 className="text-3xl font-bold mb-8 text-center">Đăng ký trở thành người bán</h1>
+
+      {showSuccessAlert && <SuccessAlert />}
 
       <Tabs value={step} className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -87,6 +111,7 @@ export default function RegisterSellerPage() {
                 </div>
                 <div className="flex justify-end">
                   <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {isSubmitting ? "Đang xử lý..." : "Tiếp theo"}
                   </Button>
                 </div>
@@ -112,6 +137,7 @@ export default function RegisterSellerPage() {
                 </div>
                 <div className="flex justify-end">
                   <Button type="submit" disabled={isUploading}>
+                    {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {isUploading ? "Đang tải..." : "Hoàn tất đăng ký"}
                   </Button>
                 </div>

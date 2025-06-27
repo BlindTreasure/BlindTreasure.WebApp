@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Plus, Search, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import CategoryTable, { CategoryRow } from '@/components/category-table'
+import CategoryTable from '@/components/category-table'
 import useGetCategory from '../hooks/useGetCategory'
 import useDeleteCategory from '../hooks/useDeleteCategory'
 import useGetCategoryById from '../hooks/useGetCategoryById'
@@ -12,8 +12,8 @@ import Pagination from '@/components/pagination'
 
 export default function CategoryPage() {
   const router = useRouter()
-  const [categories, setCategories] = useState<CategoryRow[]>([])
-  const [allCategories, setAllCategories] = useState<CategoryRow[]>([])
+  const [categories, setCategories] = useState<API.Category[]>([])
+  const [allCategories, setAllCategories] = useState<API.Category[]>([])
   const [expandedIds, setExpandedIds] = useState<string[]>([])
   const [isLoadingEdit, setIsLoadingEdit] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -40,7 +40,7 @@ export default function CategoryPage() {
       })
 
       const result = res?.value?.data
-      const nestedCategories: CategoryRow[] = result?.result ?? []
+      const nestedCategories: API.Category[] = result?.result ?? []
 
       setCategories(nestedCategories)
       setAllCategories(nestedCategories)
@@ -82,7 +82,7 @@ export default function CategoryPage() {
     )
   }
 
-  const handleEdit = async (category: CategoryRow) => {
+  const handleEdit = async (category: API.Category) => {
     router.push(`/staff/form/${category.id}`)
   }
 
@@ -113,7 +113,7 @@ export default function CategoryPage() {
     })
   }
 
-  const handleDetail = async (category: CategoryRow) => {
+  const handleDetail = async (category: API.Category) => {
     try {
       const categoryDetail = await getCategoryByIdApi(category.id)
       // Optional: xử lý nếu cần hiển thị chi tiết

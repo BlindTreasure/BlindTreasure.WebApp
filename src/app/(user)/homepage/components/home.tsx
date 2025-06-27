@@ -31,6 +31,17 @@ import useGetAllBlindBoxes from "@/app/seller/allblindboxes/hooks/useGetAllBlind
 import BlindboxCard from "@/components/blindbox-card";
 import { getRibbonTypes } from "@/utils/getRibbonTypes";
 import { now } from "moment";
+import useGetCategory from "../hooks/useGetCategory"
+import { useAppDispatch, useAppSelector } from "@/stores/store";
+import { 
+  setCategoryId, 
+  setMinPrice, 
+  setMaxPrice, 
+  setReleaseDateFrom,
+  setReleaseDateTo,
+  clearFilters 
+} from "@/stores/filter-product-slice";
+
 interface Blindbox {
   id: string;
   type: "blindbox" | "normal";
@@ -72,11 +83,14 @@ export default function HomePage() {
 
   const [products, setProducts] = useState<TAllProductResponse>()
   const [blindboxes, setBlindBox] = useState<BlindBoxListResponse>()
+  const [category, setCategory] = useState<API.Category[]>()
   const { getAllProductWebApi, isPending } = useGetAllProductWeb()
   const { getAllBlindBoxesApi, isPending: isBlindBox } = useGetAllBlindBoxes()
+  const { getCategoryApi, isPending: isCategory} = useGetCategory();
   const [loadingPage, setLoadingPage] = useState(false);
   const router = useRouter();
-
+  const dispatch = useAppDispatch();
+  const filters = useAppSelector(state => state.filterSlice);
 
   const [params, setParams] = useState<GetAllProducts>({
     pageIndex: 1,
@@ -87,6 +101,12 @@ export default function HomePage() {
     categoryId: "",
     sortBy: undefined,
     desc: undefined,
+  })
+
+  const [categoriesParams, setCategoriesParams] = useState<REQUEST.GetCategory>({
+    pageIndex: 1,
+    pageSize: 100,
+    search: ""
   })
 
   const [blindBoxParams, setBlindBoxParams] = useState<GetBlindBoxes>({
@@ -139,6 +159,47 @@ export default function HomePage() {
     })()
   }, [params])
 
+  useEffect(() => {
+  (async () => {
+    const res = await getCategoryApi(categoriesParams);
+    if (res) {
+      const parentCategories = res.value.data.result.filter(
+        (cat: any) => !cat.parent_id || cat.parent_id === 0
+      );
+
+      const transformedCategories: API.Category[] = parentCategories.map((cat: any) => ({
+        id: cat.id,
+        name: cat.name,
+        description: cat.description,
+        parentId: cat.parent_id || undefined,
+        isDeleted: cat.isDeleted,
+        createdAt: cat.createdAt,
+        imageUrl: cat.imageUrl || undefined,
+        children: undefined,
+      }));
+
+      setCategory(transformedCategories);
+    }
+  })();
+}, [categoriesParams]);
+
+  const handleCategoryClick = (category: API.Category) => {
+    setLoadingPage(true);
+    
+    // Dispatch action để set category filter trong Redux store
+    dispatch(clearFilters()); // Reset các filter khác trước
+    dispatch(setCategoryId(category.id));
+    
+    // Tạo URL với query parameters
+    const queryParams = new URLSearchParams({
+      categoryId: category.id.toString(),
+      categoryName: encodeURIComponent(category.name)
+    });
+    
+    // Navigate đến trang allproduct với query parameters
+    router.push(`/allproduct?${queryParams.toString()}`);
+  };
+
   const filteredItems = [
     ...(products?.result.filter((product) => {
       if (product.productType === "BlindBoxOnly") return false;
@@ -166,8 +227,7 @@ export default function HomePage() {
   const visibleBlindboxes = blindboxes?.result.filter(
     (box) => box.items && box.items.length > 0
   ) ?? [];
-
-
+  
   return (
     <>
       <div className="relative overflow-hidden">
@@ -250,7 +310,12 @@ export default function HomePage() {
           <span className="block w-24 h-[2px] bg-red-600 mt-1 mx-auto"></span>
         </motion.h1>
 
-        <CategoryGrid />
+        <CategoryGrid
+          categories={category ?? []}
+          onCategoryClick={handleCategoryClick}
+          loading={loadingPage}
+          className="my-custom-class"
+        />
 
         <motion.div
           variants={fadeIn("left", 0.3)}

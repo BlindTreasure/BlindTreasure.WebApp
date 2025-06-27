@@ -21,7 +21,6 @@ export default function useAddBlindboxToCart() {
 
         dispatch(setCart(newCart.items));
         
-        // Thành công - hiển thị toast thành công
         addToast({
           type: "success",
           description: `Đã thêm ${quantity} sản phẩm vào giỏ hàng`,
@@ -30,7 +29,6 @@ export default function useAddBlindboxToCart() {
         
         return res as TResponseData<API.ResponseDataCart>;
       } else {
-        // API trả về nhưng không thành công
         addToast({
           type: "error",
           description: "Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!",

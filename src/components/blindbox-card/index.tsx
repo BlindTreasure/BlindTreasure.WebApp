@@ -10,6 +10,7 @@ import { useState } from "react";
 import { FaRegHeart } from "react-icons/fa";
 import { BlindBox } from "@/services/blindboxes/typings";
 import { Rarity } from "@/const/products";
+import useAddBlindBoxToCart from "@/app/(user)/detail-blindbox/hooks/useAddBlindboxToCart"
 
 interface BlindboxCardProps {
     blindbox: BlindBox;
@@ -21,6 +22,7 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
     const [open, setOpen] = useState(false);
     const image = blindbox.imageUrl || "/images/cart.webp";
     const [quantity, setQuantity] = useState<number>(1);
+    const { addBlindboxToCartApi, isPending: isAddingToCart } = useAddBlindBoxToCart();
 
     const handleDecrease = () => {
         if (quantity > 1) setQuantity(quantity - 1);
@@ -29,6 +31,21 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
     const handleIncrease = () => {
         setQuantity(quantity + 1);
     };
+
+    const handleAddToCart = async () => {
+        if (!blindbox) return;
+            
+        try {
+        const cartItem = {
+            blindBoxId: blindbox.id,
+            quantity: 1,
+            };
+            
+        const result = await addBlindboxToCartApi(cartItem);          
+        } catch (error) {
+            console.error('Lỗi khi thêm vào giỏ hàng:', error);
+        }
+        };
 
     const getRarityLabel = (rarity: string): string => {
         switch (rarity) {
@@ -168,7 +185,7 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
                 </div>
 
                 <div className="mt-4 flex justify-between items-center">
-                    <Button className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
+                    <Button onClick={handleAddToCart} className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
                         Thêm vào giỏ hàng
                     </Button>
                     <FaRegHeart className="text-2xl cursor-pointer hover:text-red-500" />
