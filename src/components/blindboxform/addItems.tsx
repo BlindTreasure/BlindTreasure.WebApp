@@ -1,14 +1,12 @@
-// components/admin/blindbox/AddItemToBlindboxForm.tsx
-
 import { HiOutlineTrash } from "react-icons/hi";
 import { GoPlus } from "react-icons/go";
-import { Rarity } from "@/const/products";
+import { Rarity, RarityText } from "@/const/products";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { BlindBoxItemRequest } from "@/services/blindboxes/typings";
+import { BlindBox, BlindBoxItemRequest } from "@/services/blindboxes/typings";
 
 import { AlertCircleIcon, CheckCircle2Icon, PopcornIcon } from "lucide-react"
 
@@ -19,30 +17,24 @@ import {
 } from "@/components/ui/alert"
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
+import { Product } from "@/services/product-seller/typings";
 
-type Blindbox = { id: string; name: string };
-type Product = { id: string; name: string; productType: string };
+type BlindboxOption = Pick<BlindBox, "id" | "name" | "hasSecretItem" | "secretProbability" | "categoryId">;
 
-type Item = {
-    productId: string;
-    quantity: number;
-    dropRate: number;
-    rarity: Rarity;
-};
+type ProductOption = Pick<Product, "id" | "name" | "productType" | "categoryId">;
 
 type Props = {
-    item?: BlindBoxItemRequest;
     mode?: "create" | "edit";
-    blindboxes: { result: Blindbox[] };
-    products: { result: Product[] };
+    blindboxes: { result: BlindboxOption[] };
+    products: { result: ProductOption[] };
     selectedBoxId: string;
     setSelectedBoxId: (value: string) => void;
     selectedRarities: Rarity[];
     setSelectedRarities: React.Dispatch<React.SetStateAction<Rarity[]>>;
     rarityRates: Record<string, number>;
     setRarityRates: React.Dispatch<React.SetStateAction<Record<string, number>>>;
-    items: Item[];
-    handleItemChange: (index: number, field: keyof Item, value: any) => void;
+    items: BlindBoxItemRequest[];
+    handleItemChange: (index: number, field: keyof BlindBoxItemRequest, value: any) => void;
     handleRarityChange: (index: number, value: Rarity) => void;
     removeItem: (index: number) => void;
     addItem: () => void;
@@ -52,8 +44,10 @@ type Props = {
     setError?: (value: string | undefined) => void;
     rarityRateError?: string;
     setrarityRateError?: (value: string | undefined) => void;
-    onTotalItemsChange: (value: number) => void;
+    onTotalItemsChange: (value: number | undefined) => void;
     totalItemsToAdd?: number | null;
+    totalItems?: number | null;
+    selectKey: number;
 };
 
 
@@ -78,15 +72,43 @@ export const AddItemToBlindboxForm = ({
     setError,
     setrarityRateError,
     onTotalItemsChange,
-    totalItemsToAdd = null
+    totalItemsToAdd = null,
+    totalItems,
+    selectKey
 }: Props) => {
-    const RARITY_LABELS_VI: Record<Rarity, string> = {
-        [Rarity.Common]: "Phổ biến",
-        [Rarity.Rare]: "Hiếm",
-        [Rarity.Epic]: "Cao cấp",
-        [Rarity.Secret]: "Cực hiếm",
-    };
 
+    const [filteredProducts, setFilteredProducts] = useState<ProductOption[]>([]);
+
+    const handleBlindboxChange = (boxId: string) => {
+        setSelectedBoxId(boxId);
+        const selectedBox = blindboxes?.result?.find((b) => b.id === boxId);
+        if (!selectedBox) return;
+
+        if (selectedBox.hasSecretItem) {
+            setSelectedRarities((prev) =>
+                prev.includes(Rarity.Secret) ? prev : [...prev, Rarity.Secret]
+            );
+            setRarityRates((prev) => ({
+                ...prev,
+                [Rarity.Secret]: selectedBox.secretProbability,
+            }));
+        } else {
+            setSelectedRarities((prev) => prev.filter((r) => r !== Rarity.Secret));
+            setRarityRates((prev) => {
+                const updated = { ...prev };
+                delete updated[Rarity.Secret];
+                return updated;
+            });
+        }
+
+        const matchingProducts = products?.result?.filter(
+            (p) =>
+                p.categoryId === selectedBox.categoryId &&
+                p.id !== selectedBox.id
+        );
+
+        setFilteredProducts(matchingProducts ?? []);
+    };
 
     return (
         <form
@@ -98,7 +120,7 @@ export const AddItemToBlindboxForm = ({
         >
             <div>
                 <Label>Chọn BlindBox</Label>
-                <Select value={selectedBoxId} onValueChange={setSelectedBoxId}>
+                <Select value={selectedBoxId} onValueChange={handleBlindboxChange}>
                     <SelectTrigger className="w-1/2">
                         <SelectValue placeholder="Chọn hộp" />
                     </SelectTrigger>
@@ -114,7 +136,15 @@ export const AddItemToBlindboxForm = ({
 
             <div className="mb-4">
                 <Label>Chọn theo bộ</Label>
-                <Select onValueChange={(value) => onTotalItemsChange(Number(value))}>
+                <Select
+                    key={selectKey}
+                    value={typeof totalItems === "number" ? totalItems.toString() : undefined}
+                    onValueChange={(value) => {
+                        const numberValue = Number(value);
+                        onTotalItemsChange(numberValue);
+                    }}
+                >
+
                     <SelectTrigger className="w-40">
                         <SelectValue placeholder="Chọn số lượng" />
                     </SelectTrigger>
@@ -128,7 +158,11 @@ export const AddItemToBlindboxForm = ({
             <div className="space-y-4 border p-4 rounded-md shadow-sm">
                 <h3 className="font-semibold">Thiết lập độ hiếm & tỉ lệ rơi (%)</h3>
                 {Object.values(Rarity).map((rarity) => {
-                    const count = items.filter((item) => item.rarity === rarity).length; 
+                    const count = items.filter((item) => item.rarity === rarity).length;
+                    const selectedBox = blindboxes?.result?.find(b => b.id === selectedBoxId);
+                    const isSecret = rarity === Rarity.Secret;
+                    const isSecretDisabled = isSecret && !selectedBox?.hasSecretItem;
+                    const isSecretEditable = isSecret && selectedBox?.hasSecretItem;
 
                     return (
                         <div key={rarity} className="flex items-center gap-4">
@@ -136,6 +170,9 @@ export const AddItemToBlindboxForm = ({
                                 id={rarity}
                                 checked={selectedRarities.includes(rarity)}
                                 onCheckedChange={(checked) => {
+                                    if (isSecretEditable) return;
+                                    if (isSecretDisabled) return;
+
                                     setSelectedRarities((prev) =>
                                         checked ? [...prev, rarity] : prev.filter((r) => r !== rarity)
                                     );
@@ -148,15 +185,17 @@ export const AddItemToBlindboxForm = ({
                                         });
                                     }
                                 }}
+                                disabled={isSecretDisabled}
                             />
-                            <Label htmlFor={rarity} className="w-24">
-                                {RARITY_LABELS_VI[rarity as Rarity]}
+                            <Label htmlFor={rarity} className="w-24 text-muted-foreground">
+                                {RarityText[rarity]}
                             </Label>
                             <Input
                                 type="number"
                                 min={1}
                                 max={100}
-                                className="w-32"
+                                className={`w-32 ${isSecretEditable ? "cursor-not-allowed" : ""
+                                    }`}
                                 value={
                                     selectedRarities.includes(rarity)
                                         ? rarityRates[rarity] !== undefined
@@ -171,13 +210,15 @@ export const AddItemToBlindboxForm = ({
                                         [rarity]: Number(e.target.value),
                                     }))
                                 }
-                                disabled={!selectedRarities.includes(rarity)}
+                                disabled={!selectedRarities.includes(rarity) || isSecretDisabled}
+                                readOnly={isSecretEditable}
                                 placeholder="% tỉ lệ"
                             />
                             <span className="text-sm text-muted-foreground">({count} sản phẩm)</span>
                         </div>
                     );
                 })}
+
 
                 {rarityRateError && (
                     <Alert variant="destructive" className="mt-4">
@@ -203,13 +244,11 @@ export const AddItemToBlindboxForm = ({
                                 <SelectValue placeholder="Chọn sản phẩm" />
                             </SelectTrigger>
                             <SelectContent>
-                                {products?.result
-                                    ?.filter((p) => p.productType === "BlindBoxOnly")
-                                    .map((p) => (
-                                        <SelectItem key={p.id} value={p.id}>
-                                            {p.name}
-                                        </SelectItem>
-                                    ))}
+                                {filteredProducts.map(product => (
+                                    <SelectItem key={product.id} value={product.id}>
+                                        {product.name}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -248,14 +287,14 @@ export const AddItemToBlindboxForm = ({
                                 <SelectValue placeholder="Chọn độ hiếm" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value={Rarity.Common}>Phổ biến</SelectItem>
-                                <SelectItem value={Rarity.Rare}>Hiếm</SelectItem>
-                                <SelectItem value={Rarity.Epic}>Cao cấp</SelectItem>
-                                <SelectItem value={Rarity.Secret}>Cực hiếm</SelectItem>
+                                {selectedRarities.map((rarity) => (
+                                    <SelectItem key={rarity} value={rarity}>
+                                        {RarityText[rarity]}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div>
                         <Button
                             type="button"

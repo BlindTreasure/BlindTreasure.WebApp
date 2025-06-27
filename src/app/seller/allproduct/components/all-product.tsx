@@ -21,7 +21,7 @@ import { FaRegEdit } from "react-icons/fa"
 import { HiOutlineTrash } from "react-icons/hi"
 import { BsEye } from "react-icons/bs"
 import { CiSearch } from "react-icons/ci";
-import { ProductSortBy, ProductType, ProductTypeText } from "@/const/products"
+import { ProductSortBy, ProductType, ProductTypeText, Status, StatusTypeText } from "@/const/products"
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import EditProductSeller from "../../create-product/components/edit-product"
 import {
@@ -102,17 +102,6 @@ export default function ProductTable() {
         if (newPage < 1 || newPage > (products?.totalPages || 1)) return
         setParams((prev) => ({ ...prev, pageIndex: newPage }))
     }
-
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case "Active":
-                return "Đang hoạt động";
-            case "Inactive":
-                return "Ngừng hoạt động";
-            default:
-                return status;
-        }
-    };
 
     return (
         <div>
@@ -260,14 +249,16 @@ export default function ProductTable() {
 
                                         <TableCell className="max-w-[120px]">
                                             <span
-                                                className={`block px-2 py-1 rounded text-xs font-medium truncate
-      ${product.status === "Active"
+                                                className={`
+      block px-2 py-1 rounded text-xs font-medium truncate
+      ${product.status === Status.Active
                                                         ? "bg-green-100 text-green-700"
                                                         : "bg-red-100 text-red-700"
-                                                    }`}
-                                                title={getStatusLabel(product.status)}
+                                                    }
+    `}
+                                                title={StatusTypeText[product.status as Status]}
                                             >
-                                                {getStatusLabel(product.status)}
+                                                {StatusTypeText[product.status as Status]}
                                             </span>
                                         </TableCell>
 

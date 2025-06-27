@@ -11,12 +11,16 @@ import { motion } from "framer-motion";
 import { fadeIn } from '@/utils/variants';
 import useGetBlindboxByIdWeb from '../hooks/useGetBlindboxById';
 import useAddBlindboxToCart from "../hooks/useAddBlindboxToCart"
-import { BlindBox, BlindBoxDetail } from '@/services/blindboxes/typings';
+import { BlindBox, BlindBoxListResponse, GetBlindBoxes } from '@/services/blindboxes/typings';
 import { Backdrop } from '@/components/backdrop';
 import { ProductTabs } from '@/components/tabs';
 import { Rarity, StockStatus, stockStatusMap } from '@/const/products';
 import { BlindboxItemSheet } from '@/components/thumbnail-blindbox';
 import LightboxGallery from '@/components/lightbox-gallery';
+import useGetAllBlindBoxes from '@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes';
+import { useRouter } from 'next/navigation';
+import BlindboxCard from '@/components/blindbox-card';
+import { getRibbonTypes } from '@/utils/getRibbonTypes';
 
 interface BlindboxProps {
     blindBoxId: string;
@@ -25,13 +29,28 @@ interface BlindboxProps {
 export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
-    const [blindbox, setBlindbox] = useState<BlindBoxDetail | null>(null);
-    const [selectedVariant, setSelectedVariant] = useState<string>("Loại A");
-
+    const [blindbox, setBlindbox] = useState<BlindBox | null>(null);
+    const [relatedBlindboxes, setRelatedBlindboxes] = useState<BlindBox[]>([]);
     const { getBlindboxByIdWebApi, isPending } = useGetBlindboxByIdWeb();
+    const { getAllBlindBoxesApi, isPending: isBlindBox } = useGetAllBlindBoxes()
     const { addBlindboxToCartApi, isPending: isAddingToCart } = useAddBlindboxToCart();
-
     const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [loadingPage, setLoadingPage] = useState(false);
+    const router = useRouter();
+
+    const [blindBoxParams, setBlindBoxParams] = useState<GetBlindBoxes>({
+        search: "",
+        SellerId: "",
+        categoryId: "",
+        status: "",
+        minPrice: undefined,
+        maxPrice: undefined,
+        ReleaseDateFrom: "",
+        ReleaseDateTo: "",
+        HasItem: undefined,
+        pageIndex: 1,
+        pageSize: 5,
+    })
 
     const openSheet = () => {
         setIsSheetOpen(true);
@@ -50,6 +69,33 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
             }
         })();
     }, [blindBoxId]);
+
+    useEffect(() => {
+        if (!blindbox) return;
+
+        const fetchRelatedblindbox = async () => {
+            const res = await getAllBlindBoxesApi({
+                ...blindBoxParams,
+                categoryId: blindbox.categoryId,
+                SellerId: "",
+            });
+
+            if (res) {
+                const filtered = res.value.data.result
+                    .filter(item => item.id !== blindbox.id && item.brand === blindbox.brand)
+                    .slice(0, 4);
+
+                setRelatedBlindboxes(filtered);
+            }
+        };
+
+        fetchRelatedblindbox();
+    }, [blindbox]);
+
+    const handleViewBlindboxDetail = (id: string) => {
+        setLoadingPage(true);
+        router.push(`/detail-blindbox/${id}`);
+    };
 
     const handleDecrease = () => {
         if (quantity > 1) setQuantity(quantity - 1);
@@ -94,14 +140,9 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
         }
     };
 
-    const handleVariantSelect = (variant: string) => {
-        setSelectedVariant(variant);
-    };
-
-    const images = [
-        blindbox?.imageUrl || "/images/cart.webp",
-        ...(blindbox?.items?.map(item => item.imageUrl) || []),
-    ];
+    const images = blindbox?.imageUrl
+        ? [blindbox.imageUrl, ...(blindbox.items?.map((item) => item.imageUrl) || [])]
+        : [];
 
     const isReleased = (() => {
         if (!blindbox?.releaseDate) return false;
@@ -191,7 +232,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                         </p>
                     )}
 
-                    <div className="mb-6">
+                    {/* <div className="mb-6">
                         <p className="mb-2 text-xl">Chọn bộ:</p>
                         <div className="flex gap-4">
                             {["Loại A", "Loại B", "Loại C"].map((variant, idx) => (
@@ -210,50 +251,53 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                         {selectedVariant && (
                             <p className="text-sm text-gray-500 mt-2">Đã chọn: <strong>{selectedVariant}</strong></p>
                         )}
-                    </div>
+                    </div> */}
 
-                    <div className="flex items-center gap-4 mt-6">
-                        <div className="flex items-center border border-gray-400 rounded-full overflow-hidden">
+                    {isReleased && (
+                        <div className="flex items-center gap-4 mt-6">
+                            <div className="flex items-center border border-gray-400 rounded-full overflow-hidden">
+                                <button
+                                    onClick={handleDecrease}
+                                    className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center hover:bg-gray-700 transition-colors"
+                                    disabled={quantity <= 1}
+                                >
+                                    −
+                                </button>
+                                <input
+                                    type="text"
+                                    value={quantity}
+                                    readOnly
+                                    className="w-12 h-10 text-center border-t border-b border-gray-400"
+                                />
+                                <button
+                                    onClick={handleIncrease}
+                                    className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center hover:bg-gray-700 transition-colors"
+                                >
+                                    +
+                                </button>
+                            </div>
+
                             <button
-                                onClick={handleDecrease}
-                                className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center hover:bg-gray-700 transition-colors"
-                                disabled={quantity <= 1}
+                                onClick={handleAddToCart}
+                                disabled={isAddingToCart || !blindbox}
+                                className="bg-[#252424] text-white px-6 py-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 z-10 relative"
+                                style={{ pointerEvents: 'auto' }}
                             >
-                                −
-                            </button>
-                            <input
-                                type="text"
-                                value={quantity}
-                                readOnly
-                                className="w-12 h-10 text-center border-t border-b border-gray-400"
-                            />
-                            <button
-                                onClick={handleIncrease}
-                                className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center hover:bg-gray-700 transition-colors"
-                            >
-                                +
+                                {isAddingToCart ? (
+                                    <>
+                                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                        </svg>
+                                        Đang thêm...
+                                    </>
+                                ) : (
+                                    'Thêm vào giỏ hàng'
+                                )}
                             </button>
                         </div>
+                    )}
 
-                        <button
-                            onClick={handleAddToCart}
-                            disabled={isAddingToCart || !blindbox}
-                            className="bg-[#252424] text-white px-6 py-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 z-10 relative"
-                            style={{ pointerEvents: 'auto' }}
-                        >
-                            {isAddingToCart ? (
-                                <>
-                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                    </svg>
-                                    Đang thêm...
-                                </>
-                            ) : (
-                                'Thêm vào giỏ hàng'
-                            )}
-                        </button>
-                    </div>
                 </motion.div>
             </div>
 
@@ -289,7 +333,22 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                 <ProductTabs description={blindbox?.description || ""} />
             </motion.div>
 
-            <Backdrop open={isPending || isAddingToCart} />
+            {relatedBlindboxes.length > 0 && (
+                <div className="mt-12">
+                    <h3 className="text-2xl font-semibold mb-6">Sản phẩm liên quan</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {relatedBlindboxes.map((item) => (
+                            <BlindboxCard
+                                blindbox={item}
+                                ribbonTypes={getRibbonTypes(item)}
+                                onViewDetail={handleViewBlindboxDetail}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <Backdrop open={isPending || isAddingToCart || loadingPage} />
         </div>
     );
 }

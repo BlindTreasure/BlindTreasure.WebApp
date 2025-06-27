@@ -1,6 +1,6 @@
 import useToast from "@/hooks/use-toast";
 import { getBlindBoxById } from "@/services/blindboxes/api-services";
-import { BlindBoxDetail, BlindBoxListResponse } from "@/services/blindboxes/typings";
+import { BlindBox, BlindBoxListResponse } from "@/services/blindboxes/typings";
 import { isTResponseData } from "@/utils/compare";
 import { useRef, useState } from "react";
 
@@ -14,7 +14,7 @@ export default function useGetBlindboxByIdWeb() {
     try {
       const res = await getBlindBoxById(blindboxId);
       if (isTResponseData(res)) {
-        return res as TResponseData<BlindBoxDetail>;
+        return res as TResponseData<BlindBox>;
       }
     } catch (error) {
       return null;

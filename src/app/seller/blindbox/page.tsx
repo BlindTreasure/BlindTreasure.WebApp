@@ -4,7 +4,7 @@ import CreateBlindBoxForm from './components/blindbox';
 
 
 export const metadata: Metadata = {
-    title: "Tạo túi mù",
+    title: "Tạo túi mù | BlindTreasure",
     description: "Tạo túi mù BlindTreasure",
 };
 export default function BlindboxPageForSeller() {

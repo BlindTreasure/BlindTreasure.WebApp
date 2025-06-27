@@ -1,4 +1,4 @@
-import { Rarity } from "@/const/products";
+import { Rarity, RarityText } from "@/const/products";
 import { useServiceCreateBlindboxItems } from "@/services/blindboxes/services";
 import { BlindBoxItemRequest } from "@/services/blindboxes/typings";
 import { useState } from "react";
@@ -7,16 +7,12 @@ export default function useCreateBlindboxItemForm(
   blindboxesId: string,
   items: BlindBoxItemRequest[],
   clearItems: () => void,
-  selectedRarities: Rarity[]
+  resetFormFields: () => void,
+  selectedRarities: Rarity[],
+  setTotalItems: (value: number | undefined) => void 
 ) {
   const { mutate, isPending } = useServiceCreateBlindboxItems();
   const [error, setError] = useState<string | undefined>(undefined);
-  const RARITY_LABELS_VI: Record<Rarity, string> = {
-    [Rarity.Common]: "Phổ biến",
-    [Rarity.Rare]: "Hiếm",
-    [Rarity.Epic]: "Cao cấp",
-    [Rarity.Secret]: "Cực hiếm",
-  };
 
   const onSubmit = () => {
     if (!items.length || !blindboxesId) return;
@@ -33,7 +29,7 @@ export default function useCreateBlindboxItemForm(
     if (missingRarities.length > 0) {
       setError(
         `Vui lòng thêm ít nhất 1 sản phẩm cho các độ hiếm: ${missingRarities
-          .map((r) => RARITY_LABELS_VI[r])
+          .map((r) => RarityText[r])
           .join(", ")}`
       );
       return;
@@ -49,6 +45,7 @@ export default function useCreateBlindboxItemForm(
         {
           onSuccess: () => {
             clearItems();
+            resetFormFields();
           },
         }
       );

@@ -31,7 +31,7 @@ export type AllProduct = {
   productStockStatus: StockStatus;
   height: number;
   material: string;
-  productType: string;
+  productType: ProductType;
   brand: string;
   status: string;
   imageUrls: string[];

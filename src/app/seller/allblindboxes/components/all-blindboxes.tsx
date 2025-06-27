@@ -28,7 +28,7 @@ import { FaRegEdit } from "react-icons/fa"
 import { HiOutlineTrash } from "react-icons/hi"
 import { BsEye } from "react-icons/bs"
 import { CiSearch } from "react-icons/ci";
-import { BlindboxStatus, ProductSortBy, Rarity } from "@/const/products"
+import { BlindboxStatus, BlindboxStatusText, ProductSortBy, Rarity, RarityColorClass, RarityText } from "@/const/products"
 import { BlindBox, BlindBoxItem, BlindBoxItemRequest, BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings"
 import useGetAllBlindBoxes from "../hooks/useGetAllBlindBoxes"
 import { IoIosArrowDown } from "react-icons/io";
@@ -423,7 +423,7 @@ export default function BlindboxTable() {
                                                                         : "bg-gray-200 text-gray-600"
                                                             }`}
                                                     >
-                                                        {blindbox.status}
+                                                        {BlindboxStatusText[blindbox.status]}
                                                     </span>
                                                 </TableCell>
 
@@ -525,14 +525,12 @@ export default function BlindboxTable() {
 
                                                         <TableCell>
                                                             <span
-                                                                className={`px-2 py-1 rounded text-xs font-medium ${item.rarity === Rarity.Secret
-                                                                    ? "bg-purple-100 text-purple-700"
-                                                                    : "bg-gray-100 text-gray-700"
-                                                                    }`}
+                                                                className={`px-2 py-1 rounded text-xs font-medium ${RarityColorClass[item.rarity]}`}
                                                             >
-                                                                {item.rarity}
+                                                                {RarityText[item.rarity]}
                                                             </span>
                                                         </TableCell>
+
                                                         <TableCell>-</TableCell>
                                                         <TableCell>-</TableCell>
 

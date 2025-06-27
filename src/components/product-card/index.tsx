@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Product } from "@/services/product-seller/typings";
 import { Backdrop } from "../backdrop";
+import { StockStatus, stockStatusMap } from "@/const/products";
 
 interface ProductCardProps {
   product: Product;
@@ -125,8 +126,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
                       <div className='flex gap-2'>
                         <p>Thương hiệu: <span className='text-[#00579D] text-sm uppercase'>{product.brand}</span></p>
                         <div className="w-px h-5 bg-gray-300" />
-                        <p>Tình trạng: <span className='text-[#00579D] text-xs'></span></p>
-                        <div className="w-px h-5 bg-gray-300" />
+                        <p>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[product?.productStockStatus as StockStatus]}</span></p>
                       </div>
                       <p className="text-red-600 font-bold text-3xl">
                         {product.price.toLocaleString("vi-VN")}₫
