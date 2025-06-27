@@ -18,7 +18,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Product } from "@/services/product-seller/typings";
 import { Backdrop } from "../backdrop";
-import { StockStatus, stockStatusMap } from "@/const/products";
 
 interface ProductCardProps {
   product: Product;
@@ -33,7 +32,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
   const router = useRouter();
   const images = product.imageUrls.length > 0 ? product.imageUrls : ["/images/cart.webp"];
   const [quantity, setQuantity] = useState<number>(1);
-  const { addProductToCartApi, isPending: isAddingToCart } = useAddProductToCart();
 
   const handleDecrease = () => {
     if (quantity > 1) setQuantity(quantity - 1);
@@ -42,22 +40,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
   const handleIncrease = () => {
     setQuantity(quantity + 1);
   };
-
-  const handleAddToCart = async () => {
-    if (!product) return;
-        
-    try {
-      const cartItem = {
-          productId: product.id,
-          quantity: 1,
-        };
-          
-      const result = await addProductToCartApi(cartItem);          
-      } catch (error) {
-        console.error('Lỗi khi thêm vào giỏ hàng:', error);
-      }
-    };
-
   useEffect(() => {
     if (!open) {
       mainSwiper?.destroy(true, false);
@@ -143,12 +125,27 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
                       <div className='flex gap-2'>
                         <p>Thương hiệu: <span className='text-[#00579D] text-sm uppercase'>{product.brand}</span></p>
                         <div className="w-px h-5 bg-gray-300" />
-                        <p>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[product?.productStockStatus as StockStatus]}</span></p>
+                        <p>Tình trạng: <span className='text-[#00579D] text-xs'></span></p>
+                        <div className="w-px h-5 bg-gray-300" />
                       </div>
                       <p className="text-red-600 font-bold text-3xl">
                         {product.price.toLocaleString("vi-VN")}₫
                       </p>
                       <p>Mô tả: <span className='text-gray-600 text-sm line-clamp-2'>{product.description}</span></p>
+                      <div className="mb-6">
+                        <p className="mb-2">Chọn bộ:</p>
+                        <div className="flex gap-4">
+                          {["Loại A", "Loại B", "Loại C"].map((variant, idx) => (
+                            <div
+                              key={idx}
+                              className="px-4 py-2 rounded-md border bg-white text-black border-gray-300 cursor-default"
+                            >
+                              {variant}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
                       <div className="flex items-center gap-4 mt-6">
                         <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
                           <button
@@ -197,7 +194,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
         </div>
 
         <div className="mt-4 flex justify-between items-center">
-          <Button onClick={handleAddToCart} className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
+          <Button className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
             Thêm vào giỏ hàng
           </Button>
           <FaRegHeart className="text-2xl cursor-pointer hover:text-red-500" />
