@@ -17,8 +17,8 @@ export type GetAllProducts = {
   releaseDateFrom?: string;
   releaseDateTo?: string;
   desc?: boolean;
-  pageIndex: number;
-  pageSize: number;
+  pageIndex?: number;
+  pageSize?: number;
 };
 
 export type AllProduct = {

@@ -65,27 +65,21 @@ export default function ProductFilterSidebar({
 
   // Auto-expand categories when filters change or component mounts
   useEffect(() => {
-    if (filters.categoryId && categories?.result) {
-      const selectedCategory = findCategoryById(filters.categoryId);
+    if (filters.selectedCategoryId && categories?.result) {
+      const selectedCategory = findCategoryById(filters.selectedCategoryId);
       
       if (selectedCategory) {
-        // If selected category is a parent category with children, expand it
-        if (selectedCategory.children && selectedCategory.children.length > 0) {
-          setExpandedCategories([selectedCategory.id]);
+        // Nếu selected category có parentId (là category con)
+        if (selectedCategory.parentId) {
+          setExpandedCategories([selectedCategory.parentId]); // Expand parent
         }
-        // If selected category is a child category, expand its parent
-        else if (selectedCategory.parentId) {
-          const parentCategory = findCategoryById(selectedCategory.parentId);
-          if (parentCategory && parentCategory.children && parentCategory.children.length > 0) {
-            setExpandedCategories([parentCategory.id]);
-          }
+        // Nếu selected category là parent và có children  
+        else if (selectedCategory.children && selectedCategory.children.length > 0) {
+          setExpandedCategories([selectedCategory.id]); // Expand chính nó
         }
       }
-    } else {
-      // If no category is selected, collapse all
-      setExpandedCategories([]);
     }
-  }, [filters.categoryId, categories]);
+  }, [filters.selectedCategoryId, categories]);
   
   // Helper function to get current price range string
   const getCurrentPriceRange = (): string => {
@@ -146,21 +140,32 @@ export default function ProductFilterSidebar({
   };
 
   const handleCategoryClick = (categoryId: string) => {
-    const isCurrentlySelected = filters.categoryId === categoryId;
+    const isCurrentlySelected = filters.selectedCategoryId === categoryId;
     if (isCurrentlySelected) {
-      return;
+      return; // Nếu đã chọn rồi thì không làm gì
     }
     
-    // Chỉ gọi onCategoryFilter khi chưa được chọn
+    // Gọi onCategoryFilter để update URL và Redux
     onCategoryFilter(categoryId);
     
+    // Logic expand/collapse
     const category = findCategoryById(categoryId);
-    if (category && category.children && category.children.length > 0) {
-      // If selecting new category with children, collapse all others and expand this one
-      setExpandedCategories([categoryId]);
-    } else {
-      // If selecting a category without children, collapse all expanded categories
-      setExpandedCategories([]);
+    if (category) {
+      if (category.parentId) {
+        // Nếu click vào category con, đảm bảo parent được expand
+        setExpandedCategories([category.parentId]);
+      } else if (category.children && category.children.length > 0) {
+        // Nếu click vào parent có children, toggle expand
+        const isExpanded = expandedCategories.includes(categoryId);
+        if (!isExpanded) {
+          setExpandedCategories([categoryId]);
+        } else {
+          setExpandedCategories([]);
+        }
+      } else {
+        // Nếu click vào parent không có children, collapse all
+        setExpandedCategories([]);
+      }
     }
   };
 
@@ -180,10 +185,57 @@ export default function ProductFilterSidebar({
   // Count active filters
   const getActiveFiltersCount = (): number => {
     let count = 0;
-    if (filters.categoryId) count++;
+    if (filters.selectedCategoryId) count++;
     if (filters.minPrice !== undefined || filters.maxPrice !== undefined) count++;
     if (filters.releaseDateFrom || filters.releaseDateTo) count++;
     return count;
+  };
+
+  // Helper function to check if parent should be highlighted
+  const shouldHighlightParent = (parentId: string): boolean => {
+    // Chỉ highlight parent nếu:
+    // 1. Parent được chọn trực tiếp (selectedCategoryId === parentId)
+    // 2. KHÔNG có category con nào được chọn
+    if (filters.selectedCategoryId === parentId) {
+      const selectedCategory = findCategoryById(filters.selectedCategoryId);
+      // Nếu category được chọn là parent và không có parentId (tức là parent category)
+      return !selectedCategory?.parentId;
+    }
+    return false;
+  };
+
+  // Helper function to check if child should be highlighted
+  const shouldHighlightChild = (childId: string): boolean => {
+    return filters.selectedCategoryId === childId;
+  };
+
+  // Get categories to display based on Redux categoryId
+  const getCategoriesToDisplay = () => {
+    if (!categories?.result) return [];
+
+    // Nếu không có categoryId trong Redux, hiển thị tất cả parent categories
+    if (!filters.categoryId) {
+      return categories.result.filter(cat => !cat.parentId);
+    }
+
+    // Nếu có categoryId trong Redux, tìm category đó và parent của nó
+    const targetCategory = findCategoryById(filters.categoryId);
+    if (!targetCategory) {
+      return categories.result.filter(cat => !cat.parentId);
+    }
+
+    // Nếu target category là parent
+    if (!targetCategory.parentId) {
+      return [targetCategory];
+    }
+
+    // Nếu target category là child, tìm parent của nó
+    const parentCategory = categories.result.find(cat => cat.id === targetCategory.parentId);
+    if (parentCategory) {
+      return [parentCategory];
+    }
+
+    return categories.result.filter(cat => !cat.parentId);
   };
   
   const FilterContent = ({ isCompact = false }: { isCompact?: boolean }) => (
@@ -212,47 +264,45 @@ export default function ProductFilterSidebar({
       <div>
         <h3 className="text-[#d02a2a] font-semibold mb-2 text-base">Danh Mục</h3>
         <div className="space-y-1">
-          {categories?.result
-            ?.filter((cat) => !cat.parentId) 
-            ?.map((parentCat) => {
-              const hasChildren = parentCat.children && Array.isArray(parentCat.children) && parentCat.children.length > 0;
-              const isParentSelected = filters.categoryId === parentCat.id;
-              const isExpanded = expandedCategories.includes(parentCat.id);
+          {getCategoriesToDisplay().map((parentCat) => {
+            const hasChildren = parentCat.children && Array.isArray(parentCat.children) && parentCat.children.length > 0;
+            const isParentSelected = shouldHighlightParent(parentCat.id);
+            const isExpanded = expandedCategories.includes(parentCat.id);
 
-              return (
-                <div key={parentCat.id}>
-                  {/* Parent Category - Click để select và auto expand nếu có children */}
-                  <div
-                    className={`cursor-pointer px-2 py-1 hover:text-[#d02a2a] transition-colors ${
-                      isParentSelected ? 'text-[#d02a2a] font-semibold' : ''
-                    }`}
-                    onClick={() => handleCategoryClick(parentCat.id)}
-                  >
-                    {parentCat.name}
-                  </div>
-                  
-                  {/* Children Categories - hiện khi expanded */}
-                  {hasChildren && isExpanded && (
-                    <div className="pl-6 space-y-1 mt-1">
-                      {(parentCat.children || []).map((childCat) => {
-                        const isChildSelected = filters.categoryId === childCat.id;
-                        return (
-                          <div
-                            key={childCat.id}
-                            className={`cursor-pointer px-2 py-1 hover:text-[#d02a2a] transition-colors ${
-                              isChildSelected ? 'text-[#d02a2a] font-semibold' : ''
-                            }`}
-                            onClick={() => handleCategoryClick(childCat.id)}
-                          >
-                            {childCat.name}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+            return (
+              <div key={parentCat.id}>
+                {/* Parent Category */}
+                <div
+                  className={`cursor-pointer px-2 py-1 hover:text-[#d02a2a] transition-colors ${
+                    isParentSelected ? 'text-[#d02a2a] font-semibold' : ''
+                  }`}
+                  onClick={() => handleCategoryClick(parentCat.id)}
+                >
+                  {parentCat.name}
                 </div>
-              );
-            })}
+                
+                {/* Children Categories - hiện khi expanded */}
+                {hasChildren && isExpanded && (
+                  <div className="pl-6 space-y-1 mt-1">
+                    {(parentCat.children || []).map((childCat) => {
+                      const isChildSelected = shouldHighlightChild(childCat.id);
+                      return (
+                        <div
+                          key={childCat.id}
+                          className={`cursor-pointer px-2 py-1 hover:text-[#d02a2a] transition-colors ${
+                            isChildSelected ? 'text-[#d02a2a] font-semibold' : ''
+                          }`}
+                          onClick={() => handleCategoryClick(childCat.id)}
+                        >
+                          {childCat.name}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 

@@ -17,8 +17,8 @@ export type GetBlindBoxes = {
   ReleaseDateFrom: string;
   ReleaseDateTo: string;
   HasItem?: boolean;
-  pageIndex: number;
-  pageSize: number;
+  pageIndex?: number;
+  pageSize?: number;
 };
 
 export type BlindBoxItem = {
