@@ -17,6 +17,12 @@ export enum ProductType {
   Both = "Both",
 }
 
+export const ProductTypeText: Record<ProductType, string> = {
+  [ProductType.DirectSale]: "Bán trực tiếp",
+  [ProductType.BlindBoxOnly]: "Chỉ bán blindbox",
+  [ProductType.Both]: "Bán cả hai hình thức",
+};
+
 export enum Status {
   Active = "Active",
   InActive = "InActive",

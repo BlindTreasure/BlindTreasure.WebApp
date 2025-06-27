@@ -4,15 +4,28 @@ type PaginationProps = {
   onPageChange: (page: number) => void;
 };
 
+const getPagesToDisplay = (
+  currentPage: number,
+  totalPages: number
+): number[] => {
+  const pages: number[] = [];
+
+  const start = Math.max(1, currentPage - 1);
+  const end = Math.min(totalPages, currentPage + 1);
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+
+  return pages;
+};
+
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange,
 }) => {
-  const pagesAroundCurrent = Array.from(
-    { length: Math.min(3, totalPages) },
-    (_, i) => i + Math.max(currentPage - 1, 1)
-  );
+  const pagesToRender = getPagesToDisplay(currentPage, totalPages);
 
   return (
     <div className="flex items-center ">
@@ -24,8 +37,8 @@ const Pagination: React.FC<PaginationProps> = ({
         Trước
       </button>
       <div className="flex items-center gap-2">
-        {currentPage > 3 && <span className="px-2">...</span>}
-        {pagesAroundCurrent.map((page) => (
+        {currentPage > 2 && <span className="px-2">...</span>}
+        {pagesToRender.map((page) => (
           <button
             key={page}
             onClick={() => onPageChange(page)}
@@ -38,7 +51,7 @@ const Pagination: React.FC<PaginationProps> = ({
             {page}
           </button>
         ))}
-        {currentPage < totalPages - 2 && <span className="px-2">...</span>}
+        {currentPage < totalPages - 1 && <span className="px-2">...</span>}
       </div>
       <button
         onClick={() => onPageChange(currentPage + 1)}

@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Message from "../components/message/message";
+import useAutoRefreshToken from "@/hooks/use-auto-refresh-token";
 const StoreProvider = dynamic(
     () => import("@/provider/redux-provider").then((mod) => mod.StoreProvider),
     {
@@ -15,6 +16,11 @@ const ReactQueryProvider = dynamic(
     { ssr: false }
 );
 
+const AppInitializer = () => {
+    useAutoRefreshToken();
+    return null;
+};
+
 export default function Provider({
     children,
 }: Readonly<{
@@ -24,7 +30,8 @@ export default function Provider({
         <StoreProvider>
             <ReactQueryProvider>
                 <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
-                <Message>{children}</Message>
+                    <AppInitializer />
+                    <Message>{children}</Message>
                 </GoogleOAuthProvider>
             </ReactQueryProvider>
         </StoreProvider>

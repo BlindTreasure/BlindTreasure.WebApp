@@ -5,6 +5,7 @@ export type OrderResponse = {
   status: PaymentStatus;
   totalAmount: number;
   placedAt: string;
+  completedAt: string;
   shippingAddress: {
     id: string;
     fullName: string;

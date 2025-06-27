@@ -1,13 +1,22 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import { fadeIn } from "@/utils/variants";
 import Link from "next/link";
 import { GoArrowRight } from "react-icons/go";
+import { Backdrop } from "../backdrop";
+import { useRouter } from "next/navigation";
 export default function HeroVideoSection() {
+    const [loadingPage, setLoadingPage] = useState(false);
+    const router = useRouter();
+
+    const handleNavigateWithLoading = (path: string) => {
+        setLoadingPage(true);
+        router.push(path);
+    }
     return (
         <div className="relative w-full h-screen overflow-hidden">
             <video
@@ -33,19 +42,18 @@ export default function HeroVideoSection() {
                     <p className="text-lg md:text-xl mb-6 text-start">
                         Bạn đã sẵn sàng cho những điều bất ngờ? Khám phá hộp bí ẩn của chúng tôi ngay hôm nay và trải nghiệm cảm giác hồi hộp đến phút cuối cùng!
                     </p>
-                    <Link href="/aboutus">
-                        <Button
-                            className="group relative border-2 bg-[#d02a2a] border-[#ACACAC] rounded-full px-8 py-6 text-lg font-semibold text-white hover:bg-white hover:text-black transition-colors duration-300"
-                            variant="outline"
-                        >
-                            <span className="inline-block transition-transform duration-300 transform group-hover:-translate-x-4 group-hover:text-black">
-                                Khám phá ngay
-                            </span>
-                            <span className="transition-transform duration-300 transform opacity-0 group-hover:opacity-100 absolute right-4">
-                                <GoArrowRight />
-                            </span>
-                        </Button>
-                    </Link>
+                    <Button
+                        className="group relative border-2 bg-[#d02a2a] border-[#ACACAC] rounded-full px-8 py-6 text-lg font-semibold text-white hover:bg-white hover:text-black transition-colors duration-300"
+                        variant="outline"
+                        onClick={() => handleNavigateWithLoading("/aboutus")}
+                    >
+                        <span className="inline-block transition-transform duration-300 transform group-hover:-translate-x-4 group-hover:text-black">
+                            Khám phá ngay
+                        </span>
+                        <span className="transition-transform duration-300 transform opacity-0 group-hover:opacity-100 absolute right-4">
+                            <GoArrowRight />
+                        </span>
+                    </Button>
                 </div>
 
                 <div className="flex-1 flex justify-center md:mt-0">
@@ -58,6 +66,7 @@ export default function HeroVideoSection() {
                     />
                 </div>
             </motion.div>
+            <Backdrop open={loadingPage} />
         </div>
     );
 }

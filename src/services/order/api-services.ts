@@ -24,3 +24,13 @@ export const getOrderByCustomer = async () => {
   );
   return response.data;
 };
+
+export const getOrderDetailById = async (orderId: string) => {
+  const response = await request<TResponseData<OrderResponse>>(
+    API_ENDPOINTS.ORDER_WITH_ID(orderId),
+    {
+      method: "GET",
+    }
+  );
+  return response.data;
+};

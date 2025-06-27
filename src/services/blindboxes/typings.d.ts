@@ -78,6 +78,7 @@ export type CreateBlindboxForm = {
   price?: number;
   totalQuantity?: number;
   releaseDate?: string;
+  categoryId: string;
   brand: string;
   description: string;
   imageFile?: string | File | null;

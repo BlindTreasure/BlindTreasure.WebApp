@@ -9,6 +9,10 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Backdrop } from "../backdrop";
+import { Button } from "../ui/button";
 
 interface ShippingAddress {
     id: string;
@@ -23,6 +27,7 @@ interface ShippingAddress {
 }
 
 interface OrderCardProps {
+    orderId: string;
     shopName: string;
     details: OrderDetail[];
     total: number;
@@ -32,6 +37,7 @@ interface OrderCardProps {
 }
 
 export default function OrderCard({
+    orderId,
     shopName,
     details,
     total,
@@ -39,6 +45,13 @@ export default function OrderCard({
     payment,
     shippingAddress,
 }: OrderCardProps) {
+    const router = useRouter();
+    const [loadingPage, setLoadingPage] = useState(false);
+
+    const handleViewInvoiceDetail = (id: string) => {
+        setLoadingPage(true);
+        router.push(`/orderhistory/${id}`);
+    };
     return (
         <div className="border rounded-md shadow-sm bg-white mb-4">
             <div className="flex justify-between items-center p-4 border-b bg-gray-50">
@@ -83,7 +96,7 @@ export default function OrderCard({
 
             <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center bg-gray-50 gap-4">
                 <div className="text-sm text-gray-600">
-                     Đơn hàng sẽ được chuẩn bị và chuyển đi trước <span className="text-blue-500 underline">{deliveryDate}</span>
+                    Đơn hàng sẽ được chuẩn bị và chuyển đi trước <span className="text-blue-500 underline">{deliveryDate}</span>
                 </div>
 
                 <div className="flex flex-wrap gap-2 items-center">
@@ -163,16 +176,16 @@ export default function OrderCard({
                                     )}
                                 </div>
 
-                                <div className="border-t pt-4 text-right text-sm">
-                                    <div>Tạm tính: {payment.amount.toLocaleString()}₫</div>
-                                    <div>Giảm giá: -{(payment.amount - payment.netAmount).toLocaleString()}₫</div>
-                                    <div className="font-semibold text-base">
-                                        Tổng thanh toán: <span className="text-red-500">{payment.netAmount.toLocaleString()}₫</span>
+                                <div className="border-t pt-4 text-right text-sm flex justify-between items-center">
+                                    <div> <Button onClick={() => handleViewInvoiceDetail(orderId)}>Xem chi tiết</Button></div>
+                                    <div>
+                                        <div>Tạm tính: {payment.amount.toLocaleString()}₫</div>
+                                        <div>Giảm giá: -{(payment.amount - payment.netAmount).toLocaleString()}₫</div>
+                                        <div className="font-semibold text-base">
+                                            Tổng thanh toán: <span className="text-red-500">{payment.netAmount.toLocaleString()}₫</span>
+                                        </div>
                                     </div>
                                 </div>
-
-
-
                             </div>
                         </DialogContent>
 
@@ -183,6 +196,7 @@ export default function OrderCard({
                     </button>
                 </div>
             </div>
+            <Backdrop open={loadingPage} />
         </div>
     );
 }

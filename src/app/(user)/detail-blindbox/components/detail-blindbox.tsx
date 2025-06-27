@@ -108,8 +108,6 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
 
         const today = new Date();
         const release = new Date(blindbox.releaseDate);
-
-        // Reset time về 00:00:00 cho cả hai ngày
         today.setHours(0, 0, 0, 0);
         release.setHours(0, 0, 0, 0);
 

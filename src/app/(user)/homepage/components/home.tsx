@@ -133,6 +133,11 @@ export default function HomePage() {
     }
   };
 
+  const handleNavigateWithLoading = (path: string) => {
+  setLoadingPage(true);
+  router.push(path);
+};
+
   const handleViewDetail = (id: string) => {
     setLoadingPage(true);
     router.push(`/detail/${id}`);
@@ -239,7 +244,7 @@ export default function HomePage() {
           whileInView="show"
           viewport={{ once: true, amount: 0.7 }}
           className="flex flex-col justify-center items-center py-10">
-          <h1 className="mt-6 text-4xl md:text-5xl font-extrabold text-[#333]">
+          <h1 className="mt-6 text-4xl md:text-5xl font-extrabold text-[#333] font-roboto">
             HỘP BÍ ẨN
           </h1>
           <p className="text-lg text-[#333] mt-2">
@@ -253,6 +258,7 @@ export default function HomePage() {
             <Button
               variant="outline"
               className="border-2 border-[#ACACAC] rounded-full px-8 py-6 text-lg font-semibold text-[#252424] hover:bg-[#252424] hover:text-white transition-colors duration-300"
+              onClick={() => handleNavigateWithLoading("/allproduct")}
             >
               Tìm hiểu thêm
             </Button>
@@ -359,7 +365,7 @@ export default function HomePage() {
           <Button
             variant="outline"
             className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#252424] hover:text-white transition-colors duration-300"
-            onClick={() => router.push("/all-new-products")}
+            onClick={() => handleNavigateWithLoading("/all-new-products")}
           >
             Xem thêm
           </Button>
@@ -528,7 +534,7 @@ export default function HomePage() {
           <Button
             variant="outline"
             className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:bg-[#252424] hover:border-[#ACACAC] hover:text-white transition-colors duration-300"
-            onClick={() => router.push("/all-blindbox")}
+            onClick={() => handleNavigateWithLoading("/all-blindbox")}
           >
             Xem thêm
           </Button>
