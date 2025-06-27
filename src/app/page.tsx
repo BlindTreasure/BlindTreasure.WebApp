@@ -58,7 +58,8 @@ import useInitialAuth from '@/hooks/use-initial-auth';
 export default function RootRedirect() {
   const router = useRouter();
   const user = useAppSelector((state) => state.userSlice.user);
-  const { loading } = useInitialAuth();
+  const { loading } = useInitialAuth({ redirectIfUnauthenticated: false });
+
 
   useEffect(() => {
     if (!user) return;

@@ -58,7 +58,7 @@ import { useAppDispatch } from "@/stores/store";
 import { getAccountProfile } from "@/services/account/api-services";
 import { setUser } from "@/stores/user-slice";
 
-export default function useInitialAuth() {
+export default function useInitialAuth({ redirectIfUnauthenticated = true } = {}) {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
@@ -69,7 +69,10 @@ export default function useInitialAuth() {
       const refresh = getStorageItem("refreshToken");
 
       if (!refresh) {
-        router.replace("/login");
+        if (redirectIfUnauthenticated) {
+          router.replace("/login");
+        }
+        setLoading(false);
         return;
       }
 
