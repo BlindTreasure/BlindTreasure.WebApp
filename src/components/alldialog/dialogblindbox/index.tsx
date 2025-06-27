@@ -1,6 +1,6 @@
 
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
-import { StockStatus, stockStatusMap } from "@/const/products";
+import { BlindboxStatusText, StockStatus, stockStatusMap } from "@/const/products";
 import { BlindBox } from "@/services/blindboxes/typings";
 import { useState } from "react";
 
@@ -35,16 +35,17 @@ const BlindboxDetailDialog: React.FC<BlindboxDetailDialogProps> = ({ blindbox, i
                             </div>
                             <div className="space-y-2">
                                 <div className="text-gray-700 dark:text-gray-300">
-                                    <strong>Ngày phát hành:</strong> {new Date(blindbox.releaseDate).toLocaleDateString()}
+                                    <strong>Ngày phát hành:</strong>{' '}
+                                    {new Date(blindbox.releaseDate).toLocaleDateString('vi-VN')}
                                 </div>
                                 <div className="text-gray-700 dark:text-gray-300">
-                                    <strong>Trạng thái:</strong> {blindbox.status}
+                                    <strong>Trạng thái:</strong> {BlindboxStatusText[blindbox.status]}
                                 </div>
                                 <div className="text-gray-700 dark:text-gray-300">
-                                    <strong>Secret item:</strong> {blindbox.hasSecretItem ? "Có" : "Không"}
+                                    <strong>Sản phẩm bí mật:</strong> {blindbox.hasSecretItem ? "Có" : "Không"}
                                 </div>
                                 <div className="text-gray-700 dark:text-gray-300">
-                                    <strong>Xác suất Secret:</strong> {(blindbox.secretProbability * 100).toFixed(2)}%
+                                    <strong>Xác suất bí mật:</strong> {blindbox.secretProbability.toFixed(2)}%
                                 </div>
                                 <div className="text-gray-700 dark:text-gray-300">
                                     <strong>Tình trạng kho:</strong> {stockStatusMap[blindbox.blindBoxStockStatus as StockStatus]}
@@ -63,9 +64,6 @@ const BlindboxDetailDialog: React.FC<BlindboxDetailDialogProps> = ({ blindbox, i
                         </div>
 
                         <div className="mb-4">
-                            <h3 className="text-md font-semibold mb-2 text-gray-800 dark:text-gray-200">
-                                Danh sách vật phẩm
-                            </h3>
                             <div className="grid gap-3">
                                 {blindbox.items.map((item) => (
                                     <div

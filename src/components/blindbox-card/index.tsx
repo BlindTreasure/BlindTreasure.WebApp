@@ -34,7 +34,18 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
     const handleVariantSelect = (variant: string) => {
         setSelectedVariant(variant);
     };
-    
+
+    const isReleased = (() => {
+        if (!blindbox?.releaseDate) return false;
+
+        const today = new Date();
+        const release = new Date(blindbox.releaseDate);
+        today.setHours(0, 0, 0, 0);
+        release.setHours(0, 0, 0, 0);
+
+        return release <= today;
+    })();
+
     return (
         <div className="relative p-2 mt-6 transition-all duration-300 transform hover:scale-105">
             <Ribbon createdAt={blindbox.releaseDate} types={ribbonTypes} />
@@ -85,7 +96,7 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
                                                 {blindbox.price.toLocaleString("vi-VN")}₫
                                             </p>
                                             <p>Mô tả: <span className='text-gray-600 text-sm'>{blindbox.description}</span></p>
-                                            <div className="mb-6">
+                                            {/* <div className="mb-6">
                                                 <p className="mb-2 text-xl">Chọn bộ:</p>
                                                 <div className="flex gap-4">
                                                     {["Loại A", "Loại B", "Loại C"].map((variant, idx) => (
@@ -104,34 +115,37 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
                                                 {selectedVariant && (
                                                     <p className="text-sm text-gray-500 mt-2">Đã chọn: <strong>{selectedVariant}</strong></p>
                                                 )}
-                                            </div>
+                                            </div> */}
 
-                                            <div className="flex items-center gap-4 mt-6">
-                                                <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
-                                                    <button
-                                                        onClick={handleDecrease}
-                                                        className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center"
-                                                    >
-                                                        −
-                                                    </button>
-                                                    <input
-                                                        type="text"
-                                                        value={quantity}
-                                                        readOnly
-                                                        className="w-12 h-9 text-center"
-                                                    />
-                                                    <button
-                                                        onClick={handleIncrease}
-                                                        className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center"
-                                                    >
-                                                        +
-                                                    </button>
+                                            {isReleased && (
+                                                <div className="flex items-center gap-4 mt-6">
+                                                    <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
+                                                        <button
+                                                            onClick={handleDecrease}
+                                                            className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center"
+                                                        >
+                                                            −
+                                                        </button>
+                                                        <input
+                                                            type="text"
+                                                            value={quantity}
+                                                            readOnly
+                                                            className="w-12 h-9 text-center"
+                                                        />
+                                                        <button
+                                                            onClick={handleIncrease}
+                                                            className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center"
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </div>
+
+                                                    <Button className="py-5">
+                                                        Mua ngay
+                                                    </Button>
                                                 </div>
+                                            )}
 
-                                                <Button className="py-5">
-                                                    Mua ngay
-                                                </Button>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>

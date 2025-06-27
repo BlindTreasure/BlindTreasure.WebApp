@@ -124,10 +124,11 @@ export default function CreateBlindbox({
         : "";
 
     useEffect(() => {
-        if (mode === "edit" && blindbox) {
+        if (mode === "edit" && blindbox && categories?.result?.length) {
             const editDate = new Date(blindbox.releaseDate);
             reset({
                 name: blindbox.name,
+                categoryId: blindbox.categoryId,
                 price: blindbox.price,
                 totalQuantity: blindbox.totalQuantity,
                 releaseDate: editDate.toISOString().split('T')[0],
@@ -138,7 +139,7 @@ export default function CreateBlindbox({
                 imageFile: blindbox.imageUrl
             });
         }
-    }, [mode, blindbox, reset]);
+    }, [mode, blindbox, categories, reset]);
 
 
     useEffect(() => {

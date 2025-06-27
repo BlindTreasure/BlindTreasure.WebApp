@@ -26,12 +26,13 @@ export type BlindBoxItem = {
   productName: string;
   quantity: number;
   dropRate: number;
-  rarity: string;
+  rarity:  Rarity;
   imageUrl: string;
 };
 
 export type BlindBox = {
   id: string;
+  categoryId: string;
   name: string;
   description: string;
   price: number;
@@ -40,30 +41,33 @@ export type BlindBox = {
   brand: string;
   imageUrl: string;
   releaseDate: string;
+  createdAt: string;
   status: BlindboxStatus;
   hasSecretItem: boolean;
   secretProbability: number;
   items: BlindBoxItem[];
+  isDeleted: boolean;
   rejectReason?: string;
 };
 
-export type BlindBoxDetail = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  totalQuantity: number;
-  blindBoxStockStatus: StockStatus;
-  brand: string;
-  imageUrl: string;
-  releaseDate: string;
-  status: BlindboxStatus;
-  hasSecretItem: boolean;
-  secretProbability: number;
-  rejectReason: string;
-  isDeleted: boolean;
-  items: BlindBoxItem[];
-};
+// export type BlindBoxDetail = {
+//   id: string;
+//   categoryId: string;
+//   name: string;
+//   description: string;
+//   price: number;
+//   totalQuantity: number;
+//   blindBoxStockStatus: StockStatus;
+//   brand: string;
+//   imageUrl: string;
+//   releaseDate: string;
+//   status: BlindboxStatus;
+//   hasSecretItem: boolean;
+//   secretProbability: number;
+//   rejectReason: string;
+//   isDeleted: boolean;
+//   items: BlindBoxItem[];
+// };
 
 export type BlindBoxListResponse = {
   result: BlindBox[];

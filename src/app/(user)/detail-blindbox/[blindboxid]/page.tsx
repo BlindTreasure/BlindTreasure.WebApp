@@ -1,6 +1,7 @@
 
 import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
 import BlindboxDetail from "../components/detail-blindbox";
+import { getRibbonTypes } from "@/utils/getRibbonTypes";
 
 export const metadata: Metadata = {
     title: "Chi tiết tùi mù",

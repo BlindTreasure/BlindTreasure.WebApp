@@ -28,6 +28,11 @@ export enum Status {
   InActive = "InActive",
 }
 
+export const StatusTypeText: Record<Status, string> = {
+  [Status.Active]: "Đang hoạt động",
+  [Status.InActive]: "Ngừng hoạt động",
+};
+
 export enum ProductStatus {
   Active = "Active",
   InActive = "InActive",
@@ -42,12 +47,33 @@ export enum BlindboxStatus {
   Rejected = "Rejected",
 }
 
+export const BlindboxStatusText: Record<BlindboxStatus, string> = {
+  [BlindboxStatus.Draft]: "Bản nháp",
+  [BlindboxStatus.PendingApproval]: "Chờ duyệt",
+  [BlindboxStatus.Approved]: "Đã duyệt",
+  [BlindboxStatus.Rejected]: "Bị từ chối",
+};
+
 export enum Rarity {
   Common = "Common",
   Epic = "Epic",
   Rare = "Rare",
   Secret = "Secret",
 }
+
+export const RarityText: Record<Rarity, string> = {
+  [Rarity.Common]: "Phổ biến",
+  [Rarity.Epic]: "Cao cấp",
+  [Rarity.Rare]: "Hiếm",
+  [Rarity.Secret]: "Cực hiếm",
+};
+
+export const RarityColorClass: Record<Rarity, string> = {
+  [Rarity.Common]: "bg-gray-100 text-gray-700",
+  [Rarity.Rare]: "bg-blue-100 text-blue-700",
+  [Rarity.Epic]: "bg-purple-100 text-purple-700",
+  [Rarity.Secret]: "bg-yellow-100 text-yellow-700",
+};
 
 export enum StockStatus {
   InStock = "InStock",
@@ -90,7 +116,6 @@ export const OrderStatusText: Record<OrderStatus, string> = {
   [OrderStatus.DELIVERED]: "Đã giao hàng",
   [OrderStatus.CANCELLED]: "Đã hủy",
 };
-
 
 export enum PaymentInfoStatus {
   PENDING = "Pending",

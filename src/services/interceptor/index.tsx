@@ -108,17 +108,61 @@ const errorHandler = async (error: AxiosError) => {
   return Promise.reject(responseMeta);
 };
 
-request.interceptors.request.use(
-  (config) => {
+// request.interceptors.request.use(
+//   (config) => {
 
-    if (config.url?.includes("/auth/logout")) {
+//     if (config.url?.includes("/auth/logout")) {
+//       return config;
+//     }
+
+//     const token = getStorageItem("accessToken");
+//     if (token) {
+//       config.headers.Authorization = `Bearer ${token}`;
+//     }
+//     return config;
+//   },
+//   (error) => Promise.reject(error)
+// );
+
+request.interceptors.request.use(
+  async (config) => {
+    // Không xử lý auth API
+    if (config.url?.includes("/auth/login") || config.url?.includes("/auth/refresh")) {
       return config;
     }
 
-    const token = getStorageItem("accessToken");
+    let token = getStorageItem("accessToken");
+    const refresh = getStorageItem("refreshToken");
+
+    // Nếu không có accessToken nhưng có refreshToken → refresh ngay
+    if (!token && refresh) {
+      if (!refreshTokenPromise) {
+        refreshTokenPromise = refreshToken({ refreshToken: refresh })
+          .then((res: any) => {
+            const accessTokenRaw = res?.value?.data?.accessToken;
+            const refreshTokenRaw = res?.value?.data?.refreshToken;
+            setStorageItem("accessToken", accessTokenRaw);
+            setStorageItem("refreshToken", refreshTokenRaw);
+            return accessTokenRaw;
+          })
+          .catch((err: any) => {
+            removeStorageItem("accessToken");
+            removeStorageItem("refreshToken");
+            location.href = "/login";
+            return Promise.reject(err);
+          })
+          .finally(() => {
+            refreshTokenPromise = null;
+          });
+      }
+
+      token = await refreshTokenPromise;
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)

@@ -9,7 +9,7 @@ import type { Swiper as SwiperType } from 'swiper';
 import { ProductTabs } from '@/components/tabs';
 import { motion } from "framer-motion";
 import { fadeIn } from '@/utils/variants';
-import { AllProduct } from '@/services/product/typings';
+import { AllProduct, GetAllProducts, TAllProductResponse } from '@/services/product/typings';
 import useGetProductByIdWeb from '../hooks/useGetProductByIdWeb';
 import useAddProductToCart from "../hooks/useAddProductToCart"
 import { Backdrop } from '@/components/backdrop';
@@ -17,6 +17,10 @@ import LightboxGallery from '@/components/lightbox-gallery';
 import { Gallery, Item } from "react-photoswipe-gallery";
 import "photoswipe/style.css";
 import { StockStatus, stockStatusMap } from '@/const/products';
+import useGetAllProductWeb from '../../allproduct/hooks/useGetAllProductWeb';
+import ProductCard from '@/components/product-card';
+import { getRibbonTypes } from '@/utils/getRibbonTypes';
+import { useRouter } from 'next/navigation';
 
 interface DetailProps {
     detailId: string;
@@ -27,16 +31,59 @@ export default function Detail({ detailId }: DetailProps) {
     const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
     const [products, setProducts] = useState<AllProduct | null>(null);
-    
     const { getProductByIdWebApi, isPending } = useGetProductByIdWeb();
+    const [relatedProducts, setRelatedProducts] = useState<AllProduct[]>([]);
+    const [loadingPage, setLoadingPage] = useState(false);
+    const router = useRouter();
     const { addProductToCartApi, isPending: isAddingToCart } = useAddProductToCart();
-    
+    const { getAllProductWebApi, isPending: isProduct } = useGetAllProductWeb()
+
+    const handleViewDetail = (id: string) => {
+        setLoadingPage(true);
+        router.push(`/detail/${id}`);
+    };
+
+    const [params, setParams] = useState<GetAllProducts>({
+        pageIndex: 1,
+        pageSize: 100,
+        search: "",
+        productStatus: undefined,
+        sellerId: "",
+        categoryId: "",
+        sortBy: undefined,
+        desc: undefined,
+    })
+
     useEffect(() => {
         (async () => {
             const res = await getProductByIdWebApi(detailId);
             if (res) setProducts(res.value.data);
         })();
     }, [detailId]);
+
+    useEffect(() => {
+        if (!products) return;
+
+        const fetchRelatedProducts = async () => {
+            const res = await getAllProductWebApi({
+                ...params,
+                categoryId: products.categoryId,
+                sellerId: "",
+            });
+
+            if (res) {
+                const filtered = res.value.data.result
+                    .filter(item => item.id !== products.id && item.brand === products.brand)
+                    .slice(0, 4);
+
+                setRelatedProducts(filtered);
+            }
+        };
+
+        fetchRelatedProducts();
+    }, [products]);
+
+
 
     const handleDecrease = () => {
         if (quantity > 1) setQuantity(quantity - 1);
@@ -48,7 +95,7 @@ export default function Detail({ detailId }: DetailProps) {
 
     const handleAddToCart = async () => {
         if (!products) return;
-        
+
         try {
             const cartItem = {
                 productId: products.id,
@@ -56,9 +103,9 @@ export default function Detail({ detailId }: DetailProps) {
                 variant: selectedVariant,
                 // Thêm các thông tin khác nếu cần
             };
-            
+
             const result = await addProductToCartApi(cartItem);
-            
+
             if (result) {
                 // Thành công - có thể hiển thị thông báo
                 console.log('Đã thêm vào giỏ hàng thành công');
@@ -73,8 +120,6 @@ export default function Detail({ detailId }: DetailProps) {
 
     const images = products?.imageUrls?.length ? products.imageUrls : [];
 
-    console.log(products);
-    
     return (
         <div className="p-6 mt-32 sm:px-16">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -132,7 +177,7 @@ export default function Detail({ detailId }: DetailProps) {
                     <div className='flex gap-8'>
                         <p className='text-xl'>Thương hiệu: <span className='text-[#00579D] uppercase'>{products?.brand}</span></p>
                         <div className="w-px h-5 bg-gray-300" />
-                        <p>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[products?.productStockStatus as StockStatus]}</span></p>
+                        <p className='text-xl'>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[products?.productStockStatus as StockStatus]}</span></p>
                     </div>
                     <p className="text-4xl font-semibold mt-2 text-[#EF1104]">{products?.price.toLocaleString("vi-VN")}₫</p>
                     <p className='text-xl'>Ngày phát hành: <span className='text-gray-600 text-xl'> {products?.createdAt
@@ -167,7 +212,7 @@ export default function Detail({ detailId }: DetailProps) {
                             </button>
                         </div>
 
-                        <button 
+                        <button
                             onClick={handleAddToCart}
                             disabled={isAddingToCart || !products}
                             className="bg-[#252424] text-white px-6 py-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -213,7 +258,24 @@ export default function Detail({ detailId }: DetailProps) {
                 className='py-8'>
                 <ProductTabs description={products?.description || ""} />
             </motion.div>
-            <Backdrop open={isPending || isAddingToCart} />
+
+            {relatedProducts.length > 0 && (
+                <div className="mt-12">
+                    <h3 className="text-2xl font-semibold mb-6">Sản phẩm liên quan</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {relatedProducts.map((item) => (
+
+                            <ProductCard
+                                key={item.id}
+                                product={item}
+                                ribbonTypes={getRibbonTypes(item)}
+                                onViewDetail={handleViewDetail}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+            <Backdrop open={isPending || isAddingToCart || loadingPage} />
         </div>
     );
 }

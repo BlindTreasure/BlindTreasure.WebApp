@@ -114,9 +114,9 @@ export default function HomePage() {
   };
 
   const handleNavigateWithLoading = (path: string) => {
-  setLoadingPage(true);
-  router.push(path);
-};
+    setLoadingPage(true);
+    router.push(path);
+  };
 
   const handleViewDetail = (id: string) => {
     setLoadingPage(true);
@@ -144,29 +144,22 @@ export default function HomePage() {
     })()
   }, [params])
 
-  const filteredItems = [
-    ...(products?.result.filter((product) => {
-      if (product.productType === "BlindBoxOnly") return false;
+  const allItems = [
+    ...(products?.result.filter((product) => product.productType !== "BlindBoxOnly") ?? []),
+    ...(blindboxes?.result.filter((box) => box.items && box.items.length > 0) ?? [])
+  ];
 
-      const createdDate = new Date(product.createdAt);
-      const diffInDays = (new Date().getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+  const now = new Date();
 
-      return diffInDays <= 7;
-    }) ?? []),
+  const filteredItems = allItems
+    .filter((item) => {
+      const createdAt = new Date(item.createdAt);
+      const diffInDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+      return !isNaN(createdAt.getTime()) && diffInDays <= 7;
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 8);
 
-    ...(blindboxes?.result.filter((box) => {
-      if (!box.items || box.items.length === 0) return false;
-
-      const releaseDate = new Date(box.releaseDate);
-      const now = new Date();
-
-      releaseDate.setHours(0, 0, 0, 0);
-      now.setHours(0, 0, 0, 0);
-
-      const diffInDays = (now.getTime() - releaseDate.getTime()) / (1000 * 60 * 60 * 24);
-      return releaseDate <= now && diffInDays <= 7;
-    }) ?? []),
-  ].slice(0, 8);
 
   const visibleBlindboxes = blindboxes?.result.filter(
     (box) => box.items && box.items.length > 0
@@ -299,7 +292,7 @@ export default function HomePage() {
         >
           <Button
             variant="outline"
-            className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#252424] hover:text-white transition-colors duration-300"
+            className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#d02a2a] hover:text-white transition-colors duration-300"
             onClick={() => handleNavigateWithLoading("/all-new-products")}
           >
             Xem thêm
@@ -404,7 +397,7 @@ export default function HomePage() {
         >
           <Button
             variant="outline"
-            className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#252424] hover:text-white transition-colors duration-300"
+            className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#d02a2a] hover:text-white transition-colors duration-300"
           >
             Xem thêm
           </Button>
@@ -468,7 +461,7 @@ export default function HomePage() {
         >
           <Button
             variant="outline"
-            className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:bg-[#252424] hover:border-[#ACACAC] hover:text-white transition-colors duration-300"
+            className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:bg-[#d02a2a] hover:border-[#ACACAC] hover:text-white transition-colors duration-300"
             onClick={() => handleNavigateWithLoading("/all-blindbox")}
           >
             Xem thêm

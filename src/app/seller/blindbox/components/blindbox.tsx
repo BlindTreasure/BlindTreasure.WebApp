@@ -26,13 +26,23 @@ export default function BlindboxTabs() {
     const { getAllBlindBoxesApi, isPending } = useGetAllBlindBoxes()
     const [rarityRateError, setRarityRateError] = useState<string | undefined>(undefined);
     const [totalItemsToAdd, setTotalItemsToAdd] = useState<number | null>(null);
+    const [totalItems, setTotalItems] = useState<number | undefined>();
+    const [selectKey, setSelectKey] = useState(0);
+
+    const resetFormFields = () => {
+        setSelectedBoxId("");
+        setSelectedRarities([]);
+        setRarityRates({});
+        setTotalItemsToAdd(null);
+        setTotalItems(undefined);
+        setSelectKey((prev) => prev + 1);
+    };
 
     const {
         onSubmit,
         error,
         setError,
-    } = useCreateBlindboxItemForm(selectedBoxId, items, () => setItems([]), selectedRarities);
-
+    } = useCreateBlindboxItemForm(selectedBoxId, items, resetFormFields, () => setItems([]), selectedRarities, setTotalItems);
 
     const [params, setParams] = useState<GetBlindBoxes>({
         search: "",
@@ -122,47 +132,93 @@ export default function BlindboxTabs() {
         .filter(([rarity]) => selectedRarities.includes(rarity as Rarity))
         .reduce((sum, [_, rate]) => sum + Number(rate), 0);
 
+    const isRarityRatesValid = () => {
+        const total = selectedRarities.reduce((sum, rarity) => sum + (rarityRates[rarity] || 0), 0);
+        const allSet = selectedRarities.every(rarity => rarityRates[rarity] !== undefined);
+        return total === 100 && allSet;
+    };
+
+
+    // useEffect(() => {
+    //     const total = selectedRarities.reduce((sum, rarity) => sum + (rarityRates[rarity] || 0), 0);
+
+    //     if (total !== 100) {
+    //         setRarityRateError("Tổng tỉ lệ các độ hiếm phải bằng 100%");
+    //     } else {
+    //         setRarityRateError(undefined);
+    //     }
+    // }, [rarityRates, selectedRarities]);
+
     useEffect(() => {
         const total = selectedRarities.reduce((sum, rarity) => sum + (rarityRates[rarity] || 0), 0);
+        const allSet = selectedRarities.every(r => rarityRates[r] !== undefined && rarityRates[r] > 0);
 
-        if (total !== 100) {
-            setRarityRateError("Tổng tỉ lệ các độ hiếm phải bằng 100%");
+        if (total !== 100 || !allSet) {
+            setRarityRateError("Tổng tỉ lệ các độ hiếm phải bằng 100% và tất cả phải có giá trị");
+            if (items.length > 0) {
+                setItems([]);
+            }
         } else {
             setRarityRateError(undefined);
         }
     }, [rarityRates, selectedRarities]);
 
-    useEffect(() => {
-        if (totalItemsToAdd !== null && selectedRarities.length > 0) {
-            const rarity = selectedRarities[0];
 
-            if (items.length < totalItemsToAdd) {
-                const itemsLeft = totalItemsToAdd - items.length;
+    // useEffect(() => {
+    //     if (totalItemsToAdd !== null && selectedRarities.length > 0) {
+    //         const rarity = selectedRarities[0];
 
-                const newItems: BlindBoxItemRequest[] = Array.from({ length: itemsLeft }, () => ({
-                    productId: "",
-                    quantity: 1,
-                    dropRate: 0,
-                    rarity,
-                }));
+    //         if (items.length < totalItemsToAdd) {
+    //             const itemsLeft = totalItemsToAdd - items.length;
 
-                const updatedItems = redistributeDropRates([...items, ...newItems], rarityRates);
-                setItems(updatedItems);
-            } else if (items.length > totalItemsToAdd) {
-                const trimmedItems = items.slice(0, totalItemsToAdd);
-                const updatedItems = redistributeDropRates(trimmedItems, rarityRates);
-                setItems(updatedItems);
-            }
-        }
-    }, [totalItemsToAdd]);
+    //             const newItems: BlindBoxItemRequest[] = Array.from({ length: itemsLeft }, () => ({
+    //                 productId: "",
+    //                 quantity: 1,
+    //                 dropRate: 0,
+    //                 rarity,
+    //             }));
+
+    //             const updatedItems = redistributeDropRates([...items, ...newItems], rarityRates);
+    //             setItems(updatedItems);
+    //         } else if (items.length > totalItemsToAdd) {
+    //             const trimmedItems = items.slice(0, totalItemsToAdd);
+    //             const updatedItems = redistributeDropRates(trimmedItems, rarityRates);
+    //             setItems(updatedItems);
+    //         }
+    //     }
+    // }, [totalItemsToAdd]);
+
+    // const addItem = () => {
+    //     if (selectedRarities.length === 0) return;
+    //     const rarity = selectedRarities[0];
+
+    //     const itemsLeft = totalItemsToAdd !== null ? totalItemsToAdd - items.length : 0;
+
+    //     if (itemsLeft <= 0) return;
+
+    //     const newItems: BlindBoxItemRequest[] = Array.from({ length: itemsLeft }, () => ({
+    //         productId: "",
+    //         quantity: 1,
+    //         dropRate: 0,
+    //         rarity,
+    //     }));
+
+    //     const updatedItems = redistributeDropRates([...items, ...newItems], rarityRates);
+    //     setItems(updatedItems);
+    // };
 
     const addItem = () => {
-        if (selectedRarities.length === 0) return;
-        const rarity = selectedRarities[0];
+        if (!isRarityRatesValid()) {
+            setRarityRateError("Tổng tỉ lệ các độ hiếm phải bằng 100% và tất cả phải được nhập");
+            return;
+        }
 
-        const itemsLeft = totalItemsToAdd !== null ? totalItemsToAdd - items.length : 0;
+        if (selectedRarities.length === 0 || totalItemsToAdd === null) return;
 
-        if (itemsLeft <= 0) return; 
+        const rarity = selectedRarities[0]; 
+
+        const itemsLeft = totalItemsToAdd - items.length;
+        if (itemsLeft <= 0) return;
 
         const newItems: BlindBoxItemRequest[] = Array.from({ length: itemsLeft }, () => ({
             productId: "",
@@ -174,6 +230,7 @@ export default function BlindboxTabs() {
         const updatedItems = redistributeDropRates([...items, ...newItems], rarityRates);
         setItems(updatedItems);
     };
+
 
     const handleRarityChange = (index: number, newRarity: string) => {
         if (!Object.values(Rarity).includes(newRarity as Rarity)) return;
@@ -191,7 +248,6 @@ export default function BlindboxTabs() {
         updatedItems.splice(index, 1);
         setItems(redistributeDropRates(updatedItems, rarityRates));
     };
-
 
     if (!blindboxes || !products) {
         return <div className="p-4">Đang tải dữ liệu túi mù và sản phẩm...</div>;
@@ -240,8 +296,13 @@ export default function BlindboxTabs() {
                         setError={setError}
                         rarityRateError={rarityRateError}
                         setrarityRateError={setRarityRateError}
-                        onTotalItemsChange={(value) => setTotalItemsToAdd(value)}
+                        onTotalItemsChange={(value) => {
+                            setTotalItems(value);
+                            setTotalItemsToAdd(value ?? null);
+                        }}
                         totalItemsToAdd={totalItemsToAdd}
+                        totalItems={totalItems}
+                        selectKey={selectKey}
                     />
                 </TabsContent>
             </div>

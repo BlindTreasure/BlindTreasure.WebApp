@@ -17,6 +17,7 @@ import useCreateOrder from '../hooks/useCreateOrder';
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialogHeader } from '@/components/ui/alert-dialog';
 import useToast from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 const QuantitySelector = ({
   value,
@@ -114,6 +115,7 @@ const Cart: React.FC = () => {
   const [pendingOrderData, setPendingOrderData] = useState<REQUEST.CreateOrderList | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const { addToast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -286,10 +288,9 @@ const Cart: React.FC = () => {
     }
   }, [selectedAddressId, selectedItems, cartItems, quantities, createOrder]);
 
-
-  const handleContinueShopping = useCallback(() => {
-    console.log('Continue shopping');
-  }, []);
+  const handleContinueShopping = () => {
+    router.push("/allproduct");
+  };
 
   const isAllSelected = cartItems.length > 0 && selectedItems.length === cartItems.length;
   const isIndeterminate = selectedItems.length > 0 && selectedItems.length < cartItems.length;
@@ -325,7 +326,7 @@ const Cart: React.FC = () => {
           />
           <div className="text-gray-500 mb-4 text-4xl">Giỏ hàng đang <span className='text-red-600'>Trống!</span></div>
           <p className='text-gray-400'>Bạn phải thêm sản phẩm vào giỏ hàng trước khi thanh toán</p>
-          <Button className="py-6" onClick={handleContinueShopping} ><SlHandbag />Trở lại mua sắm</Button>
+          <Button className="py-6 bg-red-600 hover:bg-red-400" onClick={handleContinueShopping} ><SlHandbag />Trở lại mua sắm</Button>
         </div>
       ) : (
         <div className="flex flex-col lg:flex-row gap-6">

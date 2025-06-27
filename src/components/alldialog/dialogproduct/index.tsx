@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import { ProductTypeText } from "@/const/products";
 import { Product } from "@/services/product-seller/typings";
 
 interface ProductDetailDialogProps {
@@ -46,7 +47,7 @@ const ProductDetailDialog: React.FC<ProductDetailDialogProps> = ({ product, isOp
                                 <strong>Chất liệu:</strong> {product.material}
                             </div>
                             <div>
-                                <strong>Loại sản phẩm:</strong> {product.productType}
+                                <strong>Loại sản phẩm:</strong> {ProductTypeText[product.productType]}
                             </div>
                             <div>
                                 <strong>Thương hiệu:</strong> {product.brand}
@@ -55,10 +56,11 @@ const ProductDetailDialog: React.FC<ProductDetailDialogProps> = ({ product, isOp
                                 <strong>Trạng thái:</strong> {getStatusLabel(product.status)}
                             </div>
                             <div>
-                                <strong>Ngày tạo:</strong> {new Date(product.createdAt).toLocaleString()}
+                                <strong>Ngày tạo:</strong>{' '}
+                                {new Date(product.createdAt).toLocaleDateString('vi-VN')}
                             </div>
                             <div>
-                                <strong>Ngày cập nhật:</strong> {new Date(product.updatedAt).toLocaleString()}
+                                <strong>Ngày cập nhật:</strong> {new Date(product.updatedAt).toLocaleDateString('vi-VN')}
                             </div>
                         </div>
                         <div>
