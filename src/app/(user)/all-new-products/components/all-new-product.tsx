@@ -8,7 +8,7 @@ import { Backdrop } from "@/components/backdrop";
 import { useRouter } from "next/navigation";
 import useGetAllProductWeb from "../../allproduct/hooks/useGetAllProductWeb";
 import useGetAllBlindBoxes from "@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes";
-import { ProductSortBy } from "@/const/products";
+import { BlindboxStatus, ProductSortBy } from "@/const/products";
 import Pagination from "@/components/pagination";
 import { getRibbonTypes } from "@/utils/getRibbonTypes";
 
@@ -34,7 +34,7 @@ export default function AllNewProducts() {
         search: "",
         SellerId: "",
         categoryId: "",
-        status: "",
+        status: BlindboxStatus.Approved,
         minPrice: undefined,
         maxPrice: undefined,
         ReleaseDateFrom: "",
@@ -65,13 +65,13 @@ export default function AllNewProducts() {
     fourteenDaysAgo.setDate(now.getDate() - 14);
 
     const filteredProducts = products?.result.filter((p) => {
-        const created = new Date(p.createdAt);
-        return p.productType !== "BlindBoxOnly" && created >= fourteenDaysAgo;
+        const createdProduct = new Date(p.createdAt);
+        return p.productType !== "BlindBoxOnly" && createdProduct >= fourteenDaysAgo;
     });
 
     const filteredBlindboxes = blindboxes?.result.filter((b) => {
-        const released = new Date(b.releaseDate);
-        return b.items && b.items.length > 0 && released >= fourteenDaysAgo;
+        const createdBlindbox = new Date(b.createdAt);
+        return b.items && b.items.length > 0 && createdBlindbox >= fourteenDaysAgo;
     });
 
     const allItems = [

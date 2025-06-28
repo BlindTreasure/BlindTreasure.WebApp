@@ -23,7 +23,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { GetAllProducts, TAllProductResponse } from "@/services/product/typings";
 import useGetAllProductWeb from "../../allproduct/hooks/useGetAllProductWeb";
-import { ProductStatus } from "@/const/products";
+import { BlindboxStatus, ProductStatus } from "@/const/products";
 import { Backdrop } from "@/components/backdrop";
 import CategoryGrid from "@/components/category-grid";
 import { BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings";
@@ -113,14 +113,14 @@ export default function HomePage() {
     search: "",
     SellerId: "",
     categoryId: "",
-    status: "",
+    status: BlindboxStatus.Approved,
     minPrice: undefined,
     maxPrice: undefined,
     ReleaseDateFrom: "",
     ReleaseDateTo: "",
     HasItem: undefined,
     pageIndex: 1,
-    pageSize: 5,
+    pageSize: 100,
   })
 
   const handleClick = (id: string) => {

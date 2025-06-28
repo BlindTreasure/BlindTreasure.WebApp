@@ -14,7 +14,7 @@ import useAddBlindboxToCart from "../hooks/useAddBlindboxToCart"
 import { BlindBox, BlindBoxListResponse, GetBlindBoxes } from '@/services/blindboxes/typings';
 import { Backdrop } from '@/components/backdrop';
 import { ProductTabs } from '@/components/tabs';
-import { Rarity, StockStatus, stockStatusMap } from '@/const/products';
+import { BlindboxStatus, Rarity, StockStatus, stockStatusMap } from '@/const/products';
 import { BlindboxItemSheet } from '@/components/thumbnail-blindbox';
 import LightboxGallery from '@/components/lightbox-gallery';
 import useGetAllBlindBoxes from '@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes';
@@ -42,7 +42,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
         search: "",
         SellerId: "",
         categoryId: "",
-        status: "",
+        status: BlindboxStatus.Approved,
         minPrice: undefined,
         maxPrice: undefined,
         ReleaseDateFrom: "",
@@ -77,7 +77,6 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
             const res = await getAllBlindBoxesApi({
                 ...blindBoxParams,
                 categoryId: blindbox.categoryId,
-                SellerId: "",
             });
 
             if (res) {

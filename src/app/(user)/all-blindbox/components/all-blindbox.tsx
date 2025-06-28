@@ -17,6 +17,7 @@ import {
   setReleaseDateTo,
   clearFilters 
 } from "@/stores/filter-product-slice";
+import { BlindboxStatus } from "@/const/products";
 
 export default function AllBlindBoxes() {
   // Redux state and dispatch
@@ -52,7 +53,7 @@ export default function AllBlindBoxes() {
     search: "",
     SellerId: "",
     categoryId: "",
-    status: "",
+    status: BlindboxStatus.Approved,
     minPrice: undefined,
     maxPrice: undefined,
     ReleaseDateFrom: "",
