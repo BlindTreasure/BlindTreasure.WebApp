@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect } from "react";
-import PaginationBar from "@/components/pagination";
 import ProductFilterSidebar from "@/components/product-filter-sidebar";
 import ProductCard from "@/components/product-card";
 import BlindboxCard from "@/components/blindbox-card";
@@ -114,7 +113,7 @@ export default function AllProduct() {
           search: "",
           SellerId: "",
           categoryId: selectedCategoryId || "",
-          status: "",
+          status: "Approved",
           minPrice: filters.minPrice,
           maxPrice: filters.maxPrice,
           ReleaseDateFrom: filters.releaseDateFrom || "",
