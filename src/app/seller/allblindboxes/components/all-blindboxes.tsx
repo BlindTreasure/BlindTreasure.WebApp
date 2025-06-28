@@ -169,7 +169,6 @@ export default function BlindboxTable() {
         (async () => {
             const res = await getAllBlindBoxesApi(params)
             if (res) setBlindBox(res.value.data)
-            console.log("hello", res?.value.data)
         })()
     }, [params])
 
@@ -195,7 +194,6 @@ export default function BlindboxTable() {
         if (res) {
             setBlindBox(res.value.data);
             const boxIds = res.value.data.result.map((box: any) => box.id);
-            console.log("Danh sách Box ID:", boxIds);
         }
     };
 

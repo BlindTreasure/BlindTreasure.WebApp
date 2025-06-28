@@ -5,7 +5,13 @@ export const CreateBlindBox = z.object({
   name: z.string().min(1, "Tên không được để trống"),
   categoryId: z.string().min(1, "Vui lòng chọn danh mục"),
   description: z.string().min(1, "Mô tả không được để trống"),
-  price: z.number().min(1, { message: "Giá phải lớn hơn 0" }).optional(),
+  price: z
+    .number({
+      required_error: "Vui lòng nhập giá",
+      invalid_type_error: "Giá phải là số",
+    })
+    .min(1, { message: "Giá phải lớn hơn 0" }),
+
   imageFile: z
     .union([
       z.instanceof(File, { message: "Vui lòng chọn file ảnh" }),
@@ -14,7 +20,13 @@ export const CreateBlindBox = z.object({
     .optional()
     .nullable(),
 
-  totalQuantity: z.number().int().min(1, "Số lượng tối thiểu là 1").optional(),
+  totalQuantity: z
+    .number({
+      invalid_type_error: "Vui lòng nhập số hợp lệ",
+      required_error: "Vui lòng nhập số lượng",
+    })
+    .min(1, "Số lượng tối thiểu là 1")
+    .optional(),
 
   releaseDate: z
     .string()
@@ -28,9 +40,12 @@ export const CreateBlindBox = z.object({
   hasSecretItem: z.boolean().optional(),
 
   secretProbability: z
-    .number()
-    .min(0, "Xác suất phải ≥ 0")
-    .max(100, "Xác suất phải ≤ 100")
+    .number({
+      required_error: "Tỉ lệ là bắt buộc",
+      invalid_type_error: "Tỉ lệ phải là số",
+    })
+    .min(1, "Tỉ lệ phải lớn hơn 0%")
+    .max(100, "Tối đa là 100%")
     .optional(),
 });
 
@@ -52,5 +67,3 @@ export const BlindBoxItemSchema = z.object({
 });
 
 export type BlindBoxItem = z.infer<typeof BlindBoxItemSchema>;
-
-

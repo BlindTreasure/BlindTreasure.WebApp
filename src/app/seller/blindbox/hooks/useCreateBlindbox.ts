@@ -24,6 +24,7 @@ export default function useCreateBlindboxForm(
     defaultValues: {
       name: "",
       description: "",
+      categoryId: "",
       price: undefined,
       imageFile: null,
       totalQuantity: undefined,
@@ -31,25 +32,28 @@ export default function useCreateBlindboxForm(
       brand: "",
       hasSecretItem: false,
       secretProbability: undefined,
-      ...defaultValues, 
+      ...defaultValues,
     },
   });
 
   const { mutate, isPending } = useServiceCreateBlindbox();
 
-  const onSubmit = (data: CreateBlindboxForm, clearImages: () => void) => {
-    try {
-      mutate(data, {
-        onSuccess: () => {
-          reset();
-          clearImages();
-        },
-      });
-    } catch (err) {
-      console.log(err);
-    }
+  const onSubmit = async (
+    data: CreateBlindboxForm,
+    clearImages: () => void,
+    onSuccessCallback?: () => void
+  ) => {
+    mutate(data, {
+      onSuccess: () => {
+        reset();
+        clearImages();
+        onSuccessCallback?.();
+      },
+      onError: (err) => {
+        console.error(err);
+      },
+    });
   };
-
   return {
     register,
     handleSubmit,

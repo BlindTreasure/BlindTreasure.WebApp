@@ -186,6 +186,7 @@ export default function CreateBlindbox({
             onSubmit(transformedData, clearImages);
         } else {
             onSubmitCreateBox(transformedData, clearImages);
+            onSuccess?.();
         }
     };
 
@@ -195,28 +196,38 @@ export default function CreateBlindbox({
                 <div>
                     <Label htmlFor="name">Tên túi mù <span className='text-red-600'>*</span></Label>
                     <Input {...register("name")} />
-                </div>
-                <div>
-                    <Label htmlFor="categoryId">
-                        Danh mục <span className="text-red-600">*</span>
-                    </Label>
-                    <Select
-                        onValueChange={(value) => setValue("categoryId", value)}
-                        value={selectedCategoryId}
-                    >
-                        <SelectTrigger id="categoryId">
-                            <SelectValue placeholder="Chọn danh mục">
-                                {selectedCategoryLabel}
-                            </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent className="max-h-80 overflow-y-auto">
-                            {renderCategories(topLevelCats)}
-                        </SelectContent>
-                    </Select>
-                    {errors.categoryId && (
-                        <p className="text-red-500">{errors.categoryId.message}</p>
+                    {errors.name && (
+                        <p className="text-sm text-red-600">{errors.name.message}</p>
                     )}
                 </div>
+
+                <Controller
+                    name="categoryId"
+                    control={control}
+                    render={({ field }) => (
+                        <div>
+                            <Label htmlFor="categoryId">
+                                Danh mục <span className="text-red-600">*</span>
+                            </Label>
+                            <Select
+                                onValueChange={(value) => field.onChange(value)}
+                                value={field.value}
+                            >
+                                <SelectTrigger id="categoryId">
+                                    <SelectValue placeholder="Chọn danh mục">
+                                        {selectedCategoryLabel}
+                                    </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent className="max-h-80 overflow-y-auto">
+                                    {renderCategories(topLevelCats)}
+                                </SelectContent>
+                            </Select>
+                            {errors.categoryId && (
+                                <p className="text-sm text-red-600">{errors.categoryId.message}</p>
+                            )}
+                        </div>
+                    )}
+                />
 
                 <Controller
                     name="price"
@@ -261,6 +272,9 @@ export default function CreateBlindbox({
                                         VNĐ
                                     </span>
                                 </div>
+                                {errors.price && (
+                                    <p className="text-sm text-red-600">{errors.price.message}</p>
+                                )}
                             </div>
                         );
                     }}
@@ -274,6 +288,9 @@ export default function CreateBlindbox({
                         onWheel={(e) => e.currentTarget.blur()}
                         {...register("totalQuantity", { valueAsNumber: true })}
                     />
+                    {errors.totalQuantity && (
+                        <p className="text-sm text-red-600">{errors.totalQuantity.message}</p>
+                    )}
                 </div>
 
                 <div>
@@ -297,23 +314,14 @@ export default function CreateBlindbox({
                     )}
                 </div>
 
-                {/* <div>
-                    <Label htmlFor="brand">Thương hiệu<span className='text-red-600'>*</span></Label>
-                    <Input {...register("brand")} />
-                </div> */}
-
                 {hasSecretItem && (
                     <div>
                         <Label htmlFor="secretProbability">Tỉ lệ vật phẩm bí mật (%)</Label>
                         <Input
                             type="number"
-                            min={0}
-                            max={100}
+                            onWheel={(e) => e.currentTarget.blur()}
                             {...register("secretProbability", {
                                 valueAsNumber: true,
-                                required: "Tỉ lệ là bắt buộc",
-                                min: { value: 0, message: "Tối thiểu là 0%" },
-                                max: { value: 100, message: "Tối đa là 100%" },
                             })}
                         />
                         {errors.secretProbability && (
@@ -326,6 +334,9 @@ export default function CreateBlindbox({
                 <div>
                     <Label htmlFor="description">Mô tả <span className='text-red-600'>*</span></Label>
                     <Textarea {...register("description")} />
+                    {errors.description && (
+                        <p className="text-sm text-red-600">{errors.description.message}</p>
+                    )}
                 </div>
                 <div>
                     <Label className="block text-base mb-2">Upload ảnh đại diện <span className='text-red-600'>*</span></Label>
@@ -370,6 +381,9 @@ export default function CreateBlindbox({
                             </label>
                         )}
                     </div>
+                    {errors.imageFile && (
+                        <p className="text-sm text-red-600">{errors.imageFile.message}</p>
+                    )}
                 </div>
             </div>
             <div className="flex items-center space-x-2">

@@ -15,7 +15,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export default function BlindboxTabs() {
-
     const [selectedBoxId, setSelectedBoxId] = useState<string>("");
     const [selectedRarities, setSelectedRarities] = useState<Rarity[]>([]);
     const [rarityRates, setRarityRates] = useState<Record<string, number>>({});
@@ -67,16 +66,20 @@ export default function BlindboxTabs() {
         desc: undefined,
     })
 
+    const fetchBlindboxes = async () => {
+        const res = await getAllBlindBoxesApi(params);
+
+        if (res) {
+            setBlindBox(res.value.data);
+        }
+    };
+
+
     useEffect(() => {
-        (async () => {
-            const res = await getAllBlindBoxesApi(params)
-            if (res) {
-                setBlindBox(res.value.data);
-                const boxIds = res.value.data.result.map((box: any) => box.id);
-                console.log("Danh sách Box ID:", boxIds);
-            }
-        })()
-    }, [params])
+        fetchBlindboxes();
+    }, [params]);
+
+
 
     useEffect(() => {
         (async () => {
@@ -138,17 +141,6 @@ export default function BlindboxTabs() {
         return total === 100 && allSet;
     };
 
-
-    // useEffect(() => {
-    //     const total = selectedRarities.reduce((sum, rarity) => sum + (rarityRates[rarity] || 0), 0);
-
-    //     if (total !== 100) {
-    //         setRarityRateError("Tổng tỉ lệ các độ hiếm phải bằng 100%");
-    //     } else {
-    //         setRarityRateError(undefined);
-    //     }
-    // }, [rarityRates, selectedRarities]);
-
     useEffect(() => {
         const total = selectedRarities.reduce((sum, rarity) => sum + (rarityRates[rarity] || 0), 0);
         const allSet = selectedRarities.every(r => rarityRates[r] !== undefined && rarityRates[r] > 0);
@@ -163,50 +155,6 @@ export default function BlindboxTabs() {
         }
     }, [rarityRates, selectedRarities]);
 
-
-    // useEffect(() => {
-    //     if (totalItemsToAdd !== null && selectedRarities.length > 0) {
-    //         const rarity = selectedRarities[0];
-
-    //         if (items.length < totalItemsToAdd) {
-    //             const itemsLeft = totalItemsToAdd - items.length;
-
-    //             const newItems: BlindBoxItemRequest[] = Array.from({ length: itemsLeft }, () => ({
-    //                 productId: "",
-    //                 quantity: 1,
-    //                 dropRate: 0,
-    //                 rarity,
-    //             }));
-
-    //             const updatedItems = redistributeDropRates([...items, ...newItems], rarityRates);
-    //             setItems(updatedItems);
-    //         } else if (items.length > totalItemsToAdd) {
-    //             const trimmedItems = items.slice(0, totalItemsToAdd);
-    //             const updatedItems = redistributeDropRates(trimmedItems, rarityRates);
-    //             setItems(updatedItems);
-    //         }
-    //     }
-    // }, [totalItemsToAdd]);
-
-    // const addItem = () => {
-    //     if (selectedRarities.length === 0) return;
-    //     const rarity = selectedRarities[0];
-
-    //     const itemsLeft = totalItemsToAdd !== null ? totalItemsToAdd - items.length : 0;
-
-    //     if (itemsLeft <= 0) return;
-
-    //     const newItems: BlindBoxItemRequest[] = Array.from({ length: itemsLeft }, () => ({
-    //         productId: "",
-    //         quantity: 1,
-    //         dropRate: 0,
-    //         rarity,
-    //     }));
-
-    //     const updatedItems = redistributeDropRates([...items, ...newItems], rarityRates);
-    //     setItems(updatedItems);
-    // };
-
     const addItem = () => {
         if (!isRarityRatesValid()) {
             setRarityRateError("Tổng tỉ lệ các độ hiếm phải bằng 100% và tất cả phải được nhập");
@@ -215,7 +163,7 @@ export default function BlindboxTabs() {
 
         if (selectedRarities.length === 0 || totalItemsToAdd === null) return;
 
-        const rarity = selectedRarities[0]; 
+        const rarity = selectedRarities[0];
 
         const itemsLeft = totalItemsToAdd - items.length;
         if (itemsLeft <= 0) return;
@@ -271,7 +219,25 @@ export default function BlindboxTabs() {
             <div className="shadow-lg rounded-lg bg-white border border-gray-200 p-8">
                 <TabsContent value="blindbox">
                     <h2 className="text-xl font-semibold mb-4">Thông tin túi mù</h2>
-                    <CreateBlindbox mode="create" />
+                    <CreateBlindbox
+                        mode="create"
+                        onSuccess={() => {
+                            setTimeout(() => {
+                                setParams({
+                                    search: "",
+                                    SellerId: "",
+                                    categoryId: "",
+                                    status: "",
+                                    minPrice: undefined,
+                                    maxPrice: undefined,
+                                    ReleaseDateFrom: "",
+                                    ReleaseDateTo: "",
+                                    pageIndex: 1,
+                                    pageSize: 100,
+                                });
+                            }, 500);
+                        }}
+                    />
                 </TabsContent>
 
                 <TabsContent value="items">
