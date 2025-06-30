@@ -5,7 +5,7 @@ import { GetProduct, Product, TProductResponse, UpdateInfor } from "./typings";
 export const getAllProductSeller = async ({
   search,
   categoryId,
-  status,
+  productStatus,
   sortBy,
   desc,
   pageIndex,
@@ -18,7 +18,7 @@ export const getAllProductSeller = async ({
       params: {
         search,
         categoryId,
-        status,
+        productStatus,
         sortBy,
         desc,
         pageIndex,

@@ -18,8 +18,7 @@ interface ShippingAddress {
     id: string;
     fullName: string;
     phone: string;
-    addressLine1: string;
-    addressLine2: string;
+    addressLine: string;
     city: string;
     province: string;
     postalCode: string;
@@ -33,7 +32,7 @@ interface OrderCardProps {
     total: number;
     deliveryDate: string;
     payment: PaymentInfo;
-    shippingAddress: ShippingAddress;
+    shippingAddress?: ShippingAddress;
 }
 
 export default function OrderCard({
@@ -119,7 +118,7 @@ export default function OrderCard({
                                 <DialogTitle>Hóa đơn đơn hàng</DialogTitle>
                                 <span
                                     className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase w-fit
-    ${payment.status === PaymentInfoStatus.PAID || payment.status === PaymentInfoStatus.COMPLETED
+    ${payment.status === PaymentInfoStatus.Paid || payment.status === PaymentInfoStatus.Completed
                                             ? "bg-green-100 text-green-700"
                                             : "bg-red-100 text-red-700"
                                         }`}
@@ -129,14 +128,21 @@ export default function OrderCard({
                             </DialogHeader>
 
                             <div className="space-y-6 text-sm mt-4">
-                                <div className="border rounded p-4 bg-gray-50">
-                                    <div className="font-semibold mb-2">📦 Địa chỉ nhận hàng</div>
-                                    <div>{shippingAddress.fullName} - {shippingAddress.phone}</div>
-                                    <div>
-                                        {shippingAddress.postalCode}, {shippingAddress.addressLine1},
-                                        {shippingAddress.city}, {shippingAddress.province}, {shippingAddress.country}
+                                {shippingAddress ? (
+                                    <div className="border rounded p-4 bg-gray-50">
+                                        <div className="font-semibold mb-2">📦 Địa chỉ nhận hàng</div>
+                                        <div>
+                                            {shippingAddress?.fullName ?? "Không có tên"} - {shippingAddress?.phone ?? "Không có SĐT"}
+                                        </div>
+                                        <div>
+                                            {[shippingAddress?.postalCode, shippingAddress?.addressLine, shippingAddress?.city, shippingAddress?.province, shippingAddress?.country]
+                                                .filter(Boolean)
+                                                .join(", ")}
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="text-gray-500 italic">Chưa có địa chỉ giao hàng</div>
+                                )}
 
                                 <div className="border rounded p-4 bg-white">
                                     <div className="font-semibold mb-2">🛒 Sản phẩm đã mua</div>

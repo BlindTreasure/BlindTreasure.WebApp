@@ -10,7 +10,7 @@ export const createAddressSchema = z.object({
     .string()
     .regex(/^(0|\+84)[0-9]{9}$/, "Số điện thoại không hợp lệ"),
 
-  addressLine1: z
+  addressLine: z
     .string()
     .min(5, "Địa chỉ phải có ít nhất 5 ký tự"),
 

@@ -28,7 +28,7 @@ import { FaRegEdit } from "react-icons/fa"
 import { HiOutlineTrash } from "react-icons/hi"
 import { BsEye } from "react-icons/bs"
 import { CiSearch } from "react-icons/ci";
-import { BlindboxStatus, BlindboxStatusText, ProductSortBy, Rarity, RarityColorClass, RarityText } from "@/const/products"
+import { BlindboxStatus, BlindboxStatusText, ProductSortBy, ProductStatus, Rarity, RarityColorClass, RarityText } from "@/const/products"
 import { BlindBox, BlindBoxItem, BlindBoxItemRequest, BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings"
 import useGetAllBlindBoxes from "../hooks/useGetAllBlindBoxes"
 import { IoIosArrowDown } from "react-icons/io";
@@ -183,7 +183,7 @@ export default function BlindboxTable() {
         pageIndex: 1,
         pageSize: 5,
         search: "",
-        status: "",
+        productStatus: ProductStatus.Active,
         categoryId: "",
         sortBy: undefined,
         desc: undefined,

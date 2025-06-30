@@ -11,7 +11,8 @@ declare namespace REQUEST {
   }
 
   type CreateOrderList = {
-    shippingAddressId: string;
+    shippingAddressId?: string;
+    promotionId?: string;
     items: CreateOrderItem[];
   }
 }

@@ -97,9 +97,8 @@ export default function AddressList() {
 
                                     <div className="flex justify-between">
                                         <div>
-                                            <p className="text-lg text-gray-600">{addr.addressLine1}</p>
+                                            <p className="text-lg text-gray-600">{addr.addressLine}</p>
                                             <p className="text-lg text-gray-600">
-                                                {addr.addressLine2 && `${addr.addressLine2}, `}
                                                 {addr.postalCode}, {addr.city}, {addr.province}, {addr.country}
                                             </p>
                                         </div>

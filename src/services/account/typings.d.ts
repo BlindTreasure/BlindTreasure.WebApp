@@ -29,7 +29,7 @@ declare namespace REQUEST {
   type TCreateAddress = {
     fullName: string;
     phone: string;
-    addressLine1: string;
+    addressLine: string;
     city: string;
     province: string;
     postalCode?: string;
@@ -39,7 +39,7 @@ declare namespace REQUEST {
   type TUpdateAddress = {
     fullName: string;
     phone: string;
-    addressLine1: string;
+    addressLine: string;
     city: string;
     province: string;
     postalCode?: string;
@@ -69,8 +69,7 @@ declare namespace API {
     userId: string;
     fullName: string;
     phone: string;
-    addressLine1: string;
-    addressLine2: string;
+    addressLine: string;
     city: string;
     province: string;
     postalCode: string;

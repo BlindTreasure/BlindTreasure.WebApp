@@ -9,15 +9,14 @@ import OrderCard from "@/components/order-card";
 
 export const TAB_MAP = [
     { value: "all", label: "Tất cả" },
-    { value: "pending", label: "Chờ thanh toán", statuses: [PaymentInfoStatus.PENDING] },
-    { value: "completed", label: "Đã thanh toán", statuses: [PaymentInfoStatus.PAID, PaymentInfoStatus.COMPLETED] },
-    { value: "cancelled", label: "Đã hủy", statuses: [PaymentInfoStatus.CANCELLED, PaymentInfoStatus.FAILED, PaymentInfoStatus.EXPIRED] },
+    { value: "pending", label: "Chờ thanh toán", statuses: [PaymentInfoStatus.Pending] },
+    { value: "completed", label: "Đã thanh toán", statuses: [PaymentInfoStatus.Paid, PaymentInfoStatus.Completed] },
+    { value: "cancelled", label: "Đã hủy", statuses: [PaymentInfoStatus.Cancelled, PaymentInfoStatus.Failed, PaymentInfoStatus.Expired] },
 ];
 
 export default function Purchased() {
     const [orders, setOrders] = useState<OrderResponse[]>([]);
     const { getAllOrderApi, isPending } = useGetAllOrder();
-
 
     useEffect(() => {
         const fetchOrders = async () => {

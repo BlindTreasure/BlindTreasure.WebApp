@@ -5,7 +5,7 @@ import { getStorageItem, setStorageItem, removeStorageItem } from "@/utils/local
 import { refreshToken } from "@/services/auth/api-services";
 import { useRouter } from "next/navigation";
 
-const REFRESH_INTERVAL = 10 * 60 * 1000;
+const REFRESH_INTERVAL = 1 * 60 * 1000;
 export default function useAutoRefreshToken() {
   const router = useRouter();
 

@@ -107,7 +107,7 @@ const Cart: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-
+  const [promotionId, setPromotionId] = useState<string | null>(null);
   const { getAllAddressApi, isPending: isGettingAddress, defaultAddress } = useGetAllAddress();
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const { createOrder, isPending: isCreatingOrder } = useCreateOrder();
@@ -246,25 +246,16 @@ const Cart: React.FC = () => {
       }));
 
     const payload: REQUEST.CreateOrderList = {
-      shippingAddressId: selectedAddressId!,
       items,
+      ...(selectedAddressId && { shippingAddressId: selectedAddressId }),
+      ...(promotionId && { promotionId }),
     };
 
     setPendingOrderData(payload);
     setShowConfirmModal(true);
-  }, [cartItems, selectedItems, quantities, selectedAddressId]);
-
+  }, [cartItems, selectedItems, promotionId, quantities, selectedAddressId]);
 
   const handleCheckout = useCallback(async () => {
-    if (!selectedAddressId) {
-      addToast({
-        type: "error",
-        description:
-          "Vui lòng cập nhật địa chỉ giao hàng trước khi thanh toán.",
-        duration: 3500,
-      });
-      return;
-    }
     const items: REQUEST.CreateOrderItem[] = cartItems
       .filter(item => selectedItems.includes(item.id))
       .map(item => ({
@@ -278,15 +269,17 @@ const Cart: React.FC = () => {
       }));
 
     const payload: REQUEST.CreateOrderList = {
-      shippingAddressId: selectedAddressId,
       items,
+      ...(selectedAddressId && { shippingAddressId: selectedAddressId }),
+      ...(promotionId && { promotionId }),
     };
 
     const url = await createOrder(payload);
     if (url) {
       window.location.href = url;
     }
-  }, [selectedAddressId, selectedItems, cartItems, quantities, createOrder]);
+  }, [selectedAddressId, selectedItems, cartItems, quantities, promotionId, createOrder]);
+
 
   const handleContinueShopping = () => {
     router.push("/allproduct");
@@ -550,6 +543,6 @@ const Cart: React.FC = () => {
 
     </div>
   );
-};  
+};
 
 export default Cart;

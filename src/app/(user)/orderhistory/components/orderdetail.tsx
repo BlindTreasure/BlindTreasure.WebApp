@@ -65,7 +65,7 @@ export default function OrderDetail() {
             Trạng thái:{" "}
             <span
               className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase
-          ${order.payment.status === PaymentInfoStatus.PAID || order.payment.status === PaymentInfoStatus.COMPLETED
+          ${order.payment.status === PaymentInfoStatus.Paid || order.payment.status === PaymentInfoStatus.Completed
                   ? "bg-green-100 text-green-700"
                   : "bg-red-100 text-red-700"
                 }`}
@@ -79,14 +79,15 @@ export default function OrderDetail() {
           <div>
             Mã giao dịch: <strong>{order.payment.transactionId}</strong>
           </div>
-          {order.completedAt && (
-            <div>
-              Ngày thanh toán:{" "}
-              <strong>
-                {new Date(order.payment.paidAt).toLocaleDateString("vi-VN")}
-              </strong>
-            </div>
-          )}
+          {order.completedAt && order.payment.paidAt && (
+  <div>
+    Ngày thanh toán:{" "}
+    <strong>
+      {new Date(order.payment.paidAt).toLocaleDateString("vi-VN")}
+    </strong>
+  </div>
+)}
+
 
           {/* Đã hoàn tiền (nếu có) */}
           {order.payment.refundedAmount > 0 && (
@@ -110,13 +111,9 @@ export default function OrderDetail() {
               {order.payment.netAmount.toLocaleString("vi-VN")}₫
             </span>
           </div>
-          <div className="pt-2 border-t">
-            <div className="font-medium mb-1">📦 Giao đến</div>
-            <div>{order.shippingAddress.fullName} - {order.shippingAddress.phone}</div>
-            <div className="text-muted-foreground">
-              {order.shippingAddress.postalCode}, {order.shippingAddress.addressLine1}, {order.shippingAddress.city}, {order.shippingAddress.province}, {order.shippingAddress.country}
-            </div>
-          </div>
+          
+
+
         </CardContent>
       </Card>
 

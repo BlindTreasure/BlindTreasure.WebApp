@@ -18,17 +18,19 @@ export default function ThankYouPage() {
     const { addToast } = useToast();
 
     useEffect(() => {
-        const fetchCart = async () => {
-            try {
-                const response = await getCartByCustomer();
-                if (response?.isSuccess) {
-                    dispatch(setCart(response.value.data.items ?? []));
-                }
-            } catch (error) {
-                console.error("Lỗi lấy lại giỏ hàng:", error);
-            }
-        };
-        fetchCart();
+        // const fetchCart = async () => {
+        //     try {
+        //         const response = await getCartByCustomer();
+        //         if (response?.isSuccess) {
+        //             dispatch(setCart(response.value.data.items ?? []));
+        //         }
+        //     } catch (error) {
+        //         console.error("Lỗi lấy lại giỏ hàng:", error);
+        //     }
+        // };
+        // fetchCart();
+
+         dispatch(setCart([]));
 
         addToast({
             type: "success",

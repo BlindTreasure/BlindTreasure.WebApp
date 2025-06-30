@@ -3,12 +3,13 @@ import {
   ProductType,
   Status,
   StockStatus,
+  ProductStatus,
 } from "@/const/products";
 
 export type GetProduct = {
   search?: string;
   categoryId?: string;
-  status?: string;
+  productStatus?: ProductStatus;
   sortBy?: ProductSortBy;
   desc?: boolean;
   pageIndex: number;

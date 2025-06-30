@@ -11,6 +11,13 @@ export enum ProductSortBy {
   Stock = "Stock",
 }
 
+export const ProductSortByText: Record<ProductSortBy, string> = {
+  [ProductSortBy.CreatedAt]: "Ngày",
+  [ProductSortBy.Name]: "Tên",
+  [ProductSortBy.Price]: "Giá",
+  [ProductSortBy.Stock]: "Số lượng hàng",
+};
+
 export enum ProductType {
   DirectSale = "DirectSale",
   BlindBoxOnly = "BlindBoxOnly",
@@ -39,6 +46,13 @@ export enum ProductStatus {
   New = "New",
   OutOfStock = "OutOfStock",
 }
+
+export const ProductStatusText: Record<ProductStatus, string> = {
+  [ProductStatus.Active]: "Đang hoạt động",
+  [ProductStatus.InActive]: "Chưa hoạt động",
+  [ProductStatus.OutOfStock]: "Hết hàng",
+  [ProductStatus.New]: "Hàng mới",
+};
 
 export enum BlindboxStatus {
   Draft = "Draft",
@@ -117,20 +131,36 @@ export const OrderStatusText: Record<OrderStatus, string> = {
   [OrderStatus.CANCELLED]: "Đã hủy",
 };
 
+export enum OrderStatusDetail {
+  PENDING = "PENDING",
+  SHIPPED = "SHIPPED",
+  DELIVERED = "DELIVERED",
+  CANCELLED = "CANCELLED",
+  IN_INVENTORY = "IN_INVENTORY"
+}
+
+export const OrderStatusDetailText: Record<OrderStatusDetail, string> = {
+  [OrderStatusDetail.PENDING]: "Chờ xác nhận",
+  [OrderStatusDetail.SHIPPED]: "Đang vận chuyển",
+  [OrderStatusDetail.DELIVERED]: "Đã giao hàng",
+  [OrderStatusDetail.CANCELLED]: "Đã hủy",
+  [OrderStatusDetail.IN_INVENTORY]: "Trong túi đồ",
+};
+
 export enum PaymentInfoStatus {
-  PENDING = "Pending",
-  PAID = "Paid",
-  FAILED = "Failed",
-  CANCELLED = "Cancelled",
-  EXPIRED = "Expired",
-  COMPLETED = "Completed",
+  Pending = "Pending",
+  Paid = "Paid",
+  Failed = "Failed",
+  Cancelled = "Cancelled",
+  Expired = "Expired",
+  Completed = "Completed",
 }
 
 export const PaymentInfoStatusText: Record<PaymentInfoStatus, string> = {
-  [PaymentInfoStatus.PENDING]: "Chờ thanh toán",
-  [PaymentInfoStatus.CANCELLED]: "Đã hủy",
-  [PaymentInfoStatus.PAID]: "Đã thanh toán",
-  [PaymentInfoStatus.FAILED]: "Thanh toán thất bại",
-  [PaymentInfoStatus.COMPLETED]: "Hoàn tất",
-  [PaymentInfoStatus.EXPIRED]: "Hết hạn",
+  [PaymentInfoStatus.Pending]: "Chờ thanh toán",
+  [PaymentInfoStatus.Cancelled]: "Đã hủy",
+  [PaymentInfoStatus.Paid]: "Đã thanh toán",
+  [PaymentInfoStatus.Failed]: "Thanh toán thất bại",
+  [PaymentInfoStatus.Completed]: "Hoàn tất",
+  [PaymentInfoStatus.Expired]: "Hết hạn",
 };

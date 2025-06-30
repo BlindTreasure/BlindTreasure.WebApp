@@ -51,7 +51,7 @@ export default function AddressDialog({
             addressId: editingAddress.id,
             fullName: editingAddress.fullName,
             phone: editingAddress.phone,
-            addressLine1: editingAddress.addressLine1,
+            addressLine: editingAddress.addressLine,
             province: editingAddress.province,
             city: editingAddress.city,
             postalCode: editingAddress.postalCode ?? "",
@@ -87,7 +87,6 @@ export default function AddressDialog({
                     }))
                 }))
             }));
-            console.log("provincesData loaded:", parsed);
             setProvincesData(parsed);
         });
 }, []);
@@ -101,7 +100,7 @@ useEffect(() => {
         reset({
             fullName: editingAddress.fullName,
             phone: editingAddress.phone,
-            addressLine1: editingAddress.addressLine1,
+            addressLine: editingAddress.addressLine,
             province: editingAddress.province,
             city: editingAddress.city,
             postalCode: editingAddress.postalCode ?? "",
@@ -116,7 +115,7 @@ useEffect(() => {
         reset({
             fullName: "",
             phone: "",
-            addressLine1: "",
+            addressLine: "",
             province: "",
             city: "",
             postalCode: "",
@@ -126,7 +125,6 @@ useEffect(() => {
 }, [open, editingAddress, provincesData, reset]);
 
 useEffect(() => {
-    console.log("address state for ProvinceSelect:", address);
 }, [address]);
 
     const handleSelectChange = (value: {
@@ -182,12 +180,12 @@ useEffect(() => {
 
                     <div>
                         <input
-                            {...register("addressLine1")}
+                            {...register("addressLine")}
                             className="w-full border px-3 py-2 rounded"
                             placeholder="Địa chỉ cụ thể"
                         />
-                        {errors.addressLine1 && (
-                            <p className="text-red-500 text-sm mt-1">{errors.addressLine1.message}</p>
+                        {errors.addressLine && (
+                            <p className="text-red-500 text-sm mt-1">{errors.addressLine.message}</p>
                         )}
                     </div>
 

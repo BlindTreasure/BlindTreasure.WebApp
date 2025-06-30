@@ -20,7 +20,7 @@ export default function AllNewProducts() {
     const [loadingPage, setLoadingPage] = useState(false);
     const [params] = useState<GetAllProducts>({
         pageIndex: 1,
-        pageSize: 9999,
+        pageSize: 40,
         search: "",
         productStatus: undefined,
         sellerId: "",
@@ -30,7 +30,7 @@ export default function AllNewProducts() {
     });
     const [blindBoxParams] = useState<GetBlindBoxes>({
         pageIndex: 1,
-        pageSize: 9999,
+        pageSize: 40,
         search: "",
         SellerId: "",
         categoryId: "",

@@ -24,7 +24,7 @@ export default function useUpdateAddress(
     defaultValues: {
       fullName: "",
       phone: "",
-      addressLine1: "",
+      addressLine: "",
       city: "",
       province: "",
       postalCode: "",
@@ -40,7 +40,7 @@ export default function useUpdateAddress(
     const {
       fullName,
       phone,
-      addressLine1,
+      addressLine,
       city,
       province,
       postalCode,
@@ -51,7 +51,7 @@ export default function useUpdateAddress(
         addressId: defaultValues.addressId,
         fullName,
         phone,
-        addressLine1,
+        addressLine,
         city,
         province,
         postalCode,

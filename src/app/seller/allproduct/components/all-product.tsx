@@ -21,7 +21,7 @@ import { FaRegEdit } from "react-icons/fa"
 import { HiOutlineTrash } from "react-icons/hi"
 import { BsEye } from "react-icons/bs"
 import { CiSearch } from "react-icons/ci";
-import { ProductSortBy, ProductType, ProductTypeText, Status, StatusTypeText } from "@/const/products"
+import { ProductSortBy, ProductStatus, ProductStatusText, ProductType, ProductTypeText, Status, StatusTypeText } from "@/const/products"
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import EditProductSeller from "../../create-product/components/edit-product"
 import {
@@ -47,7 +47,7 @@ export default function ProductTable() {
         pageIndex: 1,
         pageSize: 5,
         search: "",
-        status: "",
+        productStatus: undefined,
         categoryId: "",
         sortBy: undefined,
         desc: undefined,
@@ -165,21 +165,24 @@ export default function ProductTable() {
                             </Select>
 
                             <Select
-                                onValueChange={(value) =>
+                                value={params.productStatus}
+                                onValueChange={(value) => {
                                     setParams((prev) => ({
                                         ...prev,
-                                        status: value === "all" ? "" : value,
+                                        productStatus: value === "" ? undefined : (value as ProductStatus),
                                         pageIndex: 1,
-                                    }))
-                                }
+                                    }));
+                                }}
                             >
                                 <SelectTrigger className="w-40">
                                     <SelectValue placeholder="Trạng thái" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">Tất cả</SelectItem>
-                                    <SelectItem value="Active">Hoạt động</SelectItem>
-                                    <SelectItem value="Inactive">Không hoạt động</SelectItem>
+                                    {(["Active", "InActive"] as ProductStatus[]).map((status) => (
+                                        <SelectItem key={status} value={status}>
+                                            {ProductStatusText[status]}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>

@@ -24,7 +24,7 @@ export default function useCreateAddress(
     defaultValues: {
       fullName: "",
       phone: "",
-      addressLine1: "",
+      addressLine: "",
       city: "",
       province: "",
       postalCode: "",

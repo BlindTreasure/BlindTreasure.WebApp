@@ -8,7 +8,7 @@ import { BlindBox, BlindBoxItemRequest, BlindBoxListResponse, GetBlindBoxes } fr
 import { GetProduct, TProductResponse } from "@/services/product-seller/typings";
 import useGetAllProduct from "../../allproduct/hooks/useGetAllProduct";
 import useCreateBlindboxItemForm from "../hooks/useCreateItem";
-import { Rarity } from "@/const/products";
+import { ProductStatus, Rarity } from "@/const/products";
 import { AddItemToBlindboxForm } from "@/components/blindboxform/addItems";
 import CreateBlindbox from "@/components/blindboxform/createBlindBox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -60,7 +60,7 @@ export default function BlindboxTabs() {
         pageIndex: 1,
         pageSize: 100,
         search: "",
-        status: "",
+        productStatus: ProductStatus.Active,
         categoryId: "",
         sortBy: undefined,
         desc: undefined,
