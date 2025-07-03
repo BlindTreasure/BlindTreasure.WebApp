@@ -1,19 +1,22 @@
-import useToast from "@/hooks/use-toast";
-import { getBlindboxInventory } from "@/services/customer-inventory/api-services";
-import { CustomerInventory } from "@/services/customer-inventory/typings";
+import { getBlindboxInventory } from "@/services/customer-blindboxes/api-services";
+import {
+  GetBlindboxInventoryResponse,
+  GetBlindboxInventoryParams,
+} from "@/services/customer-blindboxes/typings";
 import { isTResponseData } from "@/utils/compare";
 import { useState } from "react";
 
 export default function useGetAllBlindboxInventory() {
-  const { addToast } = useToast();
   const [isPending, setPending] = useState(false);
 
-  const getAllBlindboxInventoryApi = async () => {
+  const getAllBlindboxInventoryApi = async (
+    params: GetBlindboxInventoryParams = {}
+  ) => {
     setPending(true);
     try {
-      const res = await getBlindboxInventory();
+      const res = await getBlindboxInventory(params);
       if (isTResponseData(res)) {
-        return res as TResponseData<CustomerInventory[]>;
+        return res as GetBlindboxInventoryResponse;
       }
       return null;
     } catch (error) {
