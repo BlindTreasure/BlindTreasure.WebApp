@@ -77,7 +77,7 @@ export default function RootRedirect() {
     }
   }, [user]);
 
-  if (loading) return null; // hoặc spinner
+  if (loading) return null;
 
   if (user?.roleName === 'Customer') {
     return (

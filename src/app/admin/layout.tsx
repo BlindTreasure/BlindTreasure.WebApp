@@ -1,8 +1,32 @@
+"use client";
+
 import AdminHeader from "@/components/admin-header";
 import AdminSidebar from "@/components/admin-sidebar";
-import React from "react";
+import React, { useEffect } from "react";
+import { useAppDispatch } from "@/stores/store";
+import { setUser } from "@/stores/user-slice";
+import { getAccountProfile } from "@/services/account/api-services";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const loadAdminProfile = async () => {
+      try {
+        const profileRes = await getAccountProfile();
+        const profile = profileRes?.value?.data;
+
+        if (profile) {
+          dispatch(setUser(profile));
+        }
+      } catch (error) {
+        console.error("Failed to load admin profile:", error);
+      }
+    };
+
+    loadAdminProfile();
+  }, [dispatch]);
+
   return (
     <div className="flex h-screen">
       <AdminSidebar />
@@ -14,6 +38,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {children}
         </main>
       </div>
-    </div>    
+    </div>
   );
-} 
+}
