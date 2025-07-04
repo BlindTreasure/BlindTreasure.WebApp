@@ -1,10 +1,6 @@
 import useToast from "@/hooks/use-toast";
-import {
-  getAccountProfile,
-  getAddresses,
-} from "@/services/account/api-services";
 import { getOrderByCustomer } from "@/services/order/api-services";
-import { OrderResponse } from "@/services/order/typings";
+import { GetOrderParams, OrderListApiData } from "@/services/order/typings";
 import { isTResponseData } from "@/utils/compare";
 import { useState } from "react";
 
@@ -12,12 +8,12 @@ export default function useGetAllOrder() {
   const { addToast } = useToast();
   const [isPending, setPending] = useState(false);
 
-  const getAllOrderApi = async () => {
+  const getAllOrderApi = async (params?: GetOrderParams) => {
     setPending(true);
     try {
-      const res = await getOrderByCustomer();
+      const res = await getOrderByCustomer(params);
       if (isTResponseData(res)) {
-        return res as TResponseData<OrderResponse[]>;
+        return res as TResponseData<OrderListApiData>;
       }
       return null;
     } catch (error) {

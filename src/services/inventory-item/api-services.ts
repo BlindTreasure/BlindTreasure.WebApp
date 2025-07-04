@@ -1,12 +1,25 @@
 import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/inventory-item/api-path";
-import { InventoryItem } from "./typings";
+import {
+  InventoryItem,
+  GetItemInventoryResponse,
+  GetItemInventoryParams,
+} from "./typings";
 
-export const getItemInventory = async () => {
-  const response = await request<TResponseData<InventoryItem[]>>(
+export const getItemInventory = async ({
+  pageIndex,
+  pageSize,
+}: GetItemInventoryParams): Promise<
+  TResponseData<GetItemInventoryResponse>
+> => {
+  const response = await request<TResponseData<GetItemInventoryResponse>>(
     API_ENDPOINTS.INVENTORY_ITEMS,
     {
       method: "GET",
+      params: {
+        pageIndex,
+        pageSize,
+      },
     }
   );
   return response.data;

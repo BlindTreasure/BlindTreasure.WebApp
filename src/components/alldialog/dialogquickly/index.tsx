@@ -14,7 +14,7 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/thumbs'
 import { Product } from '@/services/inventory-item/typings'
-import { BlindBox } from '@/services/customer-inventory/typings'
+import { BlindBox } from '@/services/customer-blindboxes/typings'
 import { Swiper as SwiperCore } from 'swiper/types'
 import { stockStatusMap } from '@/const/products'
 
@@ -121,18 +121,9 @@ export default function QuickViewDialog(props: QuickViewDialogProps) {
                                 <div>Thương hiệu: {(data as Product).brand}</div>
                                 <div>Chất liệu: {(data as Product).material}</div>
                                 <div>Chiều cao: {(data as Product).height} cm</div>
-                                <div>
-                                    Tình trạng kho:{' '}
-                                    {stockStatusMap[(data as Product).productStockStatus]}
-                                </div>
                             </>
                         ) : (
                             <>
-                                <div>Tổng số lượng: {(data as BlindBox).totalQuantity}</div>
-                                <div>
-                                    Tình trạng kho:{' '}
-                                    {stockStatusMap[(data as BlindBox).blindBoxStockStatus]}
-                                </div>
                                 <div>
                                     Ngày phát hành:{' '}
                                     {new Date((data as BlindBox).releaseDate).toLocaleDateString(

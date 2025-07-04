@@ -5,6 +5,15 @@ import {
   StockStatus,
   BlindboxStatus,
 } from "@/const/products";
+import { TResponseData } from "@/typings";
+
+export type PaginatedResponse<T> = {
+  result: T[];
+  count: number;
+  pageSize: number;
+  currentPage: number;
+  totalPages: number;
+};
 
 export type InventoryItem = {
   id: string;
@@ -35,4 +44,13 @@ export type Product = {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
+};
+
+export type GetItemInventoryResponse = TResponseData<
+  PaginatedResponse<InventoryItem>
+>;
+
+export type GetItemInventoryParams = {
+  pageIndex?: number;
+  pageSize?: number;
 };
