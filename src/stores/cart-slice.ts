@@ -17,11 +17,9 @@ const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    // Gán toàn bộ cart từ server
     setCart: (state, action: PayloadAction<API.CartItem[]>) => {
       state.items = action.payload;
     },
-
     clearCart: (state) => {
       state.items = [];
     },
