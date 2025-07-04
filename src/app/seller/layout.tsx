@@ -28,6 +28,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
       const sellerData = data.value.data;
       dispatch(setUser({
         userId: sellerData.id, 
+        sellerId: sellerData.sellerId,
         email: sellerData.email,
         fullName: sellerData.fullName,
         avatarUrl: "", 

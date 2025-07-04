@@ -1,8 +1,8 @@
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, X, Eye, CheckCircle, XCircle } from 'lucide-react';
+import { Save, X, Eye, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { promotionSchema, PromotionFormData, defaultValues } from '@/utils/schema-validations/promotion.schema';
 import { PromotionType, PromotionStatus, PromotionCreateByRole } from '@/const/promotion';
 
@@ -39,22 +39,22 @@ const formatToISOWithTimezone = (dateTimeLocal: string): string => {
   return dateObj.toISOString().replace('.000Z', '+00:00');
 };
 
-const getStatusColor = (status: PromotionStatus): string => {
-  const colors = {
-    [PromotionStatus.Approved]: 'bg-green-100 text-green-800',
-    [PromotionStatus.Rejected]: 'bg-red-100 text-red-800',
-    [PromotionStatus.Pending]: 'bg-yellow-100 text-yellow-800'
+const getStatusConfig = (status: PromotionStatus) => {
+  const configs = {
+    [PromotionStatus.Approved]: {
+      color: 'bg-green-100 text-green-800',
+      text: 'Đã duyệt'
+    },
+    [PromotionStatus.Rejected]: {
+      color: 'bg-red-100 text-red-800',
+      text: 'Từ chối'
+    },
+    [PromotionStatus.Pending]: {
+      color: 'bg-yellow-100 text-yellow-800',
+      text: 'Chờ duyệt'
+    }
   };
-  return colors[status] || 'bg-gray-100 text-gray-800';
-};
-
-const getStatusText = (status: PromotionStatus): string => {
-  const texts = {
-    [PromotionStatus.Approved]: 'Đã duyệt',
-    [PromotionStatus.Rejected]: 'Từ chối',
-    [PromotionStatus.Pending]: 'Chờ duyệt'
-  };
-  return texts[status] || 'Không xác định';
+  return configs[status] || { color: 'bg-gray-100 text-gray-800', text: 'Không xác định' };
 };
 
 const PromotionModal: React.FC<PromotionModalProps> = ({
@@ -85,45 +85,70 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
   });
 
   const discountType = watch('discountType');
-  const isViewMode = modalMode === 'view';
-  const isReviewMode = modalMode === 'review';
-  const isEditMode = modalMode === 'edit';
-  const isCreateMode = modalMode === 'create';
+  
+  // Memoized mode checks
+  const modeFlags = useMemo(() => ({
+    isViewMode: modalMode === 'view',
+    isReviewMode: modalMode === 'review',
+    isEditMode: modalMode === 'edit',
+    isCreateMode: modalMode === 'create'
+  }), [modalMode]);
 
-  // Determine user permissions
-  const hasEditPermission = () => {
-    if (isCreateMode) return true;
-    if (!viewingPromotion || !currentUserRole) return false;
-    
-    // Staff có quyền với promotion của Staff
-    if (currentUserRole === PromotionCreateByRole.Staff) {
-      return viewingPromotion.createdByRole === PromotionCreateByRole.Staff;
-    }
-    
-    // Seller không có quyền edit
-    return false;
-  };
+  // Memoized permissions
+  const permissions = useMemo(() => {
+    const hasEditPermission = () => {
+      if (modeFlags.isCreateMode) return true;
+      if (!viewingPromotion || !currentUserRole) return false;
+      
+      // Same role can edit their own promotions
+      return viewingPromotion.createdByRole === currentUserRole;
+    };
 
-  // Determine if fields should be disabled
-  const shouldDisableEdit = () => {
-    if (isViewMode || isReviewMode) return true;
-    if (!viewingPromotion) return false;
-    
-    // Không có quyền edit
-    if (!hasEditPermission()) return true;
-    
-    // Promotion đang pending thì không edit được
-    return viewingPromotion.status === PromotionStatus.Pending;
-  };
+    const shouldDisableEdit = () => {
+      if (modeFlags.isViewMode || modeFlags.isReviewMode) return true;
+      if (!viewingPromotion) return false;
+      
+      // No edit permission
+      if (!hasEditPermission()) return true;
+      
+      // Cannot edit pending promotions
+      return viewingPromotion.status === PromotionStatus.Pending;
+    };
 
-  const isFieldDisabled = shouldDisableEdit() || isLoading || isSubmitting;
+    const shouldShowActionButtons = () => {
+      // Always show for create mode
+      if (modeFlags.isCreateMode) return true;
+      
+      // Edit mode requires edit permission
+      if (modeFlags.isEditMode && !hasEditPermission()) return false;
+      
+      // Check role-based permissions
+      if (viewingPromotion && currentUserRole) {
+        return viewingPromotion.createdByRole === currentUserRole;
+      }
+      
+      return false;
+    };
+
+    return {
+      hasEditPermission: hasEditPermission(),
+      shouldDisableEdit: shouldDisableEdit(),
+      shouldShowActionButtons: shouldShowActionButtons()
+    };
+  }, [modeFlags, viewingPromotion, currentUserRole]);
+
+  const isFieldDisabled = permissions.shouldDisableEdit || isLoading || isSubmitting;
   const isProcessing = isSubmitting || isLoading;
 
-  // Initialize form data - Load viewingPromotion lên sẵn trừ khi modalMode là create
+  // Memoized status config
+  const statusConfig = useMemo(() => {
+    return viewingPromotion ? getStatusConfig(viewingPromotion.status) : null;
+  }, [viewingPromotion]);
+
+  // Initialize form data
   useEffect(() => {
     if (isOpen) {
       if (modalMode !== 'create' && viewingPromotion) {
-        // Load viewingPromotion lên sẵn cho tất cả mode trừ create
         reset({
           code: viewingPromotion.code,
           description: viewingPromotion.description,
@@ -134,7 +159,6 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
           usageLimit: viewingPromotion.usageLimit
         });
       } else {
-        // Mode create thì dùng defaultValues
         reset(defaultValues);
       }
     }
@@ -142,7 +166,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
 
   // Form submission
   const onSubmitForm = async (data: PromotionFormData) => {
-    if (isViewMode || isReviewMode) return;
+    if (modeFlags.isViewMode || modeFlags.isReviewMode) return;
     
     try {
       const formattedData = {
@@ -152,14 +176,13 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
       };
       
       await onSubmit(formattedData as REQUEST.PromotionForm);
-      reset(defaultValues);
-      onClose();
+      handleClose();
     } catch (error) {
       console.error('Error submitting form:', error);
     }
   };
 
-  // Close modal
+  // Close modal handler
   const handleClose = () => {
     if (!isProcessing) {
       reset(defaultValues);
@@ -170,7 +193,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
     }
   };
 
-  // Review actions
+  // Review action handlers
   const handleReviewActionClick = (action: boolean) => {
     if (!action) {
       setShowRejectModal(true);
@@ -197,7 +220,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
     }
   };
 
-  // UI helpers
+  // UI helper functions
   const getModalTitle = () => {
     const titles = {
       create: 'Thêm Promotion mới',
@@ -215,31 +238,18 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
       return 'Promotion đang chờ duyệt, không thể chỉnh sửa';
     }
     
-    if (!hasEditPermission()) {
-      if (currentUserRole === PromotionCreateByRole.Staff && 
-          viewingPromotion.createdByRole === PromotionCreateByRole.Seller) {
-        return 'Promotion được tạo bởi Seller, Staff không thể chỉnh sửa';
+    if (!permissions.hasEditPermission) {
+      const roleMessages = {
+        [PromotionCreateByRole.Staff]: 'Promotion được tạo bởi Seller, Staff không thể chỉnh sửa',
+        [PromotionCreateByRole.Seller]: 'Promotion được tạo bởi Staff, Seller không thể chỉnh sửa'
+      };
+      
+      if (currentUserRole && viewingPromotion.createdByRole !== currentUserRole) {
+        return roleMessages[currentUserRole] || 'Bạn không có quyền chỉnh sửa promotion này';
       }
-      return 'Bạn không có quyền chỉnh sửa promotion này';
     }
     
     return '';
-  };
-
-  // Check if should show action buttons
-  const shouldShowActionButtons = () => {
-    // Seller chỉ có nút view
-    if (currentUserRole === PromotionCreateByRole.Seller) {
-      return false;
-    }
-    
-    // Staff có quyền với promotion của Staff
-    if (currentUserRole === PromotionCreateByRole.Staff && viewingPromotion) {
-      return viewingPromotion.createdByRole === PromotionCreateByRole.Staff;
-    }
-    
-    // Create mode thì luôn show
-    return isCreateMode;
   };
 
   if (!isOpen) return null;
@@ -253,15 +263,15 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                {isViewMode && <Eye size={20} className="text-blue-600" />}
-                {isReviewMode && <CheckCircle size={20} className="text-green-600" />}
+                {modeFlags.isViewMode && <Eye size={20} className="text-blue-600" />}
+                {modeFlags.isReviewMode && <CheckCircle size={20} className="text-green-600" />}
                 <h2 className="text-xl font-semibold text-gray-800">
                   {getModalTitle()}
                 </h2>
               </div>
-              {(isViewMode || isReviewMode) && viewingPromotion && (
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(viewingPromotion.status)}`}>
-                  {getStatusText(viewingPromotion.status)}
+              {(modeFlags.isViewMode || modeFlags.isReviewMode) && statusConfig && (
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusConfig.color}`}>
+                  {statusConfig.text}
                 </span>
               )}
             </div>
@@ -276,13 +286,24 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
           </div>
 
           {/* Warning Message */}
-          {isEditMode && shouldDisableEdit() && (
+          {modeFlags.isEditMode && permissions.shouldDisableEdit && (
             <div className="px-6 py-3 bg-yellow-50 border-l-4 border-yellow-400">
               <div className="flex items-center">
-                <svg className="h-5 w-5 text-yellow-400 mr-3" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
+                <AlertCircle className="h-5 w-5 text-yellow-400 mr-3" />
                 <p className="text-sm text-yellow-700">{getDisabledReason()}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Reject Reason Display */}
+          {viewingPromotion?.status === PromotionStatus.Rejected && viewingPromotion.rejectReason && (
+            <div className="px-6 py-3 bg-red-50 border-l-4 border-red-400">
+              <div className="flex items-start gap-3">
+                <XCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-red-800 mb-1">Lý do từ chối:</p>
+                  <p className="text-sm text-red-700">{viewingPromotion.rejectReason}</p>
+                </div>
               </div>
             </div>
           )}
@@ -293,9 +314,9 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
               <div className="flex flex-col items-center gap-3">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 <p className="text-sm text-gray-600">
-                  {isViewMode ? 'Đang tải...' : 
-                   isEditMode ? 'Đang cập nhật...' : 
-                   isReviewMode ? 'Đang xử lý...' : 'Đang tạo promotion...'}
+                  {modeFlags.isViewMode ? 'Đang tải...' : 
+                   modeFlags.isEditMode ? 'Đang cập nhật...' : 
+                   modeFlags.isReviewMode ? 'Đang xử lý...' : 'Đang tạo promotion...'}
                 </p>
               </div>
             </div>
@@ -524,10 +545,10 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                 disabled={isProcessing}
                 className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
-                {isViewMode || isReviewMode ? 'Đóng' : 'Hủy'}
+                {modeFlags.isViewMode || modeFlags.isReviewMode ? 'Đóng' : 'Hủy'}
               </button>
               
-              {isReviewMode && pendingAction && (
+              {modeFlags.isReviewMode && pendingAction && (
                 <>
                   <button
                     type="button"
@@ -550,10 +571,10 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                 </>
               )}
               
-              {!isViewMode && !isReviewMode && shouldShowActionButtons() && (
+              {!modeFlags.isViewMode && !modeFlags.isReviewMode && permissions.shouldShowActionButtons && (
                 <button
                   type="submit"
-                  disabled={isProcessing || shouldDisableEdit()}
+                  disabled={isProcessing || permissions.shouldDisableEdit}
                   className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center gap-2 transition-colors disabled:opacity-50"
                 >
                   {isProcessing && (
@@ -561,8 +582,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                   )}
                   <Save size={16} />
                   {isProcessing 
-                    ? (isEditMode ? 'Đang cập nhật...' : 'Đang tạo...') 
-                    : (isEditMode ? 'Cập nhật' : 'Thêm mới')
+                    ? (modeFlags.isEditMode ? 'Đang cập nhật...' : 'Đang tạo...') 
+                    : (modeFlags.isEditMode ? 'Cập nhật' : 'Thêm mới')
                   }
                 </button>
               )}

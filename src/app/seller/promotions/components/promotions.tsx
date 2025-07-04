@@ -41,6 +41,7 @@ const PromotionCrud: React.FC = () => {
     try {
       setIsInitialLoading(true);
       const params: REQUEST.GetPromotion = {
+        sellerId: profile?.sellerId,
         pageIndex: currentPage,
         pageSize: pageSize
       };
@@ -72,6 +73,7 @@ const PromotionCrud: React.FC = () => {
   const refreshPromotions = async () => {
     try {
       const params: REQUEST.GetPromotion = {
+        sellerId: profile?.sellerId,
         pageIndex: currentPage,
         pageSize: pageSize
       };

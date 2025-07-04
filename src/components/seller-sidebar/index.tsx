@@ -62,6 +62,11 @@ const sidebarItems = [
     href: "/seller/customers",
   },
   {
+    label: "Voucher",
+    icon: Users,
+    href: "/seller/promotions",
+  },
+  {
     label: "Đơn hàng",
     icon: ListOrdered,
     href: "/seller/orders",
