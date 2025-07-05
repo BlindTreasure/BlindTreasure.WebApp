@@ -60,51 +60,53 @@ export default function AddressList() {
 
     return (
         <>
-            <div className="p-6 bg-white rounded shadow mt-40">
-                <div className="border border-b-0 p-6">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-semibold">Địa chỉ của tôi</h2>
-                        <Button onClick={() => setShowDialog(true)} className="bg-red-500 hover:bg-red-600 text-white">
+            <div className="p-3 sm:p-6 bg-white rounded shadow mt-40">
+                <div className="border border-b-0 p-3 sm:p-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+                        <h2 className="text-lg sm:text-xl font-semibold">Địa chỉ của tôi</h2>
+                        <Button onClick={() => setShowDialog(true)} className="bg-red-500 hover:bg-red-600 text-white text-sm sm:text-base w-full sm:w-auto">
                             + Thêm địa chỉ mới
                         </Button>
                     </div>
                 </div>
 
-                <div className="p-6 border">
-                    <h2 className="text-xl font-semibold">Địa chỉ</h2>
+                <div className="p-3 sm:p-6 border">
+                    <h2 className="text-lg sm:text-xl font-semibold">Địa chỉ</h2>
 
                     {addresses.length === 0 ? (
                         <p className="text-gray-500 mt-4">Chưa có địa chỉ nào.</p>
                     ) : (
                         <div className="space-y-4">
                             {sortedAddresses.map((addr) => (
-                                <div key={addr.id} className="space-y-2 border-b pb-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4 text-lg">
-                                            <p>{addr.fullName}</p>
-                                            <div className="w-px h-5 bg-gray-300" />
-                                            <p>{addr.phone}</p>
+                                <div key={addr.id} className="space-y-3 border-b pb-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                            <div className="flex items-center gap-2 sm:gap-4 text-sm sm:text-lg">
+                                                <p className="font-medium">{addr.fullName}</p>
+                                                <div className="w-px h-4 sm:h-5 bg-gray-300" />
+                                                <p>{addr.phone}</p>
+                                            </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <button className="border rounded-sm border-red-500 p-2 text-red-500" onClick={() => {
+                                        <div className="flex gap-2 self-start sm:self-auto">
+                                            <button className="border rounded-sm border-red-500 px-2 py-1 sm:p-2 text-red-500 text-xs sm:text-sm" onClick={() => {
                                                 setEditingAddress(addr);
                                                 setShowDialog(true);
                                             }}>Cập nhật</button>
-                                            <button className="border rounded-sm border-red-500 p-2 text-red-500" onClick={() => handleDeleteClick(addr.id)}
+                                            <button className="border rounded-sm border-red-500 px-2 py-1 sm:p-2 text-red-500 text-xs sm:text-sm" onClick={() => handleDeleteClick(addr.id)}
                                                 disabled={isDeleting}>Xóa</button>
                                         </div>
                                     </div>
 
-                                    <div className="flex justify-between">
-                                        <div>
-                                            <p className="text-lg text-gray-600">{addr.addressLine}</p>
-                                            <p className="text-lg text-gray-600">
+                                    <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
+                                        <div className="flex-1">
+                                            <p className="text-sm sm:text-lg text-gray-600 break-words">{addr.addressLine}</p>
+                                            <p className="text-sm sm:text-lg text-gray-600 break-words">
                                                 {addr.postalCode}, {addr.city}, {addr.province}, {addr.country}
                                             </p>
                                         </div>
 
                                         {!addr.isDefault && (
-                                            <div>
+                                            <div className="self-start sm:self-auto">
                                                 <button
                                                     disabled={isSettingDefault}
                                                     onClick={() =>
@@ -112,7 +114,7 @@ export default function AddressList() {
                                                             refreshList();
                                                         })
                                                     }
-                                                    className={`border rounded-sm border-blue-500 p-2 text-blue-500 ${isSettingDefault ? "opacity-50 cursor-not-allowed" : ""
+                                                    className={`border rounded-sm border-blue-500 px-2 py-1 sm:p-2 text-blue-500 text-xs sm:text-sm whitespace-nowrap ${isSettingDefault ? "opacity-50 cursor-not-allowed" : ""
                                                         }`}
                                                 >
                                                     {isSettingDefault ? "Đang thiết lập..." : "Thiết lập mặc định"}
@@ -124,7 +126,7 @@ export default function AddressList() {
 
                                     {addr.isDefault && (
                                         <div>
-                                            <button className="border rounded-sm border-green-500 p-2 text-green-500">
+                                            <button className="border rounded-sm border-green-500 px-2 py-1 sm:p-2 text-green-500 text-xs sm:text-sm">
                                                 Mặc định
                                             </button>
                                         </div>

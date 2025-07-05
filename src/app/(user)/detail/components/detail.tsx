@@ -16,11 +16,16 @@ import { Backdrop } from '@/components/backdrop';
 import LightboxGallery from '@/components/lightbox-gallery';
 import { Gallery, Item } from "react-photoswipe-gallery";
 import "photoswipe/style.css";
-import { StockStatus, stockStatusMap } from '@/const/products';
+import { BlindboxStatus, StockStatus, stockStatusMap } from '@/const/products';
 import useGetAllProductWeb from '../../allproduct/hooks/useGetAllProductWeb';
 import ProductCard from '@/components/product-card';
 import { getRibbonTypes } from '@/utils/getRibbonTypes';
 import { useRouter } from 'next/navigation';
+import useGetSellerById from "../hooks/useGetSellerById";
+import { TbMessageDots } from "react-icons/tb";
+import useGetAllBlindBoxes from '@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes';
+import { BlindBox, GetBlindBoxes } from '@/services/blindboxes/typings';
+import { BsShop } from "react-icons/bs";
 
 interface DetailProps {
     detailId: string;
@@ -34,9 +39,14 @@ export default function Detail({ detailId }: DetailProps) {
     const { getProductByIdWebApi, isPending } = useGetProductByIdWeb();
     const [relatedProducts, setRelatedProducts] = useState<AllProduct[]>([]);
     const [loadingPage, setLoadingPage] = useState(false);
+    const [sellerInfo, setSellerInfo] = useState<API.SellerById | null>(null);
+    const [sellerProducts, setSellerProducts] = useState<AllProduct[]>([]);
+    const [sellerBlindboxes, setSellerBlindboxes] = useState<BlindBox[]>([]);
     const router = useRouter();
     const { addProductToCartApi, isPending: isAddingToCart } = useAddProductToCart();
-    const { getAllProductWebApi, isPending: isProduct } = useGetAllProductWeb()
+    const { getAllProductWebApi, isPending: isProduct } = useGetAllProductWeb();
+    const { getPSellerByIdApi, isPending: isSellerPending } = useGetSellerById();
+    const { getAllBlindBoxesApi, isPending: isBlindboxPending } = useGetAllBlindBoxes();
 
     const handleViewDetail = (id: string) => {
         setLoadingPage(true);
@@ -54,10 +64,52 @@ export default function Detail({ detailId }: DetailProps) {
         desc: undefined,
     })
 
+    const [blindboxParams, setBlindboxParams] = useState<GetBlindBoxes>({
+        search: "",
+        SellerId: "",
+        categoryId: "",
+        status: BlindboxStatus.Approved,
+        minPrice: undefined,
+        maxPrice: undefined,
+        ReleaseDateFrom: "",
+        ReleaseDateTo: "",
+        HasItem: undefined,
+        pageIndex: 1,
+        pageSize: 100,
+    })
+
     useEffect(() => {
         (async () => {
             const res = await getProductByIdWebApi(detailId);
-            if (res) setProducts(res.value.data);
+            if (res) {
+                setProducts(res.value.data);
+                if (res.value.data.sellerId) {
+                    const sellerRes = await getPSellerByIdApi(res.value.data.sellerId);
+                    if (sellerRes) {
+                        setSellerInfo(sellerRes.value.data);
+                    }
+
+                    // Fetch all products from this seller
+                    const sellerProductsRes = await getAllProductWebApi({
+                        ...params,
+                        sellerId: res.value.data.sellerId,
+                        categoryId: "",
+                    });
+                    if (sellerProductsRes) {
+                        setSellerProducts(sellerProductsRes.value.data.result);
+                    }
+
+                    // Fetch all blindboxes from this seller
+                    const sellerBlindboxesRes = await getAllBlindBoxesApi({
+                        ...blindboxParams,
+                        SellerId: res.value.data.sellerId,
+                        categoryId: "",
+                    });
+                    if (sellerBlindboxesRes) {
+                        setSellerBlindboxes(sellerBlindboxesRes.value.data.result);
+                    }
+                }
+            }
         })();
     }, [detailId]);
 
@@ -230,22 +282,82 @@ export default function Detail({ detailId }: DetailProps) {
                 </motion.div>
             </div>
 
-            {/* <div className="flex items-center justify-between bg-gray-100 rounded-lg p-4 mt-8">
-                <div className="flex items-center gap-3">
-                    <img
-                        src={products?.seller?.avatar || "/default-avatar.png"}
-                        alt="Seller Avatar"
-                        className="w-12 h-12 rounded-full object-cover border"
-                    />
-                    <div>
-                        <p className="font-semibold text-lg">{products?.seller?.name || "Người bán"}</p>
-                        <p className="text-sm text-gray-500">{products?.seller?.email || ""}</p>
+            <motion.div
+                variants={fadeIn("up", 0.4)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.7 }}
+                className="bg-white rounded-lg p-6 mt-8 border shadow-sm"
+            >
+                <div className="flex items-center gap-6">
+                    <div className="relative w-16 h-16">
+                        <div className="w-16 h-16 rounded-full border border-red-500 bg-white flex items-center justify-center shadow-md">
+                            <img
+                                src={`https://api.dicebear.com/7.x/initials/svg?seed=${products?.sellerId}&size=64&backgroundColor=ffffff&textColor=00579D`}
+                                alt={sellerInfo?.companyName || "Cửa hàng"}
+                                className="w-10 h-10"
+                            />
+                        </div>
+                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-sm shadow-sm whitespace-nowrap max-w-[90px] text-center">
+                            BlindTreasure
+                        </div>
                     </div>
+
+                    <div className="flex flex-col gap-2">
+                        <div>
+                            <p className="text-lg font-semibold">
+                                {sellerInfo?.companyName || sellerInfo?.fullName || "Cửa hàng"}
+                            </p>
+                        </div>
+                        <div className='flex flex-row gap-2'>
+                            <button className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition text-sm">
+                                <TbMessageDots className='text-xl' />
+                                Chat ngay
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setLoadingPage(true);
+                                    router.push(`/shop/${products?.sellerId}`);
+                                }}
+                                className="flex gap-2 items-center border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 transition text-sm"
+                            >
+                                <BsShop className='text-lg'/>
+                                Xem Shop
+                            </button>
+                        </div>
+                    </div>
+                    <div className="w-px h-20 bg-gray-300" />
+                    <div className="flex-1">
+                        <div className="grid grid-cols-3 gap-x-4 gap-y-3 mt-4 text-sm text-gray-600">
+                            <div className='flex gap-4'>
+                                <p>Đánh Giá</p>
+                                <p className="text-red-600 font-semibold">219,3k</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <p>Tỉ Lệ Phản Hồi</p>
+                                <p className="text-red-600 font-semibold">100%</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <p>Thời Gian Phản Hồi</p>
+                                <p className="text-red-600 font-semibold">trong vài giờ</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <p>Tham Gia</p>
+                                <p className="text-red-600 font-semibold">5 năm trước</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <p>Sản Phẩm</p>
+                                <p className="text-red-600 font-semibold">{sellerProducts.length + sellerBlindboxes.length}</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <p>Người Theo Dõi</p>
+                                <p className="text-red-600 font-semibold">228,6k</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-                <button className="bg-[#00579D] text-white px-6 py-2 rounded hover:bg-[#003f6d] transition">
-                    Chat ngay
-                </button>
-            </div> */}
+            </motion.div>
 
             <motion.div
                 variants={fadeIn("up", 0.3)}

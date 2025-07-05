@@ -1,5 +1,8 @@
-import { uploadSellerDocument } from "@/services/seller/api-services";
-import { useMutation } from "@tanstack/react-query";
+import {
+  uploadSellerDocument,
+  getSellerById,
+} from "@/services/seller/api-services";
+import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import useToast from "@/hooks/use-toast";
 import { handleError } from "@/hooks/error";
 import { verifySellerByStaff } from "@/services/seller/api-services";
@@ -53,3 +56,4 @@ export const useServiceVerifySellerByStaff = () => {
     },
   });
 };
+
