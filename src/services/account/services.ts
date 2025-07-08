@@ -8,6 +8,7 @@ import {
   updateAddress,
   updateAvatarProfile,
   updateInfoProfile,
+  updateProfileSeller,
 } from "@/services/account/api-services";
 import { useAppDispatch } from "@/stores/store";
 import { updateImage, updateInformationProfile } from "@/stores/user-slice";
@@ -191,6 +192,24 @@ export const useServiceDeleteAddress = () => {
     mutationFn: async (addressId: string) => {
       return await deleteAddress(addressId);
     },
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
+    },
+  });
+};
+
+export const useServiceUpdateProfileSeller = () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<API.TUpdateSellerProfile>, TMeta, REQUEST.UpdateSellerInfo>({
+    mutationFn: updateProfileSeller,
     onSuccess: (data) => {
       addToast({
         type: "success",

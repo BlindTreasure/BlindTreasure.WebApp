@@ -76,4 +76,18 @@ declare namespace API {
     country: string;
     isDefault: boolean;
   };
+
+  type TUpdateSellerProfile = {
+    id: string;
+    email: string;
+    fullName: string;
+    phone: string;
+    dateOfBirth: string;
+    companyName: string;
+    taxId: string;
+    companyAddress: string;
+    coaDocumentUrl: string;
+    status: string;
+    isVerified: boolean;
+  }
 }

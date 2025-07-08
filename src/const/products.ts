@@ -70,15 +70,15 @@ export const BlindboxStatusText: Record<BlindboxStatus, string> = {
 
 export enum Rarity {
   Common = "Common",
-  Epic = "Epic",
   Rare = "Rare",
+  Epic = "Epic",
   Secret = "Secret",
 }
 
 export const RarityText: Record<Rarity, string> = {
   [Rarity.Common]: "Phổ biến",
-  [Rarity.Epic]: "Cao cấp",
-  [Rarity.Rare]: "Hiếm",
+  [Rarity.Rare]: "Cao cấp",
+  [Rarity.Epic]: "Hiếm",
   [Rarity.Secret]: "Cực hiếm",
 };
 

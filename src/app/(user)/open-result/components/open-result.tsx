@@ -330,7 +330,7 @@
 //     const timer2 = setTimeout(() => setStep("explode"), 4500);
 //     const timer3 = setTimeout(() => setStep("spinning"), 6000);
 //     const timer4 = setTimeout(() => setStep("item"), 11000); // Tăng thời gian để có đủ chỗ quay
-    
+
 //     return () => {
 //       clearTimeout(timer1);
 //       clearTimeout(timer2);
@@ -351,7 +351,7 @@
 //     const itemWidth = 160; // Chiều rộng mỗi item + margin (w-36 + mx-2 = 144 + 16 = 160)
 //     const containerCenter = 192; // Nửa chiều rộng container (w-96 = 384px / 2 = 192px)
 //     const itemCenter = 80; // Nửa chiều rộng item (w-36 = 144px / 2 = 72px + margin)
-    
+
 //     // Tính vị trí để Labubu (index 4) dừng chính giữa khung vàng
 //     // Vị trí Labubu trong loop cuối = loop 3 * 8 items + index 4 = item thứ 28
 //     const labubuPosition = (3 * items.length + 4) * itemWidth;
@@ -361,10 +361,10 @@
 //     const animate = () => {
 //       const elapsed = Date.now() - startTime;
 //       const progress = Math.min(elapsed / duration, 1);
-      
+
 //       // Easing function - bắt đầu nhanh, chậm dần
 //       const easeOut = 1 - Math.pow(1 - progress, 3);
-      
+
 //       const currentPos = easeOut * finalPosition;
 //       setScrollPosition(currentPos);
 
@@ -698,11 +698,11 @@
 //                 ease: "linear",
 //               }}
 //             />
-            
+
 //             {/* Cửa sổ hiển thị */}
 //             <div className="relative bg-black rounded-xl p-4 w-96 h-32 overflow-hidden">
 //               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse" />
-              
+
 //               {/* Dải item cuộn */}
 //               <div 
 //                 className="flex absolute top-1/2 transform -translate-y-1/2 transition-none"
@@ -738,7 +738,7 @@
 //                   ))
 //                 )}
 //               </div>
-              
+
 //               {/* Viền chỉ vị trí trúng (chỉnh qua phải một chút) */}
 //               <div className="absolute transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 border-4 border-yellow-400 rounded-lg shadow-lg shadow-yellow-400/50" style={{ left: '55%', top: '40%' }}>
 //                 <motion.div
@@ -754,7 +754,7 @@
 //                   }}
 //                 />
 //               </div>
-              
+
 //               {/* Hiệu ứng tia sáng */}
 //               <div className="absolute top-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{ left: '55%' }}>
 //                 {[...Array(4)].map((_, i) => (
@@ -780,7 +780,7 @@
 //                 ))}
 //               </div>
 //             </div>
-            
+
 //             {/* LED indicators */}
 //             <div className="flex justify-center mt-4 space-x-2">
 //               {[...Array(5)].map((_, i) => (
@@ -800,7 +800,7 @@
 //               ))}
 //             </div>
 //           </div>
-          
+
 //           <motion.p 
 //             className="text-xl font-bold mt-6 text-white text-center"
 //             animate={{
@@ -857,7 +857,7 @@
 //               className="w-36 h-36 object-contain rounded-full shadow-2xl shadow-yellow-400/80 relative z-10"
 //             />
 //           </motion.div>
-          
+
 //           <motion.p 
 //             className="text-2xl font-bold mt-6 text-center"
 //             initial={{ opacity: 0, y: 20 }}
@@ -866,7 +866,7 @@
 //           >
 //             <span className="text-white">🎉 Chúc mừng! Bạn nhận được:</span>
 //           </motion.p>
-          
+
 //           <motion.p
 //             className="text-3xl font-extrabold text-yellow-400 mt-2 text-center"
 //             initial={{ opacity: 0, scale: 0.8 }}
@@ -898,42 +898,102 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Confetti from "react-confetti";
+import { Rarity } from "@/const/products";
+import { BlindBoxItem } from "@/services/blindboxes/typings";
+import useGetProductById from "../hooks/useGetProductById";
+import { Button } from "@/components/ui/button";
+import useToast from "@/hooks/use-toast";
+import useGetBlindboxById from "../hooks/useGetBlindboxById";
 
 export default function MagicBoxOpening() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { addToast } = useToast();
   const [step, setStep] = useState<
     "rotate" | "fire" | "explode" | "spinning" | "item"
   >("rotate");
+  const [hasShownToast, setHasShownToast] = useState(false);
 
-  // Danh sách các item có thể quay
-  const items = [
-    { name: "Gấu Bông Thường", image: "/images/item1.png", rarity: "common" },
-    { name: "Búp Bê Mini", image: "/images/item2.png", rarity: "common" },
-    { name: "Mô Hình Robot", image: "/images/item3.png", rarity: "rare" },
-    { name: "Unicorn Bông", image: "/images/item4.png", rarity: "rare" },
-    { name: "Labubu", image: "/images/item5.png", rarity: "legendary" },
-    { name: "Baby Three Siêu Hiếm", image: "/images/item6.png", rarity: "epic" },
-  ];
+  // Get unbox result from URL params
+  const productId = searchParams.get('productId') || '';
+  const rarity = searchParams.get('rarity') as Rarity || Rarity.Common;
+  const blindBoxId = searchParams.get('blindBoxId') || '';
+
+  // Check if this is a Secret rarity for special effects
+  const isSecret = rarity === Rarity.Secret;
+
+  // Fetch product details and blindbox details
+  const { product } = useGetProductById(productId);
+  const { blindBox, isPending: isBlindBoxLoading } = useGetBlindboxById(blindBoxId);
+
+  // Convert blindbox items to spinning items format
+  const blindBoxItems = blindBox?.items?.map((item: BlindBoxItem) => ({
+    name: item.productName,
+    image: item.imageUrl || "/images/item1.png",
+    rarity: item.rarity.toLowerCase()
+  })) || [];
+
+  // Use real product data for won item
+  const wonItem = product ? {
+    name: product.name,
+    image: product.imageUrls?.[0] || "/images/item1.png",
+    rarity: rarity.toLowerCase()
+  } : {
+    name: "Unknown Item",
+    image: "/images/item1.png",
+    rarity: rarity.toLowerCase()
+  };
+
+  // Use only blindbox items for spinning animation
+  // Always put the won item first, then other items from the blindbox
+  const items = blindBoxItems.length > 0
+    ? [wonItem, ...blindBoxItems.filter((item: any) => item.name !== wonItem.name)]
+    : [wonItem]; // If no blindbox items, just show the won item
 
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
-  const [spinSpeed, setSpinSpeed] = useState(100); // ms giữa các item
-  // const finalItem = items[5]; // Labubu Siêu Hiếm
-  const [finalItem, setFinalItem] = useState(items[0]);
 
+  // Final item is always the won item (first item in array)
+  const finalItemIndex = 0;
+  const finalItem = items[finalItemIndex];
+
+  // Show success toast when animation completes
   useEffect(() => {
-    const timer1 = setTimeout(() => setStep("fire"), 3000);
-    const timer2 = setTimeout(() => setStep("explode"), 4500);
-    const timer3 = setTimeout(() => setStep("spinning"), 6000);
-    const timer4 = setTimeout(() => setStep("item"), 11000); // Tăng thời gian để có đủ chỗ quay
-    
+    if (step === "item" && !hasShownToast && product) {
+      setHasShownToast(true);
+      addToast({
+        type: "success",
+        description: `Chúc mừng! Bạn đã nhận được ${product.name}!`,
+        duration: 5000,
+      });
+    }
+  }, [step, hasShownToast, product, addToast, setHasShownToast]);
+
+  // Start animation when ready
+  useEffect(() => {
+    // If we have blindBoxId, wait for blindbox data
+    if (blindBoxId && (!blindBox || isBlindBoxLoading)) return;
+
+    // Different timing for Secret vs other rarities
+    const fireDelay = isSecret ? 4000 : 3000;
+    const explodeDelay = isSecret ? 6000 : 4500;
+    const spinningDelay = isSecret ? 8000 : 6000;
+    const itemDelay = isSecret ? 15000 : 11000;
+
+    const timer1 = setTimeout(() => setStep("fire"), fireDelay);
+    const timer2 = setTimeout(() => setStep("explode"), explodeDelay);
+    const timer3 = setTimeout(() => setStep("spinning"), spinningDelay);
+    const timer4 = setTimeout(() => setStep("item"), itemDelay);
+
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
       clearTimeout(timer4);
     };
-  }, []);
+  }, [blindBox, isBlindBoxLoading, blindBoxId]);
 
   // Hiệu ứng quay item
   // useEffect(() => {
@@ -974,42 +1034,40 @@ export default function MagicBoxOpening() {
   // }, [step, items.length]);
 
   useEffect(() => {
-  if (step !== "spinning") return;
+    if (step !== "spinning") return;
 
-  let interval: NodeJS.Timeout;
-  let currentSpeed = 50;
-  let cycles = 0;
-  const maxCycles = 35;
+    let interval: NodeJS.Timeout;
+    let currentSpeed = 50;
+    let cycles = 0;
+    const maxCycles = 35;
 
-  const spin = () => {
-    interval = setTimeout(() => {
-      setCurrentItemIndex((prev) => (prev + 1) % items.length);
-      cycles++;
+    const spin = () => {
+      interval = setTimeout(() => {
+        setCurrentItemIndex((prev) => (prev + 1) % items.length);
+        cycles++;
 
-      if (cycles > 20) {
-        currentSpeed += 20;
-      }
-      if (cycles > 30) {
-        currentSpeed += 50;
-      }
+        if (cycles > 20) {
+          currentSpeed += 20;
+        }
+        if (cycles > 30) {
+          currentSpeed += 50;
+        }
 
-      if (cycles < maxCycles) {
-        spin();
-      } else {
-        // Chọn ngẫu nhiên item cuối cùng
-        const randomIndex = Math.floor(Math.random() * items.length);
-        setFinalItem(items[randomIndex]);
-        setCurrentItemIndex(randomIndex);
-      }
-    }, currentSpeed);
-  };
+        if (cycles < maxCycles) {
+          spin();
+        } else {
+          // Stop at the final item (won item)
+          setCurrentItemIndex(finalItemIndex);
+        }
+      }, currentSpeed);
+    };
 
-  spin();
+    spin();
 
-  return () => {
-    if (interval) clearTimeout(interval);
-  };
-}, [step, items.length]);
+    return () => {
+      if (interval) clearTimeout(interval);
+    };
+  }, [step, items.length]);
 
   // Kích thước vòng tròn ma thuật
   const magicRadii = [70, 90, 110];
@@ -1052,7 +1110,7 @@ export default function MagicBoxOpening() {
       case "common": return "text-gray-400";
       case "rare": return "text-blue-400";
       case "epic": return "text-purple-400";
-      case "legendary": return "text-yellow-400";
+      case "secret": return "text-yellow-400";
       default: return "text-white";
     }
   };
@@ -1062,76 +1120,175 @@ export default function MagicBoxOpening() {
       case "common": return "shadow-lg shadow-gray-400/30";
       case "rare": return "shadow-lg shadow-blue-400/50";
       case "epic": return "shadow-xl shadow-purple-400/60";
-      case "legendary": return "shadow-2xl shadow-yellow-400/80";
+      case "secret": return "shadow-2xl shadow-yellow-400/90 animate-pulse";
       default: return "";
     }
   };
 
+  // Show loading state only when we have blindBoxId but no data yet
+  if (blindBoxId && (isBlindBoxLoading || !blindBox)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-[#0a0a2a] to-[#1a0444] relative overflow-hidden">
+        <motion.div
+          className="flex flex-col items-center"
+          animate={{
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        >
+          <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-white text-lg font-semibold">Đang tải dữ liệu blindbox...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-[#0a0a2a] to-[#1a0444] relative overflow-hidden">
-      {step === "item" && <Confetti />}
+      {step === "item" && (
+        <Confetti
+          numberOfPieces={isSecret ? 300 : 200}
+          colors={isSecret ? ['#ffd700', '#ec4899', '#ffffff', '#fbbf24', '#f59e0b'] : undefined}
+        />
+      )}
 
       {/* Vòng tròn ánh sáng lửa bùng mạnh (fire step) */}
       {step === "fire" && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <motion.div
-            className="absolute rounded-full"
-            style={{
-              width: 300,
-              height: 300,
-              background: "radial-gradient(circle, rgba(59,130,246,0.8) 0%, rgba(59,130,246,0.3) 50%, transparent 70%)",
-              boxShadow: "0 0 100px 20px rgba(59,130,246,0.6), inset 0 0 60px rgba(59,130,246,0.4)",
-            }}
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.8, 1, 0.8],
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
+          {/* Secret rarity gets special golden/pink effects */}
+          {isSecret ? (
+            <>
+              {/* Golden outer ring for Secret */}
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  width: 400,
+                  height: 400,
+                  background: "radial-gradient(circle, rgba(251,191,36,0.9) 0%, rgba(251,191,36,0.4) 40%, rgba(236,72,153,0.3) 70%, transparent 90%)",
+                  boxShadow: "0 0 150px 30px rgba(251,191,36,0.8), inset 0 0 80px rgba(236,72,153,0.6)",
+                }}
+                animate={{
+                  scale: [1, 1.3, 1],
+                  opacity: [0.8, 1, 0.8],
+                  rotate: [0, 360],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
 
-          <motion.div
-            className="absolute rounded-full"
-            style={{
-              width: 220,
-              height: 220,
-              background: "radial-gradient(circle, rgba(147,51,234,0.9) 0%, rgba(147,51,234,0.4) 60%, transparent 80%)",
-              boxShadow: "0 0 80px 15px rgba(147,51,234,0.7), inset 0 0 40px rgba(147,51,234,0.5)",
-            }}
-            animate={{
-              scale: [1, 1.15, 1],
-              opacity: [0.7, 1, 0.7],
-            }}
-            transition={{
-              duration: 1.2,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 0.2,
-            }}
-          />
+              {/* Pink middle ring for Secret */}
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  width: 280,
+                  height: 280,
+                  background: "radial-gradient(circle, rgba(236,72,153,1) 0%, rgba(236,72,153,0.6) 50%, rgba(251,191,36,0.4) 80%, transparent 90%)",
+                  boxShadow: "0 0 120px 25px rgba(236,72,153,0.9), inset 0 0 60px rgba(251,191,36,0.7)",
+                }}
+                animate={{
+                  scale: [1, 1.25, 1],
+                  opacity: [0.7, 1, 0.7],
+                  rotate: [360, 0],
+                }}
+                transition={{
+                  duration: 1.8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.3,
+                }}
+              />
 
-          <motion.div
-            className="absolute rounded-full"
-            style={{
-              width: 140,
-              height: 140,
-              background: "radial-gradient(circle, rgba(251,146,60,1) 0%, rgba(239,68,68,0.8) 40%, rgba(239,68,68,0.3) 70%, transparent 90%)",
-              boxShadow: "0 0 60px 10px rgba(251,146,60,0.8), inset 0 0 30px rgba(239,68,68,0.6)",
-            }}
-            animate={{
-              scale: [1, 1.3, 1],
-              opacity: [0.9, 1, 0.9],
-            }}
-            transition={{
-              duration: 0.8,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 0.4,
-            }}
-          />
+              {/* Inner sparkle core for Secret */}
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  width: 160,
+                  height: 160,
+                  background: "radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(251,191,36,0.9) 30%, rgba(236,72,153,0.6) 60%, transparent 80%)",
+                  boxShadow: "0 0 80px 15px rgba(255,255,255,0.9), inset 0 0 40px rgba(251,191,36,0.8)",
+                }}
+                animate={{
+                  scale: [1, 1.4, 1],
+                  opacity: [0.9, 1, 0.9],
+                }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.6,
+                }}
+              />
+            </>
+          ) : (
+            <>
+              {/* Normal effects for other rarities */}
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  width: 300,
+                  height: 300,
+                  background: "radial-gradient(circle, rgba(59,130,246,0.8) 0%, rgba(59,130,246,0.3) 50%, transparent 70%)",
+                  boxShadow: "0 0 100px 20px rgba(59,130,246,0.6), inset 0 0 60px rgba(59,130,246,0.4)",
+                }}
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.8, 1, 0.8],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  width: 220,
+                  height: 220,
+                  background: "radial-gradient(circle, rgba(147,51,234,0.9) 0%, rgba(147,51,234,0.4) 60%, transparent 80%)",
+                  boxShadow: "0 0 80px 15px rgba(147,51,234,0.7), inset 0 0 40px rgba(147,51,234,0.5)",
+                }}
+                animate={{
+                  scale: [1, 1.15, 1],
+                  opacity: [0.7, 1, 0.7],
+                }}
+                transition={{
+                  duration: 1.2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.2,
+                }}
+              />
+
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  width: 140,
+                  height: 140,
+                  background: "radial-gradient(circle, rgba(251,146,60,1) 0%, rgba(239,68,68,0.8) 40%, rgba(239,68,68,0.3) 70%, transparent 90%)",
+                  boxShadow: "0 0 60px 10px rgba(251,146,60,0.8), inset 0 0 30px rgba(239,68,68,0.6)",
+                }}
+                animate={{
+                  scale: [1, 1.3, 1],
+                  opacity: [0.9, 1, 0.9],
+                }}
+                transition={{
+                  duration: 0.8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.4,
+                }}
+              />
+            </>
+          )}
 
           {[...Array(6)].map((_, i) => (
             <motion.div
@@ -1185,33 +1342,98 @@ export default function MagicBoxOpening() {
       {/* Vòng tròn tỏa sáng nhiều vòng (explode step) */}
       {step === "explode" && (
         <>
-          {[...Array(3)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full"
-              style={{
-                width: 240,
-                height: 240,
-                top: "32%",
-                left: "42%",
-                transform: "translate(-50%, -50%)",
-                background:
-                  "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.15) 60%, transparent 80%)",
-                boxShadow:
-                  "0 0 30px 10px rgba(255,255,255,0.6), 0 0 60px 20px rgba(59,130,246,0.4)",
-                border: "1px solid rgba(255,255,255,0.8)",
-                filter: "blur(2px)",
-              }}
-              initial={{ scale: 1, opacity: 0.9 }}
-              animate={{ scale: 4, opacity: 0 }}
-              transition={{
-                duration: 1.6,
-                delay: i * 0.25,
-                repeat: Infinity,
-                ease: "easeOut",
-              }}
-            />
-          ))}
+          {isSecret ? (
+            // Special Secret explosion with more rings and golden/pink colors
+            <>
+              {[...Array(6)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute rounded-full"
+                  style={{
+                    width: 280 + i * 40,
+                    height: 280 + i * 40,
+                    top: "32%",
+                    left: "42%",
+                    transform: "translate(-50%, -50%)",
+                    background: i % 2 === 0
+                      ? "radial-gradient(circle, rgba(251,191,36,0.9) 0%, rgba(251,191,36,0.3) 40%, rgba(236,72,153,0.2) 70%, transparent 90%)"
+                      : "radial-gradient(circle, rgba(236,72,153,0.9) 0%, rgba(236,72,153,0.3) 40%, rgba(251,191,36,0.2) 70%, transparent 90%)",
+                    boxShadow: i % 2 === 0
+                      ? "0 0 50px 15px rgba(251,191,36,0.8), 0 0 100px 30px rgba(236,72,153,0.4)"
+                      : "0 0 50px 15px rgba(236,72,153,0.8), 0 0 100px 30px rgba(251,191,36,0.4)",
+                    border: `2px solid ${i % 2 === 0 ? 'rgba(251,191,36,0.9)' : 'rgba(236,72,153,0.9)'}`,
+                    filter: "blur(1px)",
+                  }}
+                  initial={{ scale: 1, opacity: 0.9 }}
+                  animate={{ scale: 6, opacity: 0 }}
+                  transition={{
+                    duration: 2.5,
+                    delay: i * 0.15,
+                    ease: "easeOut",
+                  }}
+                />
+              ))}
+
+              {/* Additional sparkle effects for Secret */}
+              {[...Array(12)].map((_, i) => (
+                <motion.div
+                  key={`sparkle-${i}`}
+                  className="absolute w-4 h-4 bg-white rounded-full"
+                  style={{
+                    top: "50%",
+                    left: "50%",
+                    boxShadow: "0 0 20px 5px rgba(255,255,255,0.8)",
+                  }}
+                  initial={{
+                    scale: 0,
+                    x: 0,
+                    y: 0,
+                    opacity: 1
+                  }}
+                  animate={{
+                    scale: [0, 1, 0],
+                    x: Math.cos(i * 30 * Math.PI / 180) * 200,
+                    y: Math.sin(i * 30 * Math.PI / 180) * 200,
+                    opacity: [1, 1, 0]
+                  }}
+                  transition={{
+                    duration: 2,
+                    delay: 0.5 + i * 0.1,
+                    ease: "easeOut"
+                  }}
+                />
+              ))}
+            </>
+          ) : (
+            // Normal explosion for other rarities
+            [...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute rounded-full"
+                style={{
+                  width: 240,
+                  height: 240,
+                  top: "32%",
+                  left: "42%",
+                  transform: "translate(-50%, -50%)",
+                  background:
+                    "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.15) 60%, transparent 80%)",
+                  boxShadow:
+                    "0 0 30px 10px rgba(255,255,255,0.6), 0 0 60px 20px rgba(59,130,246,0.4)",
+                  border: "1px solid rgba(255,255,255,0.8)",
+                  filter: "blur(2px)",
+                }}
+                initial={{ scale: 1, opacity: 0.9 }}
+                animate={{ scale: 4, opacity: 0 }}
+                transition={{
+                  duration: 1.6,
+                  delay: i * 0.25,
+                  repeat: Infinity,
+                  ease: "easeOut",
+                }}
+              />
+            ))
+          )}
         </>
       )}
 
@@ -1302,7 +1524,7 @@ export default function MagicBoxOpening() {
                 ease: "linear",
               }}
             />
-            
+
             <motion.div
               className="relative bg-gray-900 rounded-xl p-6 w-48 h-48 flex flex-col items-center justify-center"
               animate={{
@@ -1327,8 +1549,8 @@ export default function MagicBoxOpening() {
               </p>
             </motion.div>
           </div>
-          
-          <motion.p 
+
+          <motion.p
             className="text-lg font-bold mt-4 text-white"
             animate={{
               opacity: [1, 0.5, 1],
@@ -1348,43 +1570,109 @@ export default function MagicBoxOpening() {
         <motion.div
           className="flex flex-col items-center"
           initial={{ scale: 0 }}
-          animate={{ scale: 1.2 }}
+          animate={{ scale: isSecret ? 1.3 : 1.2 }}
           transition={{ type: "spring", stiffness: 300 }}
         >
           <motion.div
             className="relative"
             animate={{
-              rotate: [0, 5, -5, 0],
+              rotate: isSecret ? [0, 10, -10, 0] : [0, 5, -5, 0],
             }}
             transition={{
-              duration: 2,
+              duration: isSecret ? 1.5 : 2,
               repeat: Infinity,
               ease: "easeInOut",
             }}
           >
-            <motion.div
-              className="absolute inset-0 rounded-full"
-              style={{
-                background: "linear-gradient(45deg, #ffd700, #ffed4e, #ffd700)",
-                filter: "blur(20px)",
-                scale: 1.5,
-              }}
-              animate={{
-                opacity: [0.8, 1, 0.8],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-              }}
-            />
+            {/* Special background effects for Secret */}
+            {isSecret ? (
+              <>
+                {/* Outer golden ring for Secret */}
+                <motion.div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: "linear-gradient(45deg, #ffd700, #ec4899, #ffd700, #ec4899)",
+                    filter: "blur(25px)",
+                    scale: 2.2,
+                  }}
+                  animate={{
+                    opacity: [0.6, 1, 0.6],
+                    rotate: [0, 360],
+                  }}
+                  transition={{
+                    opacity: { duration: 1, repeat: Infinity },
+                    rotate: { duration: 4, repeat: Infinity, ease: "linear" },
+                  }}
+                />
+
+                {/* Inner sparkle ring for Secret */}
+                <motion.div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(251,191,36,0.7) 30%, rgba(236,72,153,0.5) 60%, transparent 80%)",
+                    filter: "blur(15px)",
+                    scale: 1.8,
+                  }}
+                  animate={{
+                    opacity: [0.8, 1, 0.8],
+                    scale: [1.8, 2.0, 1.8],
+                  }}
+                  transition={{
+                    duration: 1.2,
+                    repeat: Infinity,
+                  }}
+                />
+
+                {/* Floating sparkles around Secret item */}
+                {[...Array(8)].map((_, i) => (
+                  <motion.div
+                    key={`item-sparkle-${i}`}
+                    className="absolute w-3 h-3 bg-white rounded-full"
+                    style={{
+                      boxShadow: "0 0 15px 3px rgba(255,255,255,0.8)",
+                    }}
+                    animate={{
+                      x: Math.cos(i * 45 * Math.PI / 180) * 100,
+                      y: Math.sin(i * 45 * Math.PI / 180) * 100,
+                      scale: [0.5, 1, 0.5],
+                      opacity: [0.7, 1, 0.7],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      delay: i * 0.2,
+                      ease: "easeInOut",
+                    }}
+                  />
+                ))}
+              </>
+            ) : (
+              // Normal background for other rarities
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: "linear-gradient(45deg, #ffd700, #ffed4e, #ffd700)",
+                  filter: "blur(20px)",
+                  scale: 1.5,
+                }}
+                animate={{
+                  opacity: [0.8, 1, 0.8],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                }}
+              />
+            )}
+
             <img
               src={finalItem.image}
               alt={finalItem.name}
-              className={`w-36 h-36 object-contain rounded-full shadow-2xl ${getRarityGlow(finalItem.rarity)} relative z-10`}
+              className={`${isSecret ? 'w-44 h-44' : 'w-36 h-36'} object-contain rounded-full shadow-2xl ${getRarityGlow(finalItem.rarity)} relative z-10`}
             />
           </motion.div>
-          
-          <motion.p 
+
+          <motion.p
             className="text-2xl font-bold mt-6 text-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1392,25 +1680,43 @@ export default function MagicBoxOpening() {
           >
             <span className="text-white">🎉 Chúc mừng! Bạn nhận được:</span>
           </motion.p>
-          
+
           <motion.p
-            className="text-3xl font-extrabold text-yellow-400 mt-2 text-center"
+            className={`text-3xl font-extrabold mt-2 text-center ${isSecret
+              ? 'bg-gradient-to-r from-yellow-400 via-pink-400 to-yellow-400 bg-clip-text text-transparent'
+              : 'text-yellow-400'
+              }`}
             initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ 
-              opacity: 1, 
-              scale: [1, 1.1, 1],
+            animate={{
+              opacity: 1,
+              scale: isSecret ? [1, 1.15, 1] : [1, 1.1, 1],
             }}
-            transition={{ 
+            transition={{
               delay: 0.7,
               scale: {
-                duration: 2,
+                duration: isSecret ? 1.5 : 2,
                 repeat: Infinity,
                 ease: "easeInOut",
               }
             }}
           >
-            ✨ {finalItem.name} ✨
+            {isSecret ? '🌟✨ ' : '✨ '}{finalItem.name}{isSecret ? ' ✨🌟' : ' ✨'}
           </motion.p>
+
+          {/* Back to Inventory Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1, duration: 0.5 }}
+            className="mt-6 flex justify-center"
+          >
+            <Button
+              onClick={() => router.push('/inventory')}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              Quay lại Inventory
+            </Button>
+          </motion.div>
         </motion.div>
       )}
     </div>

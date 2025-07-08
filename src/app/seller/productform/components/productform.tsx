@@ -13,14 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Calendar, Plus, EyeOff, X } from 'lucide-react';
 
-const RARITY_OPTIONS = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
-export type Rarity = 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
+const RARITY_OPTIONS = ['Common', 'Rare', 'Epic', 'Secret'];
+export type Rarity = 'Common' | 'Rare' | 'Epic' | 'Secret';
 const RARITY_COLORS: Record<Rarity, string> = {
   Common: "bg-gray-500 text-white",
-  Uncommon: "bg-green-500 text-white",
   Rare: "bg-blue-500 text-white",
   Epic: "bg-purple-500 text-white",
-  Legendary: "bg-yellow-500 text-black",
+  Secret: "bg-yellow-500 text-black",
 };
 
 export default function BlindBoxBasicInfoForm() {
@@ -147,9 +146,9 @@ export default function BlindBoxBasicInfoForm() {
             <div className="space-y-4">
               {imagePreview ? (
                 <div className="relative inline-block">
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
                     className="w-32 h-32 object-cover rounded-lg border"
                   />
                   <button

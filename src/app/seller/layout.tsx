@@ -8,13 +8,15 @@ import SellerHeader from "@/components/seller-header";
 import { useAppDispatch } from "@/stores/store";
 import { setUser } from "@/stores/user-slice";
 import { getAccountProfile } from "@/services/account/api-services";
+import { getQueryClient } from "@/lib/query";
 
 export default function SellerLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
+  const queryClient = getQueryClient();
 
-  const { data, isLoading, isError } = useServiceGetSellerProfile();
+  const { data, isLoading, isError, refetch } = useServiceGetSellerProfile();
   const [showFullLayout, setShowFullLayout] = useState(true);
 
   useEffect(() => {
@@ -42,6 +44,22 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   }, [dispatch]);
 
 
+
+  // Auto refetch seller profile every 30 seconds when in pending state
+  useEffect(() => {
+    if (!data) return;
+
+    const sellerStatus = data.value?.data.sellerStatus;
+
+    if (sellerStatus === "WaitingReview") {
+      const interval = setInterval(() => {
+        console.log("Auto refetching seller profile...");
+        refetch();
+      }, 30000); // Refetch every 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [data, refetch]);
 
   useEffect(() => {
     if (!data) return;

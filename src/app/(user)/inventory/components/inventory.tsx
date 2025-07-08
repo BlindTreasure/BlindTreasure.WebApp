@@ -22,6 +22,9 @@ import { Product } from '@/services/inventory-item/typings'
 import { BlindBox, CustomerInventory } from '@/services/customer-blindboxes/typings'
 import { InventoryItem as ItemInventoryType } from '@/services/inventory-item/typings'
 import useGetAllAddress from '../../address-list/hooks/useGetAllAddress'
+import useUnbox from '../hooks/useUnbox'
+import useGetItemByBlindBox from '../hooks/useGetItemByBlindBox'
+import { InventoryItem as WonInventoryItem } from '@/services/inventory-item/typings'
 
 interface InventoryItem {
     id: string
@@ -30,12 +33,13 @@ interface InventoryItem {
     status: 'unopened' | 'opened' | null
     type: 'blindbox' | 'product'
     orderId?: string
-    blindBoxId?: string
+    blindBoxId: string
     productId?: string
     product?: Product
     blindbox?: BlindBox
-    quantity?: number 
-    createdAt?: string 
+    quantity?: number
+    createdAt?: string
+    isFromBlindBox?: boolean
 }
 
 export default function Inventory() {
@@ -47,12 +51,22 @@ export default function Inventory() {
     const [totalPages, setTotalPages] = useState(1)
     const [totalCount, setTotalCount] = useState(0)
     const [blindboxFilter, setBlindboxFilter] = useState<'all' | 'opened' | 'unopened'>('all')
-    const [allTabData, setAllTabData] = useState<InventoryItem[]>([])
-    const { getAllAddressApi, defaultAddress } = useGetAllAddress()
+    const { getAllAddressApi } = useGetAllAddress()
     const [showAddressDialog, setShowAddressDialog] = useState(false)
+    const [pendingDeliveryId, setPendingDeliveryId] = useState<string | null>(null)
+    const { handleUnbox, isUnboxing } = useUnbox()
+    const [showPrizeDialog, setShowPrizeDialog] = useState(false)
+    const [selectedPrize, setSelectedPrize] = useState<{
+        customerBlindBoxId: string
+        blindBoxId: string
+        blindBoxName: string
+    } | null>(null)
+
+    const { inventoryItem: wonItem, isLoading: loadingPrize, error: prizeError } = useGetItemByBlindBox(
+        selectedPrize?.blindBoxId || ''
+    )
 
     const PAGE_SIZE = 8
-    const [pendingDeliveryId, setPendingDeliveryId] = useState<string | null>(null)
 
     const {
         getAllBlindboxInventoryApi,
@@ -78,9 +92,8 @@ export default function Inventory() {
             setIsLoading(true)
             try {
                 if (activeTab === 'blindbox') {
-                    const pageIndex = currentPage - 1;
                     const paginationParams = {
-                        pageIndex,
+                        pageIndex: currentPage,
                         pageSize: PAGE_SIZE,
                         isOpened: blindboxFilter === 'all' ? undefined : blindboxFilter === 'opened'
                     };
@@ -96,7 +109,7 @@ export default function Inventory() {
                             status: item.isOpened ? 'opened' : 'unopened',
                             type: 'blindbox',
                             orderId: item.orderDetailId,
-                            createdAt: item.createdAt, 
+                            createdAt: item.createdAt,
                         }))
                         const sortedBlindboxItems = blindboxItems.sort((a, b) => {
                             if (!a.createdAt || !b.createdAt) return 0;
@@ -107,15 +120,13 @@ export default function Inventory() {
                         setTotalCount(blindboxRes.value.data.count)
                     }
                 } else if (activeTab === 'all') {
-                    let dataToUse = allTabData;
+                    const itemRes = await getAllItemInventoryApi({
+                        pageIndex: currentPage,
+                        pageSize: PAGE_SIZE
+                    })
 
-                    if (allTabData.length === 0) {
-                        const [itemRes, blindboxRes] = await Promise.all([
-                            getAllItemInventoryApi({ pageIndex: 1, pageSize: 50 }),
-                            getAllBlindboxInventoryApi({ pageIndex: 1, pageSize: 50 }),
-                        ])
-
-                        const itemItems: InventoryItem[] = itemRes?.value.data?.result?.map((item: ItemInventoryType) => ({
+                    if (itemRes?.value.data?.result) {
+                        const itemItems: InventoryItem[] = itemRes.value.data.result.map((item: ItemInventoryType) => ({
                             id: item.id,
                             productId: item.productId,
                             product: item.product,
@@ -124,37 +135,20 @@ export default function Inventory() {
                             status: null,
                             type: 'product',
                             quantity: item.quantity,
-                            createdAt: item.createdAt, 
-                        })) ?? []
-
-                        const blindboxItems: InventoryItem[] = blindboxRes?.value.data?.result?.map((item: CustomerInventory) => ({
-                            id: item.id,
-                            blindBoxId: item.blindBoxId,
-                            blindbox: item.blindBox,
-                            title: item.blindBox?.name || '',
-                            image: item.blindBox?.imageUrl ?? '',
-                            status: item.isOpened ? 'opened' : 'unopened',
-                            type: 'blindbox',
-                            orderId: item.orderDetailId,
                             createdAt: item.createdAt,
-                        })) ?? []
+                            isFromBlindBox: item.isFromBlindBox,
+                            blindBoxId: item.isFromBlindBox ? (item.sourceCustomerBlindBoxId || '') : '',
+                        }))
 
-                        const allItems = [...itemItems, ...blindboxItems]
-                        const sortedItems = allItems.sort((a, b) => {
+                        const sortedItems = itemItems.sort((a, b) => {
                             if (!a.createdAt || !b.createdAt) return 0;
                             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
                         });
-                        setAllTabData(sortedItems)
-                        dataToUse = sortedItems;
-                        setTotalPages(Math.ceil(allItems.length / PAGE_SIZE))
-                        setTotalCount(allItems.length)
-                    } else {
-                        setTotalPages(Math.ceil(allTabData.length / PAGE_SIZE))
-                        setTotalCount(allTabData.length)
+
+                        setInventoryItems(sortedItems)
+                        setTotalPages(itemRes.value.data.totalPages)
+                        setTotalCount(itemRes.value.data.count)
                     }
-                    const startIndex = (currentPage - 1) * PAGE_SIZE
-                    const pageItems = dataToUse.slice(startIndex, startIndex + PAGE_SIZE)
-                    setInventoryItems(pageItems)
                 }
             } catch (error) {
                 console.error('Error fetching inventory:', error)
@@ -178,8 +172,29 @@ export default function Inventory() {
         }
     }
 
-    const handleOpenBox = (id: string) => {
-        console.log(`Opening box for product ${id}`)
+    const handleOpenBox = (customerBlindBoxId: string) => {
+        const blindBoxItem = inventoryItems.find(item => item.id === customerBlindBoxId);
+        const blindBoxName = blindBoxItem?.title || 'BlindBox';
+        const blindBoxId = blindBoxItem?.blindBoxId;
+        handleUnbox(customerBlindBoxId, blindBoxName, blindBoxId);
+    }
+
+    const handleViewPrize = (customerBlindBoxId: string) => {
+        const blindBoxItem = inventoryItems.find(item => item.id === customerBlindBoxId);
+        if (blindBoxItem && blindBoxItem.blindBoxId) {
+            setSelectedPrize({
+                customerBlindBoxId,
+                blindBoxId: blindBoxItem.blindBoxId,
+                blindBoxName: blindBoxItem.title
+            });
+            setShowPrizeDialog(true);
+        }
+    }
+
+    const handleResellItem = (itemId: string) => {
+        // TODO: Implement resell functionality for blindbox prize items
+        console.log('Resell item:', itemId);
+        // Navigate to resell page or open resell dialog
     }
 
     const handleDeliver = async (itemId: string) => {
@@ -202,9 +217,6 @@ export default function Inventory() {
                 onTabChange={(tab) => {
                     setActiveTab(tab)
                     setCurrentPage(1)
-                    if (tab !== 'all') {
-                        setAllTabData([])
-                    }
                 }}
             />
 
@@ -326,27 +338,37 @@ export default function Inventory() {
                                 {item.type === 'blindbox' && item.status === 'opened' ? (
                                     <div className="flex gap-2 w-full">
                                         <Button
-                                            onClick={() => handleDeliver(item.id)}
-                                            className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
+                                            onClick={() => handleViewPrize(item.id)}
+                                            className="flex-1 border border-blue-600 text-blue-600 bg-transparent hover:bg-blue-600 hover:text-white transition"
                                         >
-                                            Giao hàng
-                                        </Button>
-                                        <Button
-                                            onClick={() => console.log(`Bán lại: ${item.id}`)}
-                                            className="flex-1 border border-orange-500 text-orange-500 bg-transparent hover:bg-orange-500 hover:text-white transition"
-                                        >
-                                            Bán lại
+                                            Xem thưởng
                                         </Button>
                                     </div>
                                 ) : (
                                     <div className="flex gap-2 w-full">
-                                        {item.type === 'product' && (
+                                        {item.type === 'product' && !item.isFromBlindBox && (
                                             <Button
                                                 onClick={() => handleDeliver(item.id)}
                                                 className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
                                             >
                                                 Giao hàng
                                             </Button>
+                                        )}
+                                        {item.type === 'product' && item.isFromBlindBox && (
+                                            <>
+                                                <Button
+                                                    onClick={() => handleResellItem(item.id)}
+                                                    className="flex-1 border border-orange-600 text-orange-600 bg-transparent hover:bg-orange-600 hover:text-white transition"
+                                                >
+                                                    Bán lại
+                                                </Button>
+                                                <Button
+                                                    onClick={() => handleDeliver(item.id)}
+                                                    className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
+                                                >
+                                                    Giao hàng
+                                                </Button>
+                                            </>
                                         )}
                                         {item.type === 'blindbox' && item.status === 'unopened' && (
                                             <Button
@@ -393,7 +415,97 @@ export default function Inventory() {
                 </DialogContent>
             </Dialog>
 
-            <Backdrop open={isLoading || isItemLoading || isBlindboxLoading} />
-        </div>
+            <Dialog open={showPrizeDialog} onOpenChange={setShowPrizeDialog}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Phần thưởng từ {selectedPrize?.blindBoxName}</DialogTitle>
+                    </DialogHeader>
+
+                    {loadingPrize ? (
+                        <div className="flex justify-center items-center py-8">
+                            <div className="text-sm text-muted-foreground">Đang tải thông tin phần thưởng...</div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="text-sm text-muted-foreground">
+                                Phần thưởng bạn đã nhận được từ blindbox này:
+                            </div>
+
+                            {wonItem ? (
+                                <Card className="border">
+                                    <CardContent className="p-6">
+                                        <div className="flex flex-col md:flex-row gap-6">
+                                            <div className="w-full md:w-48 aspect-square relative bg-gray-100 rounded-lg overflow-hidden">
+                                                <img
+                                                    src={
+                                                        wonItem.product?.imageUrls?.[0] || '/images/item1.png'
+                                                    }
+                                                    alt={wonItem.product?.name || 'Product'}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <div className="flex-1 space-y-4">
+                                                <div>
+                                                    <h3 className="text-xl font-semibold mb-2">
+                                                        {wonItem.product?.name || 'Sản phẩm'}
+                                                    </h3>
+                                                    <p className="text-muted-foreground text-sm">
+                                                        {wonItem.product?.description || 'Không có mô tả'}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex flex-col gap-4 text-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-semibold">Giá trị:</span>
+                                                        <span className="text-green-600">
+                                                            {wonItem.product?.price ?
+                                                                `${wonItem.product.price.toLocaleString('vi-VN')}đ` :
+                                                                'Chưa có giá'
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-semibold">Chiều cao:</span>
+                                                        <span>
+                                                            {wonItem.product?.height ?
+                                                                `${wonItem.product.height} cm` :
+                                                                'Chưa có thông tin'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-semibold">Chất liệu:</span>
+                                                        <span>
+                                                            {wonItem.product?.material || 'Chưa có thông tin'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex gap-3 pt-4">
+                                                    <Button
+                                                        className="w-1/2 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
+                                                        onClick={() => {
+                                                            // TODO: Implement sell functionality
+                                                            console.log('Sell item:', wonItem.productId || wonItem.id);
+                                                        }}
+                                                    >
+                                                        Bán lại sản phẩm
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    Không tìm thấy thông tin phần thưởng
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <Backdrop open={isLoading || isItemLoading || isBlindboxLoading || isUnboxing} />
+        </div >
     )
 }

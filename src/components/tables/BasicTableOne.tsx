@@ -185,7 +185,7 @@ export default function SellerManagementTable() {
 
                     <TableBody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {sellers.map((seller) => (
-                            <TableRow key={seller.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                            <TableRow key={seller.sellerId} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
                                 <TableCell className="px-6 py-4 text-gray-600 dark:text-gray-300 max-w-[100px]">
                                     <div className="truncate" title={seller.fullName}>
                                         {seller.fullName}
@@ -250,7 +250,7 @@ export default function SellerManagementTable() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                                     <div className="space-y-2">
                                         <div className="text-gray-700 dark:text-gray-300">
-                                            <strong>ID:</strong> {selectedSeller.id}
+                                            <strong>ID:</strong> {selectedSeller.sellerId}
                                         </div>
                                         <div className="text-gray-700 dark:text-gray-300">
                                             <strong>Email:</strong> {selectedSeller.email}
@@ -301,14 +301,14 @@ export default function SellerManagementTable() {
                                     <div className="flex justify-end gap-3 mt-6">
                                         <button
                                             className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
-                                            onClick={() => handleRejectClick(selectedSeller.id)}
+                                            onClick={() => handleRejectClick(selectedSeller.sellerId)}
                                         >
                                             Từ chối
                                         </button>
 
                                         <button
                                             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                                            onClick={() => handleApprove(selectedSeller.id)}
+                                            onClick={() => handleApprove(selectedSeller.sellerId)}
                                         >
                                             Phê duyệt
                                         </button>

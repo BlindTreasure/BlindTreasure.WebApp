@@ -84,22 +84,9 @@ export const AddItemToBlindboxForm = ({
         const selectedBox = blindboxes?.result?.find((b) => b.id === boxId);
         if (!selectedBox) return;
 
-        if (selectedBox.hasSecretItem) {
-            setSelectedRarities((prev) =>
-                prev.includes(Rarity.Secret) ? prev : [...prev, Rarity.Secret]
-            );
-            setRarityRates((prev) => ({
-                ...prev,
-                [Rarity.Secret]: selectedBox.secretProbability,
-            }));
-        } else {
-            setSelectedRarities((prev) => prev.filter((r) => r !== Rarity.Secret));
-            setRarityRates((prev) => {
-                const updated = { ...prev };
-                delete updated[Rarity.Secret];
-                return updated;
-            });
-        }
+        // Always require Secret rarity and initialize with empty rates
+        setSelectedRarities([Rarity.Secret]);
+        setRarityRates({});
 
         const matchingProducts = products?.result?.filter(
             (p) =>
@@ -157,12 +144,14 @@ export const AddItemToBlindboxForm = ({
 
             <div className="space-y-4 border p-4 rounded-md shadow-sm">
                 <h3 className="font-semibold">Thiết lập độ hiếm & tỉ lệ rơi (%)</h3>
+                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800">
+                        <strong>Lưu ý:</strong> Bắt buộc phải có độ hiếm "Cực hiếm" và tổng tỷ lệ phải bằng 100%
+                    </p>
+                </div>
                 {Object.values(Rarity).map((rarity) => {
                     const count = items.filter((item) => item.rarity === rarity).length;
-                    const selectedBox = blindboxes?.result?.find(b => b.id === selectedBoxId);
                     const isSecret = rarity === Rarity.Secret;
-                    const isSecretDisabled = isSecret && !selectedBox?.hasSecretItem;
-                    const isSecretEditable = isSecret && selectedBox?.hasSecretItem;
 
                     return (
                         <div key={rarity} className="flex items-center gap-4">
@@ -170,8 +159,8 @@ export const AddItemToBlindboxForm = ({
                                 id={rarity}
                                 checked={selectedRarities.includes(rarity)}
                                 onCheckedChange={(checked) => {
-                                    if (isSecretEditable) return;
-                                    if (isSecretDisabled) return;
+                                    // Secret is always required, cannot be unchecked
+                                    if (isSecret && !checked) return;
 
                                     setSelectedRarities((prev) =>
                                         checked ? [...prev, rarity] : prev.filter((r) => r !== rarity)
@@ -185,17 +174,16 @@ export const AddItemToBlindboxForm = ({
                                         });
                                     }
                                 }}
-                                disabled={isSecretDisabled}
+                                disabled={isSecret} // Secret checkbox is always disabled (always checked)
                             />
-                            <Label htmlFor={rarity} className="w-24 text-muted-foreground">
-                                {RarityText[rarity]}
+                            <Label htmlFor={rarity} className={`w-24 ${isSecret ? 'text-yellow-600 font-medium' : 'text-muted-foreground'}`}>
+                                {RarityText[rarity]} {isSecret && '*'}
                             </Label>
                             <Input
                                 type="number"
                                 min={1}
                                 max={100}
-                                className={`w-32 ${isSecretEditable ? "cursor-not-allowed" : ""
-                                    }`}
+                                className="w-32"
                                 value={
                                     selectedRarities.includes(rarity)
                                         ? rarityRates[rarity] !== undefined
@@ -210,8 +198,7 @@ export const AddItemToBlindboxForm = ({
                                         [rarity]: Number(e.target.value),
                                     }))
                                 }
-                                disabled={!selectedRarities.includes(rarity) || isSecretDisabled}
-                                readOnly={isSecretEditable}
+                                disabled={!selectedRarities.includes(rarity)}
                                 placeholder="% tỉ lệ"
                             />
                             <span className="text-sm text-muted-foreground">({count} sản phẩm)</span>
@@ -220,6 +207,20 @@ export const AddItemToBlindboxForm = ({
                 })}
 
 
+                {/* Total percentage validation */}
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Tổng tỷ lệ:</span>
+                        <span className={`font-bold ${Object.values(rarityRates).reduce((sum, rate) => sum + (rate || 0), 0) === 100
+                            ? 'text-green-600'
+                            : 'text-red-600'
+                            }`}>
+                            {Object.values(rarityRates).reduce((sum, rate) => sum + (rate || 0), 0)}%
+                            {Object.values(rarityRates).reduce((sum, rate) => sum + (rate || 0), 0) === 100 ? ' ✓' : ' (Phải = 100%)'}
+                        </span>
+                    </div>
+                </div>
+
                 {rarityRateError && (
                     <Alert variant="destructive" className="mt-4">
                         <AlertCircleIcon className="h-5 w-5" />
@@ -227,12 +228,35 @@ export const AddItemToBlindboxForm = ({
                         <AlertDescription>{rarityRateError}</AlertDescription>
                     </Alert>
                 )}
+
+                {/* Weight validation display */}
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-2">Kiểm tra trọng số:</h4>
+                    {Object.values(Rarity).map((rarity) => {
+                        if (!selectedRarities.includes(rarity)) return null;
+
+                        const rarityItems = items.filter(item => item.rarity === rarity);
+                        const totalWeight = rarityItems.reduce((sum, item) => sum + (item.weight || 0), 0);
+                        const expectedWeight = rarityRates[rarity] || 0;
+                        const isValid = totalWeight === expectedWeight;
+
+                        return (
+                            <div key={rarity} className={`flex justify-between items-center py-1 ${isValid ? 'text-green-700' : 'text-red-700'}`}>
+                                <span>{RarityText[rarity]}:</span>
+                                <span className="font-medium">
+                                    {totalWeight} / {expectedWeight}
+                                    {isValid ? ' ✓' : ' ✗'}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
             {items.map((item, index) => (
                 <div
                     key={index}
-                    className="grid grid-cols-5 gap-4 items-end mb-4 border-b pb-4"
+                    className="grid grid-cols-6 gap-4 items-end mb-4 border-b pb-4"
                 >
                     <div>
                         <Label>Chọn sản phẩm</Label>
@@ -265,19 +289,6 @@ export const AddItemToBlindboxForm = ({
                     </div>
 
                     <div>
-                        <Label>Tỉ lệ rơi (%)</Label>
-                        <Input
-                            type="number"
-                            min={0}
-                            max={100}
-                            step={0.0001}
-                            value={item.dropRate}
-                            onChange={(e) => handleItemChange(index, "dropRate", Number(e.target.value))}
-                            required
-                        />
-                    </div>
-
-                    <div>
                         <Label>Độ hiếm</Label>
                         <Select
                             value={item.rarity}
@@ -295,6 +306,24 @@ export const AddItemToBlindboxForm = ({
                             </SelectContent>
                         </Select>
                     </div>
+
+                    <div>
+                        <Label>Trọng số</Label>
+                        <Input
+                            type="number"
+                            min={1}
+                            step={1}
+                            value={item.weight || ''}
+                            onChange={(e) => {
+                                const value = parseInt(e.target.value) || 0;
+                                handleItemChange(index, "weight", value);
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
+                            placeholder="Nhập trọng số"
+                            className="w-full"
+                        />
+                    </div>
+
                     <div>
                         <Button
                             type="button"
@@ -313,7 +342,12 @@ export const AddItemToBlindboxForm = ({
                     type="button"
                     variant="outline"
                     onClick={addItem}
-                    disabled={!!rarityRateError || (totalItemsToAdd !== null && items.length >= totalItemsToAdd)}
+                    disabled={
+                        !!rarityRateError ||
+                        (totalItemsToAdd !== null && items.length >= totalItemsToAdd) ||
+                        Object.values(rarityRates).reduce((sum, rate) => sum + (rate || 0), 0) !== 100 ||
+                        !selectedRarities.includes(Rarity.Secret)
+                    }
                 >
                     <GoPlus className="w-4 h-4 mr-2" />
                     Thêm sản phẩm
@@ -332,7 +366,12 @@ export const AddItemToBlindboxForm = ({
             <div className="flex justify-end">
                 <Button
                     type="submit"
-                    disabled={isPending}
+                    disabled={
+                        isPending ||
+                        Object.values(rarityRates).reduce((sum, rate) => sum + (rate || 0), 0) !== 100 ||
+                        !selectedRarities.includes(Rarity.Secret) ||
+                        items.length === 0
+                    }
                     className="bg-[#d02a2a] text-white hover:bg-opacity-80"
                 >
                     Thêm sản phẩm vào túi

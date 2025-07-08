@@ -76,7 +76,6 @@ export default function CreateBlindbox({
     } = useCreateBlindboxForm(defaultValues);
 
     const [imagePreview, setImagePreview] = useState<string | null>(null)
-    const hasSecretItem = watch("hasSecretItem", false);
     const imageFile = watch('imageFile');
     const [categories, setCategories] = useState<API.ResponseDataCategory>();
     const [clearSignal, setClearSignal] = useState(0);
@@ -132,10 +131,7 @@ export default function CreateBlindbox({
                 price: blindbox.price,
                 totalQuantity: blindbox.totalQuantity,
                 releaseDate: editDate.toISOString().split('T')[0],
-                brand: blindbox.brand,
                 description: blindbox.description,
-                hasSecretItem: blindbox.hasSecretItem,
-                secretProbability: blindbox.secretProbability,
                 imageFile: blindbox.imageUrl
             });
         }
@@ -313,22 +309,6 @@ export default function CreateBlindbox({
                         <p className="text-sm text-red-600">{errors.releaseDate.message}</p>
                     )}
                 </div>
-
-                {hasSecretItem && (
-                    <div>
-                        <Label htmlFor="secretProbability">Tỉ lệ vật phẩm bí mật (%)</Label>
-                        <Input
-                            type="number"
-                            onWheel={(e) => e.currentTarget.blur()}
-                            {...register("secretProbability", {
-                                valueAsNumber: true,
-                            })}
-                        />
-                        {errors.secretProbability && (
-                            <p className="text-red-600 text-sm">{errors.secretProbability.message}</p>
-                        )}
-                    </div>
-                )}
             </div>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
@@ -386,15 +366,7 @@ export default function CreateBlindbox({
                     )}
                 </div>
             </div>
-            <div className="flex items-center space-x-2">
-                <Checkbox
-                    id="hasSecretItem"
-                    checked={hasSecretItem}
-                    onCheckedChange={(checked) => setValue("hasSecretItem", checked === true)}
-                />
-                <Label htmlFor="hasSecretItem">Có vật phẩm bí mật</Label>
-            </div>
-
+           
             <div className="flex justify-end gap-4">
                 <Button
                     type="button"

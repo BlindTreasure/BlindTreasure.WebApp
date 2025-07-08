@@ -1,14 +1,10 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { VscBellDot } from "react-icons/vsc";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { useRouter } from "next/navigation";
 import useToast from "@/hooks/use-toast";
-import Link from "next/link";
 import useLogout from "@/hooks/use-logout";
 import { closeSidebar, openSidebar } from "@/stores/difference-slice";
-import { AlignJustify } from "lucide-react";
-import { ThemeToggleButton } from "../common/ThemeToggleButton";
 import NotificationDropdown from "../right-header-admin/NotificationDropdown";
 import UserDropdown from "../right-header-admin/UserDropdown";
 import { CiAlignLeft } from "react-icons/ci";

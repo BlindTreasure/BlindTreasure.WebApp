@@ -24,6 +24,8 @@ export type InventoryItem = {
   location: string;
   status: Status;
   createdAt: string;
+  isFromBlindBox: boolean;
+  sourceCustomerBlindBoxId: string;
 };
 
 export type Product = {

@@ -50,25 +50,6 @@ export type BlindBox = {
   rejectReason?: string;
 };
 
-// export type BlindBoxDetail = {
-//   id: string;
-//   categoryId: string;
-//   name: string;
-//   description: string;
-//   price: number;
-//   totalQuantity: number;
-//   blindBoxStockStatus: StockStatus;
-//   brand: string;
-//   imageUrl: string;
-//   releaseDate: string;
-//   status: BlindboxStatus;
-//   hasSecretItem: boolean;
-//   secretProbability: number;
-//   rejectReason: string;
-//   isDeleted: boolean;
-//   items: BlindBoxItem[];
-// };
-
 export type BlindBoxListResponse = {
   result: BlindBox[];
   count: number;
@@ -83,17 +64,14 @@ export type CreateBlindboxForm = {
   totalQuantity?: number;
   releaseDate?: string;
   categoryId: string;
-  brand: string;
   description: string;
   imageFile?: string | File | null;
-  hasSecretItem?: boolean;
-  secretProbability?: number;
 };
 
 export type BlindBoxItemRequest = {
   productId: string;
   quantity: number;
-  dropRate: number;
+  weight: number;
   rarity: Rarity;
 };
 

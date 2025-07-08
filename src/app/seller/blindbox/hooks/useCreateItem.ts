@@ -9,7 +9,8 @@ export default function useCreateBlindboxItemForm(
   clearItems: () => void,
   resetFormFields: () => void,
   selectedRarities: Rarity[],
-  setTotalItems: (value: number | undefined) => void 
+  setTotalItems: (value: number | undefined) => void,
+  rarityRates: Record<string, number>
 ) {
   const { mutate, isPending } = useServiceCreateBlindboxItems();
   const [error, setError] = useState<string | undefined>(undefined);
@@ -34,6 +35,33 @@ export default function useCreateBlindboxItemForm(
       );
       return;
     }
+
+    // Validate weight totals for each rarity
+    const weightValidationErrors: string[] = [];
+    selectedRarities.forEach((rarity) => {
+      const rarityItems = items.filter((item) => item.rarity === rarity);
+      const totalWeight = rarityItems.reduce(
+        (sum, item) => sum + (item.weight || 0),
+        0
+      );
+      const expectedWeight = rarityRates[rarity] || 0;
+
+      if (totalWeight !== expectedWeight) {
+        weightValidationErrors.push(
+          `${RarityText[rarity]}: tổng trọng số ${totalWeight} ≠ tỷ lệ ${expectedWeight}`
+        );
+      }
+    });
+
+    if (weightValidationErrors.length > 0) {
+      setError(
+        `Trọng số không khớp với tỷ lệ đã set:\n${weightValidationErrors.join(
+          "\n"
+        )}`
+      );
+      return;
+    }
+
     setError(undefined);
 
     try {

@@ -29,9 +29,6 @@ export default function useCreateBlindboxForm(
       imageFile: null,
       totalQuantity: undefined,
       releaseDate: "",
-      brand: "",
-      hasSecretItem: false,
-      secretProbability: undefined,
       ...defaultValues,
     },
   });

@@ -142,3 +142,17 @@ export const updateAddress = async (
 
   return response.data;
 };
+
+export const updateProfileSeller = async (body: REQUEST.UpdateSellerInfo) => {
+  const response = await request<TResponseData<API.TUpdateSellerProfile>>(
+    API_ENDPOINTS.UPDATE_INFO_SELLER_PROFILE,
+    {
+      method: "PUT",
+      data: body,
+      headers: {
+        Authorization: `Bearer ${getStorageItem("accessToken")}`,
+      },
+    }
+  );
+  return response.data;
+};

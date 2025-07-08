@@ -49,8 +49,7 @@ import useDeleteAllItemsBlindbox from "../hooks/useDeleteAllItemBlindbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MdOutlineCleaningServices } from "react-icons/md";
 import useDeleteBlindbox from "../hooks/useDeleteBlindbox";
-import { CreateBlindBoxBodyType } from "@/utils/schema-validations/create-blindbox.schema";
-import BlindboxItemDetailDialog from "@/components/alldialog/dialogblindboxitem";
+import BlindboxItemDetailDialog from "@/components/alldialog/dialogblindboxitem";import useGetBlindboxById from "../hooks/useGetBlindboxById";
 export default function BlindboxTable() {
     const [blindboxes, setBlindBox] = useState<BlindBoxListResponse>()
     const [products, setProducts] = useState<TProductResponse>()
@@ -64,7 +63,8 @@ export default function BlindboxTable() {
     const [searchInput, setSearchInput] = useState("")
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
     const [submitBlindbox, setSubmitBlindbox] = useState<string | null>(null);
-    const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+    const [submitConfirmDialogOpen, setSubmitConfirmDialogOpen] = useState(false);
+    const [blindboxDetailForSubmit, setBlindboxDetailForSubmit] = useState<BlindBox | null>(null);
     const [deleteAllItemDialogOpen, setDeleteAllItemDialogOpen] = useState(false);
     const [allItemToDelete, setAllItemToDelete] = useState<string | null>(null);
     const [deleteBlindboxDialogOpen, setDeleteBlindboxDialogOpen] = useState(false);
@@ -72,6 +72,7 @@ export default function BlindboxTable() {
     const { onSubmit, isPending: isSubmitting } = useSubmitBlindbox();
     const { onDeleteAllItem, isPending: isDeletingAllItem } = useDeleteAllItemsBlindbox();
     const { onDeleteBlindbox, isPending: isDeletingBlindbox } = useDeleteBlindbox();
+    const { getBlindboxByIdApi, isPending: isLoadingBlindboxDetail } = useGetBlindboxById();
 
     const [params, setParams] = useState<GetBlindBoxes>({
         search: "",
@@ -95,9 +96,17 @@ export default function BlindboxTable() {
         setOpenEditBlindbox(true);
     };
 
-    const handleSubmitBlindbox = (blindbox: string) => {
-        setSubmitBlindbox(blindbox);
-        setSubmitDialogOpen(true);
+    const handleSubmitBlindbox = async (blindboxId: string) => {
+        try {
+            const response = await getBlindboxByIdApi(blindboxId);
+            if (response?.value.data) {
+                setBlindboxDetailForSubmit(response.value.data);
+                setSubmitBlindbox(blindboxId);
+                setSubmitConfirmDialogOpen(true);
+            }
+        } catch (error) {
+            console.error("Error fetching blindbox details:", error);
+        }
     };
 
     const handleDeleteAllItem = (blindbox: string) => {
@@ -115,9 +124,10 @@ export default function BlindboxTable() {
             onSubmit(submitBlindbox, () => {
                 setParams({ ...params });
                 setSubmitBlindbox(null);
+                setBlindboxDetailForSubmit(null);
             });
         }
-        setSubmitDialogOpen(false);
+        setSubmitConfirmDialogOpen(false);
     };
 
     const handleConfirmDeleteAllItem = () => {
@@ -209,8 +219,6 @@ export default function BlindboxTable() {
         })()
     }, [productParams])
 
-
-
     return (
         <div>
             <Card className="mt-6 shadow-lg rounded-lg border border-gray-200">
@@ -246,85 +254,6 @@ export default function BlindboxTable() {
                                     <SelectItem value="Rejected">Từ chối</SelectItem>
                                 </SelectContent>
                             </Select>
-                        </div>
-
-                        <div className="flex gap-4 items-center">
-                            <Input
-                                type="number"
-                                placeholder="Giá tối thiểu"
-                                className="w-40"
-                                onChange={(e) =>
-                                    setParams((prev) => ({
-                                        ...prev,
-                                        minPrice: e.target.value ? Number(e.target.value) : undefined,
-                                        pageIndex: 1,
-                                    }))
-                                }
-                            />
-                            <Input
-                                type="number"
-                                placeholder="Giá tối đa"
-                                className="w-40"
-                                onChange={(e) =>
-                                    setParams((prev) => ({
-                                        ...prev,
-                                        maxPrice: e.target.value ? Number(e.target.value) : undefined,
-                                        pageIndex: 1,
-                                    }))
-                                }
-                            />
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" className="w-40 justify-between text-left font-normal">
-                                        {params.ReleaseDateFrom
-                                            ? format(new Date(params.ReleaseDateFrom), "dd/MM/yyyy")
-                                            : "Từ ngày"}
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                        mode="single"
-                                        selected={params.ReleaseDateFrom ? new Date(params.ReleaseDateFrom) : undefined}
-                                        onSelect={(date) =>
-                                            setParams((prev) => ({
-                                                ...prev,
-                                                ReleaseDateFrom: date ? toUtcMidnightISOString(date) : "",
-                                                pageIndex: 1,
-                                            }))
-                                        }
-                                        initialFocus
-                                    />
-                                </PopoverContent>
-                            </Popover>
-
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" className="w-40 justify-between text-left font-normal">
-                                        {params.ReleaseDateTo
-                                            ? format(new Date(params.ReleaseDateTo), "dd/MM/yyyy")
-                                            : "Đến ngày"}
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                        mode="single"
-                                        selected={params.ReleaseDateTo ? new Date(params.ReleaseDateTo) : undefined}
-                                        onSelect={(date) =>
-                                            setParams((prev) => ({
-                                                ...prev,
-                                                ReleaseDateTo: date ? toUtcMidnightISOString(date) : "",
-                                                pageIndex: 1,
-                                            }))
-                                        }
-                                        initialFocus
-                                    />
-                                </PopoverContent>
-                            </Popover>
                         </div>
                     </div>
 
@@ -586,21 +515,89 @@ export default function BlindboxTable() {
                         </DialogContent>
                     </Dialog>
 
-                    <AlertDialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
-                        <AlertDialogContent>
+                    <AlertDialog open={submitConfirmDialogOpen} onOpenChange={setSubmitConfirmDialogOpen}>
+                        <AlertDialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                             <AlertDialogHeader>
-                                <AlertDialogTitle>Xác nhận gửi duyệt Blindbox</AlertDialogTitle>
+                                <AlertDialogTitle className="text-xl font-bold">
+                                    Xác nhận gửi duyệt Blindbox
+                                </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    Bạn có chắc chắn muốn gửi duyệt blindbox này? Sau khi gửi, bạn sẽ không thể chỉnh sửa cho đến khi được phản hồi.
+                                    Vui lòng kiểm tra thông tin chi tiết các sản phẩm và tỷ lệ rơi trước khi gửi duyệt.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
+
+                            {blindboxDetailForSubmit && (
+                                <div className="space-y-4">
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <h3 className="font-semibold text-lg mb-2">{blindboxDetailForSubmit.name}</h3>
+                                        <div className="grid grid-cols-2 gap-4 text-sm">
+                                            <div>
+                                                <span className="font-medium">Giá:</span> {blindboxDetailForSubmit.price.toLocaleString()}₫
+                                            </div>
+                                            <div>
+                                                <span className="font-medium">Số lượng:</span> {blindboxDetailForSubmit.totalQuantity}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 className="font-semibold mb-3">Danh sách sản phẩm và tỷ lệ rơi:</h4>
+                                        <div className="border rounded-lg overflow-hidden">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow className="bg-gray-50">
+                                                        <TableHead>Ảnh</TableHead>
+                                                        <TableHead>Tên sản phẩm</TableHead>
+                                                        <TableHead>Số lượng</TableHead>
+                                                        <TableHead>Độ hiếm</TableHead>
+                                                        <TableHead>Tỷ lệ rơi (%)</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {blindboxDetailForSubmit.items.map((item, index) => (
+                                                        <TableRow key={index}>
+                                                            <TableCell>
+                                                                {item.imageUrl ? (
+                                                                    <img
+                                                                        src={item.imageUrl}
+                                                                        alt={item.productName}
+                                                                        className="w-12 h-12 object-cover rounded"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs">
+                                                                        No img
+                                                                    </div>
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell className="font-medium">
+                                                                {item.productName}
+                                                            </TableCell>
+                                                            <TableCell>{item.quantity}</TableCell>
+                                                            <TableCell>
+                                                                <span className={`px-2 py-1 rounded text-xs font-medium ${RarityColorClass[item.rarity]}`}>
+                                                                    {RarityText[item.rarity]}
+                                                                </span>
+                                                            </TableCell>
+                                                            <TableCell className="font-semibold text-blue-600">
+                                                                {item.dropRate}%
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Hủy</AlertDialogCancel>
                                 <AlertDialogAction
                                     onClick={handleConfirmSubmit}
                                     className="bg-blue-600 hover:bg-blue-700"
+                                    disabled={isSubmitting}
                                 >
-                                    Gửi duyệt
+                                    {isSubmitting ? "Đang gửi..." : "Xác nhận gửi duyệt"}
                                 </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>

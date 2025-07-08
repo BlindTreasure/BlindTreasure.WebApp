@@ -77,7 +77,11 @@ export default function AllNewProducts() {
     const allItems = [
         ...(filteredProducts ?? []),
         ...(filteredBlindboxes ?? []),
-    ];
+    ].sort((a, b) => {
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime();
+    });
 
     const totalPages = Math.ceil(allItems.length / pageSize);
     const startIndex = (currentPage - 1) * pageSize;
@@ -94,9 +98,9 @@ export default function AllNewProducts() {
     };
 
     const handleViewDetail = (id: string) => {
-    setLoadingPage(true);
-    router.push(`/detail/${id}`);
-  };
+        setLoadingPage(true);
+        router.push(`/detail/${id}`);
+    };
 
     return (
         <div className="container mx-auto py-10">

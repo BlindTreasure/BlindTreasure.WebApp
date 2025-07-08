@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import { fadeIn } from '@/utils/variants';
 import useGetBlindboxByIdWeb from '../hooks/useGetBlindboxById';
 import useAddBlindboxToCart from "../hooks/useAddBlindboxToCart"
-import { BlindBox, BlindBoxListResponse, GetBlindBoxes } from '@/services/blindboxes/typings';
+import { BlindBox } from '@/services/blindboxes/typings';
 import { Backdrop } from '@/components/backdrop';
 import { ProductTabs } from '@/components/tabs';
 import { BlindboxStatus, Rarity, StockStatus, stockStatusMap } from '@/const/products';
@@ -21,6 +21,12 @@ import useGetAllBlindBoxes from '@/app/seller/allblindboxes/hooks/useGetAllBlind
 import { useRouter } from 'next/navigation';
 import BlindboxCard from '@/components/blindbox-card';
 import { getRibbonTypes } from '@/utils/getRibbonTypes';
+import useGetSellerById from '@/app/(user)/detail/hooks/useGetSellerById';
+import useGetProductByIdWeb from '@/app/(user)/detail/hooks/useGetProductByIdWeb';
+import useGetAllProductWeb from '@/app/(user)/allproduct/hooks/useGetAllProductWeb';
+import { TbMessageDots } from 'react-icons/tb';
+import { BsShop } from 'react-icons/bs';
+
 
 interface BlindboxProps {
     blindBoxId: string;
@@ -31,26 +37,19 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
     const [quantity, setQuantity] = useState<number>(1);
     const [blindbox, setBlindbox] = useState<BlindBox | null>(null);
     const [relatedBlindboxes, setRelatedBlindboxes] = useState<BlindBox[]>([]);
+    const [sellerInfo, setSellerInfo] = useState<API.SellerById | null>(null);
+    const [sellerId, setSellerId] = useState<string | null>(null);
+    const [totalProducts, setTotalProducts] = useState<number>(0);
+    const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(false);
     const { getBlindboxByIdWebApi, isPending } = useGetBlindboxByIdWeb();
-    const { getAllBlindBoxesApi, isPending: isBlindBox } = useGetAllBlindBoxes()
+    const { getAllBlindBoxesApi } = useGetAllBlindBoxes()
     const { addBlindboxToCartApi, isPending: isAddingToCart } = useAddBlindboxToCart();
+    const { getPSellerByIdApi, isPending: isSellerPending } = useGetSellerById();
+    const { getProductByIdWebApi } = useGetProductByIdWeb();
+    const { getAllProductWebApi } = useGetAllProductWeb();
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [loadingPage, setLoadingPage] = useState(false);
     const router = useRouter();
-
-    const [blindBoxParams, setBlindBoxParams] = useState<GetBlindBoxes>({
-        search: "",
-        SellerId: "",
-        categoryId: "",
-        status: BlindboxStatus.Approved,
-        minPrice: undefined,
-        maxPrice: undefined,
-        ReleaseDateFrom: "",
-        ReleaseDateTo: "",
-        HasItem: undefined,
-        pageIndex: 1,
-        pageSize: 5,
-    })
 
     const openSheet = () => {
         setIsSheetOpen(true);
@@ -66,6 +65,60 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
             const box = res?.value?.data;
             if (box) {
                 setBlindbox(box);
+
+                // Fetch seller info from first product in blindbox
+                if (box.items && box.items.length > 0) {
+                    const firstProductId = box.items[0].productId;
+                    const productRes = await getProductByIdWebApi(firstProductId);
+                    if (productRes?.value?.data?.sellerId) {
+                        const sellerIdFromProduct = productRes.value.data.sellerId;
+                        setSellerId(sellerIdFromProduct);
+
+                        const sellerRes = await getPSellerByIdApi(sellerIdFromProduct);
+                        if (sellerRes) {
+                            setSellerInfo(sellerRes.value.data);
+                        }
+
+                        // Fetch total products count (products + blindboxes)
+                        setIsLoadingProducts(true);
+                        try {
+                            const [productsRes, blindboxesRes] = await Promise.all([
+                                getAllProductWebApi({
+                                    pageIndex: 1,
+                                    pageSize: 1,
+                                    search: "",
+                                    productStatus: undefined,
+                                    sellerId: sellerIdFromProduct,
+                                    categoryId: "",
+                                    sortBy: undefined,
+                                    desc: undefined,
+                                }),
+                                getAllBlindBoxesApi({
+                                    pageIndex: 1,
+                                    pageSize: 1,
+                                    search: "",
+                                    SellerId: sellerIdFromProduct,
+                                    categoryId: "",
+                                    status: BlindboxStatus.Approved,
+                                    minPrice: undefined,
+                                    maxPrice: undefined,
+                                    ReleaseDateFrom: "",
+                                    ReleaseDateTo: "",
+                                    HasItem: undefined,
+                                })
+                            ]);
+
+                            const productCount = productsRes?.value?.data?.count || 0;
+                            const blindboxCount = blindboxesRes?.value?.data?.count || 0;
+                            setTotalProducts(productCount + blindboxCount);
+                        } catch (error) {
+                            console.error("Error fetching product counts:", error);
+                            setTotalProducts(0);
+                        } finally {
+                            setIsLoadingProducts(false);
+                        }
+                    }
+                }
             }
         })();
     }, [blindBoxId]);
@@ -75,13 +128,28 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
 
         const fetchRelatedblindbox = async () => {
             const res = await getAllBlindBoxesApi({
-                ...blindBoxParams,
+                search: "",
+                SellerId: "",
                 categoryId: blindbox.categoryId,
+                status: BlindboxStatus.Approved,
+                minPrice: undefined,
+                maxPrice: undefined,
+                ReleaseDateFrom: "",
+                ReleaseDateTo: "",
+                HasItem: undefined,
+                pageIndex: 1,
+                pageSize: 5,
             });
 
             if (res) {
                 const filtered = res.value.data.result
-                    .filter(item => item.id !== blindbox.id && item.brand === blindbox.brand)
+                    .filter(item => {
+                        const isNotSame = item.id !== blindbox.id;
+                        const shouldInclude = blindbox.brand
+                            ? isNotSame && item.brand === blindbox.brand
+                            : isNotSame;
+                        return shouldInclude;
+                    })
                     .slice(0, 4);
 
                 setRelatedBlindboxes(filtered);
@@ -105,17 +173,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
     };
 
     const handleAddToCart = async () => {
-        console.log('handleAddToCart clicked'); // Debug log
-        console.log('blindbox:', blindbox); // Debug log
-        console.log('blindbox.id:', blindbox?.id); // Debug log
-
-        if (!blindbox) {
-            console.log('No blindbox found');
-            return;
-        }
-
-        if (!blindbox.id) {
-            console.log('Blindbox ID not found');
+        if (!blindbox?.id) {
             return;
         }
 
@@ -125,15 +183,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                 quantity: quantity
             };
 
-            console.log('Adding blindbox to cart with data:', cartData); // Debug log
-
-            const result = await addBlindboxToCartApi(cartData);
-
-            if (result) {
-                console.log('Đã thêm blindbox vào giỏ hàng thành công');
-                // Reset quantity nếu muốn
-                // setQuantity(1);
-            }
+            await addBlindboxToCartApi(cartData);
         } catch (error) {
             console.error('Lỗi khi thêm blindbox vào giỏ hàng:', error);
         }
@@ -231,27 +281,6 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                         </p>
                     )}
 
-                    {/* <div className="mb-6">
-                        <p className="mb-2 text-xl">Chọn bộ:</p>
-                        <div className="flex gap-4">
-                            {["Loại A", "Loại B", "Loại C"].map((variant, idx) => (
-                                <div
-                                    key={idx}
-                                    onClick={() => handleVariantSelect(variant)}
-                                    className={`px-4 py-2 rounded-md border cursor-pointer transition-colors ${selectedVariant === variant
-                                        ? 'bg-[#252424] text-white border-[#252424]'
-                                        : 'bg-white text-black border-gray-300 hover:border-gray-400'
-                                        }`}
-                                >
-                                    {variant}
-                                </div>
-                            ))}
-                        </div>
-                        {selectedVariant && (
-                            <p className="text-sm text-gray-500 mt-2">Đã chọn: <strong>{selectedVariant}</strong></p>
-                        )}
-                    </div> */}
-
                     {isReleased && (
                         <div className="flex items-center gap-4 mt-6">
                             <div className="flex items-center border border-gray-400 rounded-full overflow-hidden">
@@ -300,12 +329,105 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                 </motion.div>
             </div>
 
+            {/* Shop Info Section */}
+            <motion.div
+                variants={fadeIn("up", 0.2)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.7 }}
+                className="bg-white rounded-lg p-6 mt-8 border shadow-sm"
+            >
+                <div className="flex flex-col xl:flex-row xl:items-center gap-6">
+                    <div className="flex items-center gap-6">
+                        <div className="relative w-20 h-20 flex-shrink-0">
+                            <div className="w-full h-full rounded-full border border-red-500 bg-white flex items-center justify-center shadow-md">
+                                <img
+                                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${sellerInfo?.companyName || 'seller'}&size=64&backgroundColor=ffffff&textColor=00579D`}
+                                    alt="Cửa hàng"
+                                    className="w-12 h-12"
+                                />
+                            </div>
+                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-sm shadow-sm whitespace-nowrap text-center">
+                                BlindTreasure
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <div>
+                                <p className="text-xl font-semibold">
+                                    {sellerInfo?.companyName || blindbox?.brand || "Cửa hàng"}
+                                </p>
+                            </div>
+                            <div className='flex flex-row gap-2'>
+                                <button className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition text-sm">
+                                    <TbMessageDots className='text-xl' />
+                                    Chat ngay
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (sellerId) {
+                                            setLoadingPage(true);
+                                            router.push(`/shop/${sellerId}`);
+                                        }
+                                    }}
+                                    disabled={!sellerId}
+                                    className="flex gap-2 items-center border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <BsShop className='text-lg' />
+                                    Xem Shop
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="w-full xl:w-px h-px xl:h-20 bg-gray-300" />
+                    <div className="flex-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3 text-sm text-gray-600">
+                            <div className='flex justify-between sm:justify-start sm:gap-4'>
+                                <p>Đánh Giá</p>
+                                <p className="text-red-600 font-semibold">
+                                    {isSellerPending ? "..." : "219,3k"}
+                                </p>
+                            </div>
+                            <div className='flex justify-between sm:justify-start sm:gap-4'>
+                                <p>Tỉ Lệ Phản Hồi</p>
+                                <p className="text-red-600 font-semibold">
+                                    {isSellerPending ? "..." : "100%"}
+                                </p>
+                            </div>
+                            <div className='flex justify-between sm:justify-start sm:gap-4'>
+                                <p>Thời Gian Phản Hồi</p>
+                                <p className="text-red-600 font-semibold">
+                                    {isSellerPending ? "..." : "trong vài giờ"}
+                                </p>
+                            </div>
+                            <div className='flex justify-between sm:justify-start sm:gap-4'>
+                                <p>Tham Gia</p>
+                                <p className="text-red-600 font-semibold">
+                                    {isSellerPending ? "..." : "5 năm trước"}
+                                </p>
+                            </div>
+                            <div className='flex justify-between sm:justify-start sm:gap-4'>
+                                <p>Sản Phẩm</p>
+                                <p className="text-red-600 font-semibold">
+                                    {isSellerPending || isLoadingProducts ? "..." : totalProducts}
+                                </p>
+                            </div>
+                            <div className='flex justify-between sm:justify-start sm:gap-4'>
+                                <p>Người Theo Dõi</p>
+                                <p className="text-red-600 font-semibold">
+                                    {isSellerPending ? "..." : "2,1k"}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+
             <motion.div
                 variants={fadeIn("up", 0.3)}
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, amount: 0.7 }}
-                className='py-8'
             >
                 <div className="space-y-2">
                     <ul className="list-disc list-inside text-sm text-gray-700">

@@ -34,3 +34,13 @@ export const getItemInventoryId = async (id: string) => {
   );
   return response.data;
 };
+
+export const getItemInventoryByBlindBox = async (blindBoxId: string) => {
+  const response = await request<TResponseData<InventoryItem>>(
+    API_ENDPOINTS.INVENTORY_ITEM_BY_BLINDBOX(blindBoxId),
+    {
+      method: "GET",
+    }
+  );
+  return response.data;
+};

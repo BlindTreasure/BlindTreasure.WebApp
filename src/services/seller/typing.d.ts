@@ -22,10 +22,12 @@ declare namespace REQUEST {
 
 declare namespace API {
   type Seller = {
-    id: string;
+    sellerId: string;
+    userId: string;
     email: string;
     fullName: string;
     companyName: string;
+    avatarUrl: string;
     coaDocumentUrl: string;
     status: SellerStatus;
     isVerified: boolean;
