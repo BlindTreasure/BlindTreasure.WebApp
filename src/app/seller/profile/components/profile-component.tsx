@@ -9,10 +9,19 @@ import { Label } from "@/components/ui/label";
 import { useAppSelector } from "@/stores/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import useSellerProfile from "../hooks/useSellerProfile";
+import { useState, useEffect } from "react";
+import { SquareUser, Images } from "lucide-react";
+import UpdateSellerAvatarProfile from "./UpdateSellerAvatarProfile";
+import TippyHeadless from "@tippyjs/react/headless";
+import Link from "next/link";
 
 export default function ProfileComponent() {
   const router = useRouter();
   const userState = useAppSelector((state) => state.userSlice);
+  const persistState = useAppSelector((state) => state._persist);
+
+  const [showAvatarDialog, setShowAvatarDialog] = useState(false);
+  const [avatarTooltip, setAvatarTooltip] = useState(false);
 
   const {
     seller,
@@ -26,11 +35,44 @@ export default function ProfileComponent() {
     handleEdit,
   } = useSellerProfile();
 
+  const isRehydrated = persistState?.rehydrated;
+
+  const avatarUrl = (() => {
+    if (seller?.avatarUrl) {
+      return seller?.avatarUrl;
+    }
+
+    if (userState.user?.avatarUrl) {
+      return userState.user.avatarUrl;
+    }
+
+    return undefined;
+  })();
+
+  const isAvatarLoading = isRehydrated && !avatarUrl && (isLoading || !seller);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = form;
+
+  const handleToggleAvatarTooltip = () => {
+    setAvatarTooltip((prev) => !prev);
+  };
+
+  const handleCloseAvatarTooltip = () => {
+    setAvatarTooltip(false);
+  };
+
+  const handleOpenAvatarDialog = () => {
+    setShowAvatarDialog(true);
+    setAvatarTooltip(false);
+  };
+
+  const handleCloseAvatarDialog = () => {
+    setShowAvatarDialog(false);
+  };
 
   if (isLoading) {
     return (
@@ -58,12 +100,73 @@ export default function ProfileComponent() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-1">
           <CardHeader className="text-center">
-            <Avatar className="w-24 h-24 mx-auto mb-4">
-              <AvatarImage src={userState?.user?.avatarUrl} />
-              <AvatarFallback className="text-2xl">
-                {seller?.fullName?.charAt(0) || "S"}
-              </AvatarFallback>
-            </Avatar>
+            <TippyHeadless
+              interactive
+              placement="bottom-end"
+              offset={[-5, 2]}
+              visible={avatarTooltip}
+              render={(attrs) => (
+                <div
+                  {...attrs}
+                  className="w-[350px] max-h-[calc(min((100vh-96px)-60px),734px)] min-h-[30px] py-2 rounded-md shadow-box bg-white z-[999999]"
+                >
+                  <div className="py-1 px-2 flex flex-col gap-y-1">
+                    <Link
+                      href={avatarUrl || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <div
+                        onClick={handleCloseAvatarTooltip}
+                        className="px-2 py-1 flex items-center gap-x-2 rounded-md hover:bg-slate-200 select-none cursor-pointer"
+                      >
+                        <SquareUser
+                          strokeWidth={1}
+                          className="w-7 h-7 text-gray-800 opacity-80"
+                        />
+                        <p className="text-[15px] font-[400] text-[#1b1b1b] opacity-86">
+                          Xem ảnh đại diện
+                        </p>
+                      </div>
+                    </Link>
+                    <div
+                      className="px-2 py-1 flex items-center gap-x-2 rounded-md hover:bg-slate-200 select-none cursor-pointer"
+                      onClick={handleOpenAvatarDialog}
+                    >
+                      <Images
+                        strokeWidth={1}
+                        className="w-7 h-7 text-gray-800 opacity-80"
+                      />
+                      <p className="text-[15px] font-[400] text-[#1b1b1b] opacity-86">
+                        Cập nhật ảnh đại diện
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              onClickOutside={handleCloseAvatarTooltip}
+            >
+              <div
+                className="relative inline-block cursor-pointer"
+                onClick={handleToggleAvatarTooltip}
+              >
+                <Avatar className="w-24 h-24 mx-auto mb-4 hover:opacity-80 transition-opacity">
+                  {isAvatarLoading ? (
+                    <div className="w-full h-full bg-gray-200 animate-pulse rounded-full flex items-center justify-center">
+                      <div className="text-gray-400 text-sm">Loading...</div>
+                    </div>
+                  ) : (
+                    <>
+                      <AvatarImage src={avatarUrl} />
+                      <AvatarFallback className="text-2xl">
+                        {seller?.fullName?.charAt(0) || "S"}
+                      </AvatarFallback>
+                    </>
+                  )}
+                </Avatar>
+              </div>
+            </TippyHeadless>
+
             <CardTitle className="text-xl">{seller?.fullName}</CardTitle>
             <p className="text-gray-600">{seller?.email}</p>
             <div className="mt-4 space-y-2">
@@ -136,11 +239,14 @@ export default function ProfileComponent() {
                 <div className="space-y-2">
                   <Label htmlFor="dateOfBirth">Ngày sinh</Label>
                   <Input
+                    key={`dateOfBirth-${seller?.email || 'default'}`}
                     id="dateOfBirth"
                     type="date"
                     {...register("dateOfBirth")}
                     disabled={!isEditing}
                     className={!isEditing ? "bg-gray-50" : ""}
+                    max={new Date().toISOString().split("T")[0]}
+                    min="1920-01-01"
                   />
                   {errors.dateOfBirth && (
                     <p className="text-sm text-red-500">{errors.dateOfBirth.message}</p>
@@ -190,6 +296,11 @@ export default function ProfileComponent() {
           </CardContent>
         </Card>
       </div>
+
+      <UpdateSellerAvatarProfile
+        open={showAvatarDialog}
+        onClose={handleCloseAvatarDialog}
+      />
     </div>
   );
 }

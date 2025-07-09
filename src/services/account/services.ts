@@ -7,13 +7,17 @@ import {
   setDefaultAddress,
   updateAddress,
   updateAvatarProfile,
+  updateAvatarSeller,
   updateInfoProfile,
   updateProfileSeller,
 } from "@/services/account/api-services";
 import { useAppDispatch } from "@/stores/store";
 import { updateImage, updateInformationProfile } from "@/stores/user-slice";
 import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query";
-import { getSellerProfile, updateSellerProfile } from "@/services/account/api-services";
+import {
+  getSellerProfile,
+  updateSellerProfile,
+} from "@/services/account/api-services";
 import { handleError } from "@/hooks/error";
 
 export const useServiceGetProfileAccount = async () => {
@@ -46,13 +50,11 @@ export const useServiceUpdateAvatarProfile = () => {
           avatarUrl: data.value.data.avatarUrl,
         })
       );
-      addToast(
-        {
-          type: "success",
-          description: data.value.message,
-          duration: 5000,
-        },
-      );
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
     },
     onError: () => {
       addToast({
@@ -84,13 +86,14 @@ export const useServiceUpdateInfoProfile = () => {
   });
 };
 
-export const useServiceGetSellerProfile = () => {
+export const useServiceGetSellerProfile = (options?: { enabled?: boolean }) => {
   const { addToast } = useToast();
 
   return useQuery<TResponseData<API.Seller>, TMeta>({
     queryKey: ["seller", "profile"],
     queryFn: getSellerProfile,
     retry: false,
+    enabled: options?.enabled ?? true, // Default to true if not specified
     onError: (error: TMeta) => {
       handleError(error);
       addToast({
@@ -106,7 +109,11 @@ export const useServiceGetSellerProfile = () => {
 export const useServiceUpdateSellerProfile = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<API.Seller>, TMeta, REQUEST.UpdateSellerInfo>({
+  return useMutation<
+    TResponseData<API.Seller>,
+    TMeta,
+    REQUEST.UpdateSellerInfo
+  >({
     mutationFn: updateSellerProfile,
     onSuccess: (data) => {
       addToast({
@@ -129,7 +136,11 @@ export const useServiceUpdateSellerProfile = () => {
 export const useServiceAddress = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<API.ResponseAddress>, Error, REQUEST.TCreateAddress>({
+  return useMutation<
+    TResponseData<API.ResponseAddress>,
+    Error,
+    REQUEST.TCreateAddress
+  >({
     mutationFn: async (data: REQUEST.TCreateAddress) => {
       return await createAddress(data);
     },
@@ -208,7 +219,11 @@ export const useServiceDeleteAddress = () => {
 export const useServiceUpdateProfileSeller = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<API.TUpdateSellerProfile>, TMeta, REQUEST.UpdateSellerInfo>({
+  return useMutation<
+    TResponseData<API.TUpdateSellerProfile>,
+    TMeta,
+    REQUEST.UpdateSellerInfo
+  >({
     mutationFn: updateProfileSeller,
     onSuccess: (data) => {
       addToast({
@@ -219,6 +234,38 @@ export const useServiceUpdateProfileSeller = () => {
     },
     onError: (error) => {
       handleError(error);
+    },
+  });
+};
+
+export const useServiceUpdateAvatarSeller = () => {
+  const dispatch = useAppDispatch();
+  const { addToast } = useToast();
+  return useMutation<TResponseData<string>, TMeta, REQUEST.UpdateSellerAvatar>({
+    mutationFn: async (data: REQUEST.UpdateSellerAvatar) => {
+      const formData = new FormData();
+      formData.append("File", data.file);
+      return await updateAvatarSeller(formData);
+    },
+    onSuccess: (data) => {
+      dispatch(
+        updateImage({
+          avatarUrl: data.value.data,
+        })
+      );
+
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: () => {
+      addToast({
+        type: "error",
+        description: "Please try again!",
+        duration: 5000,
+      });
     },
   });
 };

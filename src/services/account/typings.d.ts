@@ -44,6 +44,10 @@ declare namespace REQUEST {
     province: string;
     postalCode?: string;
   };
+
+  type UpdateSellerAvatar = {
+    file: File;
+  };
 }
 
 declare namespace API {
@@ -89,5 +93,22 @@ declare namespace API {
     coaDocumentUrl: string;
     status: string;
     isVerified: boolean;
-  }
+  };
+
+  type TResponeSeller = {
+    sellerId: string;
+    userId: string;
+    fullName: string;
+    email: string;
+    phoneNumber?: string;
+    dateOfBirth?: string;
+    avatarUrl: string;
+    status: SellerStatus;
+    companyName: string;
+    taxId?: string;
+    companyAddress?: string;
+    coaDocumentUrl: string;
+    sellerStatus: string
+    isVerified: boolean;
+  };
 }

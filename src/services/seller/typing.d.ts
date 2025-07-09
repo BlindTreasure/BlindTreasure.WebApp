@@ -22,8 +22,7 @@ declare namespace REQUEST {
 
 declare namespace API {
   type Seller = {
-    sellerId: string;
-    userId: string;
+    id: string;
     email: string;
     fullName: string;
     companyName: string;

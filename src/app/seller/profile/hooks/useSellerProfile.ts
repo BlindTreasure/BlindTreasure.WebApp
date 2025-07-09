@@ -28,20 +28,61 @@ export default function useSellerProfile() {
 
   useEffect(() => {
     if (seller) {
-      reset({
+      // Enhanced date parsing for ISO format with default date filtering
+      const formatDateOfBirth = (dateString: string | null | undefined) => {
+        if (!dateString) return "";
+
+        // Check for default/null dates from backend
+        if (
+          dateString.startsWith("0001-01-01") ||
+          dateString.startsWith("1900-01-01")
+        ) {
+          return "";
+        }
+
+        try {
+          const date = new Date(dateString);
+          if (isNaN(date.getTime())) return "";
+
+          // Check if date is too old (likely default value)
+          if (date.getFullYear() < 1920) {
+            return "";
+          }
+
+          // Format to YYYY-MM-DD for input[type="date"]
+          return date.toISOString().split("T")[0];
+        } catch (error) {
+          console.error("Date parsing error:", error);
+          return "";
+        }
+      };
+
+      const formData = {
         fullName: seller.fullName || "",
         phoneNumber: seller.phoneNumber || "",
-        dateOfBirth: seller.dateOfBirth ? seller.dateOfBirth.split("T")[0] : "",
+        dateOfBirth: formatDateOfBirth(seller.dateOfBirth),
         companyName: seller.companyName || "",
         taxId: seller.taxId || "",
         companyAddress: seller.companyAddress || "",
-      });
+      };
+
+      // Force form reset with new data
+      reset(formData, { keepDefaultValues: false });
     }
   }, [seller, reset]);
 
   const onSubmit = async (data: UpdateSellerProfileType) => {
     try {
-      await updateSellerMutation.mutateAsync(data);
+      // Transform data before sending to API (similar to blindbox pattern)
+      const transformedData = {
+        ...data,
+        // Convert YYYY-MM-DD to ISO string for backend
+        dateOfBirth: data.dateOfBirth
+          ? new Date(data.dateOfBirth).toISOString()
+          : "",
+      };
+
+      await updateSellerMutation.mutateAsync(transformedData);
       setIsEditing(false);
     } catch (error) {
       addToast({
@@ -55,10 +96,38 @@ export default function useSellerProfile() {
   const handleCancel = () => {
     setIsEditing(false);
     if (seller) {
+      // Reuse the same enhanced date formatting function
+      const formatDateOfBirth = (dateString: string | null | undefined) => {
+        if (!dateString) return "";
+
+        // Check for default/null dates from backend
+        if (
+          dateString.startsWith("0001-01-01") ||
+          dateString.startsWith("1900-01-01")
+        ) {
+          return "";
+        }
+
+        try {
+          const date = new Date(dateString);
+          if (isNaN(date.getTime())) return "";
+
+          // Check if date is too old (likely default value)
+          if (date.getFullYear() < 1920) {
+            return "";
+          }
+
+          return date.toISOString().split("T")[0];
+        } catch (error) {
+          console.error("Date parsing error:", error);
+          return "";
+        }
+      };
+
       reset({
         fullName: seller.fullName || "",
         phoneNumber: seller.phoneNumber || "",
-        dateOfBirth: seller.dateOfBirth ? seller.dateOfBirth.split("T")[0] : "",
+        dateOfBirth: formatDateOfBirth(seller.dateOfBirth),
         companyName: seller.companyName || "",
         taxId: seller.taxId || "",
         companyAddress: seller.companyAddress || "",

@@ -5,16 +5,15 @@ import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useServiceGetSellerProfile } from "@/services/account/services";
 import SellerHeader from "@/components/seller-header";
-import { useAppDispatch } from "@/stores/store";
+import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { setUser } from "@/stores/user-slice";
 import { getAccountProfile } from "@/services/account/api-services";
-import { getQueryClient } from "@/lib/query";
 
 export default function SellerLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
-  const queryClient = getQueryClient();
+  const userState = useAppSelector((state) => state.userSlice);
 
   const { data, isLoading, isError, refetch } = useServiceGetSellerProfile();
   const [showFullLayout, setShowFullLayout] = useState(true);
@@ -27,6 +26,10 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   }, []);
 
   useEffect(() => {
+    if (userState.user) {
+      return;
+    }
+
     const loadUserProfile = async () => {
       try {
         const profileRes = await getAccountProfile();
@@ -39,13 +42,9 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
         console.error("Failed to load user profile:", error);
       }
     };
-
     loadUserProfile();
-  }, [dispatch]);
+  }, [dispatch, userState.user]); 
 
-
-
-  // Auto refetch seller profile every 30 seconds when in pending state
   useEffect(() => {
     if (!data) return;
 
@@ -55,7 +54,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
       const interval = setInterval(() => {
         console.log("Auto refetching seller profile...");
         refetch();
-      }, 30000); // Refetch every 30 seconds
+      }, 30000);
 
       return () => clearInterval(interval);
     }
@@ -81,8 +80,9 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
     }
   }, [data, pathname, router]);
 
-  if (isLoading) return <div className="p-4">Đang tải...</div>;
-  if (isError || !data) return <div className="p-4 text-red-500">Không thể tải thông tin người bán.</div>;
+  if (isError || (!isLoading && !data)) {
+    return <div className="p-4 text-red-500">Không thể tải thông tin người bán.</div>;
+  }
 
   return (
     <div className="flex h-screen">
@@ -92,7 +92,16 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
           <SellerHeader />
         </div>
         <main className="flex-grow p-4 bg-gray-100 overflow-y-auto">
-          {children}
+          {isLoading && !data ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500 mx-auto mb-2"></div>
+                <p className="text-gray-600">Đang tải dữ liệu...</p>
+              </div>
+            </div>
+          ) : (
+            children
+          )}
         </main>
       </div>
     </div>

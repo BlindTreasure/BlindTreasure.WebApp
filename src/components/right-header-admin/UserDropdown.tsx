@@ -7,6 +7,8 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import useLogout from "@/hooks/use-logout";
 import { RootState, useAppSelector } from "@/stores/store";
 import { useRouter } from "next/navigation";
+import useUserAvatar from "@/hooks/use-user-avatar";
+
 interface UserDropdownProps {
   setIsLoggingOut: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -14,7 +16,12 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { handleLogout } = useLogout();
   const userState = useAppSelector((state: RootState) => state.userSlice);
+  const persistState = useAppSelector((state: RootState) => state._persist);
   const router = useRouter();
+
+  const { avatarUrl } = useUserAvatar();
+
+  const isHeaderLoading = !persistState?.rehydrated && !userState.user;
 
   const onLogout = async () => {
     setIsLoggingOut(true);
@@ -32,7 +39,10 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
   }
 
   const handleOpenProfileEdit = () => {
-    router.push('/seller/profile');
+    const profilePath = userState.user?.roleName === "Seller"
+      ? '/seller/profile'
+      : '/profile';
+    router.push(profilePath);
     closeDropdown();
   };
 
@@ -44,11 +54,15 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
         className="dropdown-toggle flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
       >
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <img
-            className="w-11 h-11 rounded-full cursor-pointer"
-            src={userState?.user?.avatarUrl || "/images/unknown_avatar.png"}
-            alt="User"
-          />
+          {isHeaderLoading ? (
+            <div className="w-11 h-11 bg-gray-200 animate-pulse rounded-full"></div>
+          ) : (
+            <img
+              className="w-11 h-11 rounded-full cursor-pointer"
+              src={avatarUrl}
+              alt="User"
+            />
+          )}
         </span>
 
         <span className="block mr-1 font-medium text-theme-sm">{userState?.user?.roleName}</span>

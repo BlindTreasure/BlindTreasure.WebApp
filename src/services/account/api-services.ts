@@ -13,7 +13,7 @@ export const getAccountProfile = async () => {
 };
 
 export const getAddresses = async () => {
-  const response = await request<TResponseData<API.ResponseAddress []>>(
+  const response = await request<TResponseData<API.ResponseAddress[]>>(
     API_ENDPOINTS.GET_ADDRESSES,
     {
       method: "GET",
@@ -23,7 +23,7 @@ export const getAddresses = async () => {
 };
 
 export const getAddressById = async (addressId: string) => {
-  const response = await request<TResponseData<API.ResponseAddress >>(
+  const response = await request<TResponseData<API.ResponseAddress>>(
     API_ENDPOINTS.ADDRESS_BY_ID(addressId),
     {
       method: "GET",
@@ -31,7 +31,6 @@ export const getAddressById = async (addressId: string) => {
   );
   return response.data;
 };
-
 
 export const updateAvatarProfile = async (body: FormData) => {
   const response = await request<TResponseData<API.TUpdateAvatar>>(
@@ -149,6 +148,33 @@ export const updateProfileSeller = async (body: REQUEST.UpdateSellerInfo) => {
     {
       method: "PUT",
       data: body,
+      headers: {
+        Authorization: `Bearer ${getStorageItem("accessToken")}`,
+      },
+    }
+  );
+  return response.data;
+};
+
+export const updateAvatarSeller = async (body: FormData) => {
+  const response = await request<TResponseData<string>>(
+    API_ENDPOINTS.UPDATE_AVATAR_SELLER,
+    {
+      method: "PUT",
+      data: body,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return response.data;
+};
+
+export const getProfileSeller = async () => {
+  const response = await request<TResponseData<API.TResponeSeller>>(
+    API_ENDPOINTS.GET_ACCOUNT_SELLER_PROFILE,
+    {
+      method: "GET",
       headers: {
         Authorization: `Bearer ${getStorageItem("accessToken")}`,
       },
