@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { X, Check, Trash2, Bell } from 'lucide-react';
 import { useNotification } from '@/hooks/use-notification';
 import { formatDistanceToNow } from 'date-fns';
+import { useAppSelector } from '@/stores/store';
+import { signalRService } from '@/services/signalr/signalr-service';
 
 interface NotificationDropdownProps {
   onClose: () => void;
@@ -16,17 +18,21 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
     markAllNotificationsAsRead,
     deleteNotification,
   } = useNotification();
+  
+  const user = useAppSelector((state) => state.userSlice.user);
+  const userRole = user?.roleName || 'Customer';
 
   // Fetch notifications khi mở dropdown
   useEffect(() => {
+    console.log(`[NotificationDropdown] Fetching notifications for role: ${userRole}`);
     fetchNotifications({ pageIndex: 0, pageSize: 10 });
-  }, [fetchNotifications]);
+  }, [fetchNotifications, userRole]);
 
   const handleMarkAsRead = async (notificationId: string) => {
     const response = await markNotificationAsRead(notificationId);
     if (response.isSuccess) {
       // Thông báo đã được đánh dấu đã đọc thành công
-      console.log(`Notification ${notificationId} marked as read`);
+      console.log(`[NotificationDropdown] Notification ${notificationId} marked as read`);
     }
   };
 
@@ -34,7 +40,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
     const response = await markAllNotificationsAsRead();
     if (response.isSuccess) {
       // Tất cả thông báo đã được đánh dấu đã đọc thành công
-      console.log('All notifications marked as read');
+      console.log('[NotificationDropdown] All notifications marked as read');
     }
   };
 
@@ -42,7 +48,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
     const response = await deleteNotification(notificationId);
     if (response.isSuccess) {
       // Thông báo đã được xóa thành công
-      console.log(`Notification ${notificationId} deleted`);
+      console.log(`[NotificationDropdown] Notification ${notificationId} deleted`);
     }
   };
 
@@ -54,6 +60,8 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
         return <Bell className="h-4 w-4 text-green-500" />;
       case 'Promotion':
         return <Bell className="h-4 w-4 text-yellow-500" />;
+      case 'Product':
+        return <Bell className="h-4 w-4 text-purple-500" />;
       default:
         return <Bell className="h-4 w-4 text-gray-500" />;
     }
@@ -67,18 +75,42 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
     }
   };
 
+  // Lọc thông báo phù hợp với role của người dùng
+  const filteredNotifications = notifications.filter(notification => {
+    // Nếu notification có targetRole và không khớp với role hiện tại thì bỏ qua
+    if (notification.targetRole && notification.targetRole !== userRole) {
+      return false;
+    }
+    
+    // Các loại thông báo khác nhau cho từng role
+    switch (userRole) {
+      case "Customer":
+        // Customer nhận thông báo liên quan đến Order, Promotion
+        return ["System", "Order", "Promotion", "General"].includes(notification.type);
+      case "Seller":
+        // Seller nhận thông báo liên quan đến Order, Product
+        return ["System", "Order", "Product", "General"].includes(notification.type);
+      case "Staff":
+      case "Admin":
+        // Staff và Admin nhận tất cả các loại thông báo
+        return true;
+      default:
+        return true;
+    }
+  });
+
   return (
     <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Thông báo</h3>
         <div className="flex items-center gap-2">
-          {notifications.some(n => !n.isRead) && (
+          {filteredNotifications.some(n => !n.isRead) && (
             <button
               onClick={handleMarkAllAsRead}
               className="text-sm text-blue-600 hover:text-blue-800"
             >
-              Mark all read
+              Đánh dấu đã đọc tất cả
             </button>
           )}
           <button
@@ -94,16 +126,16 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
       <div className="max-h-80 overflow-y-auto">
         {isLoading ? (
           <div className="p-4 text-center text-gray-500">
-            Loading notifications...
+            Đang tải thông báo...
           </div>
-        ) : notifications.length === 0 ? (
+        ) : filteredNotifications.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             <Bell className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-            <p>No notifications</p>
+            <p>Không có thông báo nào</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
-            {notifications.map((notification) => (
+            {filteredNotifications.map((notification) => (
               <div
                 key={notification.id}
                 className={`p-4 hover:bg-gray-50 transition-colors duration-200 ${
@@ -136,7 +168,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
                           <button
                             onClick={() => handleMarkAsRead(notification.id)}
                             className="p-1 text-gray-400 hover:text-green-600 transition-colors"
-                            title="Mark as read"
+                            title="Đánh dấu đã đọc"
                           >
                             <Check className="h-3 w-3" />
                           </button>
@@ -144,7 +176,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
                         <button
                           onClick={() => handleDelete(notification.id)}
                           className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                          title="Delete notification"
+                          title="Xóa thông báo"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
@@ -159,13 +191,13 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
       </div>
 
       {/* Footer */}
-      {notifications.length > 0 && (
+      {filteredNotifications.length > 0 && (
         <div className="p-3 border-t border-gray-200 bg-gray-50">
           <button
             onClick={() => fetchNotifications({ pageIndex: 0, pageSize: 10 })}
             className="text-sm text-blue-600 hover:text-blue-800 w-full text-center"
           >
-            Refresh notifications
+            Làm mới thông báo
           </button>
         </div>
       )}

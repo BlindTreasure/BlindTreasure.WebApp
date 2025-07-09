@@ -1,4 +1,4 @@
-import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { HubConnection, HubConnectionBuilder, LogLevel, HttpTransportType } from '@microsoft/signalr';
 import { getStorageItem } from '@/utils/local-storage';
 
 class SignalRService {
@@ -7,6 +7,7 @@ class SignalRService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private connectionUrl = "https://blindtreasureapi.fpt-devteam.fun/hubs/notification";
+  private userRole: string | null = null;
 
   async connect(): Promise<void> {
     if (this.connection?.state === 'Connected' || this.isConnecting) {
@@ -24,6 +25,23 @@ class SignalRService {
         return;
       }
 
+      // Lấy thông tin role từ user trong localStorage
+      try {
+        const userJson = getStorageItem('persist:root');
+        if (userJson) {
+          const parsedRoot = JSON.parse(userJson);
+          if (parsedRoot.userSlice) {
+            const userSlice = JSON.parse(parsedRoot.userSlice);
+            if (userSlice.user && userSlice.user.roleName) {
+              this.userRole = userSlice.user.roleName;
+              console.log(`[SignalR] User role detected: ${this.userRole}`);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[SignalR] Could not determine user role:', err);
+      }
+
       // Nếu có connection cũ, đảm bảo nó đã được stop
       if (this.connection) {
         try {
@@ -39,7 +57,9 @@ class SignalRService {
       
       this.connection = new HubConnectionBuilder()
         .withUrl(this.connectionUrl, {
-          accessTokenFactory: () => accessToken
+          accessTokenFactory: () => accessToken,
+          skipNegotiation: false,
+          withCredentials: false
         })
         .withAutomaticReconnect([0, 2000, 5000, 10000, 15000, 30000])
         .configureLogging(LogLevel.Information)
@@ -47,7 +67,14 @@ class SignalRService {
 
       // Xử lý notification nhận được
       this.connection.on('ReceiveNotification', (notification) => {
-        console.log('[SignalR] Received notification:', notification);
+        console.log(`[SignalR] Received notification for role ${this.userRole}:`, notification);
+        
+        // Kiểm tra nếu notification có targetRole và không khớp với role hiện tại thì bỏ qua
+        if (notification.targetRole && notification.targetRole !== this.userRole) {
+          console.log(`[SignalR] Notification skipped - targeted for ${notification.targetRole}, current role: ${this.userRole}`);
+          return;
+        }
+        
         // Emit event để các component khác có thể lắng nghe
         window.dispatchEvent(new CustomEvent('notification-received', {
           detail: notification
@@ -108,6 +135,7 @@ class SignalRService {
         this.connection = null;
         this.isConnecting = false;
         this.reconnectAttempts = 0;
+        this.userRole = null;
       }
     }
   }
@@ -118,6 +146,10 @@ class SignalRService {
 
   getConnectionState(): string {
     return this.connection?.state || 'Disconnected';
+  }
+  
+  getUserRole(): string | null {
+    return this.userRole;
   }
 }
 

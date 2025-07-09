@@ -14,6 +14,8 @@ import { getNotifications, getUnreadCount, markNotificationAsRead, markAllNotifi
 export const useNotification = () => {
   const dispatch = useAppDispatch();
   const { notifications, unreadCount, isLoading, error } = useAppSelector((state) => state.notificationSlice);
+  const user = useAppSelector((state) => state.userSlice.user);
+  const userRole = user?.roleName || 'Customer';
 
   // Fetch notifications from API
   const fetchNotifications = useCallback(async (params: { pageIndex: number; pageSize: number }) => {
@@ -21,44 +23,60 @@ export const useNotification = () => {
       dispatch(setLoading(true));
       dispatch(setError(null));
       
+      console.log(`[useNotification] Fetching notifications for role: ${userRole}, params:`, params);
+      
       const response = await getNotifications(params);
-      if (response.isSuccess) {
-        dispatch(setNotifications(response.value.data.items));
+      if (response.isSuccess && response.value?.data?.items) {
+        // Lọc thông báo phù hợp với role của người dùng
+        const notifications = response.value.data.items;
+        console.log(`[useNotification] Received ${notifications.length} notifications`);
+        
+        // Cập nhật store với danh sách thông báo
+        dispatch(setNotifications(notifications));
       } else {
+        console.error('[useNotification] Failed to fetch notifications:', response.error);
         dispatch(setError(response.error?.message || 'Failed to fetch notifications'));
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error('[useNotification] Error fetching notifications:', error);
       dispatch(setError('Failed to fetch notifications'));
     } finally {
       dispatch(setLoading(false));
     }
-  }, [dispatch]);
+  }, [dispatch, userRole]);
 
   // Fetch unread count
   const fetchUnreadCount = useCallback(async () => {
     try {
+      console.log('[useNotification] Fetching unread count');
       const response = await getUnreadCount();
       if (response.isSuccess) {
         dispatch(setUnreadCount(response.value.data));
+        console.log(`[useNotification] Unread count: ${response.value.data}`);
+      } else {
+        console.error('[useNotification] Failed to fetch unread count:', response.error);
       }
     } catch (error) {
-      console.error('Failed to fetch unread count:', error);
+      console.error('[useNotification] Failed to fetch unread count:', error);
     }
   }, [dispatch]);
 
   // Mark notification as read
   const markNotificationAsReadAction = useCallback(async (notificationId: string) => {
     try {
+      console.log(`[useNotification] Marking notification as read: ${notificationId}`);
       const response = await markNotificationAsRead(notificationId);
       if (response.isSuccess) {
         dispatch(markAsRead(notificationId));
         // Luôn fetch lại unreadCount để đảm bảo UI đồng bộ với server
         fetchUnreadCount();
+        console.log(`[useNotification] Notification ${notificationId} marked as read successfully`);
+      } else {
+        console.error('[useNotification] Failed to mark notification as read:', response.error);
       }
       return response;
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+      console.error('[useNotification] Failed to mark notification as read:', error);
       return {
         isSuccess: false,
         error: { message: 'Failed to mark notification as read' }
@@ -69,16 +87,20 @@ export const useNotification = () => {
   // Mark all notifications as read
   const markAllNotificationsAsReadAction = useCallback(async () => {
     try {
+      console.log('[useNotification] Marking all notifications as read');
       const response = await markAllNotificationsAsRead();
       if (response.isSuccess) {
         dispatch(markAllAsRead());
         dispatch(setUnreadCount(0));
+        console.log('[useNotification] All notifications marked as read successfully');
         // Fetch lại để đảm bảo đồng bộ
         fetchUnreadCount();
+      } else {
+        console.error('[useNotification] Failed to mark all notifications as read:', response.error);
       }
       return response;
     } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
+      console.error('[useNotification] Failed to mark all notifications as read:', error);
       return {
         isSuccess: false,
         error: { message: 'Failed to mark all notifications as read' }
@@ -89,15 +111,19 @@ export const useNotification = () => {
   // Delete notification
   const deleteNotificationAction = useCallback(async (notificationId: string) => {
     try {
+      console.log(`[useNotification] Deleting notification: ${notificationId}`);
       const response = await deleteNotification(notificationId);
       if (response.isSuccess) {
         dispatch(removeNotification(notificationId));
+        console.log(`[useNotification] Notification ${notificationId} deleted successfully`);
         // Luôn fetch lại unreadCount
         fetchUnreadCount();
+      } else {
+        console.error('[useNotification] Failed to delete notification:', response.error);
       }
       return response;
     } catch (error) {
-      console.error('Failed to delete notification:', error);
+      console.error('[useNotification] Failed to delete notification:', error);
       return {
         isSuccess: false,
         error: { message: 'Failed to delete notification' }
@@ -115,5 +141,6 @@ export const useNotification = () => {
     markNotificationAsRead: markNotificationAsReadAction,
     markAllNotificationsAsRead: markAllNotificationsAsReadAction,
     deleteNotification: deleteNotificationAction,
+    userRole,
   };
 }; 
