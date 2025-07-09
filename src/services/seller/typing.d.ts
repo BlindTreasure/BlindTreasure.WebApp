@@ -37,6 +37,22 @@ declare namespace API {
     sellerId?: string
   };
 
+  type SellerById = {
+    sellerId: string;
+    userId: string;
+    email: string;
+    fullName: string;
+    companyName: string;
+    coaDocumentUrl: string;
+    status: SellerStatus;
+    isVerified: boolean;
+    phoneNumber?: string;
+    dateOfBirth?: string;
+    taxId?: string;
+    companyAddress?: string;
+    sellerStatus: string
+  }
+
   type ResponseDataSeller = {
     result: Seller[];
     count: number;

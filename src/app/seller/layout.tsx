@@ -7,6 +7,7 @@ import { useServiceGetSellerProfile } from "@/services/account/services";
 import SellerHeader from "@/components/seller-header";
 import { useAppDispatch } from "@/stores/store";
 import { setUser } from "@/stores/user-slice";
+import { getAccountProfile } from "@/services/account/api-services";
 
 export default function SellerLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -24,21 +25,23 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   }, []);
 
   useEffect(() => {
-    if (data?.value?.data) {
-      const sellerData = data.value.data;
-      dispatch(setUser({
-        userId: sellerData.id, 
-        sellerId: sellerData.sellerId,
-        email: sellerData.email,
-        fullName: sellerData.fullName,
-        avatarUrl: "", 
-        roleName: "Seller", 
-        phoneNumber: sellerData.phoneNumber || "",
-        dateOfBirth: sellerData.dateOfBirth || "",
-        createdAt: ""
-      }));
-    }
-  }, [data, dispatch]);
+    const loadUserProfile = async () => {
+      try {
+        const profileRes = await getAccountProfile();
+        const profile = profileRes?.value?.data;
+
+        if (profile) {
+          dispatch(setUser(profile));
+        }
+      } catch (error) {
+        console.error("Failed to load user profile:", error);
+      }
+    };
+
+    loadUserProfile();
+  }, [dispatch]);
+
+
 
   useEffect(() => {
     if (!data) return;

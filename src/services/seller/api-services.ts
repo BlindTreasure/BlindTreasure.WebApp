@@ -60,3 +60,15 @@ export const verifySellerByStaff = async ({
 
   return response.data;
 };
+
+export const getSellerById = async (
+  sellerId: string
+): Promise<TResponseData<API.SellerById>> => {
+  const response = await request<TResponseData<API.SellerById>>(
+    API_ENDPOINTS.SELLER_BY_ID(sellerId),
+    {
+      method: "GET",
+    }
+  );
+  return response.data;
+};
