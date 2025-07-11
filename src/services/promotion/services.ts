@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { createPromotion, reviewPromotion, updatePromotion, deletePromotion } from "@/services/promotion/api-services";
+import { createPromotion, reviewPromotion, updatePromotion, deletePromotion, participantPromotion, withdrawPromotion } from "@/services/promotion/api-services";
 import useToast from "@/hooks/use-toast";
 import { handleError } from "@/hooks/error";
 
@@ -91,6 +91,42 @@ export const useServiceDeletePromotion = () => {
         description: "Xóa khuyến mãi thất bại. Vui lòng thử lại!",
         duration: 5000,
       });
+    },
+  });
+};
+
+export const useServiceParticipantPromotion = () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<API.ParticipantPromotion>, TMeta,{ promotionId : string }>({
+    mutationFn: ({promotionId}) =>participantPromotion(promotionId),
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message || "Tham gia chiến dịch khuyến mãi thành công",
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
+    },
+  });
+};
+
+export const useServiceWithdrawPromotion = () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<API.ParticipantPromotion>, TMeta, REQUEST.withdrawPromotion>({
+    mutationFn: withdrawPromotion,
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message || "Rút khỏi chiến dịch khuyến mãi thành công!",
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
     },
   });
 };

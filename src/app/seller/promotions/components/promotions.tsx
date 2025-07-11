@@ -11,6 +11,8 @@ import { useServiceCreatePromotion } from '@/services/promotion/services';
 import { useServiceUpdatePromotion } from '@/services/promotion/services';
 import { useServiceReviewPromotion } from '@/services/promotion/services';
 import { useServiceDeletePromotion } from '@/services/promotion/services';
+import { useServiceParticipantPromotion } from '@/services/promotion/services';
+import { useServiceWithdrawPromotion } from '@/services/promotion/services';
 import { useAppSelector } from "@/stores/store";
 
 const PromotionCrud: React.FC = () => {
@@ -34,6 +36,10 @@ const PromotionCrud: React.FC = () => {
   const { mutate: reviewPromotion, isPending: isReviewingPromotion } = useServiceReviewPromotion();
   const { mutate: deletePromotion, isPending: isDeletingPromotion } = useServiceDeletePromotion();
   
+  // Add hooks for participant and withdraw promotion
+  const { mutate: participantPromotion, isPending: isParticipatingPromotion } = useServiceParticipantPromotion();
+  const { mutate: withdrawPromotion, isPending: isWithdrawingPromotion } = useServiceWithdrawPromotion();
+  
   const profile = useAppSelector((state) => state.userSlice.user);
   const currentUserRole = profile?.roleName as PromotionCreateByRole;
   
@@ -45,7 +51,9 @@ const PromotionCrud: React.FC = () => {
         pageIndex: currentPage,
         pageSize: pageSize
       };
-      const response = await getPromotionApi(params);
+      console.log(profile);
+      
+      const response = await getPromotionApi(params);      
       
       if (response?.value?.data) {
         setPromotions(response.value.data.result || []);
@@ -205,6 +213,68 @@ const PromotionCrud: React.FC = () => {
     );
   };
 
+  // Function to handle joining promotion
+  const handleJoin = async (id: string): Promise<void> => {
+    const promotion = promotions.find(p => p.id === id);
+    if (!promotion) return;
+
+    const confirmMessage = `Bạn có chắc chắn muốn tham gia promotion "${promotion.code}"?`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        participantPromotion(
+          { promotionId: id },
+          {
+            onSuccess: () => {
+              // Refresh promotions after successful participation
+              refreshPromotions();
+            },
+            onError: (error) => {
+              console.error('Error joining promotion:', error);
+              // Optionally refresh to ensure data consistency
+              refreshPromotions();
+            }
+          }
+        );
+      } catch (error) {
+        console.error('Error joining promotion:', error);
+        // Refresh promotions in case of error to ensure data consistency
+        refreshPromotions();
+      }
+    }
+  };
+
+  // New function to handle withdrawing from promotion
+  const handleWithdraw = async (id: string): Promise<void> => {
+    const promotion = promotions.find(p => p.id === id);
+    if (!promotion) return;
+
+    const confirmMessage = `Bạn có chắc chắn muốn rút khỏi promotion "${promotion.code}"?`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        withdrawPromotion(
+          { promotionId: id, sellerId: profile?.sellerId },
+          {
+            onSuccess: () => {
+              // Refresh promotions after successful withdrawal
+              refreshPromotions();
+            },
+            onError: (error) => {
+              console.error('Error withdrawing from promotion:', error);
+              // Optionally refresh to ensure data consistency
+              refreshPromotions();
+            }
+          }
+        );
+      } catch (error) {
+        console.error('Error withdrawing from promotion:', error);
+        // Refresh promotions in case of error to ensure data consistency
+        refreshPromotions();
+      }
+    }
+  };
+
   const handleReviewAction = async (action: boolean, rejectReason?: string): Promise<void> => {
     if (!pendingAction) return;
 
@@ -301,8 +371,8 @@ const PromotionCrud: React.FC = () => {
     setCurrentPage(1);
   };
   
-
-  const isTableLoading = isLoadingPromotions || isLoadingPromotionById || isReviewingPromotion || isLoadingPromotionDetail || isDeletingPromotion;
+  // Update loading state to include withdraw promotion
+  const isTableLoading = isLoadingPromotions || isLoadingPromotionById || isReviewingPromotion || isLoadingPromotionDetail || isDeletingPromotion || isParticipatingPromotion || isWithdrawingPromotion;
   const isModalLoading = isCreatingPromotion || isUpdatingPromotion || isLoadingPromotionById || isReviewingPromotion || isLoadingPromotionDetail;
 
   if (isInitialLoading) {
@@ -325,7 +395,7 @@ const PromotionCrud: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-wrapper-7xl mx-auto">
         <div className="bg-white rounded-lg shadow-md">
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <div>
@@ -373,6 +443,8 @@ const PromotionCrud: React.FC = () => {
               onView={handleView}
               onApprove={handleApprove}
               onReject={handleReject}
+              onJoin={handleJoin}
+              onWithdraw={handleWithdraw}
               isLoading={isTableLoading}
             />
           </div>

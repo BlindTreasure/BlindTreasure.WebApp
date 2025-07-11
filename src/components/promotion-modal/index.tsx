@@ -72,6 +72,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
   const [rejectReason, setRejectReason] = useState('');
   const [isRejectReasonRequired, setIsRejectReasonRequired] = useState(false);
   
+
   const {
     control,
     handleSubmit,

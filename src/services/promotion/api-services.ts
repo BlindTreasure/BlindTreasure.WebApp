@@ -108,3 +108,57 @@ export const reviewPromotion = async (
   );
   return response.data;
 };
+
+export const participantPromotion = async (
+  promotionId: string
+): Promise<TResponseData<API.ParticipantPromotion>> => {
+  const response = await request<TResponseData<API.ParticipantPromotion>>(
+    API_ENDPOINTS.PROMOTION_WITH_ID(promotionId),
+    {
+      method: "POST"
+    }
+  );
+  return response.data;
+};
+
+export const withdrawPromotion = async (
+  param: REQUEST.withdrawPromotion
+): Promise<TResponseData<API.ParticipantPromotion>> => {
+  const formData = new FormData();
+  if(param.sellerId != undefined)
+    formData.append("SellerId", param.sellerId);
+  
+  formData.append("PromotionId", param.promotionId);
+  const response = await request<TResponseData<API.ParticipantPromotion>>(
+    API_ENDPOINTS.WITHDRAW_PROMOTION,
+    {
+      method: "DELETE",
+      data: formData,
+      headers: {
+      "Content-Type": "multipart/form-data"
+      }
+    }
+  );
+  return response.data;
+};
+
+export const getAllPromotionParticipant = async ({
+  promotionId,
+  pageIndex,
+  pageSize,
+  desc
+}: REQUEST.GetPromotionParticipant): Promise<TResponseData<API.ResponseDataViewParticipantPromotion>> => {
+  const response = await request<TResponseData<API.ResponseDataViewParticipantPromotion>>(
+    API_ENDPOINTS.PROMOTION_PARTICIPANT,
+    {
+      method: "GET",
+      params: {
+        promotionId,
+        pageIndex,
+        pageSize,
+        desc
+      },
+    }
+  );
+  return response.data;
+};

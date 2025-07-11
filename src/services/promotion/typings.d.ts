@@ -21,6 +21,18 @@ declare namespace REQUEST {
     isApproved: boolean;
     rejectReason: string;
   }
+
+  type withdrawPromotion = {
+    sellerId?: string;
+    promotionId: string;
+  }
+
+  type GetPromotionParticipant = {
+    promotionId: string;
+    pageIndex?: number;
+    pageSize?: number;
+    desc?: boolean
+  }
 }
 
 declare namespace API {
@@ -38,6 +50,34 @@ declare namespace API {
     createdByRole: PromotionCreateByRole;
     updateAt?: string;
     rejectReason?: string;
+    isParticipant? : boolean;
+  }
+
+  type ViewParticipantPromotion = {
+    id: string;
+    email: string;
+    fullName: string;
+    phone: string;
+    companyName: string;
+    taxId: string;
+    companyAddress: string;
+    isVerified: string;
+    joinedAt: string
+  }
+
+  type ResponseDataViewParticipantPromotion = {
+    result: ViewParticipantPromotion[];
+    count: number;
+    pageSize: number;
+    currentPage: number;
+    totalPages: number;
+  } 
+
+  type ParticipantPromotion = {
+    id: string;
+    promotionId: string;
+    sellerId: string;
+    joinedAt: string
   }
 
   type ResponseDataPromotion = {
@@ -47,5 +87,7 @@ declare namespace API {
     currentPage: number;
     totalPages: number;
   };
+
+  
 }
 

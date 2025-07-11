@@ -3,10 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import PromotionModal from '@/components/promotion-modal';
 import PromotionTable from '@/components/promotion-table';
+import PromotionParticipantsModal from '@/components/promotion-participant-modal';
 import { PaginationFooter } from '@/components/pagination-footer';
-import { PromotionStatus, PromotionCreateByRole } from '@/const/promotion';
+import { PromotionCreateByRole } from '@/const/promotion';
 import useGetPromotion from '@/app/staff/promotion-management/hooks/useGetAllPromotion';
 import useGetPromotionById from '@/app/staff/promotion-management/hooks/useGetPromotionById';
+import useGetPromotionParticipant from '@/app/staff/promotion-management/hooks/useGetAllParticipantPromotion';
 import { useServiceCreatePromotion } from '@/services/promotion/services';
 import { useServiceUpdatePromotion } from '@/services/promotion/services';
 import { useServiceReviewPromotion } from '@/services/promotion/services';
@@ -22,6 +24,11 @@ const PromotionCrud: React.FC = () => {
   const [pendingAction, setPendingAction] = useState<{ type: 'approve' | 'reject', id: string } | null>(null);
   const [isLoadingPromotionDetail, setIsLoadingPromotionDetail] = useState<boolean>(false);
   
+  // Promotion participants state
+  const [promotionParticipants, setPromotionParticipants] = useState<API.ResponseDataViewParticipantPromotion | null>(null);
+  const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState<boolean>(false);
+  const [selectedPromotionForParticipants, setSelectedPromotionForParticipants] = useState<API.Promotion | null>(null);
+  
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -29,6 +36,7 @@ const PromotionCrud: React.FC = () => {
   
   const { isPending: isLoadingPromotions, getPromotionApi } = useGetPromotion();
   const { isPending: isLoadingPromotionById, getPromotionByIdApi } = useGetPromotionById();
+  const { isPending: isLoadingPromotionParticipant, getPromotionParticipantApi } = useGetPromotionParticipant();
   const { mutate: createPromotion, isPending: isCreatingPromotion } = useServiceCreatePromotion();
   const { mutate: updatePromotion, isPending: isUpdatingPromotion } = useServiceUpdatePromotion();
   const { mutate: reviewPromotion, isPending: isReviewingPromotion } = useServiceReviewPromotion();
@@ -62,6 +70,25 @@ const PromotionCrud: React.FC = () => {
       setTotalPages(0);
     } finally {
       setIsInitialLoading(false);
+    }
+  };
+
+  // Load promotion participants
+  const loadPromotionParticipants = async (promotionId: string) => {
+    try {
+      const params: REQUEST.GetPromotionParticipant = {
+        promotionId: promotionId
+      };
+      const response = await getPromotionParticipantApi(params);
+      
+      if (response?.value?.data) {
+        setPromotionParticipants(response.value.data);
+      } else {
+        setPromotionParticipants(null);
+      }
+    } catch (error) {
+      console.error('Error loading promotion participants:', error);
+      setPromotionParticipants(null);
     }
   };
 
@@ -152,6 +179,13 @@ const PromotionCrud: React.FC = () => {
 
   const handleView = async (promotion: API.Promotion): Promise<void> => {
     await openModalWithPromotionDetail(promotion, 'view');
+  };
+
+  // Handle view participants - new function
+  const handleViewParticipants = async (promotion: API.Promotion): Promise<void> => {
+    setSelectedPromotionForParticipants(promotion);
+    setIsParticipantsModalOpen(true);
+    await loadPromotionParticipants(promotion.id);
   };
 
   const handleDelete = async (id: string): Promise<void> => {
@@ -289,6 +323,12 @@ const PromotionCrud: React.FC = () => {
     setModalMode('create');
   };
 
+  const handleParticipantsModalClose = (): void => {
+    setIsParticipantsModalOpen(false);
+    setSelectedPromotionForParticipants(null);
+    setPromotionParticipants(null);
+  };
+
   // Pagination handlers
   const handlePageChange = (page: number): void => {
     setCurrentPage(page);
@@ -299,7 +339,6 @@ const PromotionCrud: React.FC = () => {
     setCurrentPage(1);
   };
   
-
   const isTableLoading = isLoadingPromotions || isLoadingPromotionById || isReviewingPromotion || isLoadingPromotionDetail || isDeletingPromotion;
   const isModalLoading = isCreatingPromotion || isUpdatingPromotion || isLoadingPromotionById || isReviewingPromotion || isLoadingPromotionDetail;
 
@@ -371,6 +410,7 @@ const PromotionCrud: React.FC = () => {
               onView={handleView}
               onApprove={handleApprove}
               onReject={handleReject}
+              onViewParticipants={handleViewParticipants}
               isLoading={isTableLoading}
             />
           </div>
@@ -397,6 +437,14 @@ const PromotionCrud: React.FC = () => {
         currentUserRole={currentUserRole}
         pendingAction={pendingAction}
         onReviewAction={handleReviewAction}
+      />
+
+      <PromotionParticipantsModal
+        isOpen={isParticipantsModalOpen}
+        onClose={handleParticipantsModalClose}
+        participants={promotionParticipants}
+        isLoading={isLoadingPromotionParticipant}
+        promotionTitle={selectedPromotionForParticipants?.code}
       />
     </div>
   );

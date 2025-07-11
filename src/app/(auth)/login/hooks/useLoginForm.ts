@@ -53,6 +53,7 @@ export function useLoginForm() {
                   avatarUrl: userInfo.avatarUrl,
                   fullName: userInfo.fullName,
                   roleName: userInfo.roleName,
+                  sellerId : userInfo.sellerId
                 })
               );
 
