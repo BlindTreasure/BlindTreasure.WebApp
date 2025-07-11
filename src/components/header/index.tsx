@@ -18,6 +18,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { selectTotalItems } from "@/stores/cart-slice";
+import { NotificationBell } from "@/components/notification/notification-bell";
 
 const Header: React.FC = () => {
   const userState = useAppSelector((state) => state.userSlice);
@@ -82,6 +83,7 @@ const Header: React.FC = () => {
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
+            {isLoggedIn && <NotificationBell />}
             <div className="relative cursor-pointer" onClick={handleClickCart}>
               <div className="text-gray-600 hover:text-[#d02a2a] text-2xl">
                 <BsCart3 />

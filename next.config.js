@@ -8,7 +8,8 @@
 // export default nextConfig;
 
 const nextConfig = {
-  webpack(config) {
+  webpack(config, { dev, isServer }) {
+    // Xử lý SVG
     const fileLoaderRule = config.module.rules.find((rule) =>
       rule.test?.test?.(".svg")
     );
@@ -21,7 +22,12 @@ const nextConfig = {
       issuer: /\.[jt]sx?$/,
       use: ["@svgr/webpack"],
     });
-
+    
+    // Vô hiệu hóa cache trong development
+    if (dev) {
+      config.cache = false;
+    }
+    
     return config;
   },
 };
