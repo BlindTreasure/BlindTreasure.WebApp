@@ -12,7 +12,7 @@ export default function useGetPromotionParticipant() {
     try {
       const res = await getAllPromotionParticipant(params);
       if (isTResponseData(res)) {
-        return res as TResponseData<API.ResponseDataViewParticipantPromotion>;
+        return res as TResponseData<API.ViewParticipantPromotion[]>;
       } else {
         addToast({
           type: "error",

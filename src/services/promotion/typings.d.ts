@@ -65,14 +65,6 @@ declare namespace API {
     joinedAt: string
   }
 
-  type ResponseDataViewParticipantPromotion = {
-    result: ViewParticipantPromotion[];
-    count: number;
-    pageSize: number;
-    currentPage: number;
-    totalPages: number;
-  } 
-
   type ParticipantPromotion = {
     id: string;
     promotionId: string;

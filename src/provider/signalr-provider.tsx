@@ -20,7 +20,6 @@ export const SignalRProvider: React.FC<SignalRProviderProps> = ({ children }) =>
     if (!user) {
       // Nếu không có user (chưa đăng nhập hoặc đã đăng xuất)
       if (hasConnected.current) {
-        console.log('[SignalRProvider] User logged out, disconnecting SignalR');
         signalRService.disconnect();
         hasConnected.current = false;
       }
@@ -30,39 +29,30 @@ export const SignalRProvider: React.FC<SignalRProviderProps> = ({ children }) =>
     // User đã đăng nhập, thực hiện các bước sau theo thứ tự:
     const initializeNotifications = async () => {
       try {
-        console.log(`[SignalRProvider] Initializing notifications for role: ${user.roleName}`);
-        
         // 1. Fetch danh sách thông báo
-        console.log('[SignalRProvider] Fetching notification list');
         const notificationsResponse = await getNotifications({ pageIndex: 0, pageSize: 10 });
         
         if (notificationsResponse.isSuccess && notificationsResponse.value?.data?.items) {
           // Lọc thông báo phù hợp với role của user
           const notifications = notificationsResponse.value.data.items;
-          console.log(`[SignalRProvider] Received ${notifications.length} notifications`);
           
           // Cập nhật store với danh sách thông báo đã lọc
           dispatch(setNotifications(notifications));
-          console.log('[SignalRProvider] Notification list loaded:', notifications.length, 'items');
         } else {
           console.warn('[SignalRProvider] Failed to load notification list:', notificationsResponse.error);
         }
 
         // 2. Fetch unread count
-        console.log('[SignalRProvider] Fetching unread count');
         const unreadResponse = await getUnreadCount();
         if (unreadResponse.isSuccess) {
           dispatch(setUnreadCount(unreadResponse.value.data));
-          console.log('[SignalRProvider] Unread count loaded:', unreadResponse.value.data);
         } else {
           console.warn('[SignalRProvider] Failed to load unread count:', unreadResponse.error);
         }
 
         // 3. Kết nối SignalR sau khi đã tải dữ liệu ban đầu
-        console.log('[SignalRProvider] Connecting to SignalR');
         await signalRService.connect();
         hasConnected.current = true;
-        console.log('[SignalRProvider] SignalR connection established');
 
       } catch (error) {
         console.error('[SignalRProvider] Error during notification initialization:', error);
@@ -72,7 +62,6 @@ export const SignalRProvider: React.FC<SignalRProviderProps> = ({ children }) =>
     // Setup event listener cho notification mới từ SignalR
     const handleNotificationReceived = (event: Event) => {
       const notification = (event as CustomEvent).detail;
-      console.log('[SignalRProvider] New notification received:', notification);
       
       // Kiểm tra xem thông báo có phù hợp với role của user không
       if (shouldProcessNotification(notification, user.roleName)) {
@@ -85,7 +74,6 @@ export const SignalRProvider: React.FC<SignalRProviderProps> = ({ children }) =>
           }
         });
       } else {
-        console.log(`[SignalRProvider] Notification filtered out for role ${user.roleName}`);
       }
     };
 

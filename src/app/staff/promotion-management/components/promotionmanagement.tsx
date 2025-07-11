@@ -25,7 +25,7 @@ const PromotionCrud: React.FC = () => {
   const [isLoadingPromotionDetail, setIsLoadingPromotionDetail] = useState<boolean>(false);
   
   // Promotion participants state
-  const [promotionParticipants, setPromotionParticipants] = useState<API.ResponseDataViewParticipantPromotion | null>(null);
+  const [promotionParticipants, setPromotionParticipants] = useState<API.ViewParticipantPromotion[] | null>(null);
   const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState<boolean>(false);
   const [selectedPromotionForParticipants, setSelectedPromotionForParticipants] = useState<API.Promotion | null>(null);
   

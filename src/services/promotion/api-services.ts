@@ -147,8 +147,8 @@ export const getAllPromotionParticipant = async ({
   pageIndex,
   pageSize,
   desc
-}: REQUEST.GetPromotionParticipant): Promise<TResponseData<API.ResponseDataViewParticipantPromotion>> => {
-  const response = await request<TResponseData<API.ResponseDataViewParticipantPromotion>>(
+}: REQUEST.GetPromotionParticipant): Promise<TResponseData<API.ViewParticipantPromotion[]>> => {
+  const response = await request<TResponseData<API.ViewParticipantPromotion[]>>(
     API_ENDPOINTS.PROMOTION_PARTICIPANT,
     {
       method: "GET",
