@@ -11,8 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OrderResponse } from "@/services/order/typings";
-import useGetOrderById from "../hooks/useGetOrderById";
 import { PaymentInfoStatus, PaymentInfoStatusText, OrderStatus } from "@/const/products";
+import useGetOrderById from "../../orderhistory/hooks/useGetOrderById";
 
 const OrderTrackingTimeline = ({ order }: { order: OrderResponse }) => {
   const hasShippedItems = order.details.some(detail =>
@@ -188,7 +188,13 @@ export default function OrderDetail() {
         <CardContent className="pt-0">
           <div className="space-y-4">
             {order.details.map((item, index) => (
-              <div key={index} className="flex items-start gap-4 p-4 border rounded-lg">
+              <div key={index} className="flex items-start gap-4 p-4 border rounded-lg cursor-pointer transform transition-transform duration-200 hover:scale-[1.02] hover:shadow-md" onClick={() => {
+                if (item.blindBoxId) {
+                  router.push(`/detail-blindbox/${item.blindBoxId}`);
+                } else {
+                  router.push(`/detail/${item.productId}`);
+                }
+              }}>
                 <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
                   {item.blindBoxImage || (item.productImages && item.productImages.length > 0) ? (
                     <img

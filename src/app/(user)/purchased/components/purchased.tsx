@@ -201,26 +201,28 @@ export default function Purchased() {
     return (
         <div className="container px-3 sm:px-6 py-6 sm:py-10 mt-36">
             <Tabs
-                defaultValue="all"
+                value={currentTab}
                 onValueChange={(val) => {
                     setCurrentTab(val);
                     setCurrentPage(1);
                 }}
             >
-                <TabsList className="w-full flex bg-white items-center justify-center border-b border-gray-200 overflow-x-auto scrollbar-hide">
+                <TabsList className="w-full flex bg-white items-center justify-center border-b border-gray-200">
                     {TAB_MAP.map((tab) => (
                         <TabsTrigger
                             key={tab.value}
                             value={tab.value}
-                            className="flex-1 min-w-0 text-xs sm:text-sm font-medium py-2 px-1 sm:px-2 text-center border-b-2 border-transparent
-              text-slate-700 whitespace-nowrap
-              data-[state=active]:text-red-500
-              data-[state=active]:border-red-500
-              data-[state=active]:bg-transparent
-              data-[state=active]:shadow-none
-              data-[state=active]:rounded-none
-              transition-all"
+                            className="flex-1 min-w-0 text-xs sm:text-sm font-medium py-2 px-1 sm:px-2 text-center 
+    text-slate-700 whitespace-nowrap border-b-2 border-transparent
+    data-[state=active]:border-red-500
+    data-[state=active]:text-red-500
+    data-[state=active]:bg-transparent
+    data-[state=active]:shadow-none
+    data-[state=active]:rounded-none
+    transition-all"
                         >
+
+
                             <span className="truncate">{tab.label}</span>
                         </TabsTrigger>
                     ))}

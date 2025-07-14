@@ -329,26 +329,28 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                 </motion.div>
             </div>
 
-            {/* Shop Info Section */}
             <motion.div
                 variants={fadeIn("up", 0.2)}
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, amount: 0.7 }}
-                className="bg-white rounded-lg p-6 mt-8 border shadow-sm"
+                className="bg-white rounded-lg py-6 px-8 mt-8 border shadow-sm"
             >
                 <div className="flex flex-col xl:flex-row xl:items-center gap-6">
-                    <div className="flex items-center gap-6">
+                    <div className="md:flex-row items-center gap-8 flex flex-col">
                         <div className="relative w-20 h-20 flex-shrink-0">
                             <div className="w-full h-full rounded-full border border-red-500 bg-white flex items-center justify-center shadow-md">
                                 <img
-                                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${sellerInfo?.companyName || 'seller'}&size=64&backgroundColor=ffffff&textColor=00579D`}
-                                    alt="Cửa hàng"
-                                    className="w-12 h-12"
+                                    src={
+                                        sellerInfo?.avatarUrl ||
+                                        `https://api.dicebear.com/7.x/initials/svg?seed=${sellerId}&size=64&backgroundColor=ffffff&textColor=00579D`
+                                    }
+                                    alt={sellerInfo?.companyName}
+                                    className="w-10 h-10 sm:w-16 sm:h-16 object-cover rounded-full"
                                 />
                             </div>
                             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-sm shadow-sm whitespace-nowrap text-center">
-                                BlindTreasure
+                                {sellerInfo?.companyName}
                             </div>
                         </div>
 
@@ -359,7 +361,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                                 </p>
                             </div>
                             <div className='flex flex-row gap-2'>
-                                <button className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition text-sm">
+                                <button className="flex items-center gap-2 bg-red-500 text-white px-2 md:px-4 py-2 rounded hover:bg-red-600 transition text-sm">
                                     <TbMessageDots className='text-xl' />
                                     Chat ngay
                                 </button>

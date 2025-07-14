@@ -48,6 +48,7 @@ declare namespace API {
     isVerified: boolean;
     phoneNumber?: string;
     dateOfBirth?: string;
+    avatarUrl: string;
     taxId?: string;
     companyAddress?: string;
     sellerStatus: string

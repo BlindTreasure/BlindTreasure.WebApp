@@ -52,7 +52,7 @@ export default function OrderCard({
         router.push(`/orderhistory/${id}`);
     };
     return (
-        <div className="border rounded-md shadow-sm bg-white mb-4">
+        <div className="border rounded-md shadow-sm bg-white mb-4" >
             <div className="flex justify-between items-center p-4 border-b bg-gray-50">
                 <div className="flex items-center gap-2">
                     <div className="bg-red-600 text-white text-xs px-1 py-0.5 rounded-sm font-bold">Mall</div>
@@ -67,7 +67,7 @@ export default function OrderCard({
             </div>
 
             {details.map((detail) => (
-                <div key={detail.id} className="p-4 flex border-b gap-4">
+                <div key={detail.id} className="p-4 flex border-b gap-4 cursor-pointer" onClick={() => router.push(`/orderdetail/${orderId}`)}>
                     <img
                         src={
                             "blindBoxId" in detail
@@ -93,11 +93,7 @@ export default function OrderCard({
                 </div>
             ))}
 
-            <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center bg-gray-50 gap-4">
-                <div className="text-sm text-gray-600">
-                    Đơn hàng sẽ được chuẩn bị và chuyển đi trước <span className="text-blue-500 underline">{deliveryDate}</span>
-                </div>
-
+            <div className="p-4 flex flex-col sm:flex-row sm:justify-end sm:items-center bg-gray-50 gap-4">
                 <div className="flex flex-wrap gap-2 items-center">
                     <div className="text-sm sm:text-base text-gray-700">
                         Thành tiền:{" "}
@@ -108,7 +104,7 @@ export default function OrderCard({
 
                     <Dialog>
                         <DialogTrigger asChild>
-                            <button className="border border-gray-300 px-4 py-1 rounded hover:bg-gray-100">
+                            <button className="border border-gray-300 px-4 py-1 rounded hover:bg-gray-100" onClick={(e) => e.stopPropagation()}>
                                 Xem hóa đơn
                             </button>
                         </DialogTrigger>
@@ -183,7 +179,14 @@ export default function OrderCard({
                                 </div>
 
                                 <div className="border-t pt-4 text-right text-sm flex justify-between items-center">
-                                    <div> <Button onClick={() => handleViewInvoiceDetail(orderId)}>Xem chi tiết</Button></div>
+                                    <div> <Button onClick={(e) => {
+  e.stopPropagation();
+  handleViewInvoiceDetail(orderId);
+}}>
+  Xem chi tiết
+</Button>
+
+</div>
                                     <div>
                                         <div>Tạm tính: {payment.amount.toLocaleString()}₫</div>
                                         <div>Giảm giá: -{(payment.amount - payment.netAmount).toLocaleString()}₫</div>

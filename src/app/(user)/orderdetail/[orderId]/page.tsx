@@ -1,5 +1,5 @@
 import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
-import OrderHistory from "../components/orderhistory";
+import OrderDetail from "../components/orderdetail";
 
 
 export const metadata: Metadata = {
@@ -7,10 +7,10 @@ export const metadata: Metadata = {
     description: "Chi tiết hóa đơn BlindTreasure",
 };
 
-export default function OrderHistoryPage() {
+export default function OrderDetailPage() {
     return (
         <div>
-            <OrderHistory />
+            <OrderDetail />
         </div>
     )
 }
