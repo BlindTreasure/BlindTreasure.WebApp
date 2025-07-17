@@ -1,6 +1,6 @@
 import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/unbox/api-path";
-import { UnboxResult } from "./typings";
+import { GetUnboxLogsParams, ResponseUnboxLogs, UnboxResult } from "./typings";
 
 export const unbox = async (
   customerBlindBoxId: string
@@ -12,5 +12,22 @@ export const unbox = async (
     }
   );
 
+  return response.data;
+};
+
+export const getUnboxLogs = async ({
+  userId,
+  productId,
+}: GetUnboxLogsParams): Promise<TResponseData<ResponseUnboxLogs[]>> => {
+  const response = await request<TResponseData<ResponseUnboxLogs[]>>(
+    API_ENDPOINTS.UNBOX_LOGS,
+    {
+      method: "GET",
+      params: {
+        userId,
+        productId,
+      },
+    }
+  );
   return response.data;
 };

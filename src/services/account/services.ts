@@ -93,7 +93,14 @@ export const useServiceGetSellerProfile = (options?: { enabled?: boolean }) => {
     queryKey: ["seller", "profile"],
     queryFn: getSellerProfile,
     retry: false,
-    enabled: options?.enabled ?? true, // Default to true if not specified
+    enabled: options?.enabled ?? true,
+
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
+    staleTime: Infinity,
+    cacheTime: 0,
+    
     onError: (error: TMeta) => {
       handleError(error);
       addToast({

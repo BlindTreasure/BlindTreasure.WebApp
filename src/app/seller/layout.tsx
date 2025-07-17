@@ -43,22 +43,35 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
       }
     };
     loadUserProfile();
-  }, [dispatch, userState.user]); 
+  }, [dispatch, userState.user]);
+
+  // useEffect(() => {
+  //   if (!data) return;
+
+  //   const sellerStatus = data.value?.data.sellerStatus;
+
+  //   if (sellerStatus === "WaitingReview") {
+  //     const interval = setInterval(() => {
+  //       console.log("Auto refetching seller profile...");
+  //       refetch();
+  //     }, 30000);
+
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [data, refetch]);
+
+  const sellerStatus = data?.value?.data?.sellerStatus;
 
   useEffect(() => {
-    if (!data) return;
+    if (sellerStatus !== "WaitingReview") return;
 
-    const sellerStatus = data.value?.data.sellerStatus;
+    const interval = setInterval(() => {
+      console.log("Auto refetching seller profile...");
+      refetch();
+    }, 30000);
 
-    if (sellerStatus === "WaitingReview") {
-      const interval = setInterval(() => {
-        console.log("Auto refetching seller profile...");
-        refetch();
-      }, 30000);
-
-      return () => clearInterval(interval);
-    }
-  }, [data, refetch]);
+    return () => clearInterval(interval);
+  }, [sellerStatus, refetch]);
 
   useEffect(() => {
     if (!data) return;

@@ -16,7 +16,8 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { handleLogout } = useLogout();
   const userState = useAppSelector((state: RootState) => state.userSlice);
-  const persistState = useAppSelector((state: RootState) => state._persist);
+  // const persistState = useAppSelector((state: RootState) => state._persist);
+  const persistState = useAppSelector((state: any) => state._persist);
   const router = useRouter();
 
   const { avatarUrl } = useUserAvatar();

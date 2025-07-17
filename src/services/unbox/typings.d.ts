@@ -8,3 +8,20 @@ export type UnboxResult = {
   unboxedAt: string;
 };
 
+export type GetUnboxLogsParams = {
+  userId?: string;
+  productId?: string;
+};
+
+export type ResponseUnboxLogs = {
+  id: string;
+  customerBlindBoxId: string;
+  productId: string;
+  productName: string;
+  rarity: Rarity;
+  dropRate: number;
+  rollValue: number;
+  unboxedAt: string;
+  blindBoxName: string;
+  reason: string;
+};

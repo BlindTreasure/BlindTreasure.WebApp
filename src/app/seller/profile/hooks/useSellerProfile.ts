@@ -65,8 +65,6 @@ export default function useSellerProfile() {
         taxId: seller.taxId || "",
         companyAddress: seller.companyAddress || "",
       };
-
-      // Force form reset with new data
       reset(formData, { keepDefaultValues: false });
     }
   }, [seller, reset]);

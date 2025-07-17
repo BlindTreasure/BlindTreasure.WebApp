@@ -18,7 +18,8 @@ import Link from "next/link";
 export default function ProfileComponent() {
   const router = useRouter();
   const userState = useAppSelector((state) => state.userSlice);
-  const persistState = useAppSelector((state) => state._persist);
+  // const persistState = useAppSelector((state) => state._persist);
+const persistState = useAppSelector((state: any) => state._persist);
 
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [avatarTooltip, setAvatarTooltip] = useState(false);

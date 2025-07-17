@@ -1,11 +1,12 @@
 import { useServiceLogout } from "@/services/auth/services";
-import { persistor, store, useAppDispatch } from "@/stores/store";
+import { store, useAppDispatch } from "@/stores/store";
 import useToast from "./use-toast";
 import { useRouter } from "next/navigation";
 import { removeStorageItem } from "@/utils/local-storage";
 import { clearUser } from "@/stores/user-slice";
 import { resetProfile } from "@/stores/account-slice";
 import { clearCart } from "@/stores/cart-slice";
+import { persistor } from "@/stores/store-client";
 
 export default function useLogout() {
   const { mutate: logout } = useServiceLogout();
