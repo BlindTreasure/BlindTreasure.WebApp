@@ -18,12 +18,20 @@ export const useNotification = () => {
   const userRole = user?.roleName || 'Customer';
 
   // Fetch notifications from API
-  const fetchNotifications = useCallback(async (params: { pageIndex: number; pageSize: number }) => {
+  const fetchNotifications = useCallback(async ({
+  pageIndex,
+  pageSize
+}: REQUEST.NotificationParamsRequest) => {
     try {
+      var params = {
+        pageIndex,
+        pageSize
+      }
+      
       dispatch(setLoading(true));
       dispatch(setError(null));
       
-      console.log(`[useNotification] Fetching notifications for role: ${userRole}, params:`, params);
+      console.log(`[useNotification] Fetching notifications for role: ${userRole}, params:`, );
       
       const response = await getNotifications(params);
       if (response.isSuccess && response.value?.data?.items) {

@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Message from "../components/message/message";
 import useAutoRefreshToken from "@/hooks/use-auto-refresh-token";
-import { SignalRProvider } from "./signalr-provider";
+import SignalRProvider from "./signalr-provider";
 const StoreProvider = dynamic(
     () => import("@/provider/redux-provider").then((mod) => mod.StoreProvider),
     {

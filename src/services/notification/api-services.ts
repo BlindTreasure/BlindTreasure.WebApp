@@ -1,30 +1,18 @@
 import request from "@/services/interceptor";
 import API_ENDPOINTS from "./api-path";
 
-export interface NotificationResponse {
-  id: string;
-  title: string;
-  message: string;
-  type: 'System' | 'Order' | 'Promotion' | 'Product' | 'General';
-  sentAt: string;
-  isRead: boolean;
-  isDeleted: boolean;
-  targetRole?: string; // Thêm trường targetRole
-}
-
-export interface NotificationListResponse {
-  items: NotificationResponse[];
-  totalCount: number;
-  pageIndex: number;
-  pageSize: number;
-}
-
-export const getNotifications = async (params: { pageIndex: number; pageSize: number }) => {
-  const response = await request<TResponseData<NotificationListResponse>>(
+export const getNotifications = async ({
+  pageIndex,
+  pageSize
+}: REQUEST.NotificationParamsRequest) => {
+  const response = await request<TResponseData<API.NotificationListResponse>>(
     API_ENDPOINTS.NOTIFICATION,
     {
       method: "GET",
-      params,
+      params:{
+        pageIndex,
+        pageSize
+      },
     }
   );
   return response.data;
@@ -41,7 +29,7 @@ export const getUnreadCount = async () => {
 };
 
 export const markNotificationAsRead = async (notificationId: string) => {
-  const response = await request<TResponseData<NotificationResponse>>(
+  const response = await request<TResponseData<API.NotificationResponse>>(
     API_ENDPOINTS.MARK_AS_READ(notificationId),
     {
       method: "POST",
@@ -51,7 +39,7 @@ export const markNotificationAsRead = async (notificationId: string) => {
 };
 
 export const markAllNotificationsAsRead = async () => {
-  const response = await request<TResponseData<{ message: string }>>(
+  const response = await request<TResponseData<API.MessageNotification>>(
     API_ENDPOINTS.MARK_ALL_AS_READ,
     {
       method: "POST",
@@ -61,7 +49,7 @@ export const markAllNotificationsAsRead = async () => {
 };
 
 export const deleteNotification = async (notificationId: string) => {
-  const response = await request<TResponseData<{ message: string }>>(
+  const response = await request<TResponseData<API.MessageNotification>>(
     API_ENDPOINTS.DELETE_NOTIFICATION(notificationId),
     {
       method: "DELETE",
