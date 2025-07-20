@@ -13,6 +13,7 @@ import useGetProductByIdWeb from "@/app/(user)/detail/hooks/useGetProductByIdWeb
 import { AllProduct } from "@/services/product/typings";
 import { Button } from "@/components/ui/button";
 import { Rarity, RarityColorClass, RarityText } from "@/const/products";
+import ReactMarkdown from 'react-markdown'
 
 export default function UnboxLogs() {
     const { isPending, getUnboxLogsApi } = useGetUnboxLogs();
@@ -135,7 +136,7 @@ export default function UnboxLogs() {
                                             <strong>Ngày mở:</strong> {moment(selectedLog.unboxedAt).format("DD/MM/YYYY HH:mm")}
                                         </div>
                                         <div className="text-sm text-gray-600">
-                                            <strong>Lí do:</strong> {selectedLog.reason}
+                                            <strong>Lí do:</strong> <ReactMarkdown>{selectedLog.reason}</ReactMarkdown>
                                         </div>
                                     </div>
                                 )}
