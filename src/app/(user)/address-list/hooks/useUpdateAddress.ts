@@ -27,6 +27,8 @@ export default function useUpdateAddress(
       addressLine: "",
       city: "",
       province: "",
+      ward: "",
+      district: "",
       postalCode: "",
       ...defaultValues,
     },
@@ -43,6 +45,8 @@ export default function useUpdateAddress(
       addressLine,
       city,
       province,
+      ward,
+      district,
       postalCode,
     } = data;
 
@@ -54,6 +58,8 @@ export default function useUpdateAddress(
         addressLine,
         city,
         province,
+        ward,
+        district,
         postalCode,
       },
       {

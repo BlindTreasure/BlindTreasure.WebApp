@@ -1,17 +1,13 @@
+import useGetDistricts from "@/app/(user)/address-list/hooks/useGetDistricts";
+import useGetProvinces from "@/app/(user)/address-list/hooks/useGetProvinces";
+import useGetWards from "@/app/(user)/address-list/hooks/useGetWards";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
+  Select, SelectTrigger, SelectValue,
+  SelectContent, SelectItem
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 
 type SimpleAddress = { name: string; code: string };
-type Ward = SimpleAddress & { level?: string };
-type District = SimpleAddress & { wards: Ward[] };
-type Province = SimpleAddress & { districts: District[] };
-
 type ProvinceSelectProps = {
   value?: {
     province: SimpleAddress | null;
@@ -23,168 +19,118 @@ type ProvinceSelectProps = {
     district: SimpleAddress | null;
     ward: SimpleAddress | null;
   }) => void;
-  provincesData: Province[];
 };
 
-export default function ProvinceSelect({ value, onChange, provincesData }: ProvinceSelectProps) {
-  const [internalValue, setInternalValue] = useState<{
-    province: Province | null;
-    district: District | null;
-    ward: Ward | null;
-  }>({
-    province: null,
-    district: null,
-    ward: null,
-  });
+export default function ProvinceSelect({ value, onChange }: ProvinceSelectProps) {
+  const { getProvincesApi, provinces } = useGetProvinces();
+  const { getDistrictsApi, districts } = useGetDistricts();
+  const { getWardsApi, wards } = useGetWards();
+
+  const [selectedProvince, setProvince] = useState<SimpleAddress | null>(null);
+  const [selectedDistrict, setDistrict] = useState<SimpleAddress | null>(null);
+  const [selectedWard, setWard] = useState<SimpleAddress | null>(null);
 
   useEffect(() => {
-    if (value?.province && provincesData.length > 0) {
-      const selectedProvince = provincesData.find(
-        (p) => p.code === value.province?.code
-      );
-      setInternalValue((prev) => ({
-        ...prev,
-        province: selectedProvince || null,
-        district: null,
-        ward: null,
-      }));
-    }
-    if (!value?.province) {
-      setInternalValue({ province: null, district: null, ward: null });
-    }
-  }, [value?.province, provincesData]);
+    getProvincesApi();
+  }, []);
 
   useEffect(() => {
-    if (internalValue.province && value?.district) {
-      const selectedDistrict = internalValue.province.districts.find(
-        (d) => d.code === value.district?.code
-      );
-      setInternalValue((prev) => ({
-        ...prev,
-        district: selectedDistrict || null,
-        ward: null,
-      }));
+    if (value?.province) {
+      const p = provinces.find(p => String(p.provinceID) === value.province?.code);
+      if (p) {
+        setProvince({ code: String(p.provinceID), name: p.provinceName });
+        getDistrictsApi({ provinceId: p.provinceID });
+      }
     }
-    if (!value?.district) {
-      setInternalValue((prev) => ({ ...prev, district: null, ward: null }));
-    }
-  }, [internalValue.province, value?.district]);
+  }, [value?.province, provinces]);
 
   useEffect(() => {
-    if (internalValue.district && value?.ward) {
-      const selectedWard = internalValue.district.wards.find(
-        (w) => w.code === value.ward?.code
-      );
-      setInternalValue((prev) => ({
-        ...prev,
-        ward: selectedWard || null,
-      }));
+    if (value?.district && selectedProvince) {
+      const d = districts.find(d => String(d.districtID) === value.district?.code);
+      if (d) {
+        setDistrict({ code: String(d.districtID), name: d.districtName });
+        getWardsApi({ districtId: d.districtID });
+      }
     }
-    if (!value?.ward) {
-      setInternalValue((prev) => ({ ...prev, ward: null }));
+  }, [value?.district, districts]);
+
+  useEffect(() => {
+    if (value?.ward && selectedDistrict) {
+      const w = wards.find(w => String(w.wardCode) === value.ward?.code);
+      if (w) setWard({ code: String(w.wardCode), name: w.wardName });
     }
-  }, [internalValue.district, value?.ward]);
+  }, [value?.ward, wards]);
 
   const handleProvinceChange = (code: string) => {
-    const province = provincesData.find((p) => p.code === code) || null;
-    setInternalValue({
-      province,
-      district: null,
-      ward: null,
-    });
-    onChange({
-      province: province ? { name: province.name, code: province.code } : null,
-      district: null,
-      ward: null,
-    });
+    const p = provinces.find(p => String(p.provinceID) === code);
+    const province = p ? { code, name: p.provinceName } : null;
+    setProvince(province);
+    setDistrict(null);
+    setWard(null);
+    if (p) getDistrictsApi({ provinceId: p.provinceID });
+    onChange({ province, district: null, ward: null });
   };
 
   const handleDistrictChange = (code: string) => {
-    const district = internalValue.province?.districts.find((d) => d.code === code) || null;
-    setInternalValue((prev) => ({
-      ...prev,
-      district,
-      ward: null,
-    }));
-    onChange({
-      province: internalValue.province
-        ? { name: internalValue.province.name, code: internalValue.province.code }
-        : null,
-      district: district ? { name: district.name, code: district.code } : null,
-      ward: null,
-    });
+    const d = districts.find(d => String(d.districtID) === code);
+    const district = d ? { code, name: d.districtName } : null;
+    setDistrict(district);
+    setWard(null);
+    if (d) getWardsApi({ districtId: d.districtID });
+    onChange({ province: selectedProvince, district, ward: null });
   };
 
   const handleWardChange = (code: string) => {
-    const ward = internalValue.district?.wards.find((w) => w.code === code) || null;
-    setInternalValue((prev) => ({
-      ...prev,
-      ward,
-    }));
-    onChange({
-      province: internalValue.province
-        ? { name: internalValue.province.name, code: internalValue.province.code }
-        : null,
-      district: internalValue.district
-        ? { name: internalValue.district.name, code: internalValue.district.code }
-        : null,
-      ward: ward ? { name: ward.name, code: ward.code } : null,
-    });
+    const w = wards.find(w => String(w.wardCode) === code);
+    const ward = w ? { code, name: w.wardName } : null;
+    setWard(ward);
+    onChange({ province: selectedProvince, district: selectedDistrict, ward });
   };
 
   return (
     <div className="space-y-4">
-      <Select
-        value={internalValue.province?.code || ""}
-        onValueChange={handleProvinceChange}
-      >
+      <Select value={selectedProvince?.code || ""} onValueChange={handleProvinceChange}>
         <SelectTrigger>
-          <SelectValue placeholder="Tỉnh/Thành phố">
-            {internalValue.province?.name || value?.province?.name}
-          </SelectValue>
+          <SelectValue placeholder="Tỉnh/Thành phố" />
         </SelectTrigger>
         <SelectContent>
-          {provincesData.map((p) => (
-            <SelectItem key={p.code} value={p.code}>
-              {p.name}
+          {provinces.map(p => (
+            <SelectItem key={p.provinceID} value={String(p.provinceID)}>
+              {p.provinceName}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
       <Select
-        disabled={!internalValue.province}
-        value={internalValue.district?.code || ""}
+        value={selectedDistrict?.code || ""}
         onValueChange={handleDistrictChange}
+        disabled={!selectedProvince}
       >
         <SelectTrigger>
-          <SelectValue placeholder="Quận/Huyện">
-            {internalValue.district?.name || value?.district?.name}
-          </SelectValue>
+          <SelectValue placeholder="Quận/Huyện" />
         </SelectTrigger>
         <SelectContent>
-          {(internalValue.province?.districts ?? []).map((d) => (
-            <SelectItem key={d.code} value={d.code}>
-              {d.name}
+          {districts.map(d => (
+            <SelectItem key={d.districtID} value={String(d.districtID)}>
+              {d.districtName}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
       <Select
-        disabled={!internalValue.district}
-        value={internalValue.ward?.code || ""}
+        value={selectedWard?.code || ""}
         onValueChange={handleWardChange}
+        disabled={!selectedDistrict}
       >
         <SelectTrigger>
-          <SelectValue placeholder="Phường/Xã">
-            {internalValue.ward?.name || value?.ward?.name}
-          </SelectValue>
+          <SelectValue placeholder="Phường/Xã" />
         </SelectTrigger>
         <SelectContent>
-          {(internalValue.district?.wards ?? []).map((w) => (
-            <SelectItem key={w.code} value={w.code}>
-              {w.name}
+          {wards.map(w => (
+            <SelectItem key={w.wardCode} value={String(w.wardCode)}>
+              {w.wardName}
             </SelectItem>
           ))}
         </SelectContent>

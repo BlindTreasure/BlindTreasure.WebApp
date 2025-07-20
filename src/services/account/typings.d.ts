@@ -32,6 +32,8 @@ declare namespace REQUEST {
     addressLine: string;
     city: string;
     province: string;
+    ward: string;
+    district: string;
     postalCode?: string;
     isDefault?: boolean;
   };
@@ -42,6 +44,8 @@ declare namespace REQUEST {
     addressLine: string;
     city: string;
     province: string;
+    ward: string;
+    district: string;
     postalCode?: string;
   };
 
