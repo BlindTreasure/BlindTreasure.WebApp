@@ -4,15 +4,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X, Plus, Minus, Trash2 } from 'lucide-react';
+import { X, Plus, Minus, Trash2, Truck } from 'lucide-react';
 import useGetCartByCustomer from '../hooks/useGetCartByCustomer';
 import useUpdateCartQuantity from "../hooks/useUpdateQuantityItemCart";
 import useDeleteCartItem from "../hooks/useDeleteCartItem";
 import useClearAllCartItem from "../hooks/useClearAllCartItem";
+import usePreviewShipping from '../hooks/usePreviewShipping';
 import useDebounce from '@/hooks/use-debounce';
 import Image from 'next/image';
 import { SlHandbag } from "react-icons/sl";
-import useGetAllAddress from '../../address-list/hooks/useGetAllAddress';
+
 import useCreateOrder from '../hooks/useCreateOrder';
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialogHeader } from '@/components/ui/alert-dialog';
@@ -108,26 +109,48 @@ const Cart: React.FC = () => {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [promotionId, setPromotionId] = useState<string | null>(null);
-  const { getAllAddressApi, isPending: isGettingAddress, defaultAddress } = useGetAllAddress();
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+
   const { createOrder, isPending: isCreatingOrder } = useCreateOrder();
   const [orderItems, setOrderItems] = useState<REQUEST.CreateOrderItem[]>([]);
   const [pendingOrderData, setPendingOrderData] = useState<REQUEST.CreateOrderList | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const { addToast } = useToast();
   const router = useRouter();
+  const [isShip, setIsShip] = useState(false);
+  const [shippingData, setShippingData] = useState<API.ShipmentPreview[] | null>(null);
+  const { previewShipping, isPending: isLoadingShipping } = usePreviewShipping();
 
   useEffect(() => {
-    (async () => {
-      const res = await getAllAddressApi();
-    })();
-  }, []);
+    const fetchShippingPreview = async () => {
+      if (!isShip || selectedItems.length === 0) {
+        setShippingData(null);
+        return;
+      }
 
-  useEffect(() => {
-    if (defaultAddress) {
-      setSelectedAddressId(defaultAddress.id);
-    }
-  }, [defaultAddress]);
+      const items: REQUEST.CreateOrderItem[] = cartItems
+        .filter(item => selectedItems.includes(item.id))
+        .map(item => ({
+          productId: item.productId ?? "",
+          productName: item.productName ?? "",
+          blindBoxId: item.blindBoxId ?? "",
+          blindBoxName: item.blindBoxName ?? "",
+          quantity: quantities[item.id] ?? item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: (quantities[item.id] ?? item.quantity) * item.unitPrice,
+        }));
+
+      const payload: REQUEST.CreateOrderList = {
+        items,
+        isShip: true,
+        ...(promotionId && { promotionId }),
+      };
+
+      const result = await previewShipping(payload);
+      setShippingData(result);
+    };
+
+    fetchShippingPreview();
+  }, [isShip, selectedItems, quantities, cartItems, promotionId]);
 
 
   // Khởi tạo selectedItems và quantities khi cartItems thay đổi
@@ -217,20 +240,18 @@ const Cart: React.FC = () => {
     setQuantities((prev) => ({ ...prev, [id]: newQuantity }));
   }, []);
 
-  const total: number = cartItems
+  const subtotal: number = cartItems
     .filter((item) => selectedItems.includes(item.id))
     .reduce((acc, item) => {
       const quantity = quantities[item.id] ?? item.quantity;
       return acc + quantity * item.unitPrice;
     }, 0);
 
-  // const handleCheckout = useCallback(async () => {
-  //   try {
-  //     console.log('Proceeding to checkout with total:', total);
-  //   } catch (error) {
-  //     console.error('Error during checkout:', error);
-  //   }
-  // }, [total]);
+  const totalShippingFee: number = isShip && shippingData
+    ? shippingData.reduce((acc, shipment) => acc + shipment.ghnPreviewResponse.totalFee, 0)
+    : 0;
+
+  const total: number = subtotal + totalShippingFee;
 
   const handlePreviewOrder = useCallback(() => {
     const items: REQUEST.CreateOrderItem[] = cartItems
@@ -247,13 +268,13 @@ const Cart: React.FC = () => {
 
     const payload: REQUEST.CreateOrderList = {
       items,
-      ...(selectedAddressId && { shippingAddressId: selectedAddressId }),
       ...(promotionId && { promotionId }),
+      isShip,
     };
 
     setPendingOrderData(payload);
     setShowConfirmModal(true);
-  }, [cartItems, selectedItems, promotionId, quantities, selectedAddressId]);
+  }, [cartItems, selectedItems, promotionId, quantities, isShip]);
 
   const handleCheckout = useCallback(async () => {
     const items: REQUEST.CreateOrderItem[] = cartItems
@@ -270,15 +291,15 @@ const Cart: React.FC = () => {
 
     const payload: REQUEST.CreateOrderList = {
       items,
-      ...(selectedAddressId && { shippingAddressId: selectedAddressId }),
       ...(promotionId && { promotionId }),
+      isShip,
     };
 
     const url = await createOrder(payload);
     if (url) {
       window.location.href = url;
     }
-  }, [selectedAddressId, selectedItems, cartItems, quantities, promotionId, createOrder]);
+  }, [selectedItems, cartItems, quantities, promotionId, createOrder, isShip]);
 
 
   const handleContinueShopping = () => {
@@ -306,7 +327,6 @@ const Cart: React.FC = () => {
           Tổng sản phẩm ({cartItems.length} sản phẩm)
         </h2>
       )}
-
 
       {cartItems.length === 0 ? (
         <div className="text-center pb-12 space-y-8">
@@ -453,11 +473,49 @@ const Cart: React.FC = () => {
           <Card className="w-full lg:w-80 h-fit sticky top-40">
             <CardContent className="p-4 sm:p-6">
               <h2 className="text-lg font-semibold mb-4">Tóm tắt đơn hàng</h2>
+
+              <div className="mb-4 p-3 border rounded-lg bg-gray-50">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Checkbox
+                    id="shipping-option"
+                    checked={isShip}
+                    onCheckedChange={(checked) => setIsShip(checked as boolean)}
+                  />
+                  <label htmlFor="shipping-option" className="text-sm font-medium flex items-center gap-2">
+                    <Truck className="w-4 h-4" />
+                    Giao hàng tận nơi
+                  </label>
+                </div>
+                {isShip && isLoadingShipping && (
+                  <p className="text-xs text-gray-500 ml-6">
+                    Đang tính phí vận chuyển...
+                  </p>
+                )}
+              </div>
+
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
                   <span>Số sản phẩm đã chọn:</span>
                   <span>{selectedItems.length}</span>
                 </div>
+                <div className="flex justify-between text-sm">
+                  <span>Tạm tính:</span>
+                  <span>{subtotal.toLocaleString('vi-VN')}₫</span>
+                </div>
+                {isShip && (
+                  <div className="flex justify-between text-sm">
+                    <span>Phí vận chuyển:</span>
+                    <span>
+                      {isLoadingShipping ? (
+                        "Đang tính..."
+                      ) : totalShippingFee > 0 ? (
+                        `${totalShippingFee.toLocaleString('vi-VN')}₫`
+                      ) : (
+                        "0₫"
+                      )}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm font-semibold border-t pt-2">
                   <span>Tổng tiền:</span>
                   <span className="text-[#d02a2a]">
@@ -515,11 +573,34 @@ const Cart: React.FC = () => {
             ))}
           </div>
 
-          <div className="mt-4 font-semibold text-right">
-            Tổng cộng: ₫
-            {pendingOrderData?.items
-              .reduce((sum, item) => sum + item.totalPrice, 0)
-              .toLocaleString()}
+          <div className="mt-4 space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span>Tạm tính:</span>
+              <span>₫{pendingOrderData?.items
+                .reduce((sum, item) => sum + item.totalPrice, 0)
+                .toLocaleString()}</span>
+            </div>
+            {pendingOrderData?.isShip && (
+              <div className="flex justify-between">
+                <span>Phí vận chuyển:</span>
+                <span>₫{totalShippingFee.toLocaleString()}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-semibold text-base border-t pt-2">
+              <span>Tổng cộng:</span>
+              <span className="text-[#d02a2a]">
+                ₫{(
+                  (pendingOrderData?.items.reduce((sum, item) => sum + item.totalPrice, 0) || 0) +
+                  (pendingOrderData?.isShip ? totalShippingFee : 0)
+                ).toLocaleString()}
+              </span>
+            </div>
+            {pendingOrderData?.isShip && (
+              <div className="text-xs text-gray-500 flex items-center gap-1">
+                <Truck className="w-3 h-3" />
+                Đơn hàng sẽ được giao tận nơi 
+              </div>
+            )}
           </div>
 
           <DialogFooter className="mt-4">

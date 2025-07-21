@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
+import { vi } from "date-fns/locale";
 import { ArrowLeft, Package, Truck, CheckCircle, MapPin, Receipt, Hourglass } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,19 +14,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { OrderResponse } from "@/services/order/typings";
 import { PaymentInfoStatus, PaymentInfoStatusText, OrderStatus } from "@/const/products";
 import useGetOrderById from "../../orderhistory/hooks/useGetOrderById";
+import { previewShipping } from "@/services/stripe/api-services";
 
-const OrderTrackingTimeline = ({ order }: { order: OrderResponse }) => {
+const OrderTrackingTimeline = ({ order, estimatedDeliveryDate }: { order: OrderResponse; estimatedDeliveryDate?: Date | null }) => {
   const hasShippedItems = order.details.some(detail =>
-    detail.status === OrderStatus.SHIPPING || detail.status === OrderStatus.DELIVERED
+    detail.status === OrderStatus.DELIVEREDING || detail.status === OrderStatus.DELIVERED
   );
 
   const hasDeliveredItems = order.details.some(detail =>
     detail.status === OrderStatus.DELIVERED
   );
-
-  const estimatedShippingTime = order.payment.paidAt
-    ? new Date(new Date(order.payment.paidAt).getTime() + 24 * 60 * 60 * 1000)
-    : null;
 
   const trackingSteps = [
     {
@@ -45,10 +43,8 @@ const OrderTrackingTimeline = ({ order }: { order: OrderResponse }) => {
     {
       id: 3,
       title: "Đã Giao Cho ĐVVC",
-      time: hasShippedItems && estimatedShippingTime
-        ? format(estimatedShippingTime, "HH:mm dd-MM-yyyy")
-        : "",
-      status: hasShippedItems ? "completed" : "pending",
+      time: order.payment.paidAt ? format(new Date(order.payment.paidAt), "HH:mm dd-MM-yyyy") : "",
+      status: order.payment.status === PaymentInfoStatus.Paid || order.payment.status === PaymentInfoStatus.Completed ? "completed" : "pending",
       icon: <Truck className="w-5 h-5" />,
     },
     {
@@ -56,15 +52,17 @@ const OrderTrackingTimeline = ({ order }: { order: OrderResponse }) => {
       title: "Chờ giao hàng",
       time: hasDeliveredItems && order.completedAt
         ? format(new Date(order.completedAt), "HH:mm dd-MM-yyyy")
-        : "",
-      status: hasDeliveredItems ? "completed" : "pending",
+        : estimatedDeliveryDate && !hasDeliveredItems
+          ? `Dự kiến: ${format(estimatedDeliveryDate, "dd-MM-yyyy")}`
+          : "",
+      status: hasDeliveredItems ? "completed" : hasShippedItems ? "completed" : "pending",
       icon: <Hourglass className="w-5 h-5" />,
     },
     {
       id: 5,
       title: "Đơn Hàng Đã Hoàn Thành",
       time: order.completedAt ? format(new Date(order.completedAt), "HH:mm dd-MM-yyyy") : "",
-      status: order.completedAt ? "completed" : "pending",
+      status: hasDeliveredItems ? "completed" : "pending",
       icon: <CheckCircle className="w-5 h-5" />,
     },
   ];
@@ -116,6 +114,8 @@ export default function OrderDetail() {
   const { getOrderDetailApi, isPending } = useGetOrderById();
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [tab, setTab] = useState("order");
+  const [shippingData, setShippingData] = useState<API.ShipmentPreview[] | null>(null);
+  const [isLoadingShipping, setIsLoadingShipping] = useState(false);
 
   useEffect(() => {
     if (!orderId) return;
@@ -127,6 +127,48 @@ export default function OrderDetail() {
     };
     fetchData();
   }, [orderId]);
+
+  useEffect(() => {
+    const fetchShippingData = async () => {
+      if (!order || !order.shippingAddress) {
+        setShippingData(null);
+        setIsLoadingShipping(false);
+        return;
+      }
+
+      setIsLoadingShipping(true);
+      try {
+        const items: REQUEST.CreateOrderItem[] = order.details.map(item => ({
+          productId: item.productId || "",
+          productName: item.productName || "",
+          blindBoxId: item.blindBoxId || "",
+          blindBoxName: item.blindBoxName || "",
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.totalPrice,
+        }));
+
+        const payload: REQUEST.CreateOrderList = {
+          items,
+          isShip: true,
+        };
+
+        const result = await previewShipping(payload);
+        if (result.isSuccess) {
+          setShippingData(result.value.data);
+        } else {
+          setShippingData(null);
+        }
+      } catch (error) {
+        console.error("Error fetching shipping data:", error);
+        setShippingData(null);
+      } finally {
+        setIsLoadingShipping(false);
+      }
+    };
+
+    fetchShippingData();
+  }, [order]);
 
   if (isPending || !order) {
     return (
@@ -144,16 +186,46 @@ export default function OrderDetail() {
 
   const totalItems = order.details.reduce((sum, item) => sum + item.quantity, 0);
 
+  const shippingFee: number = order.shippingAddress && shippingData
+    ? shippingData.reduce((acc, shipment) => acc + shipment.ghnPreviewResponse.totalFee, 0)
+    : 0;
+
+  const discountAmount = Math.max(0, order.payment.amount - order.payment.netAmount);
+
+  const hasShipping = !!order.shippingAddress;
+
+  const getEstimatedDeliveryDate = () => {
+    if (!hasShipping || !shippingData || shippingData.length === 0) {
+      return null;
+    }
+
+    const deliveryTimes = shippingData
+      .map(shipment => shipment.ghnPreviewResponse.expectedDeliveryTime)
+      .filter(time => time)
+      .map(time => new Date(time));
+
+    if (deliveryTimes.length === 0) {
+      const orderDate = new Date(order.placedAt);
+      return addDays(orderDate, 5);
+    }
+
+    return new Date(Math.max(...deliveryTimes.map(date => date.getTime())));
+  };
+
+  const estimatedDeliveryDate = getEstimatedDeliveryDate();
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 mt-40">
-      <div className="text-center flex items-center justify-between">
-        <div className="text-sm text-gray-500 font-poppins">MÃ ĐƠN HÀNG: {order.id.slice(0, 12).toUpperCase()}</div>
-        <div className="text-sm text-green-500 font-poppins">
-          {order.completedAt ? "ĐƠN HÀNG ĐÃ HOÀN THÀNH" : "ĐANG XỬ LÝ"}
+      <div className="text-center space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-500 font-poppins">MÃ ĐƠN HÀNG: {order.id.slice(0, 12).toUpperCase()}</div>
+          <div className="text-sm text-green-500 font-poppins">
+            {order.completedAt ? "ĐƠN HÀNG ĐÃ HOÀN THÀNH" : "ĐANG XỬ LÝ"}
+          </div>
         </div>
       </div>
 
-      <OrderTrackingTimeline order={order} />
+      <OrderTrackingTimeline order={order} estimatedDeliveryDate={estimatedDeliveryDate} />
 
       <Card>
         <CardHeader className="pb-3">
@@ -172,10 +244,36 @@ export default function OrderDetail() {
                 {order.shippingAddress.postalCode && `, ${order.shippingAddress.postalCode}`}
                 {order.shippingAddress.country && `, ${order.shippingAddress.country}`}
               </div>
+              {isLoadingShipping && (
+                <div className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded mt-2 inline-block">
+                  <Truck className="w-3 h-3 inline mr-1" />
+                  Đang tính phí vận chuyển...
+                </div>
+              )}
+              <div>
+                {!isLoadingShipping && shippingFee > 0 && (
+                  <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mt-2 inline-block">
+                    <Truck className="w-3 h-3 inline mr-1" />
+                    Phí vận chuyển: ₫{shippingFee.toLocaleString("vi-VN")}
+                  </div>
+                )}
+                {!isLoadingShipping && shippingFee === 0 && hasShipping && (
+                  <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded mt-2 inline-block">
+                    <Truck className="w-3 h-3 inline mr-1" />
+                    Miễn phí vận chuyển
+                  </div>
+                )}
+              </div>
+              {!isLoadingShipping && estimatedDeliveryDate && (
+                <div className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded mt-2 inline-block">
+                  <CheckCircle className="w-3 h-3 inline mr-1" />
+                  Dự kiến giao: {format(estimatedDeliveryDate, "dd/MM/yyyy", { locale: vi })}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-sm text-muted-foreground italic">
-              Chưa có địa chỉ giao hàng. Vui lòng cập nhật địa chỉ để hoàn tất đơn hàng.
+              Đơn hàng chưa có giao hàng tận nơi.
             </div>
           )}
         </CardContent>
@@ -243,16 +341,32 @@ export default function OrderDetail() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Phí vận chuyển</span>
-                <span>₫0</span>
+                <span>
+                  {hasShipping ? (
+                    isLoadingShipping ? (
+                      <span className="text-gray-500">Đang tính...</span>
+                    ) : shippingFee > 0 ? (
+                      `₫${shippingFee.toLocaleString("vi-VN")}`
+                    ) : (
+                      <span className="text-green-600">Miễn phí</span>
+                    )
+                  ) : (
+                    <span className="text-gray-400">Không áp dụng</span>
+                  )}
+                </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Voucher từ BlindTreasure</span>
-                <span className="text-green-600">-₫0</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Voucher từ Shop</span>
-                <span className="text-green-600">-₫0</span>
-              </div>
+              {discountAmount > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Giảm giá</span>
+                  <span className="text-green-600">-₫{discountAmount.toLocaleString("vi-VN")}</span>
+                </div>
+              )}
+              {order.promotionNote && (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Khuyến mãi</span>
+                  <span className="text-green-600">{order.promotionNote}</span>
+                </div>
+              )}
               <Separator />
               <div className="flex justify-between items-center text-lg font-semibold">
                 <span>Thành tiền</span>
@@ -281,7 +395,7 @@ export default function OrderDetail() {
             <TabsList className="flex gap-2 overflow-x-auto whitespace-nowrap pl-32 md:pl-1">
               <TabsTrigger className="w-full text-center" value="order">Vấn đề đơn hàng</TabsTrigger>
               <TabsTrigger className="w-full text-center" value="shipping">Thông tin giao hàng</TabsTrigger>
-              <TabsTrigger className="w-full text-center" value="return">Trả hàng</TabsTrigger>
+
             </TabsList>
             <div className="mt-4 text-sm text-gray-600 bg-gray-50 p-4 rounded-md border">
               <TabsContent value="order">
@@ -290,9 +404,7 @@ export default function OrderDetail() {
               <TabsContent value="shipping">
                 Đơn hàng của bạn sẽ được giao trong vòng 3–5 ngày làm việc. Vui lòng kiểm tra tình trạng giao hàng trong phần Theo dõi đơn hàng.
               </TabsContent>
-              <TabsContent value="return">
-                Bạn có thể trả hàng trong vòng 7 ngày nếu sản phẩm lỗi hoặc không đúng mô tả. Truy cập mục Chính sách hoàn trả để biết thêm chi tiết.
-              </TabsContent>
+
             </div>
           </Tabs>
         </CardContent>
