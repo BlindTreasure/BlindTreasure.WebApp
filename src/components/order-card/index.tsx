@@ -121,26 +121,26 @@ export default function OrderCard({
                                 >
                                     {PaymentInfoStatusText[payment.status]}
                                 </span> */}
-                                {details.map((detail) => (
-                                    <div key={detail.id} className="flex items-center gap-2">
+                                {/* Get unique statuses to avoid duplicates */}
+                                {Array.from(new Set(details.map(detail => detail.status))).map((status) => (
+                                    <div key={status} className="flex items-center gap-2">
                                         <span
                                             className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase w-fit
-        ${detail.status === OrderStatus.CANCELLED
+        ${status === OrderStatus.CANCELLED
                                                     ? "bg-red-100 text-red-700"
-                                                    : detail.status === OrderStatus.PENDING
+                                                    : status === OrderStatus.PENDING
                                                         ? "bg-yellow-100 text-yellow-700"
-                                                        : detail.status === OrderStatus.SHIPPING_REQUESTED
+                                                        : status === OrderStatus.SHIPPING_REQUESTED
                                                             ? "bg-blue-100 text-blue-700"
-                                                            : detail.status === OrderStatus.DELIVEREDING
+                                                            : status === OrderStatus.DELIVEREDING
                                                                 ? "bg-green-100 text-green-700"
                                                                 : "bg-gray-100 text-gray-600"
                                                 }`}
                                         >
-                                            {OrderStatusText[detail.status] ?? "Không xác định"}
+                                            {OrderStatusText[status] ?? "Không xác định"}
                                         </span>
                                     </div>
                                 ))}
-
                             </DialogHeader>
 
                             <div className="space-y-6 text-sm mt-4">

@@ -4,6 +4,9 @@ import {
   InventoryItem,
   GetItemInventoryResponse,
   GetItemInventoryParams,
+  RequestShipment,
+  ShipmentPreview,
+  PreviewShipment,
 } from "./typings";
 
 export const getItemInventory = async ({
@@ -41,6 +44,26 @@ export const getItemInventoryByBlindBox = async (blindBoxId: string) => {
     {
       method: "GET",
     }
+  );
+  return response.data;
+};
+
+export const requestShipment = async (
+  data: RequestShipment
+): Promise<TResponseData<ShipmentPreview[]>> => {
+  const response = await request.post<TResponseData<ShipmentPreview[]>>(
+    API_ENDPOINTS.REQUEST_SHIPMENT,
+    data
+  );
+  return response.data;
+};
+
+export const previewShipment = async (
+  data: PreviewShipment
+): Promise<TResponseData<ShipmentPreview[]>> => {
+  const response = await request.post<TResponseData<ShipmentPreview[]>>(
+    API_ENDPOINTS.PREVIEW_SHIPMENT,
+    data
   );
   return response.data;
 };

@@ -16,7 +16,7 @@ export type PaginatedResponse<T> = {
 };
 
 export type InventoryItem = {
-  id: string;
+  inventoryItemId: string;
   userId: string;
   productId: string;
   product: Product;
@@ -56,3 +56,38 @@ export type GetItemInventoryParams = {
   pageIndex?: number;
   pageSize?: number;
 };
+
+export type RequestShipment = {
+  inventoryItemIds: string[];
+};
+
+export type PreviewShipment = {
+  inventoryItemIds: string[];
+};
+
+export type ShipmentPreviewFee = {
+    mainService: number;
+    insurance: number;
+    stationDo: number;
+    stationPu: number;
+    return: number;
+    r2s: number;
+    coupon: number;
+    codFailedFee: number;
+  };
+
+export type GhnPreviewResponse = {
+    orderCode: string;
+    sortCode: string;
+    transType: string;
+    fee: ShipmentPreviewFee;
+    totalFee: number;
+    expectedDeliveryTime: string;
+  };
+
+export type ShipmentPreview = {
+    sellerId: string;
+    sellerCompanyName: string;
+    ghnPreviewResponse: GhnPreviewResponse;
+  };
+
