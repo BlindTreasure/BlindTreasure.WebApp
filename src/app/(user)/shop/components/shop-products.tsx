@@ -143,17 +143,21 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                     className="bg-white rounded-lg p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 border shadow-sm"
                 >
                     <div className="flex flex-col xl:flex-row xl:items-center gap-6">
-                        <div className="flex items-center gap-4 sm:gap-6">
+                        <div className="flex items-center gap-4 sm:gap-8">
                             <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0">
                                 <div className="w-full h-full rounded-full border border-red-500 bg-white flex items-center justify-center shadow-md">
                                     <img
-                                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${sellerId}&size=64&backgroundColor=ffffff&textColor=00579D`}
+                                        src={
+                                            sellerInfo?.avatarUrl ||
+                                            `https://api.dicebear.com/7.x/initials/svg?seed=${sellerId}&size=64&backgroundColor=ffffff&textColor=00579D`
+                                        }
                                         alt={sellerInfo?.companyName || "Cửa hàng"}
-                                        className="w-10 h-10 sm:w-12 sm:h-12"
+                                        className="w-10 h-10 sm:w-16 sm:h-16 object-cover rounded-full"
                                     />
+
                                 </div>
                                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-red-500 text-white text-[10px] sm:text-xs px-2 py-0.5 rounded-sm shadow-sm whitespace-nowrap text-center">
-                                    BlindTreasure
+                                    {sellerInfo.companyName}
                                 </div>
                             </div>
 
@@ -216,7 +220,7 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                 <motion.div
                     variants={fadeIn("up", 0.3)}
                     initial="hidden"
-                    whileInView="show"
+                    animate="show"
                     viewport={{ once: true, amount: 0.7 }}
                     className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"
                 >
@@ -227,14 +231,14 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                                 <ProductCard
                                     key={`product-${item.data.id}-${index}`}
                                     product={item.data as AllProduct}
-                                    ribbonTypes={getRibbonTypes(item.data as AllProduct)}
+                                    // ribbonTypes={getRibbonTypes(item.data as AllProduct)}
                                     onViewDetail={handleViewDetail}
                                 />
                             ) : (
                                 <BlindboxCard
                                     key={`blindbox-${item.data.id}-${index}`}
                                     blindbox={item.data as BlindBox}
-                                    ribbonTypes={["blindbox"]}
+                                    // ribbonTypes={["blindbox"]}
                                     onViewDetail={handleViewBlindboxDetail}
                                 />
                             )

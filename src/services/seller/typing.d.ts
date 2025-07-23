@@ -26,6 +26,7 @@ declare namespace API {
     email: string;
     fullName: string;
     companyName: string;
+    avatarUrl: string;
     coaDocumentUrl: string;
     status: SellerStatus;
     isVerified: boolean;
@@ -48,6 +49,7 @@ declare namespace API {
     isVerified: boolean;
     phoneNumber?: string;
     dateOfBirth?: string;
+    avatarUrl: string;
     taxId?: string;
     companyAddress?: string;
     sellerStatus: string

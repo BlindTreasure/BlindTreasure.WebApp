@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
     Dialog,
@@ -6,36 +6,54 @@ import {
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import ProvinceSelect from "@/components/province-selected"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import useCreateAddress from "@/app/(user)/address-list/hooks/useCreateAddress"
-import { useEffect, useState } from "react"
-import { Controller } from "react-hook-form"
-import useUpdateAddress from "@/app/(user)/address-list/hooks/useUpdateAddress"
-import { convertAddressFromBE } from "@/utils/address"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import ProvinceSelect from "@/components/province-selected";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import useCreateAddress from "@/app/(user)/address-list/hooks/useCreateAddress";
+import useUpdateAddress from "@/app/(user)/address-list/hooks/useUpdateAddress";
+import { Controller } from "react-hook-form";
+import { useEffect, useState } from "react";
+import useGetProvinces from "@/app/(user)/address-list/hooks/useGetProvinces";
+import useGetDistricts from "@/app/(user)/address-list/hooks/useGetDistricts";
+import useGetWards from "@/app/(user)/address-list/hooks/useGetWards";
 
 type SimpleAddress = {
-    name: string
-    code: string
-}
-
-type Province = { code: string; name: string; districts: District[] };
-type District = { code: string; name: string; wards: Ward[] };
-type Ward = { code: string; name: string; level?: string };
+    name: string;
+    code: string;
+};
 
 export default function AddressDialog({
     open,
     onClose,
     editingAddress,
 }: {
-    open: boolean
-    onClose: () => void
-    editingAddress: API.ResponseAddress | null
+    open: boolean;
+    onClose: () => void;
+    editingAddress: API.ResponseAddress | null;
 }) {
-    const isEditing = !!editingAddress
+    const isEditing = !!editingAddress;
+
+    // Gọi cả hai hook luôn
+    const updateMethods = useUpdateAddress(
+        editingAddress
+            ? {
+                addressId: editingAddress.id,
+                fullName: editingAddress.fullName,
+                phone: editingAddress.phone,
+                addressLine: editingAddress.addressLine,
+                province: editingAddress.province,
+                city: editingAddress.city,
+                postalCode: editingAddress.postalCode ?? "",
+            }
+            : undefined
+    );
+
+    const createMethods = useCreateAddress();
+
+    const methods = isEditing ? updateMethods : createMethods;
+
     const {
         register,
         handleSubmit,
@@ -46,97 +64,122 @@ export default function AddressDialog({
         setValue,
         isPending,
         reset,
-    } = isEditing
-        ? useUpdateAddress({
-            addressId: editingAddress.id,
-            fullName: editingAddress.fullName,
-            phone: editingAddress.phone,
-            addressLine: editingAddress.addressLine,
-            province: editingAddress.province,
-            city: editingAddress.city,
-            postalCode: editingAddress.postalCode ?? "",
-        })
-        : useCreateAddress()
+    } = methods;
 
     const [address, setAddress] = useState<{
-        province: SimpleAddress | null,
-        district: SimpleAddress | null,
-        ward: SimpleAddress | null,
+        province: SimpleAddress | null;
+        district: SimpleAddress | null;
+        ward: SimpleAddress | null;
     }>({
         province: null,
         district: null,
         ward: null,
     });
 
-    const [provincesData, setProvincesData] = useState<Province[]>([]);
+    const { getProvincesApi, provinces } = useGetProvinces();
+    const { getDistrictsApi } = useGetDistricts();
+    const { getWardsApi } = useGetWards();
 
-   useEffect(() => {
-    fetch("/data/vietnamAddress.json")
-        .then(res => res.json())
-        .then(raw => {
-            const parsed = raw.map((p: any) => ({
-                name: p.Name,
-                code: p.Id,
-                districts: (p.Districts ?? []).map((d: any) => ({
-                    name: d.Name,
-                    code: d.Id,
-                    wards: (d.Wards ?? []).map((w: any) => ({
-                        name: w.Name,
-                        code: w.Id,
-                        level: w.Level
-                    }))
-                }))
-            }));
-            setProvincesData(parsed);
-        });
-}, []);
+    useEffect(() => {
+        if (!open) return;
 
-useEffect(() => {
-    if (!open || provincesData.length === 0) return;
+        const fetchAndConvert = async () => {
+            const resProvinces = await getProvincesApi();
+            const provinceList = resProvinces?.value?.data ?? [];
 
-    if (editingAddress) {
-        const addressObj = convertAddressFromBE(editingAddress, provincesData);
-        setAddress(addressObj);
-        reset({
-            fullName: editingAddress.fullName,
-            phone: editingAddress.phone,
-            addressLine: editingAddress.addressLine,
-            province: editingAddress.province,
-            city: editingAddress.city,
-            postalCode: editingAddress.postalCode ?? "",
-            isDefault: editingAddress.isDefault || false,
-        });
-    } else {
-        setAddress({
-            province: null,
-            district: null,
-            ward: null,
-        });
-        reset({
-            fullName: "",
-            phone: "",
-            addressLine: "",
-            province: "",
-            city: "",
-            postalCode: "",
-            isDefault: false,
-        });
-    }
-}, [open, editingAddress, provincesData, reset]);
+            if (editingAddress) {
+                const foundProvince = provinceList.find(
+                    (p) => p.provinceName === editingAddress.province
+                );
 
-useEffect(() => {
-}, [address]);
+                let foundDistrict = null;
+                let foundWard = null;
+
+                if (foundProvince) {
+                    const resDistricts = await getDistrictsApi({
+                        provinceId: foundProvince.provinceID,
+                    });
+
+                    const districtList = resDistricts?.value?.data ?? [];
+
+                    foundDistrict = districtList.find(
+                        (d) => d.districtName === editingAddress.city
+                    );
+
+                    if (foundDistrict) {
+                        const resWards = await getWardsApi({
+                            districtId: foundDistrict.districtID,
+                        });
+
+                        const wardList = resWards?.value?.data ?? [];
+
+                        foundWard = wardList.find(
+                            (w) => w.wardCode.toString() === editingAddress.postalCode
+                        );
+                    }
+                }
+
+                setAddress({
+                    province: foundProvince
+                        ? {
+                            code: foundProvince.provinceID.toString(),
+                            name: foundProvince.provinceName,
+                        }
+                        : null,
+                    district: foundDistrict
+                        ? {
+                            code: foundDistrict.districtID.toString(),
+                            name: foundDistrict.districtName,
+                        }
+                        : null,
+                    ward: foundWard
+                        ? {
+                            code: foundWard.wardCode.toString(),
+                            name: foundWard.wardName,
+                        }
+                        : null,
+                });
+
+                reset({
+                    fullName: editingAddress.fullName,
+                    phone: editingAddress.phone,
+                    addressLine: editingAddress.addressLine,
+                    province: foundProvince?.provinceName || "",
+                    city: foundDistrict?.districtName || "",
+                    postalCode: foundWard?.wardCode?.toString() || "",
+                    district: foundDistrict?.districtName || "",
+                    ward: foundWard?.wardName || "",
+                    isDefault: editingAddress.isDefault || false,
+                });
+            } else {
+                setAddress({ province: null, district: null, ward: null });
+                reset({
+                    fullName: "",
+                    phone: "",
+                    addressLine: "",
+                    province: "",
+                    city: "",
+                    postalCode: "",
+                    isDefault: false,
+                });
+            }
+        };
+
+        fetchAndConvert();
+    }, [open, editingAddress]);
 
     const handleSelectChange = (value: {
-        province: SimpleAddress | null
-        district: SimpleAddress | null
-        ward: SimpleAddress | null
+        province: SimpleAddress | null;
+        district: SimpleAddress | null;
+        ward: SimpleAddress | null;
     }) => {
-        setAddress(value)
-        setValue("province", value.province?.name || "")
-        setValue("city", value.district?.name || "")
-        setValue("postalCode", value.ward?.code || "")
-    }
+        setAddress(value);
+        setValue("province", value.province?.name || "");
+        setValue("city", value.district?.name || "");
+        setValue("postalCode", value.ward?.code || "");
+        setValue("district", value.district?.name || "");
+        setValue("ward", value.ward?.name || "");
+    };
 
     return (
         <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
@@ -147,7 +190,11 @@ useEffect(() => {
                     </DialogTitle>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit((data) => onSubmit(data, onClose))} className="space-y-4">
+                <form
+                    onSubmit={handleSubmit((data) => onSubmit(data, () => onClose()))}
+                    className="space-y-4"
+                >
+
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <input
@@ -156,7 +203,9 @@ useEffect(() => {
                                 placeholder="Họ và tên"
                             />
                             {errors.fullName && (
-                                <p className="text-red-500 text-sm mt-1">{errors.fullName.message}</p>
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.fullName.message}
+                                </p>
                             )}
                         </div>
 
@@ -167,16 +216,14 @@ useEffect(() => {
                                 placeholder="Số điện thoại"
                             />
                             {errors.phone && (
-                                <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.phone.message}
+                                </p>
                             )}
                         </div>
                     </div>
 
-                    <ProvinceSelect
-                        value={address}
-                        onChange={handleSelectChange}
-                        provincesData={provincesData}
-                    />
+                    <ProvinceSelect value={address} onChange={handleSelectChange} />
 
                     <div>
                         <input
@@ -185,7 +232,9 @@ useEffect(() => {
                             placeholder="Địa chỉ cụ thể"
                         />
                         {errors.addressLine && (
-                            <p className="text-red-500 text-sm mt-1">{errors.addressLine.message}</p>
+                            <p className="text-red-500 text-sm mt-1">
+                                {errors.addressLine.message}
+                            </p>
                         )}
                     </div>
 
@@ -217,11 +266,17 @@ useEffect(() => {
                             className="bg-red-500 hover:bg-red-600 text-white"
                             disabled={isPending}
                         >
-                            {isPending ? "Đang xử lý..." : isEditing ? "Cập nhật" : "Thêm mới"}
+                            {isPending
+                                ? "Đang xử lý..."
+                                : isEditing
+                                    ? "Cập nhật"
+                                    : "Thêm mới"}
                         </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>
-    )
+    );
 }
+
+

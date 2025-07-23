@@ -3,8 +3,8 @@ import Cart from "./components/cart";
 
 
 export const metadata: Metadata = {
-    title: "Cart page",
-    description: "Cart page for BlindTreasure",
+    title: "Giỏ hàng | BlindTreasure",
+    description: "Giỏ hàng của BlindTreasure",
 };
 
 export default function CartPage() {

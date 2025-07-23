@@ -15,6 +15,8 @@ const VERIFY_SELLER_ACCOUNT = `${STRIPE}/verify-seller-account`;
 
 const REFUND_CALLBACK_HANDLER = `${STRIPE}/refund-callback-handler`;
 
+const PREVIEW_SHIPPING_DIRECT = `${STRIPE}/preview-shipping-direct`;
+
 export default {
   CHECKOUT_DIRECT,
   CHECKOUT_CART,
@@ -26,4 +28,5 @@ export default {
   REVERSE_PAYOUT,
   VERIFY_SELLER_ACCOUNT,
   REFUND_CALLBACK_HANDLER,
+  PREVIEW_SHIPPING_DIRECT,
 };

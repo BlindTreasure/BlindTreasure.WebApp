@@ -20,8 +20,6 @@ export default function useUpdateBlindboxForm(
       imageFile: null,
       totalQuantity: undefined,
       releaseDate: "",
-      hasSecretItem: false,
-      secretProbability: undefined,
       ...defaultValues,
     },
   });

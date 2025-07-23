@@ -2,17 +2,14 @@
 "use client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
-import useCreateBlindboxForm from "../hooks/useCreateBlindbox";
 import useGetAllBlindBoxes from "../../allblindboxes/hooks/useGetAllBlindBoxes";
-import { BlindBox, BlindBoxItemRequest, BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings";
+import { BlindBoxItemRequest, BlindBoxListResponse, GetBlindBoxes } from "@/services/blindboxes/typings";
 import { GetProduct, TProductResponse } from "@/services/product-seller/typings";
 import useGetAllProduct from "../../allproduct/hooks/useGetAllProduct";
 import useCreateBlindboxItemForm from "../hooks/useCreateItem";
 import { ProductStatus, Rarity } from "@/const/products";
 import { AddItemToBlindboxForm } from "@/components/blindboxform/addItems";
 import CreateBlindbox from "@/components/blindboxform/createBlindBox";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export default function BlindboxTabs() {
     const [selectedBoxId, setSelectedBoxId] = useState<string>("");
@@ -41,7 +38,7 @@ export default function BlindboxTabs() {
         onSubmit,
         error,
         setError,
-    } = useCreateBlindboxItemForm(selectedBoxId, items, resetFormFields, () => setItems([]), selectedRarities, setTotalItems);
+    } = useCreateBlindboxItemForm(selectedBoxId, items, resetFormFields, () => setItems([]), selectedRarities, setTotalItems, rarityRates);
 
     const [params, setParams] = useState<GetBlindBoxes>({
         search: "",
@@ -102,7 +99,7 @@ export default function BlindboxTabs() {
         setItems(updatedItems);
     };
 
-    function redistributeDropRates(
+    function initializeWeights(
         items: BlindBoxItemRequest[],
         rarityRates: Record<Rarity, number>
     ): BlindBoxItemRequest[] {
@@ -118,22 +115,22 @@ export default function BlindboxTabs() {
         });
 
         return items.map(item => {
-            const group = rarityGroups[item.rarity];
-            const totalRate = rarityRates[item.rarity] || 0;
-            const perItemRate = group.length > 0
-                ? parseFloat((totalRate / group.length).toFixed(4))
-                : 0;
+            if (item.weight === undefined || item.weight === 0) {
+                const group = rarityGroups[item.rarity];
+                const rarityRate = rarityRates[item.rarity] || 0;
+                const initialWeight = group.length > 0
+                    ? Math.floor(rarityRate / group.length)
+                    : 0;
 
-            return {
-                ...item,
-                dropRate: perItemRate,
-            };
+                return {
+                    ...item,
+                    weight: Math.max(initialWeight, 1), 
+                };
+            }
+
+            return item;
         });
     }
-
-    const totalRarityRate = Object.entries(rarityRates)
-        .filter(([rarity]) => selectedRarities.includes(rarity as Rarity))
-        .reduce((sum, [_, rate]) => sum + Number(rate), 0);
 
     const isRarityRatesValid = () => {
         const total = selectedRarities.reduce((sum, rarity) => sum + (rarityRates[rarity] || 0), 0);
@@ -144,9 +141,22 @@ export default function BlindboxTabs() {
     useEffect(() => {
         const total = selectedRarities.reduce((sum, rarity) => sum + (rarityRates[rarity] || 0), 0);
         const allSet = selectedRarities.every(r => rarityRates[r] !== undefined && rarityRates[r] > 0);
+        const validateRarityRules = () => {
+            if (!selectedRarities.includes(Rarity.Secret)) {
+                return "Bắt buộc phải có độ hiếm 'Cực hiếm'";
+            }
+            return null;
+        };
+
+        const rarityError = validateRarityRules();
 
         if (total !== 100 || !allSet) {
             setRarityRateError("Tổng tỉ lệ các độ hiếm phải bằng 100% và tất cả phải có giá trị");
+            if (items.length > 0) {
+                setItems([]);
+            }
+        } else if (rarityError) {
+            setRarityRateError(rarityError);
             if (items.length > 0) {
                 setItems([]);
             }
@@ -171,11 +181,11 @@ export default function BlindboxTabs() {
         const newItems: BlindBoxItemRequest[] = Array.from({ length: itemsLeft }, () => ({
             productId: "",
             quantity: 1,
-            dropRate: 0,
+            weight: 0,
             rarity,
         }));
 
-        const updatedItems = redistributeDropRates([...items, ...newItems], rarityRates);
+        const updatedItems = initializeWeights([...items, ...newItems], rarityRates);
         setItems(updatedItems);
     };
 
@@ -186,7 +196,7 @@ export default function BlindboxTabs() {
         const updated = [...items];
         updated[index].rarity = newRarity as Rarity;
 
-        const finalItems = redistributeDropRates(updated, rarityRates);
+        const finalItems = initializeWeights(updated, rarityRates);
         setItems(finalItems);
     };
 
@@ -194,7 +204,7 @@ export default function BlindboxTabs() {
     const removeItem = (index: number) => {
         const updatedItems = [...items];
         updatedItems.splice(index, 1);
-        setItems(redistributeDropRates(updatedItems, rarityRates));
+        setItems(initializeWeights(updatedItems, rarityRates));
     };
 
     if (!blindboxes || !products) {

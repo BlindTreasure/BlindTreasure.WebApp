@@ -70,15 +70,15 @@ export const BlindboxStatusText: Record<BlindboxStatus, string> = {
 
 export enum Rarity {
   Common = "Common",
-  Epic = "Epic",
   Rare = "Rare",
+  Epic = "Epic",
   Secret = "Secret",
 }
 
 export const RarityText: Record<Rarity, string> = {
   [Rarity.Common]: "Phổ biến",
-  [Rarity.Epic]: "Cao cấp",
-  [Rarity.Rare]: "Hiếm",
+  [Rarity.Rare]: "Cao cấp",
+  [Rarity.Epic]: "Hiếm",
   [Rarity.Secret]: "Cực hiếm",
 };
 
@@ -119,14 +119,16 @@ export const PaymentStatusText: Record<PaymentStatus, string> = {
 
 export enum OrderStatus {
   PENDING = "PENDING",
-  SHIPPING = "SHIPPING",
+  SHIPPING_REQUESTED = "SHIPPING_REQUESTED",
+  DELIVEREDING = "DELIVERING",
   DELIVERED = "DELIVERED",
   CANCELLED = "CANCELLED",
 }
 
 export const OrderStatusText: Record<OrderStatus, string> = {
-  [OrderStatus.PENDING]: "Chờ xác nhận",
-  [OrderStatus.SHIPPING]: "Đang vận chuyển",
+  [OrderStatus.PENDING]: "Chờ giao hàng",
+  [OrderStatus.SHIPPING_REQUESTED]: "Yêu cầu vận chuyển",
+  [OrderStatus.DELIVEREDING]: "Đang giao hàng",
   [OrderStatus.DELIVERED]: "Đã giao hàng",
   [OrderStatus.CANCELLED]: "Đã hủy",
 };

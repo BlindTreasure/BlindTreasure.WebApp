@@ -287,78 +287,84 @@ export default function Detail({ detailId }: DetailProps) {
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, amount: 0.7 }}
-                className="bg-white rounded-lg p-6 mt-8 border shadow-sm"
+                className="bg-white rounded-lg py-6 px-8 mt-8 border shadow-sm"
             >
-                <div className="flex items-center gap-6">
-                    <div className="relative w-16 h-16">
-                        <div className="w-16 h-16 rounded-full border border-red-500 bg-white flex items-center justify-center shadow-md">
-                            <img
-                                src={`https://api.dicebear.com/7.x/initials/svg?seed=${products?.sellerId}&size=64&backgroundColor=ffffff&textColor=00579D`}
-                                alt={sellerInfo?.companyName || "Cửa hàng"}
-                                className="w-10 h-10"
-                            />
+                <div className="flex flex-col xl:flex-row xl:items-center gap-6">
+                    <div className="flex flex-col md:flex-row items-center gap-8">
+                        <div className="relative w-20 h-20 flex-shrink-0">
+                            <div className="w-full h-full rounded-full border border-red-500 bg-white flex items-center justify-center shadow-md overflow-hidden">
+                                <img
+                                    src={
+                                        sellerInfo?.avatarUrl ||
+                                        `https://api.dicebear.com/7.x/initials/svg?seed=${products?.sellerId}&size=64&backgroundColor=ffffff&textColor=00579D`
+                                    }
+                                    alt={sellerInfo?.companyName}
+                                    className="w-10 h-10 sm:w-16 sm:h-16 object-cover rounded-full"
+                                />
+                            </div>
+                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-sm shadow-sm whitespace-nowrap text-center">
+                                {sellerInfo?.companyName}
+                            </div>
                         </div>
-                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-sm shadow-sm whitespace-nowrap max-w-[90px] text-center">
-                            BlindTreasure
+
+                        <div className="flex flex-col gap-2">
+                            <p className="text-xl font-semibold">
+                                {sellerInfo?.companyName || sellerInfo?.fullName || "Cửa hàng"}
+                            </p>
+                            <div className="flex flex-row gap-2">
+                                <button className="flex items-center gap-2 bg-red-500 text-white px-2 md:px-4 py-2 rounded hover:bg-red-600 transition text-sm">
+                                    <TbMessageDots className="text-xl" />
+                                    Chat ngay
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setLoadingPage(true);
+                                        router.push(`/shop/${products?.sellerId}`);
+                                    }}
+                                    className="flex gap-2 items-center border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 transition text-sm"
+                                >
+                                    <BsShop className="text-lg" />
+                                    Xem Shop
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-2">
-                        <div>
-                            <p className="text-lg font-semibold">
-                                {sellerInfo?.companyName || sellerInfo?.fullName || "Cửa hàng"}
-                            </p>
-                        </div>
-                        <div className='flex flex-row gap-2'>
-                            <button className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition text-sm">
-                                <TbMessageDots className='text-xl' />
-                                Chat ngay
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setLoadingPage(true);
-                                    router.push(`/shop/${products?.sellerId}`);
-                                }}
-                                className="flex gap-2 items-center border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 transition text-sm"
-                            >
-                                <BsShop className='text-lg'/>
-                                Xem Shop
-                            </button>
-                        </div>
-                    </div>
-                    <div className="w-px h-20 bg-gray-300" />
+                    <div className="w-full xl:w-px h-px xl:h-20 bg-gray-300" />
+
                     <div className="flex-1">
-                        <div className="grid grid-cols-3 gap-x-4 gap-y-3 mt-4 text-sm text-gray-600">
-                            <div className='flex gap-4'>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3 text-sm text-gray-600">
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
                                 <p>Đánh Giá</p>
                                 <p className="text-red-600 font-semibold">219,3k</p>
                             </div>
-                            <div className='flex gap-4'>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
                                 <p>Tỉ Lệ Phản Hồi</p>
                                 <p className="text-red-600 font-semibold">100%</p>
                             </div>
-                            <div className='flex gap-4'>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
                                 <p>Thời Gian Phản Hồi</p>
                                 <p className="text-red-600 font-semibold">trong vài giờ</p>
                             </div>
-                            <div className='flex gap-4'>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
                                 <p>Tham Gia</p>
                                 <p className="text-red-600 font-semibold">5 năm trước</p>
                             </div>
-                            <div className='flex gap-4'>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
                                 <p>Sản Phẩm</p>
-                                <p className="text-red-600 font-semibold">{sellerProducts.length + sellerBlindboxes.length}</p>
+                                <p className="text-red-600 font-semibold">
+                                    {sellerProducts.length + sellerBlindboxes.length}
+                                </p>
                             </div>
-                            <div className='flex gap-4'>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
                                 <p>Người Theo Dõi</p>
                                 <p className="text-red-600 font-semibold">228,6k</p>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </motion.div>
-
+            
             <motion.div
                 variants={fadeIn("up", 0.3)}
                 initial="hidden"

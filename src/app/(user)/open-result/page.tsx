@@ -1,15 +1,18 @@
 import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
-import OpenResultPage from "./components/open-result";
+import { Suspense } from "react";
+import MagicBoxOpening from "./components/open-result";
 
 export const metadata: Metadata = {
-    title: "OpenBox page",
-    description: "OpenBox page for BlindTreasure",
+    title: "Mở hộp thưởng | BlindTreasure",
+    description: "Mở hộp thưởng của BlindTreasure",
 };
 
 export default function OpenBoxPage() {
     return (
         <div>
-            <OpenResultPage />
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                <MagicBoxOpening />
+            </Suspense>
         </div>
     )
 }

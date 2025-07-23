@@ -11,7 +11,7 @@ export default function UserLayout({
     children: React.ReactNode;
 }>) {
     const pathname = usePathname();
-    const hideHeaderFooter = pathname === "/thankyou" || pathname === "/change-password-success" || pathname === "/fail";
+    const hideHeaderFooter = pathname === "/thankyou" || pathname === "/change-password-success" || pathname === "/fail" || pathname === "/open-result";
     const dispatch = useAppDispatch();
     const userState = useAppSelector((state) => state.userSlice);
     const handleOpenChat = () => {

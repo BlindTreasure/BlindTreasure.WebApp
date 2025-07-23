@@ -9,7 +9,8 @@ import {
   ChevronDown,
   BarChart,
   Users,
-  FileBox
+  FileBox,
+  Trophy
 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/stores/store";
 import { closeSidebar, openSidebar } from "@/stores/difference-slice";
@@ -55,6 +56,11 @@ const sidebarItems = [
         icon: PlusSquare,
       },
     ],
+  },
+  {
+    label: "Khách trúng thưởng",
+    icon: Trophy,
+    href: "/seller/unbox-logs",
   },
   {
     label: "Khách hàng",

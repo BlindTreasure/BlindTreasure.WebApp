@@ -28,6 +28,7 @@ export type CustomerInventory = {
   blindBox: BlindBox;
   isOpened: boolean;
   createdAt: string;
+  openedAt: string;
   isDeleted: boolean;
   orderDetailId?: string;
   orderDetail?: OrderDetail;

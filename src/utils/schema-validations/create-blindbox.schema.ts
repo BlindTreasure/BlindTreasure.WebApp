@@ -34,19 +34,6 @@ export const CreateBlindBox = z.object({
       message: "Ngày không hợp lệ",
     })
     .optional(),
-
-  brand: z.string(),
-
-  hasSecretItem: z.boolean().optional(),
-
-  secretProbability: z
-    .number({
-      required_error: "Tỉ lệ là bắt buộc",
-      invalid_type_error: "Tỉ lệ phải là số",
-    })
-    .min(1, "Tỉ lệ phải lớn hơn 0%")
-    .max(100, "Tối đa là 100%")
-    .optional(),
 });
 
 export type CreateBlindBoxBodyType = z.infer<typeof CreateBlindBox>;

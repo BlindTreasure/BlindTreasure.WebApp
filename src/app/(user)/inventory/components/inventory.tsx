@@ -12,30 +12,36 @@ import {
 } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import Link from 'next/link'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Backdrop } from '@/components/backdrop'
 import Pagination from '@/components/pagination'
 import useGetAllBlindboxInventory from '../hooks/useGetBlindboxInventory'
 import useGetAllItemInventory from '../hooks/useGetItemInventory'
 import QuickViewDialog from '@/components/alldialog/dialogquickly'
 import { Product } from '@/services/inventory-item/typings'
-import { BlindBox, CustomerInventory } from '@/services/customer-blindboxes/typings'
-import { InventoryItem as ItemInventoryType } from '@/services/inventory-item/typings'
+import { BlindBox } from '@/services/customer-blindboxes/typings'
+import useUnbox from '../hooks/useUnbox'
+import useGetItemByBlindBox from '../hooks/useGetItemByBlindBox'
+import usePreviewShipment from '../hooks/usePreViewShipment'
+import useRequestShipment from '../hooks/useRequestShipment'
 import useGetAllAddress from '../../address-list/hooks/useGetAllAddress'
+import { InventoryItem as WonInventoryItem, ShipmentPreview } from '@/services/inventory-item/typings'
 
 interface InventoryItem {
     id: string
+    inventoryItemIds?: string
     title: string
     image: string
     status: 'unopened' | 'opened' | null
     type: 'blindbox' | 'product'
     orderId?: string
-    blindBoxId?: string
+    blindBoxId: string
     productId?: string
     product?: Product
     blindbox?: BlindBox
-    quantity?: number 
-    createdAt?: string 
+    quantity?: number
+    createdAt?: string
+    isFromBlindBox?: boolean
 }
 
 export default function Inventory() {
@@ -47,12 +53,27 @@ export default function Inventory() {
     const [totalPages, setTotalPages] = useState(1)
     const [totalCount, setTotalCount] = useState(0)
     const [blindboxFilter, setBlindboxFilter] = useState<'all' | 'opened' | 'unopened'>('all')
-    const [allTabData, setAllTabData] = useState<InventoryItem[]>([])
+
+    const { handleUnbox, isUnboxing } = useUnbox()
+    const [showPrizeDialog, setShowPrizeDialog] = useState(false)
+    const [selectedPrize, setSelectedPrize] = useState<{
+        customerBlindBoxId: string
+        blindBoxId: string
+        blindBoxName: string
+    } | null>(null)
+
+    const { inventoryItem: wonItem, isLoading: loadingPrize, error: prizeError } = useGetItemByBlindBox(
+        selectedPrize?.blindBoxId || ''
+    )
+    const [selectedItems, setSelectedItems] = useState<string[]>([])
+    const [showShippingDialog, setShowShippingDialog] = useState(false)
+    const [shippingData, setShippingData] = useState<ShipmentPreview[] | null>(null)
+
+    const { previewShipment, isPending: isPreviewLoading } = usePreviewShipment()
+    const { requestShipment, isPending: isRequestLoading } = useRequestShipment()
     const { getAllAddressApi, defaultAddress } = useGetAllAddress()
-    const [showAddressDialog, setShowAddressDialog] = useState(false)
 
     const PAGE_SIZE = 8
-    const [pendingDeliveryId, setPendingDeliveryId] = useState<string | null>(null)
 
     const {
         getAllBlindboxInventoryApi,
@@ -78,17 +99,17 @@ export default function Inventory() {
             setIsLoading(true)
             try {
                 if (activeTab === 'blindbox') {
-                    const pageIndex = currentPage - 1;
                     const paginationParams = {
-                        pageIndex,
+                        pageIndex: currentPage,
                         pageSize: PAGE_SIZE,
                         isOpened: blindboxFilter === 'all' ? undefined : blindboxFilter === 'opened'
                     };
 
                     const blindboxRes = await getAllBlindboxInventoryApi(paginationParams)
                     if (blindboxRes?.value.data?.result) {
-                        const blindboxItems: InventoryItem[] = blindboxRes.value.data.result.map((item: CustomerInventory) => ({
+                        const blindboxItems: InventoryItem[] = blindboxRes.value.data.result.map((item: any) => ({
                             id: item.id,
+                            inventoryItemIds: item.inventoryItemIds,
                             blindBoxId: item.blindBoxId,
                             blindbox: item.blindBox,
                             title: item.blindBox?.name || '',
@@ -96,7 +117,7 @@ export default function Inventory() {
                             status: item.isOpened ? 'opened' : 'unopened',
                             type: 'blindbox',
                             orderId: item.orderDetailId,
-                            createdAt: item.createdAt, 
+                            createdAt: item.createdAt,
                         }))
                         const sortedBlindboxItems = blindboxItems.sort((a, b) => {
                             if (!a.createdAt || !b.createdAt) return 0;
@@ -107,16 +128,15 @@ export default function Inventory() {
                         setTotalCount(blindboxRes.value.data.count)
                     }
                 } else if (activeTab === 'all') {
-                    let dataToUse = allTabData;
+                    const itemRes = await getAllItemInventoryApi({
+                        pageIndex: currentPage,
+                        pageSize: PAGE_SIZE
+                    })
 
-                    if (allTabData.length === 0) {
-                        const [itemRes, blindboxRes] = await Promise.all([
-                            getAllItemInventoryApi({ pageIndex: 1, pageSize: 50 }),
-                            getAllBlindboxInventoryApi({ pageIndex: 1, pageSize: 50 }),
-                        ])
-
-                        const itemItems: InventoryItem[] = itemRes?.value.data?.result?.map((item: ItemInventoryType) => ({
-                            id: item.id,
+                    if (itemRes?.value.data?.result) {
+                        const itemItems: InventoryItem[] = itemRes.value.data.result.map((item: any, index: number) => ({
+                            id: item.inventoryItemId,
+                            inventoryItemIds: item.inventoryItemId,
                             productId: item.productId,
                             product: item.product,
                             title: item.product?.name || '',
@@ -124,37 +144,20 @@ export default function Inventory() {
                             status: null,
                             type: 'product',
                             quantity: item.quantity,
-                            createdAt: item.createdAt, 
-                        })) ?? []
-
-                        const blindboxItems: InventoryItem[] = blindboxRes?.value.data?.result?.map((item: CustomerInventory) => ({
-                            id: item.id,
-                            blindBoxId: item.blindBoxId,
-                            blindbox: item.blindBox,
-                            title: item.blindBox?.name || '',
-                            image: item.blindBox?.imageUrl ?? '',
-                            status: item.isOpened ? 'opened' : 'unopened',
-                            type: 'blindbox',
-                            orderId: item.orderDetailId,
                             createdAt: item.createdAt,
-                        })) ?? []
+                            isFromBlindBox: item.isFromBlindBox,
+                            blindBoxId: item.isFromBlindBox ? (item.sourceCustomerBlindBoxId || '') : '',
+                        }))
 
-                        const allItems = [...itemItems, ...blindboxItems]
-                        const sortedItems = allItems.sort((a, b) => {
+                        const sortedItems = itemItems.sort((a, b) => {
                             if (!a.createdAt || !b.createdAt) return 0;
                             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
                         });
-                        setAllTabData(sortedItems)
-                        dataToUse = sortedItems;
-                        setTotalPages(Math.ceil(allItems.length / PAGE_SIZE))
-                        setTotalCount(allItems.length)
-                    } else {
-                        setTotalPages(Math.ceil(allTabData.length / PAGE_SIZE))
-                        setTotalCount(allTabData.length)
+
+                        setInventoryItems(sortedItems)
+                        setTotalPages(itemRes.value.data.totalPages)
+                        setTotalCount(itemRes.value.data.count)
                     }
-                    const startIndex = (currentPage - 1) * PAGE_SIZE
-                    const pageItems = dataToUse.slice(startIndex, startIndex + PAGE_SIZE)
-                    setInventoryItems(pageItems)
                 }
             } catch (error) {
                 console.error('Error fetching inventory:', error)
@@ -166,6 +169,9 @@ export default function Inventory() {
 
         fetchInventory()
     }, [activeTab, currentPage, blindboxFilter])
+    useEffect(() => {
+        getAllAddressApi()
+    }, [])
 
     const handleViewDetail = (id: string, type: 'blindbox' | 'product', blindBoxId?: string, productId?: string) => {
         setIsLoading(true)
@@ -178,21 +184,128 @@ export default function Inventory() {
         }
     }
 
-    const handleOpenBox = (id: string) => {
-        console.log(`Opening box for product ${id}`)
+    const handleOpenBox = (customerBlindBoxId: string) => {
+        const blindBoxItem = inventoryItems.find(item => item.id === customerBlindBoxId);
+        const blindBoxName = blindBoxItem?.title || 'BlindBox';
+        const blindBoxId = blindBoxItem?.blindBoxId;
+        handleUnbox(customerBlindBoxId, blindBoxName, blindBoxId);
+    }
+
+    const handleViewPrize = (customerBlindBoxId: string) => {
+        const blindBoxItem = inventoryItems.find(item => item.id === customerBlindBoxId);
+        if (blindBoxItem && blindBoxItem.blindBoxId) {
+            setSelectedPrize({
+                customerBlindBoxId,
+                blindBoxId: blindBoxItem.blindBoxId,
+                blindBoxName: blindBoxItem.title
+            });
+            setShowPrizeDialog(true);
+        }
+    }
+
+    const handleResellItem = (itemId: string) => {
+        // TODO: Implement resell functionality for blindbox prize items
+        console.log('Resell item:', itemId);
+        // Navigate to resell page or open resell dialog
     }
 
     const handleDeliver = async (itemId: string) => {
-        const res = await getAllAddressApi()
-        const defaultAddr = res?.value.data.find(addr => addr.isDefault)
+        const item = inventoryItems.find(i => i.id === itemId)
 
-        if (!defaultAddr) {
-            setPendingDeliveryId(itemId)
-            setShowAddressDialog(true)
+        if (!item || !item.inventoryItemIds) {
             return
         }
 
-        console.log(`Giao hàng: ${itemId}`)
+        setSelectedItems([itemId])
+
+        try {
+            const result = await previewShipment({
+                inventoryItemIds: [item.inventoryItemIds]
+            })
+
+            if (result) {
+                setShippingData(result)
+                setShowShippingDialog(true)
+            }
+        } catch (error: any) {
+        }
+    }
+
+    const handleSelectItem = (itemId: string) => {
+        setSelectedItems(prev =>
+            prev.includes(itemId)
+                ? prev.filter(id => id !== itemId)
+                : [...prev, itemId]
+        )
+    }
+
+    const handleSelectAll = () => {
+        const deliverableItems = getCurrentPageItems().filter(item =>
+            (item.type === 'product' && !item.isFromBlindBox) ||
+            (item.type === 'product' && item.isFromBlindBox)
+        )
+
+        if (selectedItems.length === deliverableItems.length) {
+            setSelectedItems([])
+        } else {
+            setSelectedItems(deliverableItems.map(item => item.id))
+        }
+    }
+
+    const handlePreviewShipping = async () => {
+        if (selectedItems.length === 0) return
+
+        const selectedInventoryItemIds = selectedItems
+            .map(itemId => {
+                const item = inventoryItems.find(i => i.id === itemId)
+                return item?.inventoryItemIds
+            })
+            .filter(Boolean) as string[]
+
+        if (selectedInventoryItemIds.length === 0) {
+            return
+        }
+
+        try {
+            const result = await previewShipment({
+                inventoryItemIds: selectedInventoryItemIds
+            })
+
+            if (result) {
+                setShippingData(result)
+                setShowShippingDialog(true)
+            }
+        } catch (error: any) {
+        }
+    }
+
+    const handleRequestShipping = async () => {
+        if (selectedItems.length === 0) return
+
+        const selectedInventoryItemIds = selectedItems
+            .map(itemId => {
+                const item = inventoryItems.find(i => i.id === itemId)
+                return item?.inventoryItemIds
+            })
+            .filter(Boolean) as string[]
+
+        if (selectedInventoryItemIds.length === 0) {
+            return
+        }
+
+        try {
+            const result = await requestShipment({
+                inventoryItemIds: selectedInventoryItemIds
+            })
+
+            if (result) {
+                setSelectedItems([])
+                setShippingData(null)
+                setShowShippingDialog(false)
+                setCurrentPage(1)
+            }
+        } catch (error: any) {
+        }
     }
 
     return (
@@ -202,9 +315,6 @@ export default function Inventory() {
                 onTabChange={(tab) => {
                     setActiveTab(tab)
                     setCurrentPage(1)
-                    if (tab !== 'all') {
-                        setAllTabData([])
-                    }
                 }}
             />
 
@@ -270,130 +380,346 @@ export default function Inventory() {
                     </p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-14 mt-6 md:px-9">
-                    {getCurrentPageItems().map((item: InventoryItem) => (
-                        <Card key={item.id} className="transition-all duration-300 transform hover:scale-105">
-                            <CardHeader className='p-0'>
-                                <div className="relative group w-full aspect-[3/2] overflow-hidden rounded-t-lg">
-                                    <img
-                                        src={item.image}
-                                        alt={item.title}
-                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                <>
+                    {activeTab === 'all' && getCurrentPageItems().some(item =>
+                        (item.type === 'product' && !item.isFromBlindBox) ||
+                        (item.type === 'product' && item.isFromBlindBox)
+                    ) && (
+                            <div className="flex items-center justify-between mb-4 p-4 rounded-lg md:mx-9">
+                                <div className="flex items-center gap-4">
+                                    <Checkbox
+                                        checked={selectedItems.length > 0 && selectedItems.length === getCurrentPageItems().filter(item =>
+                                            (item.type === 'product' && !item.isFromBlindBox) ||
+                                            (item.type === 'product' && item.isFromBlindBox)
+                                        ).length}
+                                        onCheckedChange={handleSelectAll}
                                     />
-                                    {item.quantity && item.quantity > 1 && (
-                                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                                            {item.quantity}
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <div className="flex gap-2">
-                                            {item.type === 'product' && item.product && (
-                                                <QuickViewDialog type="product" data={item.product} />
-                                            )}
-
-                                            {item.type === 'blindbox' && item.blindbox && (
-                                                <QuickViewDialog type="blindbox" data={item.blindbox} />
-                                            )}
-                                            <Button
-                                                className="text-xs px-3 py-2 rounded-md bg-white text-black hover:bg-gray-300"
-                                                onClick={() =>
-                                                    handleViewDetail(item.id, item.type, item.blindBoxId, item.productId)
-                                                }
-                                            >
-                                                Xem chi tiết
-                                            </Button>
-                                        </div>
-                                    </div>
+                                    <span className="text-sm font-medium">
+                                        {selectedItems.length > 0 ? `Chọn tất cả (${selectedItems.length} đã chọn)` : 'Chọn tất cả sản phẩm'}
+                                    </span>
                                 </div>
-                            </CardHeader>
-
-                            <CardContent className="pt-4">
-                                <div className="flex items-center gap-2">
-                                    <CardTitle className="truncate text-lg">{item.title}</CardTitle>
-
-                                    {item.type === 'blindbox' && item.status && (
-                                        <span
-                                            className={`text-sm font-medium ${item.status === 'opened' ? 'text-green-500' : 'text-yellow-500'
-                                                }`}
-                                        >
-                                            ({item.status === 'opened' ? 'Đã mở' : 'Chưa mở'})
-                                        </span>
-                                    )}
-                                </div>
-                            </CardContent>
-
-                            <CardFooter className="flex flex-col gap-2">
-                                {item.type === 'blindbox' && item.status === 'opened' ? (
-                                    <div className="flex gap-2 w-full">
-                                        <Button
-                                            onClick={() => handleDeliver(item.id)}
-                                            className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
-                                        >
-                                            Giao hàng
-                                        </Button>
-                                        <Button
-                                            onClick={() => console.log(`Bán lại: ${item.id}`)}
-                                            className="flex-1 border border-orange-500 text-orange-500 bg-transparent hover:bg-orange-500 hover:text-white transition"
-                                        >
-                                            Bán lại
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div className="flex gap-2 w-full">
-                                        {item.type === 'product' && (
-                                            <Button
-                                                onClick={() => handleDeliver(item.id)}
-                                                className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
-                                            >
-                                                Giao hàng
-                                            </Button>
-                                        )}
-                                        {item.type === 'blindbox' && item.status === 'unopened' && (
-                                            <Button
-                                                onClick={() => handleOpenBox(item.id)}
-                                                className="flex-1 border border-red-600 text-red-600 bg-transparent hover:bg-red-600 hover:text-white transition"
-                                            >
-                                                Mở hộp
-                                            </Button>
-                                        )}
-                                    </div>
+                                {selectedItems.length > 0 && (
+                                    <Button
+                                        onClick={handlePreviewShipping}
+                                        disabled={isPreviewLoading}
+                                        className="bg-[#d02a2a] hover:bg-opacity-80 text-white"
+                                    >
+                                        {isPreviewLoading ? 'Đang tính...' : `Giao hàng (${selectedItems.length})`}
+                                    </Button>
                                 )}
-                            </CardFooter>
-                        </Card>
-                    ))}
-                </div>
-            )}
+                            </div>
+                        )}
 
-            {getCurrentPageItems().length > 0 && totalPages > 1 && (
-                <div className="mt-8 flex justify-center">
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                    />
-                </div>
-            )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-14 mt-6 md:px-9">
+                        {getCurrentPageItems().map((item: InventoryItem) => (
+                            <Card key={item.id} className="transition-all duration-300 transform hover:scale-105">
+                                <CardHeader className='p-0'>
+                                    <div className="relative group w-full aspect-[3/2] overflow-hidden rounded-t-lg">
+                                        {activeTab === 'all' && ((item.type === 'product' && !item.isFromBlindBox) || (item.type === 'product' && item.isFromBlindBox)) && (
+                                            <div className="absolute top-2 left-2 z-10">
+                                                <Checkbox
+                                                    checked={selectedItems.includes(item.id)}
+                                                    onCheckedChange={() => handleSelectItem(item.id)}
+                                                    className="bg-white border-2 border-gray-300"
+                                                />
+                                            </div>
+                                        )}
+                                        <img
+                                            src={item.image}
+                                            alt={item.title}
+                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                        />
+                                        {item.quantity && item.quantity > 1 && (
+                                            <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                                                {item.quantity}
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <div className="flex gap-2">
+                                                {item.type === 'product' && item.product && (
+                                                    <QuickViewDialog type="product" data={item.product} />
+                                                )}
 
-            <Dialog open={showAddressDialog} onOpenChange={setShowAddressDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Thiếu địa chỉ giao hàng</DialogTitle>
-                    </DialogHeader>
-                    <div className="text-sm text-muted-foreground">
-                        Bạn chưa thiết lập địa chỉ giao hàng mặc định. Vui lòng thêm địa chỉ để tiếp tục.
+                                                {item.type === 'blindbox' && item.blindbox && (
+                                                    <QuickViewDialog type="blindbox" data={item.blindbox} />
+                                                )}
+                                                <Button
+                                                    className="text-xs px-3 py-2 rounded-md bg-white text-black hover:bg-gray-300"
+                                                    onClick={() =>
+                                                        handleViewDetail(item.id, item.type, item.blindBoxId, item.productId)
+                                                    }
+                                                >
+                                                    Xem chi tiết
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+
+                                <CardContent className="pt-4">
+                                    <div className="flex items-center gap-2">
+                                        <CardTitle className="truncate text-lg">{item.title}</CardTitle>
+
+                                        {item.type === 'blindbox' && item.status && (
+                                            <span
+                                                className={`text-sm font-medium ${item.status === 'opened' ? 'text-green-500' : 'text-yellow-500'
+                                                    }`}
+                                            >
+                                                ({item.status === 'opened' ? 'Đã mở' : 'Chưa mở'})
+                                            </span>
+                                        )}
+                                    </div>
+                                </CardContent>
+
+                                <CardFooter className="flex flex-col gap-2">
+                                    {item.type === 'blindbox' && item.status === 'opened' ? (
+                                        <div className="flex gap-2 w-full">
+                                            <Button
+                                                onClick={() => handleViewPrize(item.id)}
+                                                className="flex-1 border border-blue-600 text-blue-600 bg-transparent hover:bg-blue-600 hover:text-white transition"
+                                            >
+                                                Xem thưởng
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex gap-2 w-full">
+                                            {item.type === 'product' && !item.isFromBlindBox && (
+                                                <Button
+                                                    onClick={() => handleDeliver(item.id)}
+                                                    className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
+                                                >
+                                                    Giao hàng
+                                                </Button>
+                                            )}
+                                            {item.type === 'product' && item.isFromBlindBox && (
+                                                <>
+                                                    <Button
+                                                        onClick={() => handleResellItem(item.id)}
+                                                        className="flex-1 border border-orange-600 text-orange-600 bg-transparent hover:bg-orange-600 hover:text-white transition"
+                                                    >
+                                                        Đổi hàng
+                                                    </Button>
+                                                    <Button
+                                                        onClick={() => handleDeliver(item.id)}
+                                                        className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
+                                                    >
+                                                        Giao hàng
+                                                    </Button>
+                                                </>
+                                            )}
+                                            {item.type === 'blindbox' && item.status === 'unopened' && (
+                                                <Button
+                                                    onClick={() => handleOpenBox(item.id)}
+                                                    className="flex-1 border border-red-600 text-red-600 bg-transparent hover:bg-red-600 hover:text-white transition"
+                                                >
+                                                    Mở hộp
+                                                </Button>
+                                            )}
+                                        </div>
+                                    )}
+                                </CardFooter>
+                            </Card>
+                        ))}
                     </div>
-                    <DialogFooter className="mt-4">
-                        <Button variant="outline" onClick={() => setShowAddressDialog(false)}>
-                            Đóng
+
+                    {getCurrentPageItems().length > 0 && totalPages > 1 && (
+                        <div className="mt-8 flex justify-center">
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={handlePageChange}
+                            />
+                        </div>
+                    )}
+                </>
+            )}
+
+            <Dialog open={showShippingDialog} onOpenChange={setShowShippingDialog}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Xem trước phí vận chuyển</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-4">
+                        <div className="text-sm text-muted-foreground">
+                            Bạn đang yêu cầu giao {selectedItems.length} sản phẩm
+                        </div>
+
+                        <div className="p-4 rounded-lg border bg-gray-50">
+                            <h4 className="font-medium mb-2">📍 Địa chỉ nhận hàng</h4>
+                            {defaultAddress ? (
+                                <div className="text-sm">
+                                    <p className="font-medium">{defaultAddress.fullName}</p>
+                                    <p className="text-muted-foreground">{defaultAddress.phone}</p>
+                                    <p className="text-muted-foreground">
+                                        {defaultAddress.addressLine}, {defaultAddress.city}, {defaultAddress.province}
+                                    </p>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">Đang tải địa chỉ...</p>
+                            )}
+                        </div>
+
+                        <div className="max-h-40 overflow-y-auto border rounded-lg p-3">
+                            <h4 className="font-medium mb-2">Sản phẩm được chọn:</h4>
+                            {selectedItems.map(itemId => {
+                                const item = getCurrentPageItems().find(i => i.id === itemId)
+                                return item ? (
+                                    <div key={itemId} className="flex items-center gap-3 py-2 border-b last:border-b-0">
+                                        <img
+                                            src={item.image}
+                                            alt={item.title}
+                                            className="w-12 h-12 object-cover rounded"
+                                        />
+                                        <div className="flex-1">
+                                            <p className="font-medium text-sm">{item.title}</p>
+                                            <p className="text-xs text-muted-foreground">Giá: {item.product?.price?.toLocaleString('vi-VN')}₫</p>
+                                        </div>
+                                    </div>
+                                ) : null
+                            })}
+                        </div>
+
+                        <div className="p-4 rounded-lg border">
+                            {shippingData && shippingData.length > 0 ? (
+                                <div className="space-y-3">
+                                    {shippingData.map((shipment, index) => (
+                                        <div key={index} className="flex justify-between items-center">
+                                            <div>
+                                                <span className="font-medium"><strong>Sản phẩm thuộc:</strong> {shipment.sellerCompanyName}</span>
+                                                <p className="">
+                                                    <strong>Dự kiến giao hàng:</strong> {new Date(shipment.ghnPreviewResponse.expectedDeliveryTime).toLocaleDateString('vi-VN')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="border-t pt-2 flex justify-between items-center">
+                                        <span className="font-bold">Tổng phí vận chuyển:</span>
+                                        <span className="text-xl font-bold text-[#d02a2a]">
+                                            {shippingData.reduce((total, shipment) => total + shipment.ghnPreviewResponse.totalFee, 0).toLocaleString('vi-VN')}₫
+                                        </span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex justify-between items-center">
+                                    <span className="font-medium">Phí vận chuyển dự kiến:</span>
+                                    <span className="text-lg font-bold text-blue-600">
+                                        {isPreviewLoading ? 'Đang tính...' : 'Chưa có dữ liệu'}
+                                    </span>
+                                </div>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-2">
+                                Phí có thể thay đổi tùy theo khu vực giao hàng
+                            </p>
+                        </div>
+                    </div>
+
+                    <DialogFooter className="mt-6">
+                        <Button variant="outline" onClick={() => setShowShippingDialog(false)} disabled={isRequestLoading}>
+                            Hủy
                         </Button>
-                        <Button asChild>
-                            <Link href="/address-list">Thiết lập địa chỉ</Link>
+                        <Button
+                            onClick={handleRequestShipping}
+                            disabled={isRequestLoading}
+                            className="bg-green-600 hover:bg-green-700"
+                        >
+                            {isRequestLoading ? 'Đang xử lý...' : 'Xác nhận giao hàng'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            <Backdrop open={isLoading || isItemLoading || isBlindboxLoading} />
-        </div>
+            <Dialog open={showPrizeDialog} onOpenChange={setShowPrizeDialog}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Phần thưởng từ {selectedPrize?.blindBoxName}</DialogTitle>
+                    </DialogHeader>
+
+                    {loadingPrize ? (
+                        <div className="flex justify-center items-center py-8">
+                            <div className="text-sm text-muted-foreground">Đang tải thông tin phần thưởng...</div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="text-sm text-muted-foreground">
+                                Phần thưởng bạn đã nhận được từ blindbox này:
+                            </div>
+
+                            {wonItem ? (
+                                <Card className="border">
+                                    <CardContent className="p-6">
+                                        <div className="flex flex-col md:flex-row gap-6">
+                                            <div className="w-full md:w-48 aspect-square relative bg-gray-100 rounded-lg overflow-hidden">
+                                                <img
+                                                    src={
+                                                        wonItem.product?.imageUrls?.[0] || '/images/item1.png'
+                                                    }
+                                                    alt={wonItem.product?.name || 'Product'}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <div className="flex-1 space-y-4">
+                                                <div>
+                                                    <h3 className="text-xl font-semibold mb-2">
+                                                        {wonItem.product?.name || 'Sản phẩm'}
+                                                    </h3>
+                                                    <p className="text-muted-foreground text-sm">
+                                                        {wonItem.product?.description || 'Không có mô tả'}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex flex-col gap-4 text-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-semibold">Giá trị:</span>
+                                                        <span className="text-green-600">
+                                                            {wonItem.product?.price ?
+                                                                `${wonItem.product.price.toLocaleString('vi-VN')}đ` :
+                                                                'Chưa có giá'
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-semibold">Chiều cao:</span>
+                                                        <span>
+                                                            {wonItem.product?.height ?
+                                                                `${wonItem.product.height} cm` :
+                                                                'Chưa có thông tin'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-semibold">Chất liệu:</span>
+                                                        <span>
+                                                            {wonItem.product?.material || 'Chưa có thông tin'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex gap-3 pt-4">
+                                                    <Button
+                                                        className="w-1/2 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
+                                                        onClick={() => {
+                                                            // TODO: Implement exchange functionality
+                                                            console.log('Exchange item:', wonItem.productId || wonItem.inventoryItemId);
+                                                        }}
+                                                    >
+                                                        Đổi hàng
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    Không tìm thấy thông tin phần thưởng
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <Backdrop open={isLoading || isItemLoading || isBlindboxLoading || isUnboxing} />
+        </div >
     )
 }

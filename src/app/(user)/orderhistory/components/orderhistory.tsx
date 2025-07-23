@@ -1,22 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { CalendarDays } from "lucide-react";
-
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OrderResponse } from "@/services/order/typings";
 import useGetOrderById from "../hooks/useGetOrderById";
 import { PaymentInfoStatus, PaymentInfoStatusText } from "@/const/products";
 
-export default function OrderDetail() {
+export default function OrderHistory() {
   const { orderId } = useParams();
   const { getOrderDetailApi, isPending } = useGetOrderById();
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [tab, setTab] = useState("order");
+  const router = useRouter();
 
   useEffect(() => {
     if (!orderId) return;
@@ -80,16 +78,14 @@ export default function OrderDetail() {
             Mã giao dịch: <strong>{order.payment.transactionId}</strong>
           </div>
           {order.completedAt && order.payment.paidAt && (
-  <div>
-    Ngày thanh toán:{" "}
-    <strong>
-      {new Date(order.payment.paidAt).toLocaleDateString("vi-VN")}
-    </strong>
-  </div>
-)}
+            <div>
+              Ngày thanh toán:{" "}
+              <strong>
+                {new Date(order.payment.paidAt).toLocaleDateString("vi-VN")}
+              </strong>
+            </div>
+          )}
 
-
-          {/* Đã hoàn tiền (nếu có) */}
           {order.payment.refundedAmount > 0 && (
             <div className="text-red-500">
               Đã hoàn tiền:{" "}
@@ -99,7 +95,6 @@ export default function OrderDetail() {
             </div>
           )}
 
-          {/* Giảm giá (nếu có) */}
           {order.payment.amount !== order.payment.netAmount && (
             <div>
               Giảm giá: -{(order.payment.amount - order.payment.netAmount).toLocaleString("vi-VN")}₫
@@ -111,60 +106,63 @@ export default function OrderDetail() {
               {order.payment.netAmount.toLocaleString("vi-VN")}₫
             </span>
           </div>
-          
-
-
         </CardContent>
       </Card>
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Sản phẩm</h2>
         {order.details.map((item, index) => (
-          <Card key={index}>
-            <CardContent className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center">
-              <div>
-                <div className="font-medium">
-                  {item.blindBoxName || item.productName}{" "}
-                  {item.blindBoxId && (
-                    <span className="text-xs italic text-green-500">
-                      (Blindbox)
-                    </span>
-                  )}
+          <Card
+            key={index}
+            className="transition-transform duration-200 hover:scale-[1.02] hover:shadow-md cursor-pointer"
+            onClick={() => {
+              if (item.blindBoxId) {
+                router.push(`/detail-blindbox/${item.blindBoxId}`);
+              } else {
+                router.push(`/detail/${item.productId}`);
+              }
+            }}
+          >
+            <CardContent className="p-4 flex items-start gap-4">
+              <img
+                src={
+                  item.blindBoxId
+                    ? item.blindBoxImage || "/placeholder.jpg"
+                    : item.productImages?.[0] || "/placeholder.jpg"
+                }
+                alt="product image"
+                className="w-20 h-20 object-cover rounded border"
+              />
+
+              <div className="flex-1 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                <div className="space-y-1">
+                  <div className="font-medium text-gray-900">
+                    {item.blindBoxName || item.productName}{" "}
+                    {item.blindBoxId && (
+                      <span className="text-xs italic text-green-500 ml-1">
+                        (Blindbox)
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Số lượng: {item.quantity}
+                  </div>
                 </div>
 
-                <div className="text-sm text-muted-foreground">
-                  Số lượng: {item.quantity}
+                <div className="mt-2 sm:mt-0 text-right">
+                  {item.unitPrice * item.quantity !== item.totalPrice && (
+                    <div className="text-sm text-gray-400 line-through">
+                      {(item.unitPrice * item.quantity).toLocaleString("vi-VN")}₫
+                    </div>
+                  )}
+                  <div className="text-base font-semibold text-red-500">
+                    {item.totalPrice.toLocaleString("vi-VN")}₫
+                  </div>
                 </div>
-              </div>
-              <div className="mt-2 sm:mt-0 font-semibold text-green-700">
-                {item.totalPrice.toLocaleString("vi-VN")}₫
               </div>
             </CardContent>
           </Card>
         ))}
-      </div>
-
-      <div className="pt-6 border-t">
-        <h2 className="text-lg font-semibold mb-3">Hỗ trợ</h2>
-        <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="flex flex-col sm:flex-row gap-2 sm:gap-6 text-[#d02a2a]">
-            <TabsTrigger value="order">Vấn đề đơn hàng</TabsTrigger>
-            <TabsTrigger value="shipping">Thông tin giao hàng</TabsTrigger>
-            <TabsTrigger value="return">Trả hàng</TabsTrigger>
-          </TabsList>
-
-          <div className="mt-4 text-sm text-muted-foreground bg-gray-50 p-4 rounded-md border">
-            <TabsContent value="order">
-              Nếu bạn gặp sự cố với đơn hàng, vui lòng liên hệ chúng tôi qua hotline hoặc gửi yêu cầu hỗ trợ trong mục Liên hệ.
-            </TabsContent>
-            <TabsContent value="shipping">
-              Đơn hàng của bạn sẽ được giao trong vòng 3–5 ngày làm việc. Vui lòng kiểm tra tình trạng giao hàng trong phần Theo dõi đơn hàng.
-            </TabsContent>
-            <TabsContent value="return">
-              Bạn có thể trả hàng trong vòng 7 ngày nếu sản phẩm lỗi hoặc không đúng mô tả. Truy cập mục Chính sách hoàn trả để biết thêm chi tiết.
-            </TabsContent>
-          </div>
-        </Tabs>
       </div>
     </div>
   );

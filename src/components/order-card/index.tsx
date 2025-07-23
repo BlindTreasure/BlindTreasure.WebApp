@@ -1,7 +1,7 @@
 "use client";
 
 import { OrderDetail, PaymentInfo } from "@/services/order/typings";
-import { PaymentInfoStatus, PaymentInfoStatusText, PaymentStatus, PaymentStatusText } from "@/const/products";
+import { OrderStatus, OrderStatusText, PaymentInfoStatus, PaymentInfoStatusText, PaymentStatus, PaymentStatusText } from "@/const/products";
 import {
     Dialog,
     DialogTrigger,
@@ -52,7 +52,7 @@ export default function OrderCard({
         router.push(`/orderhistory/${id}`);
     };
     return (
-        <div className="border rounded-md shadow-sm bg-white mb-4">
+        <div className="border rounded-md shadow-sm bg-white mb-4" >
             <div className="flex justify-between items-center p-4 border-b bg-gray-50">
                 <div className="flex items-center gap-2">
                     <div className="bg-red-600 text-white text-xs px-1 py-0.5 rounded-sm font-bold">Mall</div>
@@ -67,7 +67,7 @@ export default function OrderCard({
             </div>
 
             {details.map((detail) => (
-                <div key={detail.id} className="p-4 flex border-b gap-4">
+                <div key={detail.id} className="p-4 flex border-b gap-4 cursor-pointer" onClick={() => router.push(`/orderdetail/${orderId}`)}>
                     <img
                         src={
                             "blindBoxId" in detail
@@ -93,11 +93,7 @@ export default function OrderCard({
                 </div>
             ))}
 
-            <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center bg-gray-50 gap-4">
-                <div className="text-sm text-gray-600">
-                    Đơn hàng sẽ được chuẩn bị và chuyển đi trước <span className="text-blue-500 underline">{deliveryDate}</span>
-                </div>
-
+            <div className="p-4 flex flex-col sm:flex-row sm:justify-end sm:items-center bg-gray-50 gap-4">
                 <div className="flex flex-wrap gap-2 items-center">
                     <div className="text-sm sm:text-base text-gray-700">
                         Thành tiền:{" "}
@@ -108,7 +104,7 @@ export default function OrderCard({
 
                     <Dialog>
                         <DialogTrigger asChild>
-                            <button className="border border-gray-300 px-4 py-1 rounded hover:bg-gray-100">
+                            <button className="border border-gray-300 px-4 py-1 rounded hover:bg-gray-100" onClick={(e) => e.stopPropagation()}>
                                 Xem hóa đơn
                             </button>
                         </DialogTrigger>
@@ -116,7 +112,7 @@ export default function OrderCard({
                         <DialogContent className="max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Hóa đơn đơn hàng</DialogTitle>
-                                <span
+                                {/* <span
                                     className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase w-fit
     ${payment.status === PaymentInfoStatus.Paid || payment.status === PaymentInfoStatus.Completed
                                             ? "bg-green-100 text-green-700"
@@ -124,7 +120,27 @@ export default function OrderCard({
                                         }`}
                                 >
                                     {PaymentInfoStatusText[payment.status]}
-                                </span>
+                                </span> */}
+                                {/* Get unique statuses to avoid duplicates */}
+                                {Array.from(new Set(details.map(detail => detail.status))).map((status) => (
+                                    <div key={status} className="flex items-center gap-2">
+                                        <span
+                                            className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase w-fit
+        ${status === OrderStatus.CANCELLED
+                                                    ? "bg-red-100 text-red-700"
+                                                    : status === OrderStatus.PENDING
+                                                        ? "bg-yellow-100 text-yellow-700"
+                                                        : status === OrderStatus.SHIPPING_REQUESTED
+                                                            ? "bg-blue-100 text-blue-700"
+                                                            : status === OrderStatus.DELIVEREDING
+                                                                ? "bg-green-100 text-green-700"
+                                                                : "bg-gray-100 text-gray-600"
+                                                }`}
+                                        >
+                                            {OrderStatusText[status] ?? "Không xác định"}
+                                        </span>
+                                    </div>
+                                ))}
                             </DialogHeader>
 
                             <div className="space-y-6 text-sm mt-4">
@@ -152,6 +168,7 @@ export default function OrderCard({
                                                 <th className="p-2">Tên sản phẩm</th>
                                                 <th className="p-2 text-center">SL</th>
                                                 <th className="p-2 text-right">Đơn giá</th>
+                                                <th className="p-2 text-right">ship</th>
                                                 <th className="p-2 text-right">Thành tiền</th>
                                             </tr>
                                         </thead>
@@ -163,6 +180,7 @@ export default function OrderCard({
                                                     </td>
                                                     <td className="p-2 text-center">{item.quantity}</td>
                                                     <td className="p-2 text-right">{item.unitPrice.toLocaleString()}₫</td>
+                                                    <td className="p-2 text-right">0₫</td>
                                                     <td className="p-2 text-right">{(item.unitPrice * item.quantity).toLocaleString()}₫</td>
                                                 </tr>
                                             ))}
@@ -183,7 +201,14 @@ export default function OrderCard({
                                 </div>
 
                                 <div className="border-t pt-4 text-right text-sm flex justify-between items-center">
-                                    <div> <Button onClick={() => handleViewInvoiceDetail(orderId)}>Xem chi tiết</Button></div>
+                                    <div> <Button onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleViewInvoiceDetail(orderId);
+                                    }}>
+                                        Xem chi tiết
+                                    </Button>
+
+                                    </div>
                                     <div>
                                         <div>Tạm tính: {payment.amount.toLocaleString()}₫</div>
                                         <div>Giảm giá: -{(payment.amount - payment.netAmount).toLocaleString()}₫</div>

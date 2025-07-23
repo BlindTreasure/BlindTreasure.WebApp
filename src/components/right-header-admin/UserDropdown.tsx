@@ -6,6 +6,9 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import useLogout from "@/hooks/use-logout";
 import { RootState, useAppSelector } from "@/stores/store";
+import { useRouter } from "next/navigation";
+import useUserAvatar from "@/hooks/use-user-avatar";
+
 interface UserDropdownProps {
   setIsLoggingOut: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -13,6 +16,13 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { handleLogout } = useLogout();
   const userState = useAppSelector((state: RootState) => state.userSlice);
+  // const persistState = useAppSelector((state: RootState) => state._persist);
+  const persistState = useAppSelector((state: any) => state._persist);
+  const router = useRouter();
+
+  const { avatarUrl } = useUserAvatar();
+
+  const isHeaderLoading = !persistState?.rehydrated && !userState.user;
 
   const onLogout = async () => {
     setIsLoggingOut(true);
@@ -29,6 +39,14 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
     setIsOpen(false);
   }
 
+  const handleOpenProfileEdit = () => {
+    const profilePath = userState.user?.roleName === "Seller"
+      ? '/seller/profile'
+      : '/profile';
+    router.push(profilePath);
+    closeDropdown();
+  };
+
 
   return (
     <div className="relative">
@@ -37,11 +55,15 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
         className="dropdown-toggle flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
       >
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <img
-            className="w-11 h-11 rounded-full cursor-pointer"
-            src={userState?.user?.avatarUrl || "/images/unknown_avatar.png"}
-            alt="User"
-          />
+          {isHeaderLoading ? (
+            <div className="w-11 h-11 bg-gray-200 animate-pulse rounded-full"></div>
+          ) : (
+            <img
+              className="w-11 h-11 rounded-full cursor-pointer"
+              src={avatarUrl}
+              alt="User"
+            />
+          )}
         </span>
 
         <span className="block mr-1 font-medium text-theme-sm">{userState?.user?.roleName}</span>
@@ -82,10 +104,9 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
         <ul className="flex flex-col gap-1 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800">
           <li>
             <DropdownItem
-              onItemClick={closeDropdown}
-              tag="a"
-              href="/profile"
-              className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+              onItemClick={handleOpenProfileEdit}
+              tag="button"
+              className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300 w-full text-left"
             >
               <svg
                 className="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
@@ -102,7 +123,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setIsLoggingOut }) => {
                   fill=""
                 />
               </svg>
-              Edit profile
+              Chỉnh sửa hồ sơ
             </DropdownItem>
           </li>
           <li>
