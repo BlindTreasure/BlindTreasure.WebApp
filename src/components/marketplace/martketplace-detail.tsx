@@ -2,16 +2,25 @@
 import React, { useState } from 'react';
 import { X, Heart, Star, MapPin, MessageCircle, Bookmark, Share2, MoreHorizontal, CheckCircle } from 'lucide-react';
 
+enum ListingStatus {
+  Available = 'Available',
+  Pending = 'Pending',
+  Completed = 'Completed',
+  Cancelled = 'Cancelled'
+}
+
 interface Product {
   id: string;
-  name: string;
-  description: string;
-  image: string;
+  productName: string; // Đổi từ 'name' thành 'productName'
+  description?: string; // Thêm optional
+  productImage: string; // Đổi từ 'image' thành 'productImage'
   images?: string[];
+  isFree: boolean; // Thêm thuộc tính này
+  desiredItemName?: string; // Thêm thuộc tính này
+  status: ListingStatus; // Thêm thuộc tính này
+  listedAt: string; // Thêm thuộc tính này - ISO date string
+  ownerName: string; // Thêm thuộc tính này
   category: string;
-  rating: number;
-  reviewCount: number;
-  location: string;
   seller: {
     name: string;
     avatar?: string;
@@ -36,7 +45,52 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
   onToggleLike 
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const images = product.images || [product.image];
+  const images = product.images || [product.productImage]; // Sử dụng productImage thay vì image
+
+  // Format ngày tháng
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.ceil(diffDays / 7);
+    
+    if (diffWeeks < 1) {
+      return `${diffDays} ngày trước`;
+    }
+    return `${diffWeeks} tuần trước`;
+  };
+
+  // Hiển thị trạng thái
+  const getStatusText = (status: ListingStatus) => {
+    switch (status) {
+      case ListingStatus.Available:
+        return 'Còn hàng';
+      case ListingStatus.Pending:
+        return 'Đang chờ';
+      case ListingStatus.Completed:
+        return 'Đã hoàn thành';
+      case ListingStatus.Cancelled:
+        return 'Đã hủy';
+      default:
+        return 'Không xác định';
+    }
+  };
+
+  const getStatusColor = (status: ListingStatus) => {
+    switch (status) {
+      case ListingStatus.Available:
+        return 'text-green-600 bg-green-50';
+      case ListingStatus.Pending:
+        return 'text-yellow-600 bg-yellow-50';
+      case ListingStatus.Completed:
+        return 'text-blue-600 bg-blue-50';
+      case ListingStatus.Cancelled:
+        return 'text-red-600 bg-red-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex">
@@ -58,21 +112,21 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
           <div className="aspect-square bg-gray-100">
             <img
               src={images[currentImageIndex]}
-              alt={product.name}
+              alt={product.productName}
               className="w-full h-full object-cover"
             />
             {images.length > 1 && (
               <>
                 <button
                   onClick={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md"
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-50"
                   disabled={currentImageIndex === 0}
                 >
                   ←
                 </button>
                 <button
                   onClick={() => setCurrentImageIndex(Math.min(images.length - 1, currentImageIndex + 1))}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-50"
                   disabled={currentImageIndex === images.length - 1}
                 >
                   →
@@ -101,7 +155,7 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
 
         {/* Thông tin sản phẩm */}
         <div className="p-4">
-          {/* Giá và action buttons */}
+          {/* Action buttons */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex gap-2">
               <button
@@ -124,24 +178,36 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
                 <MoreHorizontal className="w-5 h-5 text-gray-400" />
               </button>
             </div>
+            
+            {/* Trạng thái */}
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
+              {getStatusText(product.status)}
+            </span>
           </div>
 
           {/* Tiêu đề */}
           <h1 className="text-xl font-semibold text-gray-900 mb-2">
-            {product.name}
+            {product.productName}
           </h1>
 
-          {/* Đánh giá và vị trí */}
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex items-center">
-              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-              <span className="ml-1 font-medium">{product.rating}</span>
-              <span className="ml-1 text-gray-500">({product.reviewCount})</span>
-            </div>
-            <div className="flex items-center text-gray-500">
-              <MapPin className="w-4 h-4 mr-1" />
-              <span>{product.location}</span>
-            </div>
+          {/* Loại giao dịch */}
+          <div className="mb-3">
+            {product.isFree ? (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                Miễn phí
+              </span>
+            ) : (
+              <div>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                  Trao đổi
+                </span>
+                {product.desiredItemName && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Mong muốn: {product.desiredItemName}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Thông tin người bán */}
@@ -167,62 +233,60 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
                     <CheckCircle className="w-4 h-4 text-blue-500" />
                   )}
                 </div>
-                {product.seller.yearsActive && (
-                  <p className="text-sm text-gray-500">
-                    Đã niêm yết 5 tuần trước tại {product.location}
-                  </p>
-                )}
+                <p className="text-sm text-gray-500">
+                  Đã đăng {formatDate(product.listedAt)}
+                  {product.seller.yearsActive && ` • Hoạt động ${product.seller.yearsActive} năm`}
+                </p>
               </div>
             </div>
             
             <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
               <MessageCircle className="w-4 h-4" />
-              Gửi tin nhắn cho người bán
+              Gửi tin nhắn cho {product.ownerName}
             </button>
           </div>
 
           {/* Mô tả */}
-          <div className="mb-4">
-            <h3 className="font-medium mb-2">Mô tả của người bán</h3>
-            <p className="text-gray-700 text-sm leading-relaxed">
-              {product.description}
-              {product.features && (
-                <span>
-                  {' '}Các tính năng nổi bật: {product.features.join(', ')}.
-                </span>
-              )}
-            </p>
-            <button className="text-blue-600 text-sm mt-1 hover:underline">
-              Xem thêm
-            </button>
-          </div>
+          {product.description && (
+            <div className="mb-4">
+              <h3 className="font-medium mb-2">Mô tả chi tiết</h3>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                {product.description}
+                {product.features && product.features.length > 0 && (
+                  <span>
+                    {' '}Đặc điểm nổi bật: {product.features.join(', ')}.
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
 
           {/* Thông tin bổ sung */}
-          <div className="space-y-2 text-sm">
+          <div className="space-y-2 text-sm border-t pt-4">
             <div className="flex justify-between">
               <span className="text-gray-600">Danh mục:</span>
-              <span>{product.category}</span>
+              <span className="font-medium">{product.category}</span>
             </div>
             {product.condition && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Tình trạng:</span>
-                <span>{product.condition}</span>
+                <span className="font-medium">{product.condition}</span>
               </div>
             )}
-          </div>
-
-          {/* Map placeholder */}
-          <div className="mt-6">
-            <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-              <MapPin className="w-8 h-8 text-gray-400" />
+            <div className="flex justify-between">
+              <span className="text-gray-600">Ngày đăng:</span>
+              <span className="font-medium">{new Date(product.listedAt).toLocaleDateString('vi-VN')}</span>
             </div>
-            <p className="text-sm text-gray-600 text-center">{product.location}</p>
+            <div className="flex justify-between">
+              <span className="text-gray-600">ID sản phẩm:</span>
+              <span className="font-mono text-xs">{product.id}</span>
+            </div>
           </div>
 
           {/* Safety notice */}
           <div className="mt-6 p-3 bg-blue-50 rounded-lg">
             <p className="text-xs text-blue-800">
-              <strong>Mặt hàng này còn chưa?</strong> Hãy hỏi người bán trước khi đến xem.
+              <strong>Lời khuyên an toàn:</strong> Luôn gặp mặt trực tiếp tại nơi công cộng và kiểm tra kỹ sản phẩm trước khi giao dịch.
             </p>
           </div>
         </div>

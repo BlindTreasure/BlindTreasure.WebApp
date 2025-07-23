@@ -1,5 +1,5 @@
 import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
-import MarketPlace from "./components/marketplace";
+import CreateListing from "./components/createListing";
 
 
 export const metadata: Metadata = {
@@ -7,10 +7,10 @@ export const metadata: Metadata = {
     description: "Marketplace của BlindTreasure",
 };
 
-export default function MarketplacePage() {
+export default function CreateListingPage() {
     return (
         <div>
-            <MarketPlace />
+            <CreateListing />
         </div>
     )
 }

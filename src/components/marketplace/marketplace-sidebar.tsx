@@ -115,17 +115,6 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
           </button>
         </div>
 
-        {/* Location */}
-        <div className="px-6 py-4 border-t border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-blue-500" />
-            Vị trí
-          </h3>
-          <div className="text-sm text-blue-600 hover:text-blue-700 hover:underline cursor-pointer bg-blue-50 px-3 py-2 rounded-lg font-medium">
-            Dĩ An · Trong vòng 65 km
-          </div>
-        </div>
-
         {/* Categories */}
         <div className="px-6 py-4 border-t border-gray-100">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">Hạng mục</h3>
@@ -133,7 +122,7 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
             {categories.map((category) => (
               <button
                 key={category}
-                onClick={() => onCategoryChange(category)}
+                onClick={() => onCategoryChange(  category)}
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all font-medium ${
                   selectedCategory === category
                     ? 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 shadow-sm border border-blue-200'
