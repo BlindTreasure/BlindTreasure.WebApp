@@ -69,33 +69,5 @@ export const store = configureStore({
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
-// Override the useSelector type to work with persisted state
-declare module 'react-redux' {
-  interface DefaultRootState extends PersistedState {}
-}
-
-// Helper type to get the actual state type without PersistPartial
-export type AppState = {
-  userSlice: ReturnType<typeof userSlice>;
-  authSlice: ReturnType<typeof authSlice>;
-  accountSlice: ReturnType<typeof accountSlice>;
-  differenceSlice: ReturnType<typeof differenceSlice>;
-  cartSlice: ReturnType<typeof cartSlice>;
-  filterSlice: ReturnType<typeof filterSlice>;
-  notificationSlice: ReturnType<typeof notificationSlice>;
-};
-
-// Type for the persisted state
-export type PersistedState = {
-  userSlice: ReturnType<typeof userSlice>;
-  authSlice: ReturnType<typeof authSlice>;
-  accountSlice: ReturnType<typeof accountSlice>;
-  differenceSlice: ReturnType<typeof differenceSlice>;
-  cartSlice: ReturnType<typeof cartSlice>;
-  filterSlice: ReturnType<typeof filterSlice>;
-  notificationSlice: ReturnType<typeof notificationSlice>;
-};
-
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
-

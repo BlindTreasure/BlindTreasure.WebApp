@@ -5,6 +5,7 @@ import accountSlice from "@/stores/account-slice";
 import differenceSlice from "@/stores/difference-slice";
 import cartSlice from "@/stores/cart-slice";
 import filterSlice from "@/stores/filter-product-slice";
+import notificationSlice from "@/stores/notification-slice"
 
 const rootReducer = combineReducers({
   userSlice,
@@ -13,6 +14,7 @@ const rootReducer = combineReducers({
   differenceSlice,
   cartSlice,
   filterSlice,
+  notificationSlice
 });
 
 export default rootReducer;
