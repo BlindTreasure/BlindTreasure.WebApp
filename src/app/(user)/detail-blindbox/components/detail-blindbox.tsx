@@ -26,6 +26,7 @@ import useGetProductByIdWeb from '@/app/(user)/detail/hooks/useGetProductByIdWeb
 import useGetAllProductWeb from '@/app/(user)/allproduct/hooks/useGetAllProductWeb';
 import { TbMessageDots } from 'react-icons/tb';
 import { BsShop } from 'react-icons/bs';
+import { useWishlistContext } from "@/contexts/WishlistContext";
 
 
 interface BlindboxProps {
@@ -47,6 +48,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
     const { getPSellerByIdApi, isPending: isSellerPending } = useGetSellerById();
     const { getProductByIdWebApi } = useGetProductByIdWeb();
     const { getAllProductWebApi } = useGetAllProductWeb();
+    const { getItemWishlistStatus, refreshWishlistStatus } = useWishlistContext();
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [loadingPage, setLoadingPage] = useState(false);
     const router = useRouter();
@@ -462,14 +464,20 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {relatedBlindboxes
                             .filter((box) => box.items?.length > 0)
-                            .map((item) => (
-                                <BlindboxCard
-                                    key={item.id}
-                                    blindbox={item}
-                                    ribbonTypes={getRibbonTypes(item)}
-                                    onViewDetail={handleViewBlindboxDetail}
-                                />
-                            ))}
+                            .map((item) => {
+                                const wishlistStatus = getItemWishlistStatus(item.id);
+                                return (
+                                    <BlindboxCard
+                                        key={item.id}
+                                        blindbox={item}
+                                        ribbonTypes={getRibbonTypes(item)}
+                                        onViewDetail={handleViewBlindboxDetail}
+                                        initialIsInWishlist={wishlistStatus.isInWishlist}
+                                        initialWishlistId={wishlistStatus.wishlistId}
+                                        onWishlistChange={refreshWishlistStatus}
+                                    />
+                                );
+                            })}
                     </div>
                 </div>
             )}

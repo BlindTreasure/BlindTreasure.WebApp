@@ -27,6 +27,7 @@ interface ProductCardProps {
   ribbonTypes?: ("new" | "sale" | "blindbox")[];
   initialIsInWishlist?: boolean;
   initialWishlistId?: string;
+  onWishlistChange?: () => void;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -34,7 +35,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onViewDetail,
   ribbonTypes = [],
   initialIsInWishlist = false,
-  initialWishlistId
+  initialWishlistId,
+  onWishlistChange
 }) => {
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
 
@@ -44,7 +46,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
     isPending: isToggling
   } = useToggleWishlist({
     initialIsInWishlist,
-    initialWishlistId
+    initialWishlistId,
+    onWishlistChange
   });
   const [mainSwiper, setMainSwiper] = useState<SwiperType | null>(null);
   const [open, setOpen] = useState(false);

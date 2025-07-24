@@ -25,6 +25,7 @@ import useGetSellerById from "../hooks/useGetSellerById";
 import { TbMessageDots } from "react-icons/tb";
 import useGetAllBlindBoxes from '@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes';
 import { BlindBox, GetBlindBoxes } from '@/services/blindboxes/typings';
+import { useWishlistContext } from "@/contexts/WishlistContext";
 import { BsShop } from "react-icons/bs";
 
 interface DetailProps {
@@ -47,6 +48,7 @@ export default function Detail({ detailId }: DetailProps) {
     const { getAllProductWebApi, isPending: isProduct } = useGetAllProductWeb();
     const { getPSellerByIdApi, isPending: isSellerPending } = useGetSellerById();
     const { getAllBlindBoxesApi, isPending: isBlindboxPending } = useGetAllBlindBoxes();
+    const { getItemWishlistStatus, refreshWishlistStatus } = useWishlistContext();
 
     const handleViewDetail = (id: string) => {
         setLoadingPage(true);
@@ -364,7 +366,7 @@ export default function Detail({ detailId }: DetailProps) {
                     </div>
                 </div>
             </motion.div>
-            
+
             <motion.div
                 variants={fadeIn("up", 0.3)}
                 initial="hidden"
@@ -378,15 +380,20 @@ export default function Detail({ detailId }: DetailProps) {
                 <div className="mt-12">
                     <h3 className="text-2xl font-semibold mb-6">Sản phẩm liên quan</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {relatedProducts.map((item) => (
-
-                            <ProductCard
-                                key={item.id}
-                                product={item}
-                                ribbonTypes={getRibbonTypes(item)}
-                                onViewDetail={handleViewDetail}
-                            />
-                        ))}
+                        {relatedProducts.map((item) => {
+                            const wishlistStatus = getItemWishlistStatus(item.id);
+                            return (
+                                <ProductCard
+                                    key={item.id}
+                                    product={item}
+                                    ribbonTypes={getRibbonTypes(item)}
+                                    onViewDetail={handleViewDetail}
+                                    initialIsInWishlist={wishlistStatus.isInWishlist}
+                                    initialWishlistId={wishlistStatus.wishlistId}
+                                    onWishlistChange={refreshWishlistStatus}
+                                />
+                            );
+                        })}
                     </div>
                 </div>
             )}

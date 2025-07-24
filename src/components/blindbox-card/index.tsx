@@ -18,6 +18,7 @@ interface BlindboxCardProps {
     ribbonTypes?: ("new" | "sale" | "blindbox")[];
     initialIsInWishlist?: boolean;
     initialWishlistId?: string;
+    onWishlistChange?: () => void;
 }
 
 const BlindboxCard: React.FC<BlindboxCardProps> = ({
@@ -25,7 +26,8 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({
     onViewDetail,
     ribbonTypes = [],
     initialIsInWishlist = false,
-    initialWishlistId
+    initialWishlistId,
+    onWishlistChange
 }) => {
     const [open, setOpen] = useState(false);
     const image = blindbox.imageUrl || "/images/cart.webp";
@@ -37,7 +39,8 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({
         isPending: isToggling
     } = useToggleWishlist({
         initialIsInWishlist,
-        initialWishlistId
+        initialWishlistId,
+        onWishlistChange
     });
 
     const handleDecrease = () => {
