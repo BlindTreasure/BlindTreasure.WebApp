@@ -608,6 +608,20 @@ const Cart: React.FC = () => {
                 Đơn hàng sẽ được giao tận nơi
               </div>
             )}
+
+            {pendingOrderData?.items.some(item => item.blindBoxId && item.blindBoxName) && (
+              <div className="text-xs px-3 py-2 bg-blue-50 border border-blue-200 rounded text-blue-700 mt-3">
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-500">ℹ️</span>
+                  <div>
+                    <p className="font-medium mb-1">Lưu ý về Blindbox:</p>
+                    <p>• Blindbox sẽ được lưu trong túi đồ của bạn sau khi thanh toán</p>
+                    <p>• Bạn cần mở hộp để nhận sản phẩm cụ thể</p>
+                    <p>• Chỉ sản phẩm đã mở mới có thể được giao hàng tận nơi</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="mt-4">
