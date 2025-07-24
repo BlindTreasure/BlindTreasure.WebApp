@@ -31,11 +31,7 @@ export const useServicePreviewShipping = () => {
       return await previewShipping(data);
     },
     onSuccess: (data) => {
-      addToast({
-        type: "success",
-        description: data.value.message,
-        duration: 5000,
-      });
+      
     },
     onError: (error) => {
       handleError(error);

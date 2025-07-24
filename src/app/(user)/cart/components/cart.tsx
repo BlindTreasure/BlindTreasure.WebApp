@@ -491,6 +491,13 @@ const Cart: React.FC = () => {
                     Đang tính phí vận chuyển...
                   </p>
                 )}
+
+                {isShip && cartItems.some(item => selectedItems.includes(item.id) && !Boolean(item.productId)) && (
+                  <div className="text-xs px-2 py-1 bg-amber-50 border border-amber-200 rounded text-amber-700 flex items-center gap-1 ml-6 mt-2">
+                    <span>⚠️</span>
+                    <span>Lưu ý: Sản phẩm blindbox chỉ được giao sau khi bạn mở hộp và nhận sản phẩm cụ thể.</span>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2 mb-4">
@@ -598,7 +605,7 @@ const Cart: React.FC = () => {
             {pendingOrderData?.isShip && (
               <div className="text-xs text-gray-500 flex items-center gap-1">
                 <Truck className="w-3 h-3" />
-                Đơn hàng sẽ được giao tận nơi 
+                Đơn hàng sẽ được giao tận nơi
               </div>
             )}
           </div>
