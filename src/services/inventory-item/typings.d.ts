@@ -4,6 +4,7 @@ import {
   PaymentStatus,
   StockStatus,
   BlindboxStatus,
+  ShipmentStatus,
 } from "@/const/products";
 import { TResponseData } from "@/typings";
 
@@ -66,28 +67,45 @@ export type PreviewShipment = {
 };
 
 export type ShipmentPreviewFee = {
-    mainService: number;
-    insurance: number;
-    stationDo: number;
-    stationPu: number;
-    return: number;
-    r2s: number;
-    coupon: number;
-    codFailedFee: number;
-  };
+  mainService: number;
+  insurance: number;
+  stationDo: number;
+  stationPu: number;
+  return: number;
+  r2s: number;
+  coupon: number;
+  codFailedFee: number;
+};
 
 export type GhnPreviewResponse = {
-    orderCode: string;
-    sortCode: string;
-    transType: string;
-    fee: ShipmentPreviewFee;
-    totalFee: number;
-    expectedDeliveryTime: string;
-  };
+  orderCode: string;
+  sortCode: string;
+  transType: string;
+  fee: ShipmentPreviewFee;
+  totalFee: number;
+  expectedDeliveryTime: string;
+};
 
 export type ShipmentPreview = {
-    sellerId: string;
-    sellerCompanyName: string;
-    ghnPreviewResponse: GhnPreviewResponse;
-  };
+  sellerId: string;
+  sellerCompanyName: string;
+  ghnPreviewResponse: GhnPreviewResponse;
+};
 
+export type DeliveryData = {
+  paymentUrl: string;
+  shipments: Shipment[];
+};
+
+export type Shipment = {
+  id: string;
+  orderCode: string;
+  totalFee: number;
+  mainServiceFee: number;
+  provider: string;
+  trackingNumber: string;
+  shippedAt: string; 
+  estimatedDelivery: string;
+  status: ShipmentStatus; 
+  inventoryItems: any[];
+};

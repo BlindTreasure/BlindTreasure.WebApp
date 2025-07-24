@@ -138,7 +138,7 @@ export enum OrderStatusDetail {
   SHIPPED = "SHIPPED",
   DELIVERED = "DELIVERED",
   CANCELLED = "CANCELLED",
-  IN_INVENTORY = "IN_INVENTORY"
+  IN_INVENTORY = "IN_INVENTORY",
 }
 
 export const OrderStatusDetailText: Record<OrderStatusDetail, string> = {
@@ -165,4 +165,16 @@ export const PaymentInfoStatusText: Record<PaymentInfoStatus, string> = {
   [PaymentInfoStatus.Failed]: "Thanh toán thất bại",
   [PaymentInfoStatus.Completed]: "Hoàn tất",
   [PaymentInfoStatus.Expired]: "Hết hạn",
+};
+
+export enum ShipmentStatus {
+  WAITING_PAYMENT = "WAITING_PAYMENT",
+  PROCESSING = "PROCESSING",
+  COMPLETED = "COMPLETED",
+}
+
+export const ShipmentStatusText: Record<ShipmentStatus, string> = {
+  [ShipmentStatus.WAITING_PAYMENT]: "Chờ thanh toán",
+  [ShipmentStatus.PROCESSING]: "Đang vận chuyển",
+  [ShipmentStatus.COMPLETED]: "Đã giao hàng",
 };
