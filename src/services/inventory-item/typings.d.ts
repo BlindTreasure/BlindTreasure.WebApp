@@ -16,7 +16,7 @@ export type PaginatedResponse<T> = {
 };
 
 export type InventoryItem = {
-  inventoryItemId: string;
+  id: string;
   userId: string;
   productId: string;
   product: Product;

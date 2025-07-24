@@ -29,7 +29,6 @@ import { InventoryItem as WonInventoryItem, ShipmentPreview } from '@/services/i
 
 interface InventoryItem {
     id: string
-    inventoryItemIds?: string
     title: string
     image: string
     status: 'unopened' | 'opened' | null
@@ -135,8 +134,7 @@ export default function Inventory() {
 
                     if (itemRes?.value.data?.result) {
                         const itemItems: InventoryItem[] = itemRes.value.data.result.map((item: any, index: number) => ({
-                            id: item.inventoryItemId,
-                            inventoryItemIds: item.inventoryItemId,
+                            id: item.id,
                             productId: item.productId,
                             product: item.product,
                             title: item.product?.name || '',
@@ -212,7 +210,7 @@ export default function Inventory() {
     const handleDeliver = async (itemId: string) => {
         const item = inventoryItems.find(i => i.id === itemId)
 
-        if (!item || !item.inventoryItemIds) {
+        if (!item || !item.id) {
             return
         }
 
@@ -220,7 +218,7 @@ export default function Inventory() {
 
         try {
             const result = await previewShipment({
-                inventoryItemIds: [item.inventoryItemIds]
+                inventoryItemIds: [item.id]
             })
 
             if (result) {
@@ -258,7 +256,7 @@ export default function Inventory() {
         const selectedInventoryItemIds = selectedItems
             .map(itemId => {
                 const item = inventoryItems.find(i => i.id === itemId)
-                return item?.inventoryItemIds
+                return item?.id
             })
             .filter(Boolean) as string[]
 
@@ -285,7 +283,7 @@ export default function Inventory() {
         const selectedInventoryItemIds = selectedItems
             .map(itemId => {
                 const item = inventoryItems.find(i => i.id === itemId)
-                return item?.inventoryItemIds
+                return item?.id
             })
             .filter(Boolean) as string[]
 
@@ -699,7 +697,7 @@ export default function Inventory() {
                                                         className="w-1/2 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
                                                         onClick={() => {
                                                             // TODO: Implement exchange functionality
-                                                            console.log('Exchange item:', wonItem.productId || wonItem.inventoryItemId);
+                                                            console.log('Exchange item:', wonItem.productId || wonItem.id);
                                                         }}
                                                     >
                                                         Đổi hàng
