@@ -6,16 +6,17 @@ import { Backdrop } from "@/components/backdrop";
 import { useRouter } from "next/navigation";
 import useGetAllBlindBoxes from "@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes";
 import Pagination from "@/components/pagination";
+import { useWishlistContext } from "@/contexts/WishlistContext";
 import ProductFilterSidebar from "@/components/product-filter-sidebar";
 import useGetCategory from "@/app/staff/category-management/hooks/useGetCategory";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
-import { 
-  setCategoryId, 
-  setMinPrice, 
-  setMaxPrice, 
+import {
+  setCategoryId,
+  setMinPrice,
+  setMaxPrice,
   setReleaseDateFrom,
   setReleaseDateTo,
-  clearFilters 
+  clearFilters
 } from "@/stores/filter-product-slice";
 import { BlindboxStatus } from "@/const/products";
 
@@ -23,10 +24,11 @@ export default function AllBlindBoxes() {
   // Redux state and dispatch
   const dispatch = useAppDispatch();
   const filters = useAppSelector(state => state.filterSlice);
+  const { getItemWishlistStatus, refreshWishlistStatus } = useWishlistContext();
 
   const prices = [
     "Dưới 200.000₫",
-    "200.000 - 500.000₫", 
+    "200.000 - 500.000₫",
     "500.000 - 1.000.000₫",
     "1.000.000 - 2.000.000₫",
     "2.000.000 - 4.000.000₫",
@@ -35,7 +37,7 @@ export default function AllBlindBoxes() {
 
   const releaseDateRanges = [
     "1 tháng qua",
-    "3 tháng qua", 
+    "3 tháng qua",
     "6 tháng qua",
     "1 năm qua",
     "Trên 1 năm",
@@ -136,7 +138,7 @@ export default function AllBlindBoxes() {
   const handleReleaseDateFilter = (dateRange: string) => {
     const now = new Date();
     let fromDate: string | null = null;
-    
+
     switch (dateRange) {
       case "1 tháng qua":
         fromDate = new Date(now.setMonth(now.getMonth() - 1)).toISOString();
@@ -159,7 +161,7 @@ export default function AllBlindBoxes() {
       dispatch(setReleaseDateFrom(fromDate));
       dispatch(setReleaseDateTo(undefined));
     }
-    
+
     setBlindBoxParams(prev => ({ ...prev, pageIndex: 1 }));
   };
 
@@ -174,13 +176,13 @@ export default function AllBlindBoxes() {
   return (
     <div className="mt-16 container mx-auto px-4 sm:px-6 lg:p-20 xl:px-20 2xl:px-20">
       <h1 className="text-3xl font-bold mb-6 text-center">Tất cả Blindbox</h1>
-      
+
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar Filter */}
         <div className="w-full lg:w-auto lg:shrink-0">
-          <ProductFilterSidebar 
-            categories={categories} 
-            prices={prices} 
+          <ProductFilterSidebar
+            categories={categories}
+            prices={prices}
             releaseDateRanges={releaseDateRanges}
             filters={filters} // Pass current filters to sidebar
             onCategoryFilter={handleCategoryFilter}
@@ -196,7 +198,7 @@ export default function AllBlindBoxes() {
             {filters.categoryId && (
               <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                 Category: {categories?.result.find(c => c.id === filters.categoryId)?.name}
-                <button 
+                <button
                   onClick={() => dispatch(setCategoryId(undefined))}
                   className="ml-2 text-blue-600 hover:text-blue-800"
                 >
@@ -207,7 +209,7 @@ export default function AllBlindBoxes() {
             {(filters.minPrice || filters.maxPrice) && (
               <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                 Price: {filters.minPrice?.toLocaleString() || '0'}₫ - {filters.maxPrice?.toLocaleString() || '∞'}₫
-                <button 
+                <button
                   onClick={() => {
                     dispatch(setMinPrice(undefined));
                     dispatch(setMaxPrice(undefined));
@@ -221,7 +223,7 @@ export default function AllBlindBoxes() {
             {filters.releaseDateFrom && (
               <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
                 Release Date: From {new Date(filters.releaseDateFrom).toLocaleDateString()}
-                <button 
+                <button
                   onClick={() => dispatch(setReleaseDateFrom(undefined))}
                   className="ml-2 text-purple-600 hover:text-purple-800"
                 >
@@ -233,14 +235,20 @@ export default function AllBlindBoxes() {
 
           {/* Blindbox Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-            {filteredBlindboxes.map((box) => (
-              <BlindboxCard
-                key={box.id}
-                blindbox={box}
-                ribbonTypes={["blindbox"]}
-                onViewDetail={(id) => router.push(`/detail-blindbox/${id}`)}
-              />
-            ))}
+            {filteredBlindboxes.map((box) => {
+              const wishlistStatus = getItemWishlistStatus(box.id);
+              return (
+                <BlindboxCard
+                  key={box.id}
+                  blindbox={box}
+                  ribbonTypes={["blindbox"]}
+                  onViewDetail={(id) => router.push(`/detail-blindbox/${id}`)}
+                  initialIsInWishlist={wishlistStatus.isInWishlist}
+                  initialWishlistId={wishlistStatus.wishlistId}
+                  onWishlistChange={refreshWishlistStatus}
+                />
+              );
+            })}
           </div>
 
           {/* Pagination */}
@@ -253,7 +261,7 @@ export default function AllBlindBoxes() {
           </div>
         </main>
       </div>
-      
+
       <Backdrop open={isPendingBlindbox} />
     </div>
   );

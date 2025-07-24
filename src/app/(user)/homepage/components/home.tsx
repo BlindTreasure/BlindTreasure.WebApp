@@ -33,14 +33,15 @@ import { getRibbonTypes } from "@/utils/getRibbonTypes";
 import { now } from "moment";
 import useGetCategory from "../hooks/useGetCategory"
 import { useAppDispatch, useAppSelector } from "@/stores/store";
-import { 
-  setCategoryId, 
-  setMinPrice, 
-  setMaxPrice, 
+import {
+  setCategoryId,
+  setMinPrice,
+  setMaxPrice,
   setReleaseDateFrom,
   setReleaseDateTo,
-  clearFilters 
+  clearFilters
 } from "@/stores/filter-product-slice";
+import { useWishlistContext } from "@/contexts/WishlistContext";
 
 interface Blindbox {
   id: string;
@@ -86,11 +87,12 @@ export default function HomePage() {
   const [category, setCategory] = useState<API.Category[]>()
   const { getAllProductWebApi, isPending } = useGetAllProductWeb()
   const { getAllBlindBoxesApi, isPending: isBlindBox } = useGetAllBlindBoxes()
-  const { getCategoryApi, isPending: isCategory} = useGetCategory();
+  const { getCategoryApi, isPending: isCategory } = useGetCategory();
   const [loadingPage, setLoadingPage] = useState(false);
   const router = useRouter();
   const dispatch = useAppDispatch();
   const filters = useAppSelector(state => state.filterSlice);
+  const { getItemWishlistStatus, refreshWishlistStatus } = useWishlistContext();
 
   const [params, setParams] = useState<GetAllProducts>({
     pageIndex: 1,
@@ -165,42 +167,42 @@ export default function HomePage() {
   }, [params])
 
   useEffect(() => {
-  (async () => {
-    const res = await getCategoryApi(categoriesParams);
-    if (res) {
-      const parentCategories = res.value.data.result.filter(
-        (cat: any) => !cat.parent_id || cat.parent_id === 0
-      );
+    (async () => {
+      const res = await getCategoryApi(categoriesParams);
+      if (res) {
+        const parentCategories = res.value.data.result.filter(
+          (cat: any) => !cat.parent_id || cat.parent_id === 0
+        );
 
-      const transformedCategories: API.Category[] = parentCategories.map((cat: any) => ({
-        id: cat.id,
-        name: cat.name,
-        description: cat.description,
-        parentId: cat.parent_id || undefined,
-        isDeleted: cat.isDeleted,
-        createdAt: cat.createdAt,
-        imageUrl: cat.imageUrl || undefined,
-        children: undefined,
-      }));
+        const transformedCategories: API.Category[] = parentCategories.map((cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          description: cat.description,
+          parentId: cat.parent_id || undefined,
+          isDeleted: cat.isDeleted,
+          createdAt: cat.createdAt,
+          imageUrl: cat.imageUrl || undefined,
+          children: undefined,
+        }));
 
-      setCategory(transformedCategories);
-    }
-  })();
-}, [categoriesParams]);
+        setCategory(transformedCategories);
+      }
+    })();
+  }, [categoriesParams]);
 
   const handleCategoryClick = (category: API.Category) => {
     setLoadingPage(true);
-    
+
     // Dispatch action để set category filter trong Redux store
     dispatch(clearFilters()); // Reset các filter khác trước
     dispatch(setCategoryId(category.id));
-    
+
     // Tạo URL với query parameters
     const queryParams = new URLSearchParams({
       categoryId: category.id.toString(),
       categoryName: encodeURIComponent(category.name)
     });
-    
+
     // Navigate đến trang allproduct với query parameters
     router.push(`/allproduct?${queryParams.toString()}`);
   };
@@ -225,7 +227,7 @@ export default function HomePage() {
   const visibleBlindboxes = blindboxes?.result.filter(
     (box) => box.items && box.items.length > 0
   ) ?? [];
-  
+
   return (
     <>
       <div className="relative overflow-hidden">
@@ -377,6 +379,7 @@ export default function HomePage() {
                 {filteredItems.map((item) => {
                   const isBlindbox = !("productType" in item);
                   const ribbonTypes = getRibbonTypes(item);
+                  const wishlistStatus = getItemWishlistStatus(item.id);
 
                   return isBlindbox ? (
                     <CarouselItem key={`blindbox-${item.id}`} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
@@ -384,6 +387,9 @@ export default function HomePage() {
                         blindbox={item}
                         ribbonTypes={ribbonTypes}
                         onViewDetail={handleViewBlindboxDetail}
+                        initialIsInWishlist={wishlistStatus.isInWishlist}
+                        initialWishlistId={wishlistStatus.wishlistId}
+                        onWishlistChange={refreshWishlistStatus}
                       />
                     </CarouselItem>
                   ) : (
@@ -392,6 +398,9 @@ export default function HomePage() {
                         product={item}
                         ribbonTypes={ribbonTypes}
                         onViewDetail={handleViewDetail}
+                        initialIsInWishlist={wishlistStatus.isInWishlist}
+                        initialWishlistId={wishlistStatus.wishlistId}
+                        onWishlistChange={refreshWishlistStatus}
                       />
                     </CarouselItem>
                   );
@@ -481,24 +490,21 @@ export default function HomePage() {
             className="w-96 sm:w-full max-w-[1400px]"
           >
             <CarouselContent>
-              {products?.result.map((product) => (
-                <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
-                  <ProductCard
-                    // id={box.id}
-                    // type={box.type}
-                    // tags={box.tags}
-                    // percent={box.percent}
-                    // title={box.title}
-                    // price={box.price.toLocaleString("vi-VN") + "₫"}
-                    key={product.id}
-                    product={product}
-                    onViewDetail={handleViewDetail}
-                  // type="normal"
-                  // tags={["sale"]}
-                  // percent={10}
-                  />
-                </CarouselItem>
-              ))}
+              {products?.result.map((product) => {
+                const wishlistStatus = getItemWishlistStatus(product.id);
+                return (
+                  <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onViewDetail={handleViewDetail}
+                      initialIsInWishlist={wishlistStatus.isInWishlist}
+                      initialWishlistId={wishlistStatus.wishlistId}
+                      onWishlistChange={refreshWishlistStatus}
+                    />
+                  </CarouselItem>
+                );
+              })}
             </CarouselContent>
             <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
             <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
@@ -545,18 +551,24 @@ export default function HomePage() {
             className="w-96 sm:w-full max-w-[1400px]"
           >
             <CarouselContent>
-              {visibleBlindboxes.map((box) => (
-                <CarouselItem
-                  key={`blindbox-${box.id}`}
-                  className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative"
-                >
-                  <BlindboxCard
-                    blindbox={box}
-                    onViewDetail={handleViewBlindboxDetail}
-                    ribbonTypes={["blindbox"]}
-                  />
-                </CarouselItem>
-              ))}
+              {visibleBlindboxes.map((box) => {
+                const wishlistStatus = getItemWishlistStatus(box.id);
+                return (
+                  <CarouselItem
+                    key={`blindbox-${box.id}`}
+                    className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative"
+                  >
+                    <BlindboxCard
+                      blindbox={box}
+                      onViewDetail={handleViewBlindboxDetail}
+                      ribbonTypes={["blindbox"]}
+                      initialIsInWishlist={wishlistStatus.isInWishlist}
+                      initialWishlistId={wishlistStatus.wishlistId}
+                      onWishlistChange={refreshWishlistStatus}
+                    />
+                  </CarouselItem>
+                );
+              })}
             </CarouselContent>
 
             {visibleBlindboxes.length > 4 && (

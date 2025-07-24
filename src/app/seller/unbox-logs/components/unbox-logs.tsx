@@ -74,7 +74,7 @@ export default function UnboxLogs() {
                                 ))
                                 : logs.map((log) => (
                                     <TableRow key={log.id}>
-                                        <TableCell>{log.customerBlindBoxId.slice(0, 8)}...</TableCell>
+                                        <TableCell>{log.customerName}</TableCell>
                                         <TableCell className="truncate whitespace-nowrap">{log.productName}</TableCell>
                                         <TableCell>
                                             <span

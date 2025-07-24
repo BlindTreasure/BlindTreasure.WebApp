@@ -16,6 +16,7 @@ export type GetUnboxLogsParams = {
 export type ResponseUnboxLogs = {
   id: string;
   customerBlindBoxId: string;
+  customerName: string;
   productId: string;
   productName: string;
   rarity: Rarity;

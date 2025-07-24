@@ -8,9 +8,9 @@ import useGetAllBlindBoxes from "@/app/seller/allblindboxes/hooks/useGetAllBlind
 import { GetBlindBoxes } from "@/services/blindboxes/typings";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
-import { 
-  setMinPrice, 
-  setMaxPrice, 
+import {
+  setMinPrice,
+  setMaxPrice,
   setReleaseDateFrom,
   setReleaseDateTo,
   setCategoryId,
@@ -19,6 +19,7 @@ import {
 import { Backdrop } from "@/components/backdrop";
 import useGetCategory from "@/app/staff/category-management/hooks/useGetCategory";
 import Pagination from "@/components/tables/Pagination";
+import { useWishlistContext } from "@/contexts/WishlistContext";
 
 export default function AllProduct() {
   const dispatch = useAppDispatch();
@@ -30,7 +31,7 @@ export default function AllProduct() {
 
   const prices = [
     "Dưới 200.000₫",
-    "200.000 - 500.000₫", 
+    "200.000 - 500.000₫",
     "500.000 - 1.000.000₫",
     "1.000.000 - 2.000.000₫",
     "2.000.000 - 4.000.000₫",
@@ -39,7 +40,7 @@ export default function AllProduct() {
 
   const releaseDateRanges = [
     "1 tháng qua",
-    "3 tháng qua", 
+    "3 tháng qua",
     "6 tháng qua",
     "1 năm qua",
     "Trên 1 năm",
@@ -48,13 +49,14 @@ export default function AllProduct() {
   const [currentPage, setCurrentPage] = useState(1);
   const [categories, setCategories] = useState<API.ResponseDataCategory>();
   const [isInitialized, setIsInitialized] = useState(false);
-  const [combinedData, setCombinedData] = useState<Array<{type: 'product' | 'blindbox', data: any}>>([]);
+  const [combinedData, setCombinedData] = useState<Array<{ type: 'product' | 'blindbox', data: any }>>([]);
   const [totalItems, setTotalItems] = useState(0);
   const pageSize = 6;
 
   const { getAllProductWebApi, isPending: isPendingProducts } = useGetAllProductWeb();
   const { getAllBlindBoxesApi, isPending: isPendingBlindbox } = useGetAllBlindBoxes();
   const { getCategoryApi } = useGetCategory();
+  const { getItemWishlistStatus, refreshWishlistStatus } = useWishlistContext();
 
   useEffect(() => {
     return () => {
@@ -126,7 +128,7 @@ export default function AllProduct() {
           getAllBlindBoxesApi(blindboxParams)
         ]);
 
-        const combinedData: Array<{type: 'product' | 'blindbox', data: any}> = [];
+        const combinedData: Array<{ type: 'product' | 'blindbox', data: any }> = [];
         const products = productRes?.value?.data?.result || [];
         const blindboxes = blindboxRes?.value?.data?.result || [];
 
@@ -139,7 +141,7 @@ export default function AllProduct() {
 
         setCombinedData(combinedData);
         setTotalItems(
-          (productRes?.value?.data?.count || 0) + 
+          (productRes?.value?.data?.count || 0) +
           (blindboxRes?.value?.data?.count || 0)
         );
         setCurrentPage(1);
@@ -228,7 +230,7 @@ export default function AllProduct() {
     let fromDate: string | undefined = undefined;
     let toDate: string | undefined = undefined;
     const now = new Date();
-    
+
     switch (dateRange) {
       case "1 tháng qua":
         fromDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).toISOString();
@@ -297,7 +299,7 @@ export default function AllProduct() {
     const fromDate = new Date(filters.releaseDateFrom);
     const toDate = new Date(filters.releaseDateTo);
     const isToDateNow = Math.abs(toDate.getTime() - now.getTime()) < 24 * 60 * 60 * 1000;
-    
+
     if (isToDateNow) {
       if (Math.abs(fromDate.getTime() - oneMonthAgo.getTime()) < 24 * 60 * 60 * 1000) {
         return "1 tháng qua";
@@ -328,9 +330,9 @@ export default function AllProduct() {
     <div className="mt-16 container mx-auto px-4 sm:px-6 lg:p-20 xl:px-20 2xl:px-20">
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="w-full lg:w-auto lg:shrink-0">
-          <ProductFilterSidebar 
+          <ProductFilterSidebar
             categories={categories}
-            prices={prices} 
+            prices={prices}
             releaseDateRanges={releaseDateRanges}
             filters={{
               ...filters,
@@ -349,7 +351,7 @@ export default function AllProduct() {
             {(filters.minPrice || filters.maxPrice) && (
               <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                 Price: {getCurrentPriceRange()}
-                <button 
+                <button
                   onClick={() => {
                     dispatch(setMinPrice(undefined));
                     dispatch(setMaxPrice(undefined));
@@ -364,7 +366,7 @@ export default function AllProduct() {
             {(filters.releaseDateFrom || filters.releaseDateTo) && (
               <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
                 Release Date: {getCurrentReleaseDateRange()}
-                <button 
+                <button
                   onClick={() => {
                     dispatch(setReleaseDateFrom(undefined));
                     dispatch(setReleaseDateTo(undefined));
@@ -381,12 +383,16 @@ export default function AllProduct() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {combinedData
               .slice((currentPage - 1) * pageSize, currentPage * pageSize)
-              .map((item, index) => (
-                item.type === 'product' ? (
+              .map((item, index) => {
+                const wishlistStatus = getItemWishlistStatus(item.data.id);
+                return item.type === 'product' ? (
                   <ProductCard
                     key={`product-${item.data.id}-${index}`}
                     product={item.data}
                     onViewDetail={handleViewDetail}
+                    initialIsInWishlist={wishlistStatus.isInWishlist}
+                    initialWishlistId={wishlistStatus.wishlistId}
+                    onWishlistChange={refreshWishlistStatus}
                   />
                 ) : (
                   <BlindboxCard
@@ -394,9 +400,12 @@ export default function AllProduct() {
                     blindbox={item.data}
                     ribbonTypes={["blindbox"]}
                     onViewDetail={handleViewBlindboxDetail}
+                    initialIsInWishlist={wishlistStatus.isInWishlist}
+                    initialWishlistId={wishlistStatus.wishlistId}
+                    onWishlistChange={refreshWishlistStatus}
                   />
-                )
-              ))}
+                );
+              })}
           </div>
 
           {combinedData.length === 0 && !isPending && (

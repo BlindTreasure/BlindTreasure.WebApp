@@ -16,6 +16,7 @@ import { ProductSortBy, BlindboxStatus } from "@/const/products";
 import Pagination from "@/components/pagination";
 import { TbMessageDots } from "react-icons/tb";
 import useGetSellerById from "../../detail/hooks/useGetSellerById";
+import { useWishlistContext } from "@/contexts/WishlistContext";
 
 interface ShopProductsProps {
     sellerId: string;
@@ -35,6 +36,7 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
     const { getAllProductWebApi, isPending } = useGetAllProductWeb();
     const { getAllBlindBoxesApi, isPending: isBlindboxPending } = useGetAllBlindBoxes();
     const { getPSellerByIdApi, isPending: isSellerPending } = useGetSellerById();
+    const { getItemWishlistStatus, refreshWishlistStatus } = useWishlistContext();
     const productParams: GetAllProducts = {
         pageIndex: 1,
         pageSize: 50,
@@ -226,13 +228,17 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                 >
                     {combinedData
                         .slice((currentPage - 1) * 12, currentPage * 12)
-                        .map((item, index) => (
-                            item.type === 'product' ? (
+                        .map((item, index) => {
+                            const wishlistStatus = getItemWishlistStatus(item.data.id);
+                            return item.type === 'product' ? (
                                 <ProductCard
                                     key={`product-${item.data.id}-${index}`}
                                     product={item.data as AllProduct}
                                     // ribbonTypes={getRibbonTypes(item.data as AllProduct)}
                                     onViewDetail={handleViewDetail}
+                                    initialIsInWishlist={wishlistStatus.isInWishlist}
+                                    initialWishlistId={wishlistStatus.wishlistId}
+                                    onWishlistChange={refreshWishlistStatus}
                                 />
                             ) : (
                                 <BlindboxCard
@@ -240,9 +246,12 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                                     blindbox={item.data as BlindBox}
                                     // ribbonTypes={["blindbox"]}
                                     onViewDetail={handleViewBlindboxDetail}
+                                    initialIsInWishlist={wishlistStatus.isInWishlist}
+                                    initialWishlistId={wishlistStatus.wishlistId}
+                                    onWishlistChange={refreshWishlistStatus}
                                 />
-                            )
-                        ))}
+                            );
+                        })}
                 </motion.div>
             ) : (
                 <motion.div
