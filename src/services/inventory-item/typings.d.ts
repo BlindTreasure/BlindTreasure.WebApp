@@ -92,7 +92,7 @@ export type ShipmentPreview = {
   ghnPreviewResponse: GhnPreviewResponse;
 };
 
-export type DeliveryData = {
+export type Delivery = {
   paymentUrl: string;
   shipments: Shipment[];
 };

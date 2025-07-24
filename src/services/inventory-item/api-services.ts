@@ -7,6 +7,7 @@ import {
   RequestShipment,
   ShipmentPreview,
   PreviewShipment,
+  Delivery,
 } from "./typings";
 
 export const getItemInventory = async ({
@@ -50,8 +51,8 @@ export const getItemInventoryByBlindBox = async (blindBoxId: string) => {
 
 export const requestShipment = async (
   data: RequestShipment
-): Promise<TResponseData<ShipmentPreview[]>> => {
-  const response = await request.post<TResponseData<ShipmentPreview[]>>(
+): Promise<TResponseData<Delivery>> => {
+  const response = await request.post<TResponseData<Delivery>>(
     API_ENDPOINTS.REQUEST_SHIPMENT,
     data
   );

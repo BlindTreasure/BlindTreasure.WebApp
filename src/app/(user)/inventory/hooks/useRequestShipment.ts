@@ -1,7 +1,7 @@
 import { useServiceRequestShipment } from "@/services/inventory-item/services";
 import {
+  Delivery,
   RequestShipment,
-  ShipmentPreview,
 } from "@/services/inventory-item/typings";
 import { useState } from "react";
 
@@ -11,7 +11,7 @@ export default function useRequestShipment() {
 
   const requestShipment = async (
     data: RequestShipment
-  ): Promise<ShipmentPreview[] | null> => {
+  ): Promise<Delivery | null> => {
     setPending(true);
     try {
       const res = await mutateAsync(data);

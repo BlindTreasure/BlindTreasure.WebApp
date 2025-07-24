@@ -301,6 +301,9 @@ export default function Inventory() {
                 setShippingData(null)
                 setShowShippingDialog(false)
                 setCurrentPage(1)
+                if (result.paymentUrl) {
+                    window.location.href = result.paymentUrl
+                }
             }
         } catch (error: any) {
         }
