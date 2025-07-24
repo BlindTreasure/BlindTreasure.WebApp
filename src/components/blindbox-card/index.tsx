@@ -7,21 +7,38 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { FaRegHeart } from "react-icons/fa";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
 import { BlindBox } from "@/services/blindboxes/typings";
 import { Rarity, StockStatus, stockStatusMap } from "@/const/products";
+import useToggleWishlist from "@/app/(user)/wishlist/hooks/useToggleWishlist";
 
 interface BlindboxCardProps {
     blindbox: BlindBox;
     onViewDetail: (id: string) => void;
     ribbonTypes?: ("new" | "sale" | "blindbox")[];
+    initialIsInWishlist?: boolean;
+    initialWishlistId?: string;
 }
 
-const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, ribbonTypes = [] }) => {
+const BlindboxCard: React.FC<BlindboxCardProps> = ({
+    blindbox,
+    onViewDetail,
+    ribbonTypes = [],
+    initialIsInWishlist = false,
+    initialWishlistId
+}) => {
     const [open, setOpen] = useState(false);
     const image = blindbox.imageUrl || "/images/cart.webp";
     const [quantity, setQuantity] = useState<number>(1);
-    const [selectedVariant, setSelectedVariant] = useState<string>("Loại A");
+
+    const {
+        isInWishlist,
+        toggleWishlist,
+        isPending: isToggling
+    } = useToggleWishlist({
+        initialIsInWishlist,
+        initialWishlistId
+    });
 
     const handleDecrease = () => {
         if (quantity > 1) setQuantity(quantity - 1);
@@ -31,8 +48,20 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
         setQuantity(quantity + 1);
     };
 
-    const handleVariantSelect = (variant: string) => {
-        setSelectedVariant(variant);
+    const handleToggleWishlist = async () => {
+        if (isToggling) return;
+
+        try {
+            const result = await toggleWishlist({
+                blindBoxId: blindbox.id,
+                type: "BlindBox"
+            });
+
+            if (result?.success) {
+            }
+        } catch (error) {
+            console.error('Error toggling wishlist:', error);
+        }
     };
 
     const isReleased = (() => {
@@ -96,27 +125,6 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
                                                 {blindbox.price.toLocaleString("vi-VN")}₫
                                             </p>
                                             <p>Mô tả: <span className='text-gray-600 text-sm'>{blindbox.description}</span></p>
-                                            {/* <div className="mb-6">
-                                                <p className="mb-2 text-xl">Chọn bộ:</p>
-                                                <div className="flex gap-4">
-                                                    {["Loại A", "Loại B", "Loại C"].map((variant, idx) => (
-                                                        <div
-                                                            key={idx}
-                                                            onClick={() => handleVariantSelect(variant)}
-                                                            className={`px-4 py-2 rounded-md border cursor-pointer transition-colors ${selectedVariant === variant
-                                                                ? 'bg-[#252424] text-white border-[#252424]'
-                                                                : 'bg-white text-black border-gray-300 hover:border-gray-400'
-                                                                }`}
-                                                        >
-                                                            {variant}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                {selectedVariant && (
-                                                    <p className="text-sm text-gray-500 mt-2">Đã chọn: <strong>{selectedVariant}</strong></p>
-                                                )}
-                                            </div> */}
-
                                             {isReleased && (
                                                 <div className="flex items-center gap-4 mt-6">
                                                     <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
@@ -172,7 +180,17 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({ blindbox, onViewDetail, rib
                     <Button className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
                         Thêm vào giỏ hàng
                     </Button>
-                    <FaRegHeart className="text-2xl cursor-pointer hover:text-red-500" />
+                    <button
+                        onClick={handleToggleWishlist}
+                        disabled={isToggling}
+                        className="p-1 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
+                    >
+                        {isInWishlist ? (
+                            <FaHeart className="text-2xl text-red-500" />
+                        ) : (
+                            <FaRegHeart className="text-2xl hover:text-red-500 transition-colors" />
+                        )}
+                    </button>
                 </div>
             </Card>
         </div>

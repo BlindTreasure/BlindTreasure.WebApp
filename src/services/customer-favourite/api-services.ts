@@ -1,6 +1,11 @@
 import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/customer-favourite/api-path";
-import { RequestAddFavourite, RequestFavourite, WishlistItem, WishlistResponse } from "./typings";
+import {
+  RequestAddFavourite,
+  RequestFavourite,
+  WishlistItem,
+  WishlistResponse,
+} from "./typings";
 
 export const getWishlist = async ({
   pageIndex,
@@ -22,11 +27,26 @@ export const getWishlist = async ({
 export const addWishlist = async (
   body: RequestAddFavourite
 ): Promise<TResponseData<WishlistItem>> => {
+  const formData = new FormData();
+
+  if (body.productId) {
+    formData.append("ProductId", body.productId);
+  }
+
+  if (body.blindBoxId) {
+    formData.append("BlindBoxId", body.blindBoxId);
+  }
+
+  formData.append("Type", body.type);
+
   const response = await request<TResponseData<WishlistItem>>(
     API_ENDPOINTS.CUSTOMER_FAVOURITE,
     {
       method: "POST",
-      data: body,
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     }
   );
   return response.data;
