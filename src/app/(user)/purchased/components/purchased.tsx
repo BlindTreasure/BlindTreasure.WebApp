@@ -13,8 +13,7 @@ export const TAB_MAP = [
     { value: "pending", label: "Chờ thanh toán", statuses: [PaymentStatus.PENDING] },
     { value: "completed", label: "Đã thanh toán", statuses: [PaymentStatus.PAID] },
     { value: "cancelled", label: "Đã hủy", statuses: [PaymentStatus.CANCELLED] },
-    { value: "failed", label: "Thanh toán thất bại", statuses: [PaymentStatus.FAILED] },
-    // { value: "delivering", label: "Đang vận chuyển", statuses: [OrderStatus.DELIVERED] },
+    
 ];
 
 const PAGE_SIZE = 5;
