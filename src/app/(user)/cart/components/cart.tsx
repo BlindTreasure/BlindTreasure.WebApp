@@ -145,13 +145,14 @@ const Cart: React.FC = () => {
         ...(promotionId && { promotionId }),
       };
 
+      console.log('Cart: Calling previewShipping with payload:', payload);
       const result = await previewShipping(payload);
+      console.log('Cart: Preview shipping result:', result);
       setShippingData(result);
     };
 
     fetchShippingPreview();
   }, [isShip, selectedItems, quantities, cartItems, promotionId]);
-
 
   // Khởi tạo selectedItems và quantities khi cartItems thay đổi
   useEffect(() => {

@@ -26,6 +26,7 @@ import usePreviewShipment from '../hooks/usePreViewShipment'
 import useRequestShipment from '../hooks/useRequestShipment'
 import useGetAllAddress from '../../address-list/hooks/useGetAllAddress'
 import { InventoryItem as WonInventoryItem, ShipmentPreview } from '@/services/inventory-item/typings'
+import { InventoryItemStatus, InventoryItemStatusText } from '@/const/products'
 
 interface InventoryItem {
     id: string
@@ -41,6 +42,7 @@ interface InventoryItem {
     quantity?: number
     createdAt?: string
     isFromBlindBox?: boolean
+    inventoryItemStatus?: InventoryItemStatus
 }
 
 export default function Inventory() {
@@ -145,6 +147,7 @@ export default function Inventory() {
                             createdAt: item.createdAt,
                             isFromBlindBox: item.isFromBlindBox,
                             blindBoxId: item.isFromBlindBox ? (item.sourceCustomerBlindBoxId || '') : '',
+                            inventoryItemStatus: item.status,
                         }))
 
                         const sortedItems = itemItems.sort((a, b) => {
@@ -230,6 +233,12 @@ export default function Inventory() {
     }
 
     const handleSelectItem = (itemId: string) => {
+        const item = inventoryItems.find(i => i.id === itemId);
+
+        if (item?.inventoryItemStatus === InventoryItemStatus.Delivering) {
+            return;
+        }
+
         setSelectedItems(prev =>
             prev.includes(itemId)
                 ? prev.filter(id => id !== itemId)
@@ -239,8 +248,9 @@ export default function Inventory() {
 
     const handleSelectAll = () => {
         const deliverableItems = getCurrentPageItems().filter(item =>
-            (item.type === 'product' && !item.isFromBlindBox) ||
-            (item.type === 'product' && item.isFromBlindBox)
+            ((item.type === 'product' && !item.isFromBlindBox) ||
+                (item.type === 'product' && item.isFromBlindBox)) &&
+            item.inventoryItemStatus !== InventoryItemStatus.Delivering
         )
 
         if (selectedItems.length === deliverableItems.length) {
@@ -390,8 +400,9 @@ export default function Inventory() {
                                 <div className="flex items-center gap-4">
                                     <Checkbox
                                         checked={selectedItems.length > 0 && selectedItems.length === getCurrentPageItems().filter(item =>
-                                            (item.type === 'product' && !item.isFromBlindBox) ||
-                                            (item.type === 'product' && item.isFromBlindBox)
+                                            ((item.type === 'product' && !item.isFromBlindBox) ||
+                                                (item.type === 'product' && item.isFromBlindBox)) &&
+                                            item.inventoryItemStatus !== InventoryItemStatus.Delivering
                                         ).length}
                                         onCheckedChange={handleSelectAll}
                                     />
@@ -421,7 +432,8 @@ export default function Inventory() {
                                                 <Checkbox
                                                     checked={selectedItems.includes(item.id)}
                                                     onCheckedChange={() => handleSelectItem(item.id)}
-                                                    className="bg-white border-2 border-gray-300"
+                                                    disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering}
+                                                    className="bg-white border-2 border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                         )}
@@ -487,24 +499,27 @@ export default function Inventory() {
                                             {item.type === 'product' && !item.isFromBlindBox && (
                                                 <Button
                                                     onClick={() => handleDeliver(item.id)}
-                                                    className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
+                                                    disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering}
+                                                    className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    Giao hàng
+                                                    {item.inventoryItemStatus === InventoryItemStatus.Delivering ? 'Đang giao hàng' : 'Giao hàng'}
                                                 </Button>
                                             )}
                                             {item.type === 'product' && item.isFromBlindBox && (
                                                 <>
                                                     <Button
                                                         onClick={() => handleResellItem(item.id)}
-                                                        className="flex-1 border border-orange-600 text-orange-600 bg-transparent hover:bg-orange-600 hover:text-white transition"
+                                                        disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering}
+                                                        className="flex-1 border border-orange-600 text-orange-600 bg-transparent hover:bg-orange-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
                                                         Đổi hàng
                                                     </Button>
                                                     <Button
                                                         onClick={() => handleDeliver(item.id)}
-                                                        className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
+                                                        disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering}
+                                                        className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        Giao hàng
+                                                        {item.inventoryItemStatus === InventoryItemStatus.Delivering ? 'Đang giao hàng' : 'Giao hàng'}
                                                     </Button>
                                                 </>
                                             )}

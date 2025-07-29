@@ -5,6 +5,7 @@ import {
   StockStatus,
   BlindboxStatus,
   ShipmentStatus,
+  InventoryItemStatus,
 } from "@/const/products";
 import { TResponseData } from "@/typings";
 
@@ -23,7 +24,7 @@ export type InventoryItem = {
   product: Product;
   quantity: number;
   location: string;
-  status: Status;
+  status: InventoryItemStatus;
   createdAt: string;
   isFromBlindBox: boolean;
   sourceCustomerBlindBoxId: string;

@@ -12,10 +12,6 @@ export default function useCreateOrder() {
       const url = await OrderService.createOrder(data);
       return url;
     } catch (error) {
-      addToast({
-        type: "error",
-        description: "Tạo đơn hàng thất bại. Vui lòng cập nhật địa chỉ giao hàng trước khi thanh toán.",
-      });
       return null;
     } finally {
       setPending(false);

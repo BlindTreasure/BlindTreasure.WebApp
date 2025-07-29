@@ -5,7 +5,6 @@ import { handleError } from "@/hooks/error";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
-// Custom error handler for shipping services
 const handleShippingError = (error: any, router: any) => {
   const data = error?.response?.data || error;
   const codeRaw = data?.error?.code;
