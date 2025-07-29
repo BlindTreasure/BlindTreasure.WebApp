@@ -61,8 +61,13 @@ export default function OrderCard({
                         Chat
                     </button>
                 </div>
-                <div className="text-sm font-semibold text-red-500 uppercase">
-                    {PaymentInfoStatusText[payment.status] || "Không xác định"}
+                <div className="text-right">
+                    <div className="text-sm font-semibold text-red-500 uppercase">
+                        {PaymentInfoStatusText[payment.status] || "Không xác định"}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                        {deliveryDate}
+                    </div>
                 </div>
             </div>
 
@@ -70,8 +75,8 @@ export default function OrderCard({
                 <div key={detail.id} className="p-4 flex border-b gap-4 cursor-pointer" onClick={() => router.push(`/orderdetail/${orderId}`)}>
                     <img
                         src={
-                            "blindBoxId" in detail
-                                ? detail.blindBoxImage || "/placeholder.jpg"
+                            detail.blindBoxId && detail.blindBoxImage
+                                ? detail.blindBoxImage
                                 : detail.productImages?.[0] || "/placeholder.jpg"
                         }
                         alt="product"
@@ -81,9 +86,26 @@ export default function OrderCard({
                     />
                     <div className="flex-1">
                         <div className="font-medium mb-2">
-                            {"blindBoxId" in detail ? detail.blindBoxName : detail.productName}
+                            {detail.blindBoxId && detail.blindBoxName ? detail.blindBoxName : detail.productName}
                         </div>
-                        <div className="text-sm text-gray-500">x{detail.quantity}</div>
+                        <div className="flex items-center gap-2">
+                            <div className="text-sm text-gray-500">x{detail.quantity}</div>
+                            <span
+                                className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase
+                                    ${detail.status === OrderStatus.CANCELLED
+                                        ? "bg-red-100 text-red-700"
+                                        : detail.status === OrderStatus.PENDING
+                                            ? "bg-yellow-100 text-yellow-700"
+                                            : detail.status === OrderStatus.SHIPPING_REQUESTED
+                                                ? "bg-blue-100 text-blue-700"
+                                                : detail.status === OrderStatus.DELIVEREDING
+                                                    ? "bg-green-100 text-green-700"
+                                                    : "bg-gray-100 text-gray-600"
+                                    }`}
+                            >
+                                {OrderStatusText[detail.status] ?? "Không xác định"}
+                            </span>
+                        </div>
                     </div>
                     <div className="text-right">
                         <div className="text-red-500 font-semibold">
@@ -112,35 +134,6 @@ export default function OrderCard({
                         <DialogContent className="max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Hóa đơn đơn hàng</DialogTitle>
-                                {/* <span
-                                    className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase w-fit
-    ${payment.status === PaymentInfoStatus.Paid || payment.status === PaymentInfoStatus.Completed
-                                            ? "bg-green-100 text-green-700"
-                                            : "bg-red-100 text-red-700"
-                                        }`}
-                                >
-                                    {PaymentInfoStatusText[payment.status]}
-                                </span> */}
-                                {/* Get unique statuses to avoid duplicates */}
-                                {Array.from(new Set(details.map(detail => detail.status))).map((status) => (
-                                    <div key={status} className="flex items-center gap-2">
-                                        <span
-                                            className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase w-fit
-        ${status === OrderStatus.CANCELLED
-                                                    ? "bg-red-100 text-red-700"
-                                                    : status === OrderStatus.PENDING
-                                                        ? "bg-yellow-100 text-yellow-700"
-                                                        : status === OrderStatus.SHIPPING_REQUESTED
-                                                            ? "bg-blue-100 text-blue-700"
-                                                            : status === OrderStatus.DELIVEREDING
-                                                                ? "bg-green-100 text-green-700"
-                                                                : "bg-gray-100 text-gray-600"
-                                                }`}
-                                        >
-                                            {OrderStatusText[status] ?? "Không xác định"}
-                                        </span>
-                                    </div>
-                                ))}
                             </DialogHeader>
 
                             <div className="space-y-6 text-sm mt-4">
@@ -176,7 +169,7 @@ export default function OrderCard({
                                             {details.map((item) => (
                                                 <tr key={item.id} className="border-b">
                                                     <td className="p-2">
-                                                        {"blindBoxId" in item ? item.blindBoxName : item.productName}
+                                                        {item.blindBoxId && item.blindBoxName ? item.blindBoxName : item.productName}
                                                     </td>
                                                     <td className="p-2 text-center">{item.quantity}</td>
                                                     <td className="p-2 text-right">{item.unitPrice.toLocaleString()}₫</td>
@@ -199,6 +192,24 @@ export default function OrderCard({
                                         <div className="text-red-500">Đã hoàn tiền: <strong>{payment.refundedAmount.toLocaleString()}₫</strong></div>
                                     )}
                                 </div>
+
+                                {/* Shipping Information */}
+                                {shippingAddress && (
+                                    <div className="border rounded p-4 bg-blue-50 space-y-1">
+                                        <div className="font-semibold mb-2">🚚 Thông tin giao hàng</div>
+                                        <div>Người nhận: <strong>{shippingAddress.fullName}</strong></div>
+                                        {shippingAddress.phone && (
+                                            <div>Số điện thoại: <strong>{shippingAddress.phone}</strong></div>
+                                        )}
+                                        <div>Địa chỉ: <strong>{shippingAddress.addressLine}</strong></div>
+                                        {shippingAddress.city && shippingAddress.province && (
+                                            <div>Khu vực: <strong>{shippingAddress.city}, {shippingAddress.province}</strong></div>
+                                        )}
+                                        {payment.transactionId && (
+                                            <div>Mã vận đơn: <strong>{payment.transactionId}</strong></div>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div className="border-t pt-4 text-right text-sm flex justify-between items-center">
                                     <div> <Button onClick={(e) => {

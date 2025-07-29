@@ -1,6 +1,13 @@
 import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/order/api-path";
-import { GetOrderParams, OrderDetails, OrderListApiData, OrderResponse } from "./typings";
+import {
+  GetOrderDetailParams,
+  GetOrderParams,
+  OrderDetailListResponse,
+  OrderDetails,
+  OrderListApiData,
+  OrderResponse,
+} from "./typings";
 
 export const getOrderByCustomer = async (params?: GetOrderParams) => {
   const response = await request<TResponseData<OrderListApiData>>(
@@ -13,15 +20,16 @@ export const getOrderByCustomer = async (params?: GetOrderParams) => {
   return response.data;
 };
 
-export const getOrderDetails = async () => {
-  const response = await request<TResponseData<OrderDetails[]>>(
+export const getOrderDetails = async (params?: GetOrderDetailParams) => {
+  const response = await request<TResponseData<OrderDetailListResponse>>(
     API_ENDPOINTS.ORDER_DETAIL,
     {
       method: "GET",
+      params,
     }
   );
   return response.data;
-}
+};
 
 export const getOrderDetailById = async (orderId: string) => {
   const response = await request<TResponseData<OrderResponse>>(

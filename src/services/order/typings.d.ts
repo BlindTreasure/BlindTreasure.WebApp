@@ -83,7 +83,7 @@ export type PaymentTransaction = {
   externalRef: string;
 };
 
-export interface Shipment {
+export type Shipment = {
   id: string;
   orderDetailId: string;
   orderCode: string;
@@ -96,7 +96,7 @@ export interface Shipment {
   status: ShipmentStatus;
 }
 
-export interface OrderDetails {
+export type OrderDetails = {
   id: string;
   productId: string;
   productName: string;
@@ -107,3 +107,21 @@ export interface OrderDetails {
   status: OrderStatus;
   shipments: Shipment[];
 }
+export type OrderDetailListResponse = {
+  result: OrderDetails[];
+  count: number;
+  pageSize: number;
+  currentPage: number;
+  totalPages: number;
+}
+
+export type GetOrderDetailParams = {
+  status?: OrderStatus;
+  OrderId?: string;                    
+  MinPrice?: number;                    
+  MaxPrice?: number;                    
+  IsBlindBox?: boolean;
+  IsProduct?: boolean;
+  PageIndex?: number;
+  PageSize?: number;
+};

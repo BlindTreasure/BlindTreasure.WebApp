@@ -3,17 +3,25 @@
 import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { OrderResponse } from "@/services/order/typings";
-import { OrderStatus, PaymentStatus } from "@/const/products";
+import { OrderStatus, PaymentStatus, PaymentInfoStatus } from "@/const/products";
 import useGetAllOrder from "../hooks/useGetOrderByCustomer";
+import useGetOrderDetails from "../hooks/useGetOrderDetails";
 import OrderCard from "@/components/order-card";
 import Pagination from "@/components/pagination";
 
-export const TAB_MAP = [
+type TabConfig = {
+    value: string;
+    label: string;
+    statuses?: PaymentStatus[];
+    orderStatuses?: OrderStatus[];
+};
+
+export const TAB_MAP: TabConfig[] = [
     { value: "all", label: "Tất cả", statuses: undefined },
     { value: "pending", label: "Chờ thanh toán", statuses: [PaymentStatus.PENDING] },
     { value: "completed", label: "Đã thanh toán", statuses: [PaymentStatus.PAID] },
+    { value: "shipping", label: "Đang giao hàng", orderStatuses: [OrderStatus.SHIPPING_REQUESTED] },
     { value: "cancelled", label: "Đã hủy", statuses: [PaymentStatus.CANCELLED] },
-    
 ];
 
 const PAGE_SIZE = 5;
@@ -24,20 +32,86 @@ export default function Purchased() {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const { getAllOrderApi, isPending } = useGetAllOrder();
+    const { getOrderDetailsApi, isPending: isOrderDetailsPending } = useGetOrderDetails();
 
     const fetchOrders = async (tabValue: string, page = 1) => {
         const tab = TAB_MAP.find((t) => t.value === tabValue);
         const statuses = tab?.statuses;
+        const orderStatuses = tab?.orderStatuses;
 
-        const res = await getAllOrderApi({
-            status: statuses?.length === 1 ? statuses[0] : undefined,
-            pageIndex: page,
-            pageSize: PAGE_SIZE,
-        });
+        if (orderStatuses && orderStatuses.length > 0) {
+            const res = await getOrderDetailsApi({
+                status: orderStatuses[0],
+                PageIndex: page,
+                PageSize: PAGE_SIZE,
+            });
 
-        if (res?.value?.data) {
-            setOrders(res.value.data.result);
-            setTotalPages(res.value.data.totalPages || 1);
+            if (res?.value?.data) {
+                const convertedOrders: OrderResponse[] = res.value.data.result.map(detail => {
+                    const firstShipment = detail.shipments?.[0];
+                    const shippedDate = firstShipment?.shippedAt || new Date().toISOString();
+                    const estimatedDelivery = firstShipment?.estimatedDelivery;
+
+                    return {
+                        id: detail.id,
+                        status: PaymentStatus.PAID, 
+                        totalAmount: detail.totalPrice,
+                        placedAt: shippedDate,
+                        completedAt: estimatedDelivery || null,
+                        details: [{
+                            id: detail.id,
+                            productId: detail.productId,
+                            productName: detail.productName,
+                            productImages: detail.productImages || [],
+                            blindBoxId: undefined,
+                            blindBoxName: undefined,
+                            blindBoxImage: undefined,
+                            quantity: detail.quantity,
+                            unitPrice: detail.unitPrice,
+                            totalPrice: detail.totalPrice,
+                            status: detail.status
+                        }],
+                        payment: {
+                            id: '',
+                            orderId: detail.id,
+                            amount: detail.totalPrice,
+                            discountRate: 0,
+                            netAmount: detail.totalPrice,
+                            method: firstShipment?.provider || 'Giao hàng nhanh',
+                            status: PaymentInfoStatus.Paid,
+                            transactionId: firstShipment?.trackingNumber || '',
+                            paidAt: shippedDate,
+                            refundedAmount: 0,
+                            transactions: []
+                        },
+                        finalAmount: detail.totalPrice,
+                        promotionNote: firstShipment ? `Mã vận đơn: ${firstShipment.trackingNumber}` : '',
+                        shippingAddress: firstShipment ? {
+                            id: firstShipment.id,
+                            fullName: 'Khách hàng',
+                            phone: '', 
+                            addressLine: 'Địa chỉ giao hàng',
+                            city: '',
+                            province: '',
+                            postalCode: '',
+                            country: 'Việt Nam'
+                        } : undefined
+                    };
+                });
+                setOrders(convertedOrders);
+                setTotalPages(res.value.data.totalPages || 1);
+            }
+        } else {
+            const res = await getAllOrderApi({
+                status: statuses?.length === 1 ? statuses[0] : undefined,
+                pageIndex: page,
+                pageSize: PAGE_SIZE,
+            });
+
+            if (res?.value?.data) {
+                setOrders(res.value.data.result);
+                setTotalPages(res.value.data.totalPages || 1);
+            }
         }
     };
 
@@ -121,7 +195,7 @@ export default function Purchased() {
                 <div className="mt-4 sm:mt-6">
                     {TAB_MAP.map((tab) => (
                         <TabsContent key={tab.value} value={tab.value}>
-                            {isPending ? (
+                            {(isPending || isOrderDetailsPending) ? (
                                 <div className="text-gray-500 text-center py-8">Đang tải đơn hàng...</div>
                             ) : (
                                 renderOrders()
