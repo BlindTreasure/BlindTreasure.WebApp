@@ -117,152 +117,139 @@
 //   );
 // }
 "use client";
-import React from "react";
-// import Chart from "react-apexcharts";
+import React, { useState } from "react";
 import { ApexOptions } from "apexcharts";
-import ChartTab from "../common/ChartTab";
 import dynamic from "next/dynamic";
 
-// Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
-export default function StatisticsChart() {
-  const options: ApexOptions = {
-    legend: {
-      show: false, // Hide legend
-      position: "top",
-      horizontalAlign: "left",
-    },
-    colors: ["#465FFF", "#9CB9FF"], // Define line colors
-    chart: {
-      fontFamily: "Outfit, sans-serif",
-      height: 310,
-      type: "line", // Set the chart type to 'line'
-      toolbar: {
-        show: false, // Hide chart toolbar
-      },
-    },
-    stroke: {
-      curve: "straight", // Define the line style (straight, smooth, or step)
-      width: [2, 2], // Line width for each dataset
-    },
+const StatisticsChart = () => {
+  const [range, setRange] = useState<"week" | "month" | "quarter" | "year">("month");
 
+  const getChartData = () => {
+    switch (range) {
+      case "week":
+        return {
+          categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+          sales: [120, 150, 100, 130, 140, 180, 170],
+          revenue: [40, 50, 30, 60, 50, 70, 65],
+        };
+      case "month":
+        return {
+          categories: Array.from({ length: 30 }, (_, i) => `Ngày ${i + 1}`),
+          sales: Array.from({ length: 30 }, () => Math.floor(Math.random() * 200 + 100)),
+          revenue: Array.from({ length: 30 }, () => Math.floor(Math.random() * 100 + 50)),
+        };
+      case "quarter":
+        return {
+          categories: ["T1", "T2", "T3"],
+          sales: [600, 750, 900],
+          revenue: [300, 380, 420],
+        };
+      case "year":
+        return {
+          categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+          sales: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235],
+          revenue: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140],
+        };
+      default:
+        return { categories: [], sales: [], revenue: [] };
+    }
+  };
+
+  const { categories, sales, revenue } = getChartData();
+
+  const options: ApexOptions = {
+    chart: {
+      type: "area",
+      height: 310,
+      toolbar: { show: false },
+      fontFamily: "Outfit, sans-serif",
+    },
+    colors: ["#465FFF", "#9CB9FF"],
+    stroke: { curve: "straight", width: [2, 2] },
     fill: {
       type: "gradient",
-      gradient: {
-        opacityFrom: 0.55,
-        opacityTo: 0,
-      },
+      gradient: { opacityFrom: 0.55, opacityTo: 0 },
     },
     markers: {
-      size: 0, // Size of the marker points
-      strokeColors: "#fff", // Marker border color
+      size: 0,
+      strokeColors: "#fff",
       strokeWidth: 2,
-      hover: {
-        size: 6, // Marker size on hover
-      },
+      hover: { size: 6 },
     },
+    dataLabels: { enabled: false },
     grid: {
-      xaxis: {
-        lines: {
-          show: false, // Hide grid lines on x-axis
-        },
-      },
-      yaxis: {
-        lines: {
-          show: true, // Show grid lines on y-axis
-        },
-      },
-    },
-    dataLabels: {
-      enabled: false, // Disable data labels
-    },
-    tooltip: {
-      enabled: true, // Enable tooltip
-      x: {
-        format: "dd MMM yyyy", // Format for x-axis tooltip
-      },
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: true } },
     },
     xaxis: {
-      type: "category", // Category-based x-axis
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
-      axisBorder: {
-        show: false, // Hide x-axis border
-      },
-      axisTicks: {
-        show: false, // Hide x-axis ticks
-      },
-      tooltip: {
-        enabled: false, // Disable tooltip for x-axis points
-      },
+      type: "category",
+      categories,
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      tooltip: { enabled: false },
     },
     yaxis: {
       labels: {
         style: {
-          fontSize: "12px", // Adjust font size for y-axis labels
-          colors: ["#6B7280"], // Color of the labels
-        },
-      },
-      title: {
-        text: "", // Remove y-axis title
-        style: {
-          fontSize: "0px",
+          fontSize: "12px",
+          colors: ["#6B7280"],
         },
       },
     },
+    tooltip: {
+      enabled: true,
+    },
+    legend: { show: false },
   };
 
   const series = [
-    {
-      name: "Sales",
-      data: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235],
-    },
-    {
-      name: "Revenue",
-      data: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140],
-    },
+    { name: "Sales", data: sales },
+    { name: "Revenue", data: revenue },
   ];
+
+  const tabs: { label: string; value: typeof range }[] = [
+    { label: "Tuần", value: "week" },
+    { label: "Tháng", value: "month" },
+    { label: "Quý", value: "quarter" },
+    { label: "Năm", value: "year" },
+  ];
+
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
+    <div className="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 sm:px-6 sm:pt-6">
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
-        <div className="w-full">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Statistics
-          </h3>
-          <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-            Target you’ve set for each month
-          </p>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800">Thống kê</h3>
+          <p className="text-gray-500 text-sm">Doanh thu theo từng giai đoạn</p>
         </div>
-        <div className="flex items-start w-full gap-3 sm:justify-end">
-          <ChartTab />
+
+        <div className="inline-flex items-center rounded-md border bg-gray-100 p-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setRange(tab.value)}
+              className={`px-4 py-2 rounded-sm text-sm font-medium transition-colors ${range === tab.value
+                  ? "bg-white text-black shadow-sm"
+                  : "text-gray-600 hover:bg-gray-200"
+                }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
+
       </div>
 
-      <div className="max-w-full overflow-x-auto custom-scrollbar">
+      <div className="max-w-full overflow-x-auto">
         <div className="min-w-[1000px] xl:min-w-full">
-          <ReactApexChart
-            options={options}
-            series={series}
-            type="area"
-            height={310}
-          />
+          <ReactApexChart options={options} series={series} type="area" height={310} />
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default StatisticsChart;
