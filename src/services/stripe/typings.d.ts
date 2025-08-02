@@ -1,20 +1,49 @@
+// declare namespace REQUEST {
+//   type CreateOrderItem = {
+//     productId: string;
+//     productName: string;
+//     blindBoxId: string;
+//     blindBoxName: string;
+//     quantity: number;
+//     unitPrice: number;
+//     totalPrice: number;
+//   };
+
+//   type CreateOrderList = {
+//     isShip?: boolean;
+//     promotionId?: string;
+//     items: CreateOrderItem[];
+//   };
+// }
+
 declare namespace REQUEST {
   type CreateOrderItem = {
+    id: string;
     productId: string;
     productName: string;
+    productImages?: string[];
     blindBoxId: string;
     blindBoxName: string;
+    blindBoxImage?: string;
     quantity: number;
     unitPrice: number;
     totalPrice: number;
+    createdAt?: string;
+  };
+
+  type CreateOrderSellerGroup = {
+    sellerId: string;
+    sellerName: string;
+    items: CreateOrderItem[];
+    promotionId?: string;
   };
 
   type CreateOrderList = {
     isShip?: boolean;
-    promotionId?: string;
-    items: CreateOrderItem[];
+    sellerItems: CreateOrderSellerGroup[];
   };
 }
+
 
 declare namespace API {
   type ShipmentPreviewFee = {

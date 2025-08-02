@@ -14,6 +14,43 @@ import { useState } from "react";
 import { Backdrop } from "../backdrop";
 import { Button } from "../ui/button";
 
+// Helper function to determine actual status from logs
+const getActualStatusFromLogs = (logs: string, currentStatus: OrderStatus): OrderStatus => {
+    if (!logs) return currentStatus;
+
+    const logLines = logs.split('\n');
+
+    // Check for delivery completion first
+    const hasDelivered = logLines.some(line =>
+        line.includes('Delivered') ||
+        line.includes('delivered')
+    );
+
+    // Check for actual delivering status (item is being shipped)
+    const hasDelivering = logLines.some(line =>
+        line.includes('Delivering')
+    );
+
+    // Check for shipping request
+    const hasShipmentRequest = logLines.some(line =>
+        line.includes('Shipment requested by user') ||
+        line.includes('requested shipment')
+    );
+
+    if (hasDelivered) {
+        return OrderStatus.DELIVERED;
+    } else if (hasDelivering) {
+        return OrderStatus.DELIVEREDING;
+    } else if (hasShipmentRequest) {
+        return OrderStatus.SHIPPING_REQUESTED;
+    }
+    if (currentStatus === OrderStatus.DELIVEREDING && !hasDelivering && !hasShipmentRequest) {
+        return OrderStatus.PENDING;
+    }
+
+    return currentStatus;
+};
+
 interface ShippingAddress {
     id: string;
     fullName: string;
@@ -90,21 +127,28 @@ export default function OrderCard({
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="text-sm text-gray-500">x{detail.quantity}</div>
-                            <span
-                                className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase
-                                    ${detail.status === OrderStatus.CANCELLED
-                                        ? "bg-red-100 text-red-700"
-                                        : detail.status === OrderStatus.PENDING
-                                            ? "bg-yellow-100 text-yellow-700"
-                                            : detail.status === OrderStatus.SHIPPING_REQUESTED
-                                                ? "bg-blue-100 text-blue-700"
-                                                : detail.status === OrderStatus.DELIVEREDING
-                                                    ? "bg-green-100 text-green-700"
-                                                    : "bg-gray-100 text-gray-600"
-                                    }`}
-                            >
-                                {OrderStatusText[detail.status] ?? "Không xác định"}
-                            </span>
+                            {(() => {
+                                const actualStatus = getActualStatusFromLogs(detail.logs || '', detail.status);
+                                return (
+                                    <span
+                                        className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase
+                                            ${actualStatus === OrderStatus.CANCELLED
+                                                ? "bg-red-100 text-red-700"
+                                                : actualStatus === OrderStatus.PENDING
+                                                    ? "bg-yellow-100 text-yellow-700"
+                                                    : actualStatus === OrderStatus.SHIPPING_REQUESTED
+                                                        ? "bg-blue-100 text-blue-700"
+                                                        : actualStatus === OrderStatus.DELIVEREDING
+                                                            ? "bg-green-100 text-green-700"
+                                                            : actualStatus === OrderStatus.DELIVERED
+                                                                ? "bg-purple-100 text-purple-700"
+                                                                : "bg-gray-100 text-gray-600"
+                                            }`}
+                                    >
+                                        {OrderStatusText[actualStatus] ?? "Không xác định"}
+                                    </span>
+                                );
+                            })()}
                         </div>
                     </div>
                     <div className="text-right">

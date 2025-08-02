@@ -7,6 +7,7 @@ import { GoArrowLeft } from "react-icons/go";
 import { useAppDispatch } from "@/stores/store";
 import { setCart } from "@/stores/cart-slice";
 import { getCartByCustomer } from "@/services/cart-item/api-services";
+import { isTResponseData } from "@/utils/compare";
 import useToast from "@/hooks/use-toast";
 import { CheckCircle2 } from "lucide-react";
 
@@ -18,26 +19,28 @@ export default function ThankYouPage() {
     const { addToast } = useToast();
 
     useEffect(() => {
-        // const fetchCart = async () => {
-        //     try {
-        //         const response = await getCartByCustomer();
-        //         if (response?.isSuccess) {
-        //             dispatch(setCart(response.value.data.items ?? []));
-        //         }
-        //     } catch (error) {
-        //         console.error("Lỗi lấy lại giỏ hàng:", error);
-        //     }
-        // };
-        // fetchCart();
-
-         dispatch(setCart([]));
+        const fetchCart = async () => {
+            try {
+                const response = await getCartByCustomer();
+                if (response?.isSuccess && isTResponseData(response)) {
+                    dispatch(setCart(response.value.data));
+                }
+            } catch (error) {
+                dispatch(setCart({
+                    sellerItems: [],
+                    totalQuantity: 0,
+                    totalPrice: 0
+                }));
+            }
+        };
+        fetchCart();
 
         addToast({
             type: "success",
             description: "Thanh toán thành công! Cảm ơn bạn đã đặt hàng.",
             duration: 3500,
         });
-    }, [dispatch]);
+    }, [dispatch, addToast]);
 
     return (
         <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10">

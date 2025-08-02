@@ -507,13 +507,14 @@ export default function Inventory() {
                                             )}
                                             {item.type === 'product' && item.isFromBlindBox && (
                                                 <>
-                                                    <Button
-                                                        onClick={() => handleResellItem(item.id)}
-                                                        disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering}
-                                                        className="flex-1 border border-orange-600 text-orange-600 bg-transparent hover:bg-orange-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    >
-                                                        Đổi hàng
-                                                    </Button>
+                                                    {item.inventoryItemStatus !== InventoryItemStatus.Delivering && (
+                                                        <Button
+                                                            onClick={() => handleResellItem(item.id)}
+                                                            className="flex-1 border border-orange-600 text-orange-600 bg-transparent hover:bg-orange-600 hover:text-white transition"
+                                                        >
+                                                            Đổi hàng
+                                                        </Button>
+                                                    )}
                                                     <Button
                                                         onClick={() => handleDeliver(item.id)}
                                                         disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering}

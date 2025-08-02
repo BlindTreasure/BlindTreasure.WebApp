@@ -11,40 +11,43 @@ export default function useAddBlindboxToCart() {
   const hasFetchedData = useRef(false);
   const dispatch = useAppDispatch();
 
-  const addBlindboxToCartApi = async ({blindBoxId, quantity} : REQUEST.AddItemToCart) => {
+  const addBlindboxToCartApi = async ({
+    blindBoxId,
+    quantity,
+  }: REQUEST.AddItemToCart) => {
     setPending(true);
     try {
-      const res = await addCartItemByCustomer({blindBoxId, quantity});
-      
+      const res = await addCartItemByCustomer({ blindBoxId, quantity });
+
       if (isTResponseData(res)) {
         const newCart = (res as TResponseData<API.ResponseDataCart>).value.data;
 
-        dispatch(setCart(newCart.items));
-        
+        dispatch(setCart(newCart));
+
         addToast({
           type: "success",
           description: `Đã thêm ${quantity} sản phẩm vào giỏ hàng`,
-          duration: 3000
+          duration: 3000,
         });
-        
+
         return res as TResponseData<API.ResponseDataCart>;
       } else {
         addToast({
           type: "error",
-          description: "Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!",
-          duration: 4000
+          description:
+            "Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!",
+          duration: 4000,
         });
-        
+
         return null;
       }
     } catch (error) {
-      
       addToast({
         type: "error",
         description: "Không thể thêm vào giỏ hàng",
-        duration: 5000
+        duration: 5000,
       });
-      
+
       console.error("Add to cart error:", error);
       return null;
     } finally {

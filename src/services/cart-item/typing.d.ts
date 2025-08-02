@@ -11,12 +11,35 @@ declare namespace REQUEST {
   }
 }
 
+// declare namespace API {
+//   type CartItem = {
+//     id: string;
+//     productId?: string;
+//     productName?: string;
+//     productImages?: string;
+//     blindBoxId?: string;
+//     blindBoxName?: string;
+//     blindBoxImage?: string;
+//     quantity: number;
+//     unitPrice: number;
+//     totalPrice: number;
+//     createdAt: string;
+//     isValid?: boolean;
+//   };
+
+//   type ResponseDataCart = {
+//     items: CartItem[];
+//     totalQuantity: number;
+//     totalPrice: number;
+//   };
+// }
+
 declare namespace API {
   type CartItem = {
     id: string;
     productId?: string;
     productName?: string;
-    productImages?: string;
+    productImages?: string[]; 
     blindBoxId?: string;
     blindBoxName?: string;
     blindBoxImage?: string;
@@ -27,8 +50,16 @@ declare namespace API {
     isValid?: boolean;
   };
 
-  type ResponseDataCart = {
+  type SellerCartGroup = {
+    sellerId: string;
+    sellerName: string;
     items: CartItem[];
+    sellerTotalQuantity: number;
+    sellerTotalPrice: number;
+  };
+
+  type ResponseDataCart = {
+    sellerItems: SellerCartGroup[];
     totalQuantity: number;
     totalPrice: number;
   };

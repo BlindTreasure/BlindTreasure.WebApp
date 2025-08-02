@@ -47,6 +47,7 @@ export type ShippingAddress = {
 
 export type OrderDetail = {
   id: string;
+  logs: string;
   productId: string;
   productName: string;
   productImages: string[];
@@ -57,6 +58,8 @@ export type OrderDetail = {
   unitPrice: number;
   totalPrice: number;
   status: OrderStatus;
+  shipments: Shipment[];
+  inventoryItems: InventoryItem[];
 };
 
 export type PaymentInfo = {
@@ -98,6 +101,7 @@ export type Shipment = {
 
 export type OrderDetails = {
   id: string;
+  logs: string;
   productId: string;
   productName: string;
   productImages: string[];

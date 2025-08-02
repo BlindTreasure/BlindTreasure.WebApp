@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { OrderResponse } from "@/services/order/typings";
-import { OrderStatus, PaymentStatus, PaymentInfoStatus } from "@/const/products";
+import { PaymentStatus, OrderStatus, PaymentInfoStatus } from "@/const/products";
 import useGetAllOrder from "../hooks/useGetOrderByCustomer";
 import useGetOrderDetails from "../hooks/useGetOrderDetails";
 import OrderCard from "@/components/order-card";
@@ -20,7 +20,7 @@ export const TAB_MAP: TabConfig[] = [
     { value: "all", label: "Tất cả", statuses: undefined },
     { value: "pending", label: "Chờ thanh toán", statuses: [PaymentStatus.PENDING] },
     { value: "completed", label: "Đã thanh toán", statuses: [PaymentStatus.PAID] },
-    { value: "shipping", label: "Đang giao hàng", orderStatuses: [OrderStatus.SHIPPING_REQUESTED] },
+    { value: "shipping", label: "Đang giao hàng", orderStatuses: [OrderStatus.DELIVEREDING] },
     { value: "cancelled", label: "Đã hủy", statuses: [PaymentStatus.CANCELLED] },
 ];
 
@@ -46,7 +46,7 @@ export default function Purchased() {
                 PageSize: PAGE_SIZE,
             });
 
-            if (res?.value?.data) {
+            if (res?.value?.data?.result && Array.isArray(res.value.data.result)) {
                 const convertedOrders: OrderResponse[] = res.value.data.result.map(detail => {
                     const firstShipment = detail.shipments?.[0];
                     const shippedDate = firstShipment?.shippedAt || new Date().toISOString();
@@ -54,12 +54,13 @@ export default function Purchased() {
 
                     return {
                         id: detail.id,
-                        status: PaymentStatus.PAID, 
+                        status: PaymentStatus.PAID,
                         totalAmount: detail.totalPrice,
                         placedAt: shippedDate,
                         completedAt: estimatedDelivery || null,
                         details: [{
                             id: detail.id,
+                            logs: detail.logs,
                             productId: detail.productId,
                             productName: detail.productName,
                             productImages: detail.productImages || [],
@@ -69,7 +70,9 @@ export default function Purchased() {
                             quantity: detail.quantity,
                             unitPrice: detail.unitPrice,
                             totalPrice: detail.totalPrice,
-                            status: detail.status
+                            status: detail.status,
+                            shipments: detail.shipments || [],
+                            inventoryItems: []
                         }],
                         payment: {
                             id: '',
@@ -89,7 +92,7 @@ export default function Purchased() {
                         shippingAddress: firstShipment ? {
                             id: firstShipment.id,
                             fullName: 'Khách hàng',
-                            phone: '', 
+                            phone: '',
                             addressLine: 'Địa chỉ giao hàng',
                             city: '',
                             province: '',
@@ -207,4 +210,3 @@ export default function Purchased() {
         </div>
     );
 }
-

@@ -17,7 +17,7 @@ export default function useUpdateQuantityItemCart() {
       const res = await updateCartItemByCustomer(body);
       if (isTResponseData(res)) {
         const newCart = (res as TResponseData<API.ResponseDataCart>).value.data;
-        dispatch(setCart(newCart.items));
+        dispatch(setCart(newCart));
 
         return res as TResponseData<API.ResponseDataCart>;
       } else {
