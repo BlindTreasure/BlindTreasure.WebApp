@@ -37,9 +37,10 @@ const notificationSlice = createSlice({
       
       if (existingIndex === -1) {
         state.notifications.unshift(action.payload);
-        if (!action.payload.isRead) {
-          state.unreadCount += 1;
-        }
+        // Không tự tăng unreadCount ở đây nữa, sẽ để cho saga hoặc thunk xử lý
+        // if (!action.payload.isRead) {
+        //   state.unreadCount += 1;
+        // }
       }
     },
 

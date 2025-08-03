@@ -1,22 +1,74 @@
 'use client'
-import React, { useState } from 'react';
-import { X, Star, ChevronLeft, ChevronRight, Gift, RefreshCw, Clock, Shield, Loader2, User, MessageCircle, CheckCircle, XCircle, AlertTriangle, Handshake, Eye, Package } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Star, ChevronLeft, ChevronRight, Gift, RefreshCw, Clock, Shield, Loader2, User, MessageCircle, CheckCircle, XCircle, AlertTriangle, Handshake, Eye, Package, Lock, Unlock } from 'lucide-react';
+import { useTradeRequestLock } from '@/hooks/use-signalR-lock';
+import useToast from '@/hooks/use-toast';
+import { useAppSelector } from '@/stores/store';
+import { Progress } from "@/components/ui/progress"
+
 
 interface MyTradeRequestDetailProps {
   tradeRequest: API.TradeRequest;
   onClose: () => void;
   isLoading?: boolean;
-  isOngoingTrade?: boolean; // To differentiate between buying and trading sections
+  isOngoingTrade?: boolean;
+  onLockDeal: (tradeRequestId: string) => Promise<boolean>;
+  onCancelDeal: (tradeRequestId: string) => void;
+  isCurrentUserRequester: boolean;
 }
 
 const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({ 
   tradeRequest, 
   onClose, 
   isLoading = false,
-  isOngoingTrade = false
+  isOngoingTrade = false,
+  onLockDeal,
+  onCancelDeal,
+  isCurrentUserRequester
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentOfferedIndex, setCurrentOfferedIndex] = useState(0);
+
+  const { addToast } = useToast();
+  const { lockState, setLockState, isLocking, lockError } = useTradeRequestLock(tradeRequest.id);
+  const user = useAppSelector((state) => state.userSlice.user);
+
+  useEffect(() => {
+    // Set initial lock state from API data when component mounts or tradeRequest changes
+    setLockState({
+      ownerLocked: tradeRequest.ownerLocked,
+      requesterLocked: tradeRequest.requesterLocked,
+      isCompleted: tradeRequest.status.toLowerCase() === 'completed',
+      progress: calculateProgress(tradeRequest.ownerLocked, tradeRequest.requesterLocked)
+    });
+  }, [tradeRequest, setLockState]);
+
+  const calculateProgress = (ownerLocked: boolean, requesterLocked: boolean): number => {
+    if (ownerLocked && requesterLocked) return 100;
+    if (ownerLocked || requesterLocked) return 50;
+    return 0;
+  };
+  
+  const handleLockDeal = async () => {
+    if (!tradeRequest.id) return;
+    
+    // addToast({ description: "Đang xử lý khóa giao dịch...", type: "default" }); // Tạm thời comment lại để sửa lỗi
+    const success = await onLockDeal(tradeRequest.id);
+
+    if (success) {
+      addToast({ description: "Khóa giao dịch thành công!", type: "success" });
+    } else {
+      addToast({ description: (lockError as any)?.message || "Khóa giao dịch thất bại.", type: "error" });
+    }
+  };
+
+  const handleCancel = () => {
+    onCancelDeal(tradeRequest.id);
+    onClose();
+  }
+
+  // Determine if the current user has locked
+  const currentUserHasLocked = (isCurrentUserRequester && lockState.requesterLocked) || (!isCurrentUserRequester && lockState.ownerLocked);
 
   // Format ngày tháng
   const getTimeSincePosted = (requestedAt: string): string => {
@@ -50,6 +102,8 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
         return 'Đã hoàn thành';
       case 'cancelled':
         return 'Đã hủy';
+      case 'expired':
+        return 'Đã hết hạn';
       case 'in_progress':
         return 'Đang thực hiện';
       case 'locked':
@@ -68,6 +122,7 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
         return 'text-blue-600 bg-blue-50 border-blue-200';
       case 'rejected':
       case 'cancelled':
+      case 'expired':
         return 'text-red-600 bg-red-50 border-red-200';
       case 'completed':
         return 'text-green-600 bg-green-50 border-green-200';
@@ -134,10 +189,10 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
               {getStatusText(tradeRequest.status)}
             </span>
             
-            {tradeRequest.timeRemaining && (
-              <div className="flex items-center gap-1 text-sm text-gray-600">
+            {tradeRequest.timeRemaining && tradeRequest.status.toLowerCase() === 'accepted' && (
+              <div className="flex items-center gap-1 text-sm text-red-600 font-medium animate-pulse">
                 <Clock className="w-4 h-4" />
-                {getTimeRemainingText()}
+                <span>Còn {getTimeRemainingText()}</span>
               </div>
             )}
           </div>
@@ -159,28 +214,30 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
           </div>
 
           {/* Lock Status */}
-          {(tradeRequest.ownerLocked || tradeRequest.requesterLocked) && (
-            <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-4 mb-4 border border-green-200">
-              <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                Trạng thái khóa
+          {tradeRequest.status.toLowerCase() === 'accepted' && (
+            <div className="bg-white rounded-xl p-4 mb-4 border border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Trạng thái khóa giao dịch
               </h3>
-              <div className="space-y-2">
-                {tradeRequest.ownerLocked && (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-green-800">Chủ sở hữu đã khóa giao dịch</span>
-                  </div>
-                )}
-                {tradeRequest.requesterLocked && (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-green-800">Bạn đã khóa giao dịch</span>
-                  </div>
-                )}
+              <Progress value={lockState.progress} className="w-full mb-3" />
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  {lockState.ownerLocked ? <CheckCircle className="w-4 h-4 text-green-600" /> : <XCircle className="w-4 h-4 text-gray-400" />}
+                  <span className={lockState.ownerLocked ? "text-gray-800" : "text-gray-500"}>
+                    {isCurrentUserRequester ? 'Chủ sở hữu đã khóa' : 'Bạn đã khóa'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {lockState.requesterLocked ? <CheckCircle className="w-4 h-4 text-green-600" /> : <XCircle className="w-4 h-4 text-gray-400" />}
+                  <span className={lockState.requesterLocked ? "text-gray-800" : "text-gray-500"}>
+                    {isCurrentUserRequester ? 'Bạn đã khóa' : 'Người yêu cầu đã khóa'}
+                  </span>
+                </div>
               </div>
             </div>
           )}
+
 
           {/* Target Item (What you want) */}
           <div className="mb-6">
@@ -261,6 +318,28 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
             )}
           </div>
 
+          {/* Action Buttons */}
+          {tradeRequest.status.toLowerCase() === 'accepted' && !lockState.isCompleted && (
+            <div className="sticky bottom-0 bg-white p-4 border-t border-gray-200 space-y-2">
+               <button
+                onClick={handleLockDeal}
+                disabled={currentUserHasLocked || isLocking || lockState.isCompleted}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+              >
+                {isLocking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+                {currentUserHasLocked ? "Đã khóa" : "Khóa giao dịch"}
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={isLocking || lockState.isCompleted}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                <XCircle className="w-4 h-4" />
+                Hủy giao dịch
+              </button>
+            </div>
+          )}
+
           {/* Status Information */}
           <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
             <h3 className="font-semibold text-gray-900 mb-3">Thông tin chi tiết</h3>
@@ -286,9 +365,16 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
               </div>
               
               <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Người nhận:</span>
+                <span className="text-gray-600">Đối tác:</span>
                 <span className="font-medium text-gray-900">
-                  {tradeRequest.requesterName}
+                  {isCurrentUserRequester ? tradeRequest.listingOwnerName : tradeRequest.requesterName}
+                </span>
+              </div>
+              
+              <div className="flex justify-between py-2">
+                <span className="text-gray-600">ID Giao dịch:</span>
+                <span className="font-mono text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  {tradeRequest.id}
                 </span>
               </div>
               
