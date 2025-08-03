@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -100,7 +100,15 @@ const QuantitySelector = ({
 const Cart: React.FC = () => {
   // Lấy dữ liệu từ Redux thông qua hook
   const { isPending, data } = useGetCartByCustomer();
-  const cartItems = data?.items || [];
+
+  // Memoize sellerItems to prevent unnecessary re-renders
+  const sellerItems = useMemo(() => data?.sellerItems || [], [data?.sellerItems]);
+
+  // Flatten all items from all sellers for easier processing - memoize to prevent unnecessary re-renders
+  const cartItems = useMemo(() =>
+    sellerItems.flatMap(sellerGroup => sellerGroup.items),
+    [sellerItems]
+  );
 
   const { isPending: isDeleting, deleteCartItemApi } = useDeleteCartItem();
   const { isPending: isClearing, clearAllCartItemApi } = useClearAllCartItem();
@@ -109,6 +117,8 @@ const Cart: React.FC = () => {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [promotionId, setPromotionId] = useState<string | null>(null);
+  const isInitializedRef = useRef(false);
+  const cartItemsRef = useRef<API.CartItem[]>([]);
 
   const { createOrder, isPending: isCreatingOrder } = useCreateOrder();
   const [orderItems, setOrderItems] = useState<REQUEST.CreateOrderItem[]>([]);
@@ -120,6 +130,7 @@ const Cart: React.FC = () => {
   const [shippingData, setShippingData] = useState<API.ShipmentPreview[] | null>(null);
   const { previewShipping, isPending: isLoadingShipping } = usePreviewShipping();
 
+  // Fetch shipping preview only when isShip changes to true
   useEffect(() => {
     const fetchShippingPreview = async () => {
       if (!isShip || selectedItems.length === 0) {
@@ -127,50 +138,105 @@ const Cart: React.FC = () => {
         return;
       }
 
-      const items: REQUEST.CreateOrderItem[] = cartItems
-        .filter(item => selectedItems.includes(item.id))
-        .map(item => ({
-          productId: item.productId ?? "",
-          productName: item.productName ?? "",
-          blindBoxId: item.blindBoxId ?? "",
-          blindBoxName: item.blindBoxName ?? "",
-          quantity: quantities[item.id] ?? item.quantity,
-          unitPrice: item.unitPrice,
-          totalPrice: (quantities[item.id] ?? item.quantity) * item.unitPrice,
-        }));
+      const orderSellerItems: REQUEST.CreateOrderSellerGroup[] = sellerItems
+        .map(sellerGroup => {
+          const filteredItems = sellerGroup.items
+            .filter(item => selectedItems.includes(item.id))
+            .map(item => ({
+              id: item.id,
+              productId: item.productId ?? "",
+              productName: item.productName ?? "",
+              productImages: item.productImages,
+              blindBoxId: item.blindBoxId ?? "",
+              blindBoxName: item.blindBoxName ?? "",
+              blindBoxImage: item.blindBoxImage,
+              quantity: quantities[item.id] ?? item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: (quantities[item.id] ?? item.quantity) * item.unitPrice,
+              createdAt: item.createdAt,
+            }));
+
+          return {
+            sellerId: sellerGroup.sellerId,
+            sellerName: sellerGroup.sellerName,
+            items: filteredItems,
+            ...(promotionId && { promotionId }),
+          };
+        })
+        .filter(sellerGroup => sellerGroup.items.length > 0);
 
       const payload: REQUEST.CreateOrderList = {
-        items,
+        sellerItems: orderSellerItems,
         isShip: true,
-        ...(promotionId && { promotionId }),
       };
 
-      const result = await previewShipping(payload);
-      setShippingData(result);
+      try {
+        const result = await previewShipping(payload);
+        setShippingData(result);
+      } catch (error) {
+        console.error('Error fetching shipping preview:', error);
+        setShippingData(null);
+      }
     };
 
-    fetchShippingPreview();
-  }, [isShip, selectedItems, quantities, cartItems, promotionId]);
-
+    // Only fetch when isShip is true
+    if (isShip) {
+      fetchShippingPreview();
+    } else {
+      setShippingData(null);
+    }
+  }, [isShip]); // Only depend on isShip to avoid infinite loops
 
   // Khởi tạo selectedItems và quantities khi cartItems thay đổi
   useEffect(() => {
-    if (cartItems.length > 0) {
-      // Chọn tất cả items mặc định
-      setSelectedItems(cartItems.map((item: API.CartItem) => item.id));
+    cartItemsRef.current = cartItems;
 
-      // Khởi tạo quantities từ dữ liệu Redux
-      const initialQuantities: Record<string, number> = {};
-      cartItems.forEach((item: API.CartItem) => {
-        initialQuantities[item.id] = item.quantity;
-      });
-      setQuantities(initialQuantities);
+    if (cartItems.length > 0) {
+      // Chỉ khởi tạo khi chưa được khởi tạo hoặc có items mới
+      const currentItemIds = new Set(cartItems.map((item: API.CartItem) => item.id));
+      const existingItemIds = new Set(Object.keys(quantities));
+
+      // Check if we need to initialize or if there are new items
+      const hasNewItems = cartItems.some(item => !existingItemIds.has(item.id));
+      const hasRemovedItems = Array.from(existingItemIds).some(id => !currentItemIds.has(id));
+
+      const shouldInitialize = !isInitializedRef.current || hasNewItems || hasRemovedItems;
+
+      if (shouldInitialize) {
+        // Only update if there's actually a change
+        setSelectedItems(prev => {
+          const newSelected = cartItems.map((item: API.CartItem) => item.id);
+          if (JSON.stringify(prev.sort()) !== JSON.stringify(newSelected.sort())) {
+            return newSelected;
+          }
+          return prev;
+        });
+
+        // Khởi tạo quantities từ dữ liệu Redux, preserve existing quantities for unchanged items
+        setQuantities(prev => {
+          const newQuantities: Record<string, number> = {};
+          cartItems.forEach((item: API.CartItem) => {
+            newQuantities[item.id] = prev[item.id] ?? item.quantity;
+          });
+
+          // Only update if there's actually a change
+          if (JSON.stringify(prev) !== JSON.stringify(newQuantities)) {
+            return newQuantities;
+          }
+          return prev;
+        });
+
+        isInitializedRef.current = true;
+      }
     } else {
       // Reset khi cart trống
-      setSelectedItems([]);
-      setQuantities({});
+      if (isInitializedRef.current) {
+        setSelectedItems([]);
+        setQuantities({});
+        isInitializedRef.current = false;
+      }
     }
-  }, [cartItems]);
+  }, [cartItems]); // Only depend on cartItems
 
   const debouncedQuantities = useDebounce(quantities, 500);
 
@@ -180,7 +246,7 @@ const Cart: React.FC = () => {
     const updateQuantity = async (): Promise<void> => {
       for (const id in debouncedQuantities) {
         const quantity = debouncedQuantities[id];
-        const originalItem = cartItems.find(item => item.id === id);
+        const originalItem = cartItemsRef.current.find(item => item.id === id);
 
         // Chỉ update nếu quantity thay đổi so với dữ liệu gốc
         if (originalItem && originalItem.quantity !== quantity) {
@@ -189,10 +255,10 @@ const Cart: React.FC = () => {
       }
     };
 
-    if (Object.keys(debouncedQuantities).length > 0) {
+    if (Object.keys(debouncedQuantities).length > 0 && isInitializedRef.current) {
       updateQuantity();
     }
-  }, [debouncedQuantities, updateCartItemApi, cartItems]);
+  }, [debouncedQuantities, updateCartItemApi]);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedItems((prev) =>
@@ -204,7 +270,7 @@ const Cart: React.FC = () => {
     if (selectedItems.length === cartItems.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(cartItems.map((item) => item.id));
+      setSelectedItems(cartItems.map((item: API.CartItem) => item.id));
     }
   }, [selectedItems.length, cartItems]);
 
@@ -240,58 +306,93 @@ const Cart: React.FC = () => {
     setQuantities((prev) => ({ ...prev, [id]: newQuantity }));
   }, []);
 
-  const subtotal: number = cartItems
-    .filter((item) => selectedItems.includes(item.id))
-    .reduce((acc, item) => {
-      const quantity = quantities[item.id] ?? item.quantity;
-      return acc + quantity * item.unitPrice;
-    }, 0);
+  const subtotal: number = useMemo(() =>
+    cartItems
+      .filter((item) => selectedItems.includes(item.id))
+      .reduce((acc, item) => {
+        const quantity = quantities[item.id] ?? item.quantity;
+        return acc + quantity * item.unitPrice;
+      }, 0),
+    [cartItems, selectedItems, quantities]
+  );
 
-  const totalShippingFee: number = isShip && shippingData
-    ? shippingData.reduce((acc, shipment) => acc + shipment.ghnPreviewResponse.totalFee, 0)
-    : 0;
+  const totalShippingFee: number = useMemo(() =>
+    isShip && shippingData
+      ? shippingData.reduce((acc, shipment) => acc + shipment.ghnPreviewResponse.totalFee, 0)
+      : 0,
+    [isShip, shippingData]
+  );
 
-  const total: number = subtotal + totalShippingFee;
+  const total: number = useMemo(() => subtotal + totalShippingFee, [subtotal, totalShippingFee]);
 
   const handlePreviewOrder = useCallback(() => {
-    const items: REQUEST.CreateOrderItem[] = cartItems
-      .filter(item => selectedItems.includes(item.id))
-      .map(item => ({
-        productId: item.productId ?? "",
-        productName: item.productName ?? "",
-        blindBoxId: item.blindBoxId ?? "",
-        blindBoxName: item.blindBoxName ?? "",
-        quantity: quantities[item.id] ?? item.quantity,
-        unitPrice: item.unitPrice,
-        totalPrice: (quantities[item.id] ?? item.quantity) * item.unitPrice,
-      }));
+    const orderSellerItems: REQUEST.CreateOrderSellerGroup[] = sellerItems
+      .map(sellerGroup => {
+        const filteredItems = sellerGroup.items
+          .filter(item => selectedItems.includes(item.id))
+          .map(item => ({
+            id: item.id,
+            productId: item.productId ?? "",
+            productName: item.productName ?? "",
+            productImages: item.productImages,
+            blindBoxId: item.blindBoxId ?? "",
+            blindBoxName: item.blindBoxName ?? "",
+            blindBoxImage: item.blindBoxImage,
+            quantity: quantities[item.id] ?? item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: (quantities[item.id] ?? item.quantity) * item.unitPrice,
+            createdAt: item.createdAt,
+          }));
+
+        return {
+          sellerId: sellerGroup.sellerId,
+          sellerName: sellerGroup.sellerName,
+          items: filteredItems,
+          ...(promotionId && { promotionId }),
+        };
+      })
+      .filter(sellerGroup => sellerGroup.items.length > 0);
 
     const payload: REQUEST.CreateOrderList = {
-      items,
-      ...(promotionId && { promotionId }),
+      sellerItems: orderSellerItems,
       isShip,
     };
 
     setPendingOrderData(payload);
     setShowConfirmModal(true);
-  }, [cartItems, selectedItems, promotionId, quantities, isShip]);
+  }, [sellerItems, selectedItems, promotionId, quantities, isShip]);
 
   const handleCheckout = useCallback(async () => {
-    const items: REQUEST.CreateOrderItem[] = cartItems
-      .filter(item => selectedItems.includes(item.id))
-      .map(item => ({
-        productId: item.productId ?? "",
-        productName: item.productName ?? "",
-        blindBoxId: item.blindBoxId ?? "",
-        blindBoxName: item.blindBoxName ?? "",
-        quantity: quantities[item.id] ?? item.quantity,
-        unitPrice: item.unitPrice,
-        totalPrice: (quantities[item.id] ?? item.quantity) * item.unitPrice,
-      }));
+    // Convert sellerItems to new format
+    const orderSellerItems: REQUEST.CreateOrderSellerGroup[] = sellerItems
+      .map(sellerGroup => {
+        const filteredItems = sellerGroup.items
+          .filter(item => selectedItems.includes(item.id))
+          .map(item => ({
+            id: item.id,
+            productId: item.productId ?? "",
+            productName: item.productName ?? "",
+            productImages: item.productImages,
+            blindBoxId: item.blindBoxId ?? "",
+            blindBoxName: item.blindBoxName ?? "",
+            blindBoxImage: item.blindBoxImage,
+            quantity: quantities[item.id] ?? item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: (quantities[item.id] ?? item.quantity) * item.unitPrice,
+            createdAt: item.createdAt,
+          }));
+
+        return {
+          sellerId: sellerGroup.sellerId,
+          sellerName: sellerGroup.sellerName,
+          items: filteredItems,
+          ...(promotionId && { promotionId }),
+        };
+      })
+      .filter(sellerGroup => sellerGroup.items.length > 0);
 
     const payload: REQUEST.CreateOrderList = {
-      items,
-      ...(promotionId && { promotionId }),
+      sellerItems: orderSellerItems,
       isShip,
     };
 
@@ -299,7 +400,7 @@ const Cart: React.FC = () => {
     if (url) {
       window.location.href = url;
     }
-  }, [selectedItems, cartItems, quantities, promotionId, createOrder, isShip]);
+  }, [selectedItems, sellerItems, quantities, promotionId, createOrder, isShip]);
 
 
   const handleContinueShopping = () => {
@@ -324,7 +425,7 @@ const Cart: React.FC = () => {
     <div className="mt-36 p-4 sm:px-8 lg:px-20">
       {cartItems.length > 0 && (
         <h2 className="text-lg sm:text-xl font-semibold mb-4">
-          Tổng sản phẩm ({cartItems.length} sản phẩm)
+          Tổng sản phẩm ({data?.totalQuantity || 0} sản phẩm từ {sellerItems.length} cửa hàng)
         </h2>
       )}
 
@@ -400,73 +501,90 @@ const Cart: React.FC = () => {
                 </span>
               </div>
 
-              {cartItems.map((item) => {
-                const isProduct = Boolean(item.productId);
-                const name = isProduct ? item.productName : item.blindBoxName;
-                const image = isProduct
-                  ? item.productImages?.[0]
-                  : item.blindBoxImage;
-                const variant = isProduct ? 'Product' : 'Blindbox';
-                const quantity = quantities[item.id] ?? item.quantity;
-
-                return (
-                  <div
-                    key={item.id}
-                    className="relative flex flex-col sm:flex-row gap-4 py-4 pr-8 border-b last:border-none"
-                  >
-                    <div className="absolute top-2 right-2 z-10">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemove(item.id)}
-                        className="p-1 hover:bg-red-50"
-                        type="button"
-                        aria-label={`Xóa ${name}`}
-                      >
-                        <X className="w-4 h-4 text-[#d02a2a]" />
-                      </Button>
-                    </div>
-
-                    <div className="flex items-start gap-4">
-                      <Checkbox
-                        checked={selectedItems.includes(item.id)}
-                        onCheckedChange={() => toggleSelect(item.id)}
-                        aria-label={`Chọn ${name}`}
-                      />
-                      <img
-                        src={image || '/images/placeholder.jpg'}
-                        alt={name || 'Sản phẩm'}
-                        className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded"
-                      />
-                    </div>
-
-                    <div className="flex-1 text-sm space-y-2">
-                      <div className="font-semibold leading-tight">{name}</div>
-                      <div className="text-xs px-2 py-0.5 bg-gray-200 w-fit rounded">
-                        {variant}
-                      </div>
-
-                      <div className="flex items-center gap-2 text-gray-600 text-xs">
-                        <span className="min-w-[50px]">Số lượng:</span>
-                        <QuantitySelector
-                          value={quantity}
-                          onChange={(newQuantity) => handleQuantityChange(item.id, newQuantity)}
-                          min={1}
-                          max={999}
-                          className="shadow-sm"
-                        />
-                      </div>
-
-                      <div className="text-gray-600 text-xs">
-                        Đơn giá: <span className="font-medium">{item.unitPrice.toLocaleString('vi-VN')}₫</span>
-                      </div>
-                      <div className="text-[#d02a2a] font-semibold text-sm">
-                        Thành tiền: {(quantity * item.unitPrice).toLocaleString('vi-VN')}₫
-                      </div>
+              {sellerItems.map((sellerGroup) => (
+                <div key={sellerGroup.sellerId} className="mb-6">
+                  {/* Header của seller */}
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-4">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-sm text-gray-800">
+                        🏪 {sellerGroup.sellerName}
+                      </h3>
+                      <p className="text-xs text-gray-600">
+                        {sellerGroup.items.length} sản phẩm • Tổng: {sellerGroup.sellerTotalPrice.toLocaleString('vi-VN')}₫
+                      </p>
                     </div>
                   </div>
-                );
-              })}
+
+                  {/* Items của seller */}
+                  {sellerGroup.items.map((item) => {
+                    const isProduct = Boolean(item.productId);
+                    const name = isProduct ? item.productName : item.blindBoxName;
+                    const image = isProduct
+                      ? item.productImages?.[0]
+                      : item.blindBoxImage;
+                    const variant = isProduct ? 'Product' : 'Blindbox';
+                    const quantity = quantities[item.id] ?? item.quantity;
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="relative flex flex-col sm:flex-row gap-4 py-4 pr-8 border-b last:border-none ml-4"
+                      >
+                        <div className="absolute top-2 right-2 z-10">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemove(item.id)}
+                            className="p-1 hover:bg-red-50"
+                            type="button"
+                            aria-label={`Xóa ${name}`}
+                          >
+                            <X className="w-4 h-4 text-[#d02a2a]" />
+                          </Button>
+                        </div>
+
+                        <div className="flex items-start gap-4">
+                          <Checkbox
+                            checked={selectedItems.includes(item.id)}
+                            onCheckedChange={() => toggleSelect(item.id)}
+                            aria-label={`Chọn ${name}`}
+                          />
+                          <img
+                            src={image || '/images/placeholder.jpg'}
+                            alt={name || 'Sản phẩm'}
+                            className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded"
+                          />
+                        </div>
+
+                        <div className="flex-1 text-sm space-y-2">
+                          <div className="font-semibold leading-tight">{name}</div>
+                          <div className="text-xs px-2 py-0.5 bg-gray-200 w-fit rounded">
+                            {variant}
+                          </div>
+
+                          <div className="flex items-center gap-2 text-gray-600 text-xs">
+                            <span className="min-w-[50px]">Số lượng:</span>
+                            <QuantitySelector
+                              value={quantity}
+                              onChange={(newQuantity) => handleQuantityChange(item.id, newQuantity)}
+                              min={1}
+                              max={999}
+                              className="shadow-sm"
+                            />
+                          </div>
+
+                          <div className="text-gray-600 text-xs">
+                            Đơn giá: <span className="font-medium">{item.unitPrice.toLocaleString('vi-VN')}₫</span>
+                          </div>
+                          <div className="text-[#d02a2a] font-semibold text-sm">
+                            Thành tiền: {(quantity * item.unitPrice).toLocaleString('vi-VN')}₫
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </CardContent>
           </Card>
 
@@ -491,6 +609,13 @@ const Cart: React.FC = () => {
                     Đang tính phí vận chuyển...
                   </p>
                 )}
+
+                {isShip && cartItems.some(item => selectedItems.includes(item.id) && !Boolean(item.productId)) && (
+                  <div className="text-xs px-2 py-1 bg-amber-50 border border-amber-200 rounded text-amber-700 flex items-center gap-1 ml-6 mt-2">
+                    <span>⚠️</span>
+                    <span>Lưu ý: Sản phẩm blindbox chỉ được giao sau khi bạn mở hộp và nhận sản phẩm cụ thể.</span>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2 mb-4">
@@ -502,6 +627,11 @@ const Cart: React.FC = () => {
                   <span>Tạm tính:</span>
                   <span>{subtotal.toLocaleString('vi-VN')}₫</span>
                 </div>
+                {sellerItems.length > 1 && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    Từ {sellerItems.length} cửa hàng khác nhau
+                  </div>
+                )}
                 {isShip && (
                   <div className="flex justify-between text-sm">
                     <span>Phí vận chuyển:</span>
@@ -559,16 +689,21 @@ const Cart: React.FC = () => {
           </AlertDialogHeader>
 
           <div className="max-h-[300px] overflow-auto space-y-4">
-            {pendingOrderData?.items.map((item, index) => (
-              <div key={index} className="flex justify-between text-sm">
-                <div>
-                  <p className="font-medium">{item.productName || item.blindBoxName}</p>
-                  <p>Số lượng: {item.quantity}</p>
-                </div>
-                <div className="text-right">
-                  <p>₫{item.unitPrice.toLocaleString()}</p>
-                  <p className="text-muted-foreground">Tổng: ₫{item.totalPrice.toLocaleString()}</p>
-                </div>
+            {pendingOrderData?.sellerItems.map((sellerGroup, sellerIndex) => (
+              <div key={sellerIndex} className="space-y-2">
+                <h4 className="font-medium text-sm text-gray-700">🏪 {sellerGroup.sellerName}</h4>
+                {sellerGroup.items.map((item, itemIndex) => (
+                  <div key={itemIndex} className="flex justify-between text-sm ml-4">
+                    <div>
+                      <p className="font-medium">{item.productName || item.blindBoxName}</p>
+                      <p>Số lượng: {item.quantity}</p>
+                    </div>
+                    <div className="text-right">
+                      <p>₫{item.unitPrice.toLocaleString()}</p>
+                      <p className="text-muted-foreground">Tổng: ₫{item.totalPrice.toLocaleString()}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
@@ -576,7 +711,8 @@ const Cart: React.FC = () => {
           <div className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <span>Tạm tính:</span>
-              <span>₫{pendingOrderData?.items
+              <span>₫{pendingOrderData?.sellerItems
+                .flatMap(sellerGroup => sellerGroup.items)
                 .reduce((sum, item) => sum + item.totalPrice, 0)
                 .toLocaleString()}</span>
             </div>
@@ -590,7 +726,9 @@ const Cart: React.FC = () => {
               <span>Tổng cộng:</span>
               <span className="text-[#d02a2a]">
                 ₫{(
-                  (pendingOrderData?.items.reduce((sum, item) => sum + item.totalPrice, 0) || 0) +
+                  (pendingOrderData?.sellerItems
+                    .flatMap(sellerGroup => sellerGroup.items)
+                    .reduce((sum, item) => sum + item.totalPrice, 0) || 0) +
                   (pendingOrderData?.isShip ? totalShippingFee : 0)
                 ).toLocaleString()}
               </span>
@@ -598,9 +736,25 @@ const Cart: React.FC = () => {
             {pendingOrderData?.isShip && (
               <div className="text-xs text-gray-500 flex items-center gap-1">
                 <Truck className="w-3 h-3" />
-                Đơn hàng sẽ được giao tận nơi 
+                Đơn hàng sẽ được giao tận nơi
               </div>
             )}
+
+            {pendingOrderData?.sellerItems
+              .flatMap(sellerGroup => sellerGroup.items)
+              .some(item => item.blindBoxId && item.blindBoxName) && (
+                <div className="text-xs px-3 py-2 bg-blue-50 border border-blue-200 rounded text-blue-700 mt-3">
+                  <div className="flex items-start gap-2">
+                    <span className="text-blue-500">ℹ️</span>
+                    <div>
+                      <p className="font-medium mb-1">Lưu ý về Blindbox:</p>
+                      <p>• Blindbox sẽ được lưu trong túi đồ của bạn sau khi thanh toán</p>
+                      <p>• Bạn cần mở hộp để nhận sản phẩm cụ thể</p>
+                      <p>• Chỉ sản phẩm đã mở mới có thể được giao hàng tận nơi</p>
+                    </div>
+                  </div>
+                </div>
+              )}
           </div>
 
           <DialogFooter className="mt-4">

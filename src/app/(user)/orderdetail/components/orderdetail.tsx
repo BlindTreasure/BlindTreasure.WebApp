@@ -12,56 +12,110 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OrderResponse } from "@/services/order/typings";
-import { PaymentInfoStatus, PaymentInfoStatusText, OrderStatus } from "@/const/products";
+import { PaymentInfoStatus, PaymentInfoStatusText, OrderStatus, OrderStatusText } from "@/const/products";
 import useGetOrderById from "../../orderhistory/hooks/useGetOrderById";
-import { previewShipping } from "@/services/stripe/api-services";
 
-const OrderTrackingTimeline = ({ order, estimatedDeliveryDate }: { order: OrderResponse; estimatedDeliveryDate?: Date | null }) => {
-  const hasShippedItems = order.details.some(detail =>
-    detail.status === OrderStatus.DELIVEREDING || detail.status === OrderStatus.DELIVERED
+const getActualStatusFromLogs = (logs: string, currentStatus: OrderStatus): OrderStatus => {
+  if (!logs) return currentStatus;
+
+  const logLines = logs.split('\n');
+
+  const hasDelivered = logLines.some(line =>
+    line.includes('Delivered') || line.includes('delivered')
   );
 
-  const hasDeliveredItems = order.details.some(detail =>
-    detail.status === OrderStatus.DELIVERED
+  const hasDelivering = logLines.some(line =>
+    line.includes('Delivering')
   );
+
+  const hasShipmentRequest = logLines.some(line =>
+    line.includes('Shipment requested by user') ||
+    line.includes('requested shipment')
+  );
+
+  if (hasDelivered) return OrderStatus.DELIVERED;
+  if (hasDelivering) return OrderStatus.DELIVEREDING;
+  if (hasShipmentRequest) return OrderStatus.SHIPPING_REQUESTED;
+
+  return currentStatus;
+};
+
+const OrderTrackingTimeline = ({
+  order,
+  estimatedDeliveryDate
+}: {
+  order: OrderResponse;
+  estimatedDeliveryDate?: Date | null;
+}) => {
+  const detailsWithActualStatus = order.details.map(detail => ({
+    ...detail,
+    actualStatus: getActualStatusFromLogs(detail.logs || '', detail.status)
+  }));
+
+  const hasDeliveringItems = detailsWithActualStatus.some(
+    detail => detail.actualStatus === OrderStatus.DELIVEREDING
+  );
+
+  const hasDeliveredItems = detailsWithActualStatus.some(
+    detail => detail.actualStatus === OrderStatus.DELIVERED
+  );
+
+  const deliveringTimeFromLogs = detailsWithActualStatus
+    .map(detail => {
+      const match = detail.logs?.match(/\[(.*?)\].*Delivering/);
+      return match ? new Date(match[1]) : null;
+    })
+    .filter(Boolean)
+    .sort()
+    .at(0);
 
   const trackingSteps = [
     {
       id: 1,
       title: "Đơn Hàng Đã Đặt",
-      time: format(new Date(order.placedAt), "HH:mm dd-MM-yyyy"),
+      // time: format(new Date(order.placedAt), "HH:mm dd-MM-yyyy"),
       status: "completed",
       icon: <Package className="w-5 h-5" />,
     },
     {
       id: 2,
       title: "Đơn Hàng Đã Thanh Toán",
-      time: order.payment.paidAt ? format(new Date(order.payment.paidAt), "HH:mm dd-MM-yyyy") : "",
-      status: order.payment.status === PaymentInfoStatus.Paid || order.payment.status === PaymentInfoStatus.Completed ? "completed" : "pending",
+      // time: order.payment?.paidAt
+      //   ? format(new Date(order.payment.paidAt), "HH:mm dd-MM-yyyy")
+      //   : "",
+      status:
+        order.payment?.status === PaymentInfoStatus.Paid ||
+          order.payment?.status === PaymentInfoStatus.Completed
+          ? "completed"
+          : "pending",
       icon: <Receipt className="w-5 h-5" />,
     },
     {
       id: 3,
       title: "Đã Giao Cho ĐVVC",
-      time: order.payment.paidAt ? format(new Date(order.payment.paidAt), "HH:mm dd-MM-yyyy") : "",
-      status: order.payment.status === PaymentInfoStatus.Paid || order.payment.status === PaymentInfoStatus.Completed ? "completed" : "pending",
+      // time: deliveringTimeFromLogs
+      //   ? format(new Date(deliveringTimeFromLogs), "HH:mm dd-MM-yyyy")
+      //   : "",
+      status: hasDeliveringItems ? "completed" : "pending",
       icon: <Truck className="w-5 h-5" />,
     },
     {
       id: 4,
-      title: "Chờ giao hàng",
-      time: hasDeliveredItems && order.completedAt
-        ? format(new Date(order.completedAt), "HH:mm dd-MM-yyyy")
-        : estimatedDeliveryDate && !hasDeliveredItems
-          ? `Dự kiến: ${format(estimatedDeliveryDate, "dd-MM-yyyy")}`
-          : "",
-      status: hasDeliveredItems ? "completed" : hasShippedItems ? "completed" : "pending",
+      title: "Chờ Giao Hàng",
+      // time: hasDeliveringItems && order.completedAt
+      //   ? format(new Date(order.completedAt), "HH:mm dd-MM-yyyy")
+      //   : estimatedDeliveryDate && hasDeliveringItems
+      //     ? `Dự kiến: ${format(estimatedDeliveryDate, "dd-MM-yyyy")}`
+      //     : "",
+      status: hasDeliveringItems ? "completed" : "pending",
       icon: <Hourglass className="w-5 h-5" />,
     },
     {
       id: 5,
       title: "Đơn Hàng Đã Hoàn Thành",
-      time: order.completedAt ? format(new Date(order.completedAt), "HH:mm dd-MM-yyyy") : "",
+      // time: order.completedAt
+      //   ? format(new Date(order.completedAt), "HH:mm dd-MM-yyyy")
+      //   : "",
       status: hasDeliveredItems ? "completed" : "pending",
       icon: <CheckCircle className="w-5 h-5" />,
     },
@@ -95,9 +149,9 @@ const OrderTrackingTimeline = ({ order, estimatedDeliveryDate }: { order: OrderR
                   >
                     {step.title}
                   </h3>
-                  {step.time && (
+                  {/* {step.time && (
                     <p className="text-xs text-gray-500 mt-1">{step.time}</p>
-                  )}
+                  )} */}
                 </div>
               </div>
             ))}
@@ -114,63 +168,29 @@ export default function OrderDetail() {
   const { getOrderDetailApi, isPending } = useGetOrderById();
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [tab, setTab] = useState("order");
-  const [shippingData, setShippingData] = useState<API.ShipmentPreview[] | null>(null);
-  const [isLoadingShipping, setIsLoadingShipping] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!orderId) return;
     const fetchData = async () => {
-      const res = await getOrderDetailApi(orderId as string);
-      if (res?.isSuccess) {
-        setOrder(res.value.data);
+      try {
+        setError(null);
+        const res = await getOrderDetailApi(orderId as string);
+        if (res?.isSuccess) {
+          setOrder(res.value.data);
+        } else {
+          setError("Không tìm thấy đơn hàng hoặc bạn không có quyền truy cập.");
+        }
+      } catch (err) {
+        setError("Có lỗi xảy ra khi tải thông tin đơn hàng.");
       }
     };
     fetchData();
   }, [orderId]);
 
-  useEffect(() => {
-    const fetchShippingData = async () => {
-      if (!order || !order.shippingAddress) {
-        setShippingData(null);
-        setIsLoadingShipping(false);
-        return;
-      }
 
-      setIsLoadingShipping(true);
-      try {
-        const items: REQUEST.CreateOrderItem[] = order.details.map(item => ({
-          productId: item.productId || "",
-          productName: item.productName || "",
-          blindBoxId: item.blindBoxId || "",
-          blindBoxName: item.blindBoxName || "",
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          totalPrice: item.totalPrice,
-        }));
 
-        const payload: REQUEST.CreateOrderList = {
-          items,
-          isShip: true,
-        };
-
-        const result = await previewShipping(payload);
-        if (result.isSuccess) {
-          setShippingData(result.value.data);
-        } else {
-          setShippingData(null);
-        }
-      } catch (error) {
-        console.error("Error fetching shipping data:", error);
-        setShippingData(null);
-      } finally {
-        setIsLoadingShipping(false);
-      }
-    };
-
-    fetchShippingData();
-  }, [order]);
-
-  if (isPending || !order) {
+  if (isPending) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 space-y-4">
         <Skeleton className="h-6 w-1/2" />
@@ -184,32 +204,95 @@ export default function OrderDetail() {
     );
   }
 
-  const totalItems = order.details.reduce((sum, item) => sum + item.quantity, 0);
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-screen px-4">
+        <div className="text-center max-w-md">
+          <img
+            src="/images/Empty-items.jpg"
+            alt="Không tìm thấy đơn hàng"
+            className="w-48 h-48 mx-auto mb-6 opacity-60"
+          />
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Không tìm thấy đơn hàng
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {error}
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => router.push('/purchased')}
+              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Xem đơn hàng của tôi
+            </button>
+            <button
+              onClick={() => router.back()}
+              className="w-full border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Quay lại
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const shippingFee: number = order.shippingAddress && shippingData
-    ? shippingData.reduce((acc, shipment) => acc + shipment.ghnPreviewResponse.totalFee, 0)
+  if (!order) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-screen px-4">
+        <div className="text-center max-w-md">
+          <img
+            src="/images/Empty-items.jpg"
+            alt="Không có dữ liệu"
+            className="w-48 h-48 mx-auto mb-6 opacity-60"
+          />
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Không có dữ liệu đơn hàng
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Đang tải thông tin đơn hàng, vui lòng thử lại.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Tải lại trang
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const shippingFee: number = order.totalShippingFee || 0;
+
+  const discountAmount = order.payment
+    ? Math.max(0, order.payment.amount - order.payment.netAmount)
     : 0;
-
-  const discountAmount = Math.max(0, order.payment.amount - order.payment.netAmount);
 
   const hasShipping = !!order.shippingAddress;
 
   const getEstimatedDeliveryDate = () => {
-    if (!hasShipping || !shippingData || shippingData.length === 0) {
+    if (!hasShipping || order.status === "PENDING") {
       return null;
     }
 
-    const deliveryTimes = shippingData
-      .map(shipment => shipment.ghnPreviewResponse.expectedDeliveryTime)
-      .filter(time => time)
-      .map(time => new Date(time));
+    const deliveryDates = order.details
+      .flatMap(detail => detail.shipments || [])
+      .map(shipment => shipment.estimatedDelivery)
+      .filter(date => date)
+      .map(date => new Date(date));
 
-    if (deliveryTimes.length === 0) {
-      const orderDate = new Date(order.placedAt);
-      return addDays(orderDate, 5);
+    if (deliveryDates.length > 0) {
+      return new Date(Math.max(...deliveryDates.map(date => date.getTime())));
     }
 
-    return new Date(Math.max(...deliveryTimes.map(date => date.getTime())));
+    if (order.completedAt) {
+      return null;
+    }
+
+    const orderDate = new Date(order.placedAt);
+    return addDays(orderDate, 5);
   };
 
   const estimatedDeliveryDate = getEstimatedDeliveryDate();
@@ -219,9 +302,9 @@ export default function OrderDetail() {
       <div className="text-center space-y-2">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-500 font-poppins">MÃ ĐƠN HÀNG: {order.id.slice(0, 12).toUpperCase()}</div>
-          <div className="text-sm text-green-500 font-poppins">
+          {/* <div className="text-sm text-green-500 font-poppins">
             {order.completedAt ? "ĐƠN HÀNG ĐÃ HOÀN THÀNH" : "ĐANG XỬ LÝ"}
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -244,27 +327,29 @@ export default function OrderDetail() {
                 {order.shippingAddress.postalCode && `, ${order.shippingAddress.postalCode}`}
                 {order.shippingAddress.country && `, ${order.shippingAddress.country}`}
               </div>
-              {isLoadingShipping && (
-                <div className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded mt-2 inline-block">
-                  <Truck className="w-3 h-3 inline mr-1" />
-                  Đang tính phí vận chuyển...
-                </div>
-              )}
               <div>
-                {!isLoadingShipping && shippingFee > 0 && (
+                {shippingFee > 0 && (
                   <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mt-2 inline-block">
                     <Truck className="w-3 h-3 inline mr-1" />
                     Phí vận chuyển: ₫{shippingFee.toLocaleString("vi-VN")}
                   </div>
                 )}
-                {!isLoadingShipping && shippingFee === 0 && hasShipping && (
-                  <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded mt-2 inline-block">
-                    <Truck className="w-3 h-3 inline mr-1" />
-                    Miễn phí vận chuyển
-                  </div>
+
+                {shippingFee === 0 && hasShipping && (
+                  order.status === "PENDING" ? (
+                    <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded mt-2 inline-block">
+                      <Truck className="w-3 h-3 inline mr-1" />
+                      Không áp dụng phí vận chuyển
+                    </div>
+                  ) : (
+                    <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded mt-2 inline-block">
+                      <Truck className="w-3 h-3 inline mr-1" />
+                      Miễn phí vận chuyển
+                    </div>
+                  )
                 )}
               </div>
-              {!isLoadingShipping && estimatedDeliveryDate && (
+              {estimatedDeliveryDate && (
                 <div className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded mt-2 inline-block">
                   <CheckCircle className="w-3 h-3 inline mr-1" />
                   Dự kiến giao: {format(estimatedDeliveryDate, "dd/MM/yyyy", { locale: vi })}
@@ -273,7 +358,7 @@ export default function OrderDetail() {
             </div>
           ) : (
             <div className="text-sm text-muted-foreground italic">
-              Đơn hàng chưa có giao hàng tận nơi.
+              Đơn hàng chưa yêu cầu giao hàng tận nơi.
             </div>
           )}
         </CardContent>
@@ -308,14 +393,43 @@ export default function OrderDetail() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 truncate">
-                    {item.blindBoxName || item.productName}
-                  </h3>
-                  {item.blindBoxId && (
-                    <Badge variant="secondary" className="mt-1 text-xs">
-                      Blindbox
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium text-gray-900 truncate">
+                      {item.blindBoxName || item.productName}
+                    </h3>
+                    {item.blindBoxId && (
+                      <Badge variant="secondary" className="text-xs">
+                        Blindbox
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    {(() => {
+                      const actualStatus = getActualStatusFromLogs(item.logs || '', item.status);
+                      return (
+                        <Badge
+                          className={`text-xs font-medium uppercase border pointer-events-none
+    ${actualStatus === OrderStatus.CANCELLED
+                              ? "bg-red-100 text-red-700 border-red-200"
+                              : actualStatus === OrderStatus.PENDING
+                                ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                                : actualStatus === OrderStatus.SHIPPING_REQUESTED
+                                  ? "bg-blue-100 text-blue-700 border-blue-200"
+                                  : actualStatus === OrderStatus.DELIVEREDING
+                                    ? "bg-green-100 text-green-700 border-green-200"
+                                    : actualStatus === OrderStatus.DELIVERED
+                                      ? "bg-purple-100 text-purple-700 border-purple-200"
+                                      : actualStatus === OrderStatus.IN_INVENTORY
+                                        ? "bg-teal-100 text-teal-700 border-teal-200"
+                                        : "bg-gray-100 text-gray-600 border-gray-200"
+                            }
+  `}
+                        >
+                          {OrderStatusText[actualStatus] ?? "Không xác định"}
+                        </Badge>
+                      );
+                    })()}
+                  </div>
                   <div className="text-sm text-gray-500 mt-1">
                     Phân loại hàng: {item.blindBoxId ? "Blindbox Item" : "Product"}
                   </div>
@@ -342,10 +456,8 @@ export default function OrderDetail() {
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Phí vận chuyển</span>
                 <span>
-                  {hasShipping ? (
-                    isLoadingShipping ? (
-                      <span className="text-gray-500">Đang tính...</span>
-                    ) : shippingFee > 0 ? (
+                  {hasShipping && order.status !== "PENDING" ? (
+                    shippingFee > 0 ? (
                       `₫${shippingFee.toLocaleString("vi-VN")}`
                     ) : (
                       <span className="text-green-600">Miễn phí</span>
@@ -370,11 +482,13 @@ export default function OrderDetail() {
               <Separator />
               <div className="flex justify-between items-center text-lg font-semibold">
                 <span>Thành tiền</span>
-                <span className="text-red-500">₫{order.payment.netAmount.toLocaleString("vi-VN")}</span>
+                <span className="text-red-500">₫{(order.payment?.netAmount || (order.finalAmount + shippingFee)).toLocaleString("vi-VN")}</span>
               </div>
-              <div className="text-sm text-gray-500">
-                Phương thức Thanh toán: {order.payment.method}
-              </div>
+              {order.payment?.method && (
+                <div className="text-sm text-gray-500">
+                  Phương thức Thanh toán: {order.payment.method}
+                </div>
+              )}
             </div>
           </div>
         </CardContent>

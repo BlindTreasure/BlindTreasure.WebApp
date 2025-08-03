@@ -1,19 +1,20 @@
 import { useAppSelector } from "@/stores/store";
 
 export default function useGetCartByCustomer() {
-  const cartItems = useAppSelector((state) => state.cartSlice.items);
+  const cartState = useAppSelector((state) => state.cartSlice);
   const isPending = false; // vì lấy từ redux nên không cần loading
 
-  const totalQuantity = cartItems.reduce(
-    (sum, item) => sum + item.quantity,
-    0
-  );
+  // Flatten all items from all sellers with safe access
+  const allItems =
+    cartState.sellerItems?.flatMap((seller) => seller.items) || [];
 
   return {
     isPending,
     data: {
-      items: cartItems,
-      totalQuantity,
+      items: allItems,
+      totalQuantity: cartState.totalQuantity || 0,
+      sellerItems: cartState.sellerItems || [],
+      totalPrice: cartState.totalPrice || 0,
     },
   };
 }

@@ -1,11 +1,10 @@
 import useToast from "@/hooks/use-toast";
-import { PreviewShipment, RequestShipment, ShipmentPreview } from "./typings";
+import { Delivery, PreviewShipment, RequestShipment, ShipmentPreview } from "./typings";
 import { previewShipment, requestShipment } from "./api-services";
 import { handleError } from "@/hooks/error";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
-// Custom error handler for shipping services
 const handleShippingError = (error: any, router: any) => {
   const data = error?.response?.data || error;
   const codeRaw = data?.error?.code;
@@ -24,7 +23,7 @@ export const useServiceRequestShipment = () => {
   const { addToast } = useToast();
   const router = useRouter();
 
-  return useMutation<TResponseData<ShipmentPreview[]>, Error, RequestShipment>({
+  return useMutation<TResponseData<Delivery>, Error, RequestShipment>({
     mutationFn: async (data: RequestShipment) => {
       return await requestShipment(data);
     },

@@ -26,10 +26,10 @@ import usePreviewShipment from '../hooks/usePreViewShipment'
 import useRequestShipment from '../hooks/useRequestShipment'
 import useGetAllAddress from '../../address-list/hooks/useGetAllAddress'
 import { InventoryItem as WonInventoryItem, ShipmentPreview } from '@/services/inventory-item/typings'
+import { InventoryItemStatus, InventoryItemStatusText } from '@/const/products'
 
 interface InventoryItem {
     id: string
-    inventoryItemIds?: string
     title: string
     image: string
     status: 'unopened' | 'opened' | null
@@ -42,6 +42,7 @@ interface InventoryItem {
     quantity?: number
     createdAt?: string
     isFromBlindBox?: boolean
+    inventoryItemStatus?: InventoryItemStatus
 }
 
 export default function Inventory() {
@@ -135,8 +136,7 @@ export default function Inventory() {
 
                     if (itemRes?.value.data?.result) {
                         const itemItems: InventoryItem[] = itemRes.value.data.result.map((item: any, index: number) => ({
-                            id: item.inventoryItemId,
-                            inventoryItemIds: item.inventoryItemId,
+                            id: item.id,
                             productId: item.productId,
                             product: item.product,
                             title: item.product?.name || '',
@@ -147,6 +147,7 @@ export default function Inventory() {
                             createdAt: item.createdAt,
                             isFromBlindBox: item.isFromBlindBox,
                             blindBoxId: item.isFromBlindBox ? (item.sourceCustomerBlindBoxId || '') : '',
+                            inventoryItemStatus: item.status,
                         }))
 
                         const sortedItems = itemItems.sort((a, b) => {
@@ -212,7 +213,7 @@ export default function Inventory() {
     const handleDeliver = async (itemId: string) => {
         const item = inventoryItems.find(i => i.id === itemId)
 
-        if (!item || !item.inventoryItemIds) {
+        if (!item || !item.id) {
             return
         }
 
@@ -220,7 +221,7 @@ export default function Inventory() {
 
         try {
             const result = await previewShipment({
-                inventoryItemIds: [item.inventoryItemIds]
+                inventoryItemIds: [item.id]
             })
 
             if (result) {
@@ -232,6 +233,12 @@ export default function Inventory() {
     }
 
     const handleSelectItem = (itemId: string) => {
+        const item = inventoryItems.find(i => i.id === itemId);
+
+        if (item?.inventoryItemStatus === InventoryItemStatus.Delivering) {
+            return;
+        }
+
         setSelectedItems(prev =>
             prev.includes(itemId)
                 ? prev.filter(id => id !== itemId)
@@ -241,8 +248,9 @@ export default function Inventory() {
 
     const handleSelectAll = () => {
         const deliverableItems = getCurrentPageItems().filter(item =>
-            (item.type === 'product' && !item.isFromBlindBox) ||
-            (item.type === 'product' && item.isFromBlindBox)
+            ((item.type === 'product' && !item.isFromBlindBox) ||
+                (item.type === 'product' && item.isFromBlindBox)) &&
+            item.inventoryItemStatus !== InventoryItemStatus.Delivering
         )
 
         if (selectedItems.length === deliverableItems.length) {
@@ -258,7 +266,7 @@ export default function Inventory() {
         const selectedInventoryItemIds = selectedItems
             .map(itemId => {
                 const item = inventoryItems.find(i => i.id === itemId)
-                return item?.inventoryItemIds
+                return item?.id
             })
             .filter(Boolean) as string[]
 
@@ -285,7 +293,7 @@ export default function Inventory() {
         const selectedInventoryItemIds = selectedItems
             .map(itemId => {
                 const item = inventoryItems.find(i => i.id === itemId)
-                return item?.inventoryItemIds
+                return item?.id
             })
             .filter(Boolean) as string[]
 
@@ -303,6 +311,9 @@ export default function Inventory() {
                 setShippingData(null)
                 setShowShippingDialog(false)
                 setCurrentPage(1)
+                if (result.paymentUrl) {
+                    window.location.href = result.paymentUrl
+                }
             }
         } catch (error: any) {
         }
@@ -389,8 +400,9 @@ export default function Inventory() {
                                 <div className="flex items-center gap-4">
                                     <Checkbox
                                         checked={selectedItems.length > 0 && selectedItems.length === getCurrentPageItems().filter(item =>
-                                            (item.type === 'product' && !item.isFromBlindBox) ||
-                                            (item.type === 'product' && item.isFromBlindBox)
+                                            ((item.type === 'product' && !item.isFromBlindBox) ||
+                                                (item.type === 'product' && item.isFromBlindBox)) &&
+                                            item.inventoryItemStatus !== InventoryItemStatus.Delivering
                                         ).length}
                                         onCheckedChange={handleSelectAll}
                                     />
@@ -420,7 +432,8 @@ export default function Inventory() {
                                                 <Checkbox
                                                     checked={selectedItems.includes(item.id)}
                                                     onCheckedChange={() => handleSelectItem(item.id)}
-                                                    className="bg-white border-2 border-gray-300"
+                                                    disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering}
+                                                    className="bg-white border-2 border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                         )}
@@ -486,24 +499,28 @@ export default function Inventory() {
                                             {item.type === 'product' && !item.isFromBlindBox && (
                                                 <Button
                                                     onClick={() => handleDeliver(item.id)}
-                                                    className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
+                                                    disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering}
+                                                    className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    Giao hàng
+                                                    {item.inventoryItemStatus === InventoryItemStatus.Delivering ? 'Đang giao hàng' : 'Giao hàng'}
                                                 </Button>
                                             )}
                                             {item.type === 'product' && item.isFromBlindBox && (
                                                 <>
-                                                    <Button
-                                                        onClick={() => handleResellItem(item.id)}
-                                                        className="flex-1 border border-orange-600 text-orange-600 bg-transparent hover:bg-orange-600 hover:text-white transition"
-                                                    >
-                                                        Đổi hàng
-                                                    </Button>
+                                                    {item.inventoryItemStatus !== InventoryItemStatus.Delivering && (
+                                                        <Button
+                                                            onClick={() => handleResellItem(item.id)}
+                                                            className="flex-1 border border-orange-600 text-orange-600 bg-transparent hover:bg-orange-600 hover:text-white transition"
+                                                        >
+                                                            Đổi hàng
+                                                        </Button>
+                                                    )}
                                                     <Button
                                                         onClick={() => handleDeliver(item.id)}
-                                                        className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
+                                                        disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering}
+                                                        className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        Giao hàng
+                                                        {item.inventoryItemStatus === InventoryItemStatus.Delivering ? 'Đang giao hàng' : 'Giao hàng'}
                                                     </Button>
                                                 </>
                                             )}
@@ -699,7 +716,7 @@ export default function Inventory() {
                                                         className="w-1/2 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
                                                         onClick={() => {
                                                             // TODO: Implement exchange functionality
-                                                            console.log('Exchange item:', wonItem.productId || wonItem.inventoryItemId);
+                                                            console.log('Exchange item:', wonItem.productId || wonItem.id);
                                                         }}
                                                     >
                                                         Đổi hàng

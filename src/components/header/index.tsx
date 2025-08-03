@@ -8,7 +8,8 @@ import { useAppSelector } from "@/stores/store";
 import AvatarMenu from "@/components/avatar-menu";
 import TippyHeadless from "@tippyjs/react/headless";
 import { Menu, X } from "lucide-react";
-import { BsCart3 } from "react-icons/bs";
+import { PiHeartStraightLight } from "react-icons/pi";
+import { PiShoppingCartLight } from "react-icons/pi";
 import Image from "next/image";
 import {
   Sheet,
@@ -18,7 +19,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { selectTotalItems } from "@/stores/cart-slice";
-import { NotificationBell } from "@/components/notification/notification-bell";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Header: React.FC = () => {
   const userState = useAppSelector((state) => state.userSlice);
@@ -83,17 +84,38 @@ const Header: React.FC = () => {
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
-            {isLoggedIn && <NotificationBell />}
-            <div className="relative cursor-pointer" onClick={handleClickCart}>
-              <div className="text-gray-600 hover:text-[#d02a2a] text-2xl">
-                <BsCart3 />
+            <TooltipProvider>
+              <div className="flex items-center gap-4">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link href="/wishlist" className="text-gray-600 hover:text-[#d02a2a] text-2xl">
+                      <PiHeartStraightLight />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Sản phẩm yêu thích</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="relative cursor-pointer" onClick={handleClickCart}>
+                      <div className="text-gray-600 hover:text-[#d02a2a] text-2xl">
+                        <PiShoppingCartLight />
+                      </div>
+                      {totalItems > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                          {totalItems}
+                        </span>
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Giỏ hàng</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                  {totalItems}
-                </span>
-              )}
-            </div>
+            </TooltipProvider>
             {userState.user === null ? (
               <Link
                 href="/login"
@@ -143,7 +165,7 @@ const Header: React.FC = () => {
 
           <div className="md:hidden flex items-center">
             <Link href="/cart" className="text-gray-600 hover:text-[#d02a2a] text-2xl">
-              <BsCart3 />
+              <PiShoppingCartLight />
             </Link>
             <Sheet>
               <SheetTrigger asChild>

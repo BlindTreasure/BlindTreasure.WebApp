@@ -69,8 +69,8 @@ export function useLoginForm() {
                 case "Customer":
                 default:
                   const cartRes = await getCartByCustomer();
-                  if (cartRes?.value?.data?.items) {
-                    dispatch(setCart(cartRes.value.data.items));
+                  if (cartRes?.value?.data) {
+                    dispatch(setCart(cartRes.value.data));
                   }
                   return router.push("/");
               }

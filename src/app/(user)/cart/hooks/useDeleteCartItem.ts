@@ -16,7 +16,7 @@ export default function useDeleteCartItem() {
       const res = await deleteCartItemByCustomer(cartItemId);
       if (isTResponseData(res)) {
         const newCart = (res as TResponseData<API.ResponseDataCart>).value.data;
-        dispatch(setCart(newCart.items));
+        dispatch(setCart(newCart));
 
         addToast({
         type: "success",

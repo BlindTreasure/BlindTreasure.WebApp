@@ -101,35 +101,41 @@ export const stockStatusMap: Record<StockStatus, string> = {
 
 export enum PaymentStatus {
   PENDING = "PENDING",
-  PAID = "PAID",
-  FAILED = "FAILED",
   CANCELLED = "CANCELLED",
-  EXPIRED = "EXPIRED",
+  PAID = "PAID",
   COMPLETED = "COMPLETED",
+  EXPIRED = "EXPIRED",
 }
 
 export const PaymentStatusText: Record<PaymentStatus, string> = {
   [PaymentStatus.PENDING]: "Chờ thanh toán",
   [PaymentStatus.CANCELLED]: "Đã hủy",
   [PaymentStatus.PAID]: "Đã thanh toán",
-  [PaymentStatus.FAILED]: "Thanh toán thất bại",
   [PaymentStatus.COMPLETED]: "Hoàn tất",
   [PaymentStatus.EXPIRED]: "Hết hạn",
 };
 
 export enum OrderStatus {
   PENDING = "PENDING",
+  IN_INVENTORY = "IN_INVENTORY",
   SHIPPING_REQUESTED = "SHIPPING_REQUESTED",
+  PARTIALLY_SHIPPING_REQUESTED = "PARTIALLY_SHIPPING_REQUESTED",
   DELIVEREDING = "DELIVERING",
+  PARTIALLY_DELIVERING = "PARTIALLY_DELIVERING",
   DELIVERED = "DELIVERED",
+  PARTIALLY_DELIVERED = "PARTIALLY_DELIVERED",
   CANCELLED = "CANCELLED",
 }
 
 export const OrderStatusText: Record<OrderStatus, string> = {
   [OrderStatus.PENDING]: "Chờ giao hàng",
+  [OrderStatus.IN_INVENTORY]: "Trong túi đồ",
   [OrderStatus.SHIPPING_REQUESTED]: "Yêu cầu vận chuyển",
+  [OrderStatus.PARTIALLY_SHIPPING_REQUESTED]: "Yêu cầu vận chuyển một phần",
   [OrderStatus.DELIVEREDING]: "Đang giao hàng",
+  [OrderStatus.PARTIALLY_DELIVERING]: "Đang giao hàng một phần",
   [OrderStatus.DELIVERED]: "Đã giao hàng",
+  [OrderStatus.PARTIALLY_DELIVERED]: "Giao hàng một phần",
   [OrderStatus.CANCELLED]: "Đã hủy",
 };
 
@@ -138,7 +144,7 @@ export enum OrderStatusDetail {
   SHIPPED = "SHIPPED",
   DELIVERED = "DELIVERED",
   CANCELLED = "CANCELLED",
-  IN_INVENTORY = "IN_INVENTORY"
+  IN_INVENTORY = "IN_INVENTORY",
 }
 
 export const OrderStatusDetailText: Record<OrderStatusDetail, string> = {
@@ -165,4 +171,38 @@ export const PaymentInfoStatusText: Record<PaymentInfoStatus, string> = {
   [PaymentInfoStatus.Failed]: "Thanh toán thất bại",
   [PaymentInfoStatus.Completed]: "Hoàn tất",
   [PaymentInfoStatus.Expired]: "Hết hạn",
+};
+
+export enum ShipmentStatus {
+  WAITING_PAYMENT = "WAITING_PAYMENT",
+  PROCESSING = "PROCESSING",
+  COMPLETED = "COMPLETED",
+}
+
+export const ShipmentStatusText: Record<ShipmentStatus, string> = {
+  [ShipmentStatus.WAITING_PAYMENT]: "Chờ thanh toán",
+  [ShipmentStatus.PROCESSING]: "Đang vận chuyển",
+  [ShipmentStatus.COMPLETED]: "Đã giao hàng",
+};
+
+export enum InventoryItemStatus {
+  Available = "Available",
+  Shipment_requested = "Shipment_requested",
+  Delivering = "Delivering",
+  Reserved = "Reserved",
+  Listed = "Listed",
+  Sold = "Sold",
+  Archived = "Archived",
+  OnHold = "OnHold",
+}
+
+export const InventoryItemStatusText: Record<InventoryItemStatus, string> = {
+  [InventoryItemStatus.Available]: "Còn hàng",
+  [InventoryItemStatus.Shipment_requested]: "Yêu cầu vận chuyển",
+  [InventoryItemStatus.Delivering]: "Đang vận chuyển",
+  [InventoryItemStatus.Reserved]: "Đã đặt hàng",
+  [InventoryItemStatus.Listed]: "Đã liệt kê",
+  [InventoryItemStatus.Sold]: "Đã bán",
+  [InventoryItemStatus.Archived]: "Đã lưu trữ",
+  [InventoryItemStatus.OnHold]: "Đang tạm giữ",
 };

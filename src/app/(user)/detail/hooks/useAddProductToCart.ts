@@ -11,7 +11,10 @@ export default function useAddProductToCart() {
   const hasFetchedData = useRef(false);
   const dispatch = useAppDispatch();
 
-  const addProductToCartApi = async ({ productId, quantity }: REQUEST.AddItemToCart) => {
+  const addProductToCartApi = async ({
+    productId,
+    quantity,
+  }: REQUEST.AddItemToCart) => {
     setPending(true);
     try {
       const res = await addCartItemByCustomer({ productId, quantity });
@@ -19,20 +22,21 @@ export default function useAddProductToCart() {
       if (isTResponseData(res)) {
         const newCart = (res as TResponseData<API.ResponseDataCart>).value.data;
 
-        dispatch(setCart(newCart.items));
+        dispatch(setCart(newCart));
 
         addToast({
           type: "success",
           description: `Đã thêm ${quantity} sản phẩm vào giỏ hàng`,
-          duration: 3000
+          duration: 3000,
         });
 
         return res;
       } else {
         addToast({
           type: "error",
-          description: "Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!",
-          duration: 4000
+          description:
+            "Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!",
+          duration: 4000,
         });
 
         return null;
@@ -42,7 +46,7 @@ export default function useAddProductToCart() {
       addToast({
         type: "error",
         description: "Không thể thêm vào giỏ hàng",
-        duration: 5000
+        duration: 5000,
       });
 
       console.error("Add to cart error:", error);

@@ -1,4 +1,4 @@
-import { FaRegHeart } from "react-icons/fa";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Ribbon from "../blindbox";
@@ -19,15 +19,36 @@ import Link from "next/link";
 import { Product } from "@/services/product-seller/typings";
 import { Backdrop } from "../backdrop";
 import { StockStatus, stockStatusMap } from "@/const/products";
+import useToggleWishlist from "@/app/(user)/wishlist/hooks/useToggleWishlist";
 
 interface ProductCardProps {
   product: Product;
   onViewDetail: (id: string) => void;
   ribbonTypes?: ("new" | "sale" | "blindbox")[];
+  initialIsInWishlist?: boolean;
+  initialWishlistId?: string;
+  onWishlistChange?: () => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbonTypes = [] }) => {
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onViewDetail,
+  ribbonTypes = [],
+  initialIsInWishlist = false,
+  initialWishlistId,
+  onWishlistChange
+}) => {
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
+
+  const {
+    isInWishlist,
+    toggleWishlist,
+    isPending: isToggling
+  } = useToggleWishlist({
+    initialIsInWishlist,
+    initialWishlistId,
+    onWishlistChange
+  });
   const [mainSwiper, setMainSwiper] = useState<SwiperType | null>(null);
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -41,6 +62,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
   const handleIncrease = () => {
     setQuantity(quantity + 1);
   };
+
+  const handleToggleWishlist = async () => {
+    if (isToggling) return;
+
+    try {
+      const result = await toggleWishlist({
+        productId: product.id,
+        type: "Product"
+      });
+
+      if (result?.success) {
+        console.log(`Wishlist ${result.action}:`, product.name);
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+    }
+  };
+
   useEffect(() => {
     if (!open) {
       mainSwiper?.destroy(true, false);
@@ -54,7 +93,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
   return (
 
     <div className="relative p-2 mt-6 transition-all duration-300 transform hover:scale-105">
-      <Ribbon createdAt={product.createdAt} types={ribbonTypes}/>
+      <Ribbon createdAt={product.createdAt} types={ribbonTypes} />
       <Card className="relative w-full rounded-xl overflow-hidden p-4 shadow-lg bg-white">
         <div className="w-full h-48 overflow-hidden rounded-md relative group">
           <img
@@ -132,7 +171,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
                         {product.price.toLocaleString("vi-VN")}₫
                       </p>
                       <p>Mô tả: <span className='text-gray-600 text-sm line-clamp-2'>{product.description}</span></p>
-                      
+
                       <div className="flex items-center gap-4 mt-6">
                         <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
                           <button
@@ -184,7 +223,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, ribbon
           <Button className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
             Thêm vào giỏ hàng
           </Button>
-          <FaRegHeart className="text-2xl cursor-pointer hover:text-red-500" />
+          <button
+            onClick={handleToggleWishlist}
+            disabled={isToggling}
+            className="p-1 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
+          >
+            {isInWishlist ? (
+              <FaHeart className="text-2xl text-red-500" />
+            ) : (
+              <FaRegHeart className="text-2xl hover:text-red-500 transition-colors" />
+            )}
+          </button>
         </div>
       </Card>
     </div>
