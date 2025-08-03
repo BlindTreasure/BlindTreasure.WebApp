@@ -29,8 +29,9 @@ export type OrderResponse = {
   completedAt: string | null;
   shippingAddress?: ShippingAddress;
   details: OrderDetail[];
-  payment: PaymentInfo;
+  payment?: PaymentInfo | null;
   finalAmount: number;
+  totalShippingFee: number;
   promotionNote: string;
 };
 
@@ -49,6 +50,7 @@ export type OrderDetail = {
   id: string;
   logs: string;
   productId: string;
+  orderId: string;
   productName: string;
   productImages: string[];
   blindBoxId?: string | null;
@@ -71,6 +73,7 @@ export type PaymentInfo = {
   method: string;
   status: PaymentInfoStatus;
   transactionId: string;
+  paymentIntentId?: string;
   paidAt: string | null;
   refundedAmount: number;
   transactions: PaymentTransaction[];
@@ -97,11 +100,12 @@ export type Shipment = {
   shippedAt: string;
   estimatedDelivery: string;
   status: ShipmentStatus;
-}
+};
 
 export type OrderDetails = {
   id: string;
   logs: string;
+  orderId: string;
   productId: string;
   productName: string;
   productImages: string[];
@@ -110,20 +114,20 @@ export type OrderDetails = {
   totalPrice: number;
   status: OrderStatus;
   shipments: Shipment[];
-}
+};
 export type OrderDetailListResponse = {
   result: OrderDetails[];
   count: number;
   pageSize: number;
   currentPage: number;
   totalPages: number;
-}
+};
 
 export type GetOrderDetailParams = {
   status?: OrderStatus;
-  OrderId?: string;                    
-  MinPrice?: number;                    
-  MaxPrice?: number;                    
+  OrderId?: string;
+  MinPrice?: number;
+  MaxPrice?: number;
   IsBlindBox?: boolean;
   IsProduct?: boolean;
   PageIndex?: number;

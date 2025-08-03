@@ -68,8 +68,10 @@ interface OrderCardProps {
     details: OrderDetail[];
     total: number;
     deliveryDate: string;
-    payment: PaymentInfo;
+    payment?: PaymentInfo | null;
+    finalAmount?: number;
     shippingAddress?: ShippingAddress;
+    totalShippingFee?: number;
 }
 
 export default function OrderCard({
@@ -80,6 +82,8 @@ export default function OrderCard({
     deliveryDate,
     payment,
     shippingAddress,
+    finalAmount = 0,
+    totalShippingFee = 0,
 }: OrderCardProps) {
     const router = useRouter();
     const [loadingPage, setLoadingPage] = useState(false);
@@ -97,14 +101,6 @@ export default function OrderCard({
                     <button className="ml-2 text-sm px-2 py-0.5 border rounded text-red-500 border-red-500 hover:bg-red-50">
                         Chat
                     </button>
-                </div>
-                <div className="text-right">
-                    <div className="text-sm font-semibold text-red-500 uppercase">
-                        {PaymentInfoStatusText[payment.status] || "Không xác định"}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                        {deliveryDate}
-                    </div>
                 </div>
             </div>
 
@@ -132,7 +128,7 @@ export default function OrderCard({
                                 return (
                                     <span
                                         className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase
-                                            ${actualStatus === OrderStatus.CANCELLED
+    ${actualStatus === OrderStatus.CANCELLED
                                                 ? "bg-red-100 text-red-700"
                                                 : actualStatus === OrderStatus.PENDING
                                                     ? "bg-yellow-100 text-yellow-700"
@@ -142,7 +138,9 @@ export default function OrderCard({
                                                             ? "bg-green-100 text-green-700"
                                                             : actualStatus === OrderStatus.DELIVERED
                                                                 ? "bg-purple-100 text-purple-700"
-                                                                : "bg-gray-100 text-gray-600"
+                                                                : actualStatus === OrderStatus.IN_INVENTORY
+                                                                    ? "bg-teal-100 text-teal-700"
+                                                                    : "bg-gray-100 text-gray-600"
                                             }`}
                                     >
                                         {OrderStatusText[actualStatus] ?? "Không xác định"}
@@ -161,13 +159,6 @@ export default function OrderCard({
 
             <div className="p-4 flex flex-col sm:flex-row sm:justify-end sm:items-center bg-gray-50 gap-4">
                 <div className="flex flex-wrap gap-2 items-center">
-                    <div className="text-sm sm:text-base text-gray-700">
-                        Thành tiền:{" "}
-                        <span className="text-red-500 font-semibold">
-                            {total.toLocaleString()}₫
-                        </span>
-                    </div>
-
                     <Dialog>
                         <DialogTrigger asChild>
                             <button className="border border-gray-300 px-4 py-1 rounded hover:bg-gray-100" onClick={(e) => e.stopPropagation()}>
@@ -181,22 +172,6 @@ export default function OrderCard({
                             </DialogHeader>
 
                             <div className="space-y-6 text-sm mt-4">
-                                {shippingAddress ? (
-                                    <div className="border rounded p-4 bg-gray-50">
-                                        <div className="font-semibold mb-2">📦 Địa chỉ nhận hàng</div>
-                                        <div>
-                                            {shippingAddress?.fullName ?? "Không có tên"} - {shippingAddress?.phone ?? "Không có SĐT"}
-                                        </div>
-                                        <div>
-                                            {[shippingAddress?.postalCode, shippingAddress?.addressLine, shippingAddress?.city, shippingAddress?.province, shippingAddress?.country]
-                                                .filter(Boolean)
-                                                .join(", ")}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-gray-500 italic">Chưa có địa chỉ giao hàng</div>
-                                )}
-
                                 <div className="border rounded p-4 bg-white">
                                     <div className="font-semibold mb-2">🛒 Sản phẩm đã mua</div>
                                     <table className="w-full text-sm border-t border-gray-200">
@@ -224,37 +199,7 @@ export default function OrderCard({
                                         </tbody>
                                     </table>
                                 </div>
-
-                                <div className="border rounded p-4 bg-gray-50 space-y-1">
-                                    <div className="font-semibold mb-2">💳 Thông tin thanh toán</div>
-                                    <div>Phương thức: <strong>{payment.method}</strong></div>
-                                    <div>Mã giao dịch: <strong>{payment.transactionId}</strong></div>
-                                    {payment.paidAt && (
-                                        <div>Ngày thanh toán: <strong>{new Date(payment.paidAt).toLocaleDateString("vi-VN")}</strong></div>
-                                    )}
-                                    {payment.refundedAmount > 0 && (
-                                        <div className="text-red-500">Đã hoàn tiền: <strong>{payment.refundedAmount.toLocaleString()}₫</strong></div>
-                                    )}
-                                </div>
-
-                                {/* Shipping Information */}
-                                {shippingAddress && (
-                                    <div className="border rounded p-4 bg-blue-50 space-y-1">
-                                        <div className="font-semibold mb-2">🚚 Thông tin giao hàng</div>
-                                        <div>Người nhận: <strong>{shippingAddress.fullName}</strong></div>
-                                        {shippingAddress.phone && (
-                                            <div>Số điện thoại: <strong>{shippingAddress.phone}</strong></div>
-                                        )}
-                                        <div>Địa chỉ: <strong>{shippingAddress.addressLine}</strong></div>
-                                        {shippingAddress.city && shippingAddress.province && (
-                                            <div>Khu vực: <strong>{shippingAddress.city}, {shippingAddress.province}</strong></div>
-                                        )}
-                                        {payment.transactionId && (
-                                            <div>Mã vận đơn: <strong>{payment.transactionId}</strong></div>
-                                        )}
-                                    </div>
-                                )}
-
+                                
                                 <div className="border-t pt-4 text-right text-sm flex justify-between items-center">
                                     <div> <Button onClick={(e) => {
                                         e.stopPropagation();
@@ -264,12 +209,48 @@ export default function OrderCard({
                                     </Button>
 
                                     </div>
-                                    <div>
-                                        <div>Tạm tính: {payment.amount.toLocaleString()}₫</div>
-                                        <div>Giảm giá: -{(payment.amount - payment.netAmount).toLocaleString()}₫</div>
-                                        <div className="font-semibold text-base">
-                                            Tổng thanh toán: <span className="text-red-500">{payment.netAmount.toLocaleString()}₫</span>
-                                        </div>
+                                    <div className="border-t pt-3 mt-3 space-y-2">
+                                        {payment ? (
+                                            <>
+                                                <div className="flex justify-between">
+                                                    <span>Tạm tính:</span>
+                                                    <span>{payment.amount.toLocaleString()}₫</span>
+                                                </div>
+                                                {totalShippingFee > 0 && (
+                                                    <div className="flex justify-between">
+                                                        <span>Phí vận chuyển:</span>
+                                                        <span>{totalShippingFee.toLocaleString()}₫</span>
+                                                    </div>
+                                                )}
+                                                {payment.amount !== payment.netAmount && (
+                                                    <div className="flex justify-between text-green-600">
+                                                        <span>Giảm giá:</span>
+                                                        <span>-{(payment.amount - payment.netAmount).toLocaleString()}₫</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex gap-2 font-semibold text-base border-t pt-2 mt-2">
+                                                    <span>Tổng thanh toán:</span>
+                                                    <span className="text-red-500">{payment.netAmount.toLocaleString()}₫</span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="flex justify-between">
+                                                    <span>Tạm tính:</span>
+                                                    <span>{total.toLocaleString()}₫</span>
+                                                </div>
+                                                {totalShippingFee > 0 && (
+                                                    <div className="flex justify-between">
+                                                        <span>Phí vận chuyển:</span>
+                                                        <span>{totalShippingFee.toLocaleString()}₫</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between font-semibold text-base border-t pt-2 mt-2">
+                                                    <span>Tổng thanh toán:</span>
+                                                    <span className="text-red-500">{(total + totalShippingFee).toLocaleString()}₫</span>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>

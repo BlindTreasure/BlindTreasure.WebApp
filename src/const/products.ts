@@ -117,17 +117,25 @@ export const PaymentStatusText: Record<PaymentStatus, string> = {
 
 export enum OrderStatus {
   PENDING = "PENDING",
+  IN_INVENTORY = "IN_INVENTORY",
   SHIPPING_REQUESTED = "SHIPPING_REQUESTED",
+  PARTIALLY_SHIPPING_REQUESTED = "PARTIALLY_SHIPPING_REQUESTED",
   DELIVEREDING = "DELIVERING",
+  PARTIALLY_DELIVERING = "PARTIALLY_DELIVERING",
   DELIVERED = "DELIVERED",
+  PARTIALLY_DELIVERED = "PARTIALLY_DELIVERED",
   CANCELLED = "CANCELLED",
 }
 
 export const OrderStatusText: Record<OrderStatus, string> = {
   [OrderStatus.PENDING]: "Chờ giao hàng",
+  [OrderStatus.IN_INVENTORY]: "Trong túi đồ",
   [OrderStatus.SHIPPING_REQUESTED]: "Yêu cầu vận chuyển",
+  [OrderStatus.PARTIALLY_SHIPPING_REQUESTED]: "Yêu cầu vận chuyển một phần",
   [OrderStatus.DELIVEREDING]: "Đang giao hàng",
+  [OrderStatus.PARTIALLY_DELIVERING]: "Đang giao hàng một phần",
   [OrderStatus.DELIVERED]: "Đã giao hàng",
+  [OrderStatus.PARTIALLY_DELIVERED]: "Giao hàng một phần",
   [OrderStatus.CANCELLED]: "Đã hủy",
 };
 

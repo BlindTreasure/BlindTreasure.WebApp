@@ -53,7 +53,7 @@ export default function Purchased() {
                     const estimatedDelivery = firstShipment?.estimatedDelivery;
 
                     return {
-                        id: detail.id,
+                        id: detail.orderId, 
                         status: PaymentStatus.PAID,
                         totalAmount: detail.totalPrice,
                         placedAt: shippedDate,
@@ -61,6 +61,7 @@ export default function Purchased() {
                         details: [{
                             id: detail.id,
                             logs: detail.logs,
+                            orderId: detail.orderId,
                             productId: detail.productId,
                             productName: detail.productName,
                             productImages: detail.productImages || [],
@@ -88,6 +89,7 @@ export default function Purchased() {
                             transactions: []
                         },
                         finalAmount: detail.totalPrice,
+                        totalShippingFee: detail.totalPrice,
                         promotionNote: firstShipment ? `Mã vận đơn: ${firstShipment.trackingNumber}` : '',
                         shippingAddress: firstShipment ? {
                             id: firstShipment.id,
@@ -149,6 +151,8 @@ export default function Purchased() {
                             deliveryDate={new Date(order.placedAt).toLocaleDateString("vi-VN")}
                             payment={order.payment}
                             shippingAddress={order.shippingAddress}
+                            totalShippingFee={order.totalShippingFee || 0}
+                            finalAmount={order.finalAmount}
                         />
                     ))}
                 </div>
