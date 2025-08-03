@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sheet";
 import { selectTotalItems } from "@/stores/cart-slice";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { NotificationBell } from "../notification/notification-bell";
 
 const Header: React.FC = () => {
   const userState = useAppSelector((state) => state.userSlice);
@@ -99,6 +100,17 @@ const Header: React.FC = () => {
 
                 <Tooltip>
                   <TooltipTrigger asChild>
+                    <div className="text-gray-600 hover:text-[#d02a2a]">
+                      <NotificationBell />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Thông báo</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
                     <div className="relative cursor-pointer" onClick={handleClickCart}>
                       <div className="text-gray-600 hover:text-[#d02a2a] text-2xl">
                         <PiShoppingCartLight />
@@ -164,8 +176,23 @@ const Header: React.FC = () => {
           </div>
 
           <div className="md:hidden flex items-center">
+            <Link href="/wishlist" className="text-gray-600 hover:text-[#d02a2a] text-2xl mr-4">
+              <PiHeartStraightLight />
+            </Link>
+            <div className="text-gray-600 hover:text-[#d02a2a] mr-4">
+              <NotificationBell />
+            </div>
             <Link href="/cart" className="text-gray-600 hover:text-[#d02a2a] text-2xl">
-              <PiShoppingCartLight />
+              <div className="relative cursor-pointer" onClick={handleClickCart}>
+                <div className="text-gray-600 hover:text-[#d02a2a] text-2xl">
+                  <PiShoppingCartLight />
+                </div>
+                {totalItems > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                    {totalItems}
+                  </span>
+                )}
+              </div>
             </Link>
             <Sheet>
               <SheetTrigger asChild>

@@ -5,6 +5,7 @@ import {
   markAllAsRead,
   removeNotification,
   setNotifications,
+  appendNotifications,
   setUnreadCount,
   setLoading,
   setError,
@@ -13,7 +14,7 @@ import { getNotifications, getUnreadCount, markNotificationAsRead, markAllNotifi
 
 export const useNotification = () => {
   const dispatch = useAppDispatch();
-  const { notifications, unreadCount, isLoading, error } = useAppSelector((state) => state.notificationSlice);
+  const { notifications, unreadCount, isLoading, error, hasMore } = useAppSelector((state) => state.notificationSlice);
   const user = useAppSelector((state) => state.userSlice.user);
   const userRole = user?.roleName || 'Customer';
 
@@ -36,11 +37,15 @@ export const useNotification = () => {
       const response = await getNotifications(params);
       if (response.isSuccess && response.value?.data?.items) {
         // Lọc thông báo phù hợp với role của người dùng
-        const notifications = response.value.data.items;
-        console.log(`[useNotification] Received ${notifications.length} notifications`);
+        const newNotifications = response.value.data.items;
+        const totalCount = response.value.data.totalCount;
         
-        // Cập nhật store với danh sách thông báo
-        dispatch(setNotifications(notifications));
+        if (pageIndex === 0) {
+          dispatch(setNotifications(newNotifications));
+        } else {
+          dispatch(appendNotifications({ notifications: newNotifications, hasMore: notifications.length + newNotifications.length < totalCount }));
+        }
+        
       } else {
         console.error('[useNotification] Failed to fetch notifications:', response.error);
         dispatch(setError(response.error?.message || 'Failed to fetch notifications'));
@@ -51,7 +56,7 @@ export const useNotification = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  }, [dispatch, userRole]);
+  }, [dispatch, userRole, notifications.length]);
 
   // Fetch unread count
   const fetchUnreadCount = useCallback(async () => {
@@ -144,6 +149,7 @@ export const useNotification = () => {
     unreadCount,
     isLoading,
     error,
+    hasMore,
     fetchNotifications,
     fetchUnreadCount,
     markNotificationAsRead: markNotificationAsReadAction,
