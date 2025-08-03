@@ -1,6 +1,6 @@
 export enum ListingStatus {
-    Active = "Active",
-    Sold = "Sold",
-    Cancelled = "Cancelled",
-    Expired = "Expired",
+    Active = 'Active',
+    Sold = 'Sold',
+    Expired = 'Expired',
+    Cancelled = 'Cancelled'
 }

@@ -1,59 +1,31 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {X, Camera, Search, Package } from 'lucide-react';
-
-// Mock inventory data - thay thế bằng data thực của bạn
-const mockInventory = [
-  {
-    id: 1,
-    name: "iPhone 14 Pro Max 256GB",
-    image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=300&fit=crop",
-    category: "Electronics"
-  },
-  {
-    id: 2,
-    name: "Nike Air Jordan 1 High",
-    image: "https://images.unsplash.com/photo-1551107696-a4b537c892db?w=300&h=300&fit=crop",
-    category: "Shoes"
-  },
-  {
-    id: 3,
-    name: "MacBook Pro 16 inch M2",
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=300&fit=crop",
-    category: "Electronics"
-  },
-  {
-    id: 4,
-    name: "Gucci Dionysus Bag",
-    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=300&fit=crop",
-    category: "Fashion"
-  },
-  {
-    id: 5,
-    name: "Sony WH-1000XM4 Headphones",
-    image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=300&h=300&fit=crop",
-    category: "Electronics"
-  }
-];
-
-interface InventoryItem {
-  id: number;
-  name: string;
-  image: string;
-  category: string;
-}
+import useGetAllAvailableItem from "../hooks/useGetAllAvailableItem";
+import { useServiceCreateListing } from "@/services/listing/services";
+import {API} from "@/services/listing/typings";
 
 interface InventoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectItem: (item: InventoryItem) => void;
+  onSelectItem: (item: API.AvailableItem) => void;
+  items: API.AvailableItem[];
+  isLoading: boolean;
 }
 
-const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, onSelectItem }) => {
+const InventoryModal: React.FC<InventoryModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  onSelectItem, 
+  items,
+  isLoading 
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  const filteredInventory = mockInventory.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredInventory = items.filter(item =>
+    item.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.productId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (!isOpen) return null;
@@ -82,23 +54,57 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, onSele
         </div>
         
         <div className="overflow-y-auto max-h-96">
-          {filteredInventory.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => onSelectItem(item)}
-              className="flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b"
-            >
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-16 h-16 object-cover rounded-lg mr-4"
-              />
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                <p className="text-sm text-gray-500">{item.category}</p>
-              </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2 text-gray-600">Đang tải...</span>
             </div>
-          ))}
+          ) : filteredInventory.length === 0 ? (
+            <div className="text-center p-8 text-gray-500">
+              {searchTerm ? 'Không tìm thấy sản phẩm phù hợp' : 'Chưa có sản phẩm nào trong kho'}
+            </div>
+          ) : (
+            filteredInventory.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => onSelectItem(item)}
+                className="flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b"
+              >
+                <div className="w-16 h-16 bg-gray-200 rounded-lg mr-4 flex items-center justify-center">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.productName || 'Product'}
+                      className="w-16 h-16 object-cover rounded-lg"
+                      onLoad={() => console.log('✅ Image loaded successfully for:', item.productName)}
+                      onError={(e) => {
+                        console.error('❌ Image failed to load for:', item.productName, 'URL:', item.image);
+                        console.error('Error details:', e);
+                      }}
+                    />
+                  ) : (
+                    <>
+                      <Package className="text-gray-400" size={24} />
+                      {console.log('📦 No image for item:', item.productName, 'Image value:', item.image)}
+                    </>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900">
+                    {item.productName || `Product ${item.productId.slice(0, 8)}...`}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {item.isFromBlindBox ? 'Từ Blind Box' : item.location || 'Sản phẩm'}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                    {item.status}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
@@ -106,18 +112,53 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, onSele
 };
 
 const MarketplaceListing: React.FC = () => {
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const router = useRouter();
+  const [selectedItem, setSelectedItem] = useState<API.AvailableItem | null>(null);
   const [description, setDescription] = useState('');
   const [isFree, setIsFree] = useState(true);
   const [desiredItemName, setDesiredItemName] = useState('');
   const [showInventoryModal, setShowInventoryModal] = useState(false);
+  const [availableItems, setAvailableItems] = useState<API.AvailableItem[]>([]);
 
-  const handleSelectItem = (item: InventoryItem) => {
+  const { isPending, getAllAvailableItemApi } = useGetAllAvailableItem();
+  const createListingMutation = useServiceCreateListing();
+
+  // Load available items when component mounts
+  useEffect(() => {
+    const loadAvailableItems = async () => {
+      const response = await getAllAvailableItemApi();
+      
+      if (response?.value.data) {
+        // Transform API data to match our interfaces - no transformation needed now
+        const transformedItems: API.AvailableItem[] = response.value.data;
+        setAvailableItems(transformedItems);
+      }
+    };
+
+    loadAvailableItems();
+  }, []);
+
+  const handleSelectItem = (item: API.AvailableItem) => {
     setSelectedItem(item);
     setShowInventoryModal(false);
   };
 
-  const handleSubmit = () => {
+  // Function to generate combined description
+  const getCombinedDescription = () => {
+    let combinedDesc = description.trim();
+    
+    if (!isFree && desiredItemName.trim()) {
+      if (combinedDesc) {
+        combinedDesc += '\n\nTôi muốn các item sau: ' + desiredItemName.trim();
+      } else {
+        combinedDesc = 'Tôi muốn các item sau: ' + desiredItemName.trim();
+      }
+    }
+    
+    return combinedDesc;
+  };
+
+  const handleSubmit = async () => {
     if (!selectedItem || !description.trim()) {
       alert('Vui lòng chọn sản phẩm và nhập mô tả');
       return;
@@ -129,38 +170,19 @@ const MarketplaceListing: React.FC = () => {
     }
     
     const listingData = {
-      productName: selectedItem.name,
-      productImage: selectedItem.image,
+      inventoryId: selectedItem.id,
       isFree,
-      desiredItemName: isFree ? null : desiredItemName.trim(),
-      description: description.trim(),
-      ownerName: 'Nhat Quang'
+      description: getCombinedDescription(),
     };
     
-    console.log('Publishing listing:', listingData);
-    alert('Đăng tin thành công!');
-    
-    // Reset form after successful submit
-    handleReset();
-  };
-
-  const handleSaveDraft = () => {
-    if (!selectedItem) {
-      alert('Vui lòng chọn sản phẩm trước khi lưu bản nháp');
-      return;
+    try {
+      await createListingMutation.mutateAsync(listingData);
+      // Navigation will happen automatically after successful creation due to the success handler
+      router.push('/marketplace');
+    } catch (error) {
+      // Error handling is already done in the hook
+      console.error('Failed to create listing:', error);
     }
-    
-    const draftData = {
-      productName: selectedItem.name,
-      productImage: selectedItem.image,
-      isFree,
-      desiredItemName: isFree ? null : desiredItemName.trim(),
-      description: description.trim(),
-      ownerName: 'Nhat Quang'
-    };
-    
-    console.log('Saving draft:', draftData);
-    alert('Đã lưu bản nháp!');
   };
 
   const handleReset = () => {
@@ -169,6 +191,8 @@ const MarketplaceListing: React.FC = () => {
     setIsFree(true);
     setDesiredItemName('');
   };
+
+  const isSubmitting = createListingMutation.isPending;
 
   return (
     <div className="min-h-screen bg-gray-100 mt-32">
@@ -195,27 +219,42 @@ const MarketplaceListing: React.FC = () => {
                     <p className="text-gray-600 mb-3">Chưa chọn sản phẩm</p>
                     <button
                       onClick={() => setShowInventoryModal(true)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
+                      disabled={isSubmitting}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                     >
-                      Chọn từ kho
+                      Chọn từ kho ({availableItems.length} sản phẩm)
                     </button>
                   </div>
                 ) : (
                   <div className="border border-gray-200 rounded-lg p-3">
                     <div className="flex items-center space-x-3">
-                      <img
-                        src={selectedItem.image}
-                        alt={selectedItem.name}
-                        className="w-12 h-12 object-cover rounded"
-                      />
+                      <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                        {selectedItem.image ? (
+                          <img
+                            src={selectedItem.image}
+                            alt={selectedItem.productName}
+                            className="w-12 h-12 object-cover rounded"
+                            onLoad={() => console.log('✅ Selected item image loaded')}
+                            onError={() => console.error('❌ Selected item image failed to load:', selectedItem.image)}
+                          />
+                        ) : (
+                          <>
+                            <Package className="text-gray-400" size={20} />
+                            {console.log('📦 Selected item has no image:', selectedItem.image)}
+                          </>
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{selectedItem.name}</p>
-                        <p className="text-xs text-gray-500">{selectedItem.category}</p>
+                        <p className="font-medium text-sm truncate">{selectedItem.productName}</p>
+                        <p className="text-xs text-gray-500">
+                          {selectedItem.isFromBlindBox ? 'Từ Blind Box' : selectedItem.location}
+                        </p>
                       </div>
                     </div>
                     <button
                       onClick={() => setShowInventoryModal(true)}
-                      className="text-blue-600 text-xs mt-2 hover:underline"
+                      disabled={isSubmitting}
+                      className="text-blue-600 text-xs mt-2 hover:underline disabled:text-gray-400 disabled:cursor-not-allowed"
                     >
                       Thay đổi
                     </button>
@@ -223,30 +262,26 @@ const MarketplaceListing: React.FC = () => {
                 )}
               </div>
 
-              {/* Listing Type */}
+              {/* Listing Type Toggle */}
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-3">Loại giao dịch</h3>
-                <div className="space-y-2">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="listingType"
-                      checked={isFree}
-                      onChange={() => setIsFree(true)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">Miễn phí</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="listingType"
-                      checked={!isFree}
-                      onChange={() => setIsFree(false)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">Trao đổi</span>
-                  </label>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Trao đổi</span>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsFree(!isFree)}
+                      disabled={isSubmitting}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                        !isFree ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          !isFree ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -261,8 +296,12 @@ const MarketplaceListing: React.FC = () => {
                     value={desiredItemName}
                     onChange={(e) => setDesiredItemName(e.target.value)}
                     placeholder="Ví dụ: iPhone 13, Giày Nike size 42..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    disabled={isSubmitting}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Thông tin này sẽ được gộp vào phần mô tả
+                  </p>
                 </div>
               )}
 
@@ -276,7 +315,8 @@ const MarketplaceListing: React.FC = () => {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Mô tả chi tiết về sản phẩm..."
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
+                  disabled={isSubmitting}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -298,23 +338,23 @@ const MarketplaceListing: React.FC = () => {
               <div className="space-y-3">
                 <button
                   onClick={handleSubmit}
-                  disabled={!selectedItem || !description.trim() || (!isFree && !desiredItemName.trim())}
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm"
+                  disabled={!selectedItem || !description.trim() || (!isFree && !desiredItemName.trim()) || isSubmitting}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm flex items-center justify-center"
                 >
-                  Đăng tin
-                </button>
-                
-                <button
-                  onClick={handleSaveDraft}
-                  disabled={!selectedItem}
-                  className="w-full bg-gray-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm"
-                >
-                  Lưu bản nháp
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Đang đăng tin...
+                    </>
+                  ) : (
+                    'Đăng tin'
+                  )}
                 </button>
                 
                 <button
                   onClick={handleReset}
-                  className="w-full border border-gray-300 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 text-sm text-gray-700"
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-300 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 text-sm text-gray-700 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
                   Xóa tất cả
                 </button>
@@ -347,26 +387,48 @@ const MarketplaceListing: React.FC = () => {
                   <div>
                     {/* Product Image */}
                     <div className="mb-6">
-                      <img
-                        src={selectedItem.image}
-                        alt={selectedItem.name}
-                        className="w-full max-w-md mx-auto rounded-lg object-cover"
-                        style={{ aspectRatio: '1/1' }}
-                      />
+                      <div className="w-full max-w-md mx-auto bg-gray-200 rounded-lg flex items-center justify-center" style={{ aspectRatio: '1/1' }}>
+                        {selectedItem.image ? (
+                          <img
+                            src={selectedItem.image}
+                            alt={selectedItem.productName}
+                            className="w-full h-full rounded-lg object-cover"
+                            onLoad={() => console.log('✅ Preview image loaded successfully')}
+                            onError={() => {
+                              console.error('❌ Preview image failed to load');
+                              console.error('Image URL:', selectedItem.image);
+                              console.error('Image type:', typeof selectedItem.image);
+                              console.error('Image length:', selectedItem.image?.length);
+                            }}
+                          />
+                        ) : (
+                          <>
+                            <Package className="text-gray-400" size={64} />
+                            {console.log('📦 Preview: No image available for:', selectedItem.productName)}
+                          </>
+                        )}
+                      </div>
                     </div>
 
                     {/* Product Title */}
-                    <h2 className="text-2xl font-bold mb-4">{selectedItem.name}</h2>
+                    <h2 className="text-2xl font-bold mb-4">{selectedItem.productName}</h2>
 
                     {/* Listing Type Info */}
                     <div className="mb-6">
                       <div className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium mb-4">
-                        {isFree ? '🎁 Miễn phí' : '🔄 Trao đổi'}
+                        {isFree ? '🎁 Bằng tiền' : '🔄 Trao đổi'}
                       </div>
-                      {!isFree && desiredItemName && (
-                        <div className="bg-blue-50 p-3 rounded-lg">
+                      {selectedItem.isFromBlindBox && (
+                        <div className="bg-purple-50 p-3 rounded-lg mb-3">
+                          <p className="text-sm text-purple-700">
+                            <strong>✨ Từ Blind Box</strong>
+                          </p>
+                        </div>
+                      )}
+                      {selectedItem.location && (
+                        <div className="bg-blue-50 p-3 rounded-lg mb-3">
                           <p className="text-sm text-blue-700">
-                            <strong>Muốn trao đổi lấy:</strong> {desiredItemName}
+                            <strong>📍 Vị trí:</strong> {selectedItem.location}
                           </p>
                         </div>
                       )}
@@ -375,8 +437,8 @@ const MarketplaceListing: React.FC = () => {
                     {/* Product Description */}
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold mb-2">Chi tiết</h3>
-                      {description ? (
-                        <p className="text-gray-700 whitespace-pre-wrap">{description}</p>
+                      {getCombinedDescription() ? (
+                        <p className="text-gray-700 whitespace-pre-wrap">{getCombinedDescription()}</p>
                       ) : (
                         <p className="text-gray-400 italic">Phần mô tả sẽ hiển thị ở đây...</p>
                       )}
@@ -391,7 +453,6 @@ const MarketplaceListing: React.FC = () => {
                         </div>
                         <div>
                           <p className="font-semibold">Nhat Quang</p>
-                          <p className="text-sm text-gray-600">Đã niêm yết về giấy trước tại Singapore</p>
                         </div>
                       </div>
                       
@@ -414,6 +475,8 @@ const MarketplaceListing: React.FC = () => {
         isOpen={showInventoryModal}
         onClose={() => setShowInventoryModal(false)}
         onSelectItem={handleSelectItem}
+        items={availableItems}
+        isLoading={isPending}
       />
     </div>
   );

@@ -74,6 +74,16 @@ class SignalRService {
         }));
       });
 
+      // Thêm xử lý event TradeRequestLocked
+      this.connection.on('TradeRequestLocked', (data) => {
+        console.log('[SignalR] TradeRequestLocked received:', data);
+        
+        // Emit custom event cho trade lock
+        window.dispatchEvent(new CustomEvent('trade-request-locked', {
+          detail: data
+        }));
+      });
+
       // Xử lý connection events
       this.connection.onclose((error) => {
         this.isConnecting = false;
@@ -139,4 +149,4 @@ class SignalRService {
 }
 
 // Singleton instance
-export const signalRService = new SignalRService(); 
+export const signalRService = new SignalRService();
