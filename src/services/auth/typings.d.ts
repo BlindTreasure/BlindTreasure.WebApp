@@ -69,6 +69,7 @@ declare namespace API {
 
   type TAuthProfile = {
     userId: string;
+    sellerId?: string
     fullName: string;
     email: string;
     avatarUrl: string;

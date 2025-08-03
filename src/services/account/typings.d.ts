@@ -57,6 +57,7 @@ declare namespace REQUEST {
 declare namespace API {
   type TProfileAccount = {
     userId: string;
+    sellerId?: string
     fullName: string;
     email: string;
     avatarUrl: string;

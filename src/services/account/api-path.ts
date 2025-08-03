@@ -12,7 +12,7 @@ const SET_DEFAULT_ADDRESS = (addressId: string) => `${ACCOUNT}/addresses/${addre
 
 
 export default {
-  GET_ACCOUNT_PROFILE,
+  GET_ACCOUNT_PROFILE,  
   UPDATE_AVATAR_PROFILE,
   UPDATE_INFO_PROFILE,
   GET_ACCOUNT_SELLER_PROFILE,
