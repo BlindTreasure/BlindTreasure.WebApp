@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { X, Check, Trash2, Bell } from 'lucide-react';
 import { useNotification } from '@/hooks/use-notification';
 import { formatDistanceToNow } from 'date-fns';
 import { useAppSelector } from '@/stores/store';
-import { signalRService } from '@/services/signalr/signalr-service';
+import { motion } from 'framer-motion';
 
 interface NotificationDropdownProps {
   onClose: () => void;
@@ -17,16 +17,47 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
     markNotificationAsRead,
     markAllNotificationsAsRead,
     deleteNotification,
+    hasMore,
   } = useNotification();
   
+  const [page, setPage] = useState(0);
   const user = useAppSelector((state) => state.userSlice.user);
   const userRole = user?.roleName || 'Customer';
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastNotificationElementRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch notifications khi mở dropdown
   useEffect(() => {
-    console.log(`[NotificationDropdown] Fetching notifications for role: ${userRole}`);
     fetchNotifications({ pageIndex: 0, pageSize: 10 });
-  }, [fetchNotifications, userRole]);
+  }, [fetchNotifications]);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const handleObserver = (entries: IntersectionObserverEntry[]) => {
+      const target = entries[0];
+      if (target.isIntersecting && hasMore) {
+        setPage(prevPage => prevPage + 1);
+      }
+    };
+
+    observer.current = new IntersectionObserver(handleObserver);
+
+    if (lastNotificationElementRef.current) {
+      observer.current.observe(lastNotificationElementRef.current);
+    }
+
+    return () => {
+      if (observer.current) {
+        observer.current.disconnect();
+      }
+    };
+  }, [isLoading, hasMore]);
+
+  useEffect(() => {
+    if (page > 0) {
+      fetchNotifications({ pageIndex: page, pageSize: 10 });
+    }
+  }, [page, fetchNotifications]);
 
   const handleMarkAsRead = async (notificationId: string) => {
     const response = await markNotificationAsRead(notificationId);
@@ -62,6 +93,8 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
         return <Bell className="h-4 w-4 text-yellow-500" />;
       case 'Product':
         return <Bell className="h-4 w-4 text-purple-500" />;
+      case 'Trading':
+        return <Bell className="h-4 w-4 text-orange-500" />;
       default:
         return <Bell className="h-4 w-4 text-gray-500" />;
     }
@@ -86,10 +119,10 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
     switch (userRole) {
       case "Customer":
         // Customer nhận thông báo liên quan đến Order, Promotion
-        return ["System", "Order", "Promotion", "General"].includes(notification.type);
+        return ["System", "Order", "Promotion", "General", "Trading"].includes(notification.type);
       case "Seller":
         // Seller nhận thông báo liên quan đến Order, Product
-        return ["System", "Order", "Product", "General"].includes(notification.type);
+        return ["System", "Order", "Product", "General", "Trading"].includes(notification.type);
       case "Staff":
       case "Admin":
         // Staff và Admin nhận tất cả các loại thông báo
@@ -100,7 +133,13 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
   });
 
   return (
-    <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.2 }}
+      className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <h3 className="text-lg font-semibold text-gray-900">Thông báo</h3>
@@ -123,8 +162,8 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
       </div>
 
       {/* Content */}
-      <div className="max-h-80 overflow-y-auto">
-        {isLoading ? (
+      <div className="max-h-[60vh] overflow-y-auto">
+        {isLoading && notifications.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             Đang tải thông báo...
           </div>
@@ -135,73 +174,70 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
-            {filteredNotifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`p-4 hover:bg-gray-50 transition-colors duration-200 ${
-                  !notification.isRead ? 'bg-blue-50' : ''
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 mt-1">
-                    {getNotificationIcon(notification.type)}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className={`text-sm font-medium ${
-                          !notification.isRead ? 'text-gray-900' : 'text-gray-600'
-                        }`}>
-                          {notification.title}
-                        </p>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-2">
-                          {formatTime(notification.sentAt)}
-                        </p>
-                      </div>
-                      
-                      <div className="flex items-center gap-1 ml-2">
-                        {!notification.isRead && (
+            {filteredNotifications.map((notification, index) => {
+              const isLastElement = index === filteredNotifications.length - 1;
+              return (
+                <div
+                  ref={isLastElement ? lastNotificationElementRef : null}
+                  key={notification.id}
+                  className={`p-4 hover:bg-gray-50 transition-colors duration-200 ${
+                    !notification.isRead ? 'bg-blue-50' : ''
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      {getNotificationIcon(notification.type)}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className={`text-sm font-medium ${
+                            !notification.isRead ? 'text-gray-900' : 'text-gray-600'
+                          }`}>
+                            {notification.title}
+                          </p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-2">
+                            {formatTime(notification.sentAt)}
+                          </p>
+                        </div>
+                        
+                        <div className="flex items-center gap-1 ml-2">
+                          {!notification.isRead && (
+                            <button
+                              onClick={() => handleMarkAsRead(notification.id)}
+                              className="p-1 text-gray-400 hover:text-green-600 transition-colors"
+                              title="Đánh dấu đã đọc"
+                            >
+                              <Check className="h-3 w-3" />
+                            </button>
+                          )}
                           <button
-                            onClick={() => handleMarkAsRead(notification.id)}
-                            className="p-1 text-gray-400 hover:text-green-600 transition-colors"
-                            title="Đánh dấu đã đọc"
+                            onClick={() => handleDelete(notification.id)}
+                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            title="Xóa thông báo"
                           >
-                            <Check className="h-3 w-3" />
+                            <Trash2 className="h-3 w-3" />
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleDelete(notification.id)}
-                          className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                          title="Xóa thông báo"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
+              );
+            })}
+            {isLoading && notifications.length > 0 && (
+              <div className="p-4 text-center text-gray-500">
+                Đang tải thêm...
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
-
-      {/* Footer */}
-      {filteredNotifications.length > 0 && (
-        <div className="p-3 border-t border-gray-200 bg-gray-50">
-          <button
-            onClick={() => fetchNotifications({ pageIndex: 0, pageSize: 10 })}
-            className="text-sm text-blue-600 hover:text-blue-800 w-full text-center"
-          >
-            Làm mới thông báo
-          </button>
-        </div>
-      )}
-    </div>
+    </motion.div>
   );
 };
 

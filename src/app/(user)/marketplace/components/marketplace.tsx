@@ -641,16 +641,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
           isLoading={isMyTradeRequestLoading}
         />
       )}
-
-      {/* Ongoing trade detail (for trading section) */}
-      {selectedProduct && isTradingSection && selectedTradeRequest && (
-        <MyTradeRequestDetail
-          tradeRequest={selectedTradeRequest}
-          onClose={handleCloseDetail}
-          isLoading={isMyTradeRequestLoading}
-          isOngoingTrade={true}
-        />
-      )}
     </>
   );
 };

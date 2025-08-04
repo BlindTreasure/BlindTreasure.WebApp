@@ -16,6 +16,7 @@ interface NotificationState {
   unreadCount: number;
   isLoading: boolean;
   error: string | null;
+  hasMore: boolean;
 }
 
 const initialState: NotificationState = {
@@ -23,6 +24,7 @@ const initialState: NotificationState = {
   unreadCount: 0,
   isLoading: false,
   error: null,
+  hasMore: true,
 };
 
 const notificationSlice = createSlice({
@@ -37,10 +39,20 @@ const notificationSlice = createSlice({
       
       if (existingIndex === -1) {
         state.notifications.unshift(action.payload);
-        if (!action.payload.isRead) {
-          state.unreadCount += 1;
-        }
+        // Không tự tăng unreadCount ở đây nữa, sẽ để cho saga hoặc thunk xử lý
+        // if (!action.payload.isRead) {
+        //   state.unreadCount += 1;
+        // }
       }
+    },
+
+    appendNotifications: (state, action: PayloadAction<{ notifications: Notification[], hasMore: boolean }>) => {
+      // Avoid duplicates
+      const newNotifications = action.payload.notifications.filter(
+        (newNotif) => !state.notifications.some((existingNotif) => existingNotif.id === newNotif.id)
+      );
+      state.notifications.push(...newNotifications);
+      state.hasMore = action.payload.hasMore;
     },
 
     // Đánh dấu notification đã đọc
@@ -104,6 +116,7 @@ export const {
   markAllAsRead,
   removeNotification,
   setNotifications,
+  appendNotifications,
   setUnreadCount,
   setLoading,
   setError,

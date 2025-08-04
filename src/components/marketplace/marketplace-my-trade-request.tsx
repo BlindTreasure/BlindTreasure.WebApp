@@ -1,22 +1,59 @@
 'use client'
-import React, { useState } from 'react';
-import { X, Star, ChevronLeft, ChevronRight, Gift, RefreshCw, Clock, Shield, Loader2, User, MessageCircle, CheckCircle, XCircle, AlertTriangle, Handshake, Eye, Package } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Star, ChevronLeft, ChevronRight, Gift, RefreshCw, Clock, Shield, Loader2, User, MessageCircle, CheckCircle, XCircle, AlertTriangle, Handshake, Eye, Package, Lock, Unlock } from 'lucide-react';
+import { Progress } from "@/components/ui/progress"
 
+// Updated interface to match the props being passed from parent
 interface MyTradeRequestDetailProps {
-  tradeRequest: API.TradeRequest;
+  tradeRequest: TradeRequest;
   onClose: () => void;
   isLoading?: boolean;
-  isOngoingTrade?: boolean; // To differentiate between buying and trading sections
+}
+
+// TradeRequest type based on the parent component
+type TradeRequest = {
+  id: string;
+  listingId: string;
+  listingItemName: string;
+  listingItemTier: string;
+  listingItemImgUrl: string;
+  requesterId: string;
+  requesterName: string;
+  offeredItems: OfferedItem[];
+  status: string;
+  requestedAt: string;
+  timeRemaining?: number;
+  ownerLocked: boolean;
+  requesterLocked: boolean;
+  listingOwnerName?: string; // Add this as it might be available
+}
+
+type OfferedItem = {
+  inventoryItemId: string;
+  itemName: string;
+  imageUrl: string;
+  tier: string;
 }
 
 const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({ 
   tradeRequest, 
   onClose, 
-  isLoading = false,
-  isOngoingTrade = false
+  isLoading = false
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentOfferedIndex, setCurrentOfferedIndex] = useState(0);
+
+  // Determine if this is an ongoing trade based on status
+  const isOngoingTrade = ['accepted', 'in_progress', 'locked'].includes(tradeRequest.status.toLowerCase());
+  
+  // For trade requests, the current user is always the requester
+  const isCurrentUserRequester = true;
+
+  const calculateProgress = (ownerLocked: boolean, requesterLocked: boolean): number => {
+    if (ownerLocked && requesterLocked) return 100;
+    if (ownerLocked || requesterLocked) return 50;
+    return 0;
+  };
 
   // Format ngày tháng
   const getTimeSincePosted = (requestedAt: string): string => {
@@ -50,6 +87,8 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
         return 'Đã hoàn thành';
       case 'cancelled':
         return 'Đã hủy';
+      case 'expired':
+        return 'Đã hết hạn';
       case 'in_progress':
         return 'Đang thực hiện';
       case 'locked':
@@ -68,6 +107,7 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
         return 'text-blue-600 bg-blue-50 border-blue-200';
       case 'rejected':
       case 'cancelled':
+      case 'expired':
         return 'text-red-600 bg-red-50 border-red-200';
       case 'completed':
         return 'text-green-600 bg-green-50 border-green-200';
@@ -134,10 +174,10 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
               {getStatusText(tradeRequest.status)}
             </span>
             
-            {tradeRequest.timeRemaining && (
-              <div className="flex items-center gap-1 text-sm text-gray-600">
+            {tradeRequest.timeRemaining && tradeRequest.status.toLowerCase() === 'accepted' && (
+              <div className="flex items-center gap-1 text-sm text-red-600 font-medium animate-pulse">
                 <Clock className="w-4 h-4" />
-                {getTimeRemainingText()}
+                <span>Còn {getTimeRemainingText()}</span>
               </div>
             )}
           </div>
@@ -151,33 +191,34 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
               </h3>
             </div>
             <p className="text-sm text-blue-800 mb-1">
-              <span className="font-medium">Người nhận:</span> {tradeRequest.requesterName}
+              <span className="font-medium">Người bán:</span> {tradeRequest.listingOwnerName || 'Không xác định'}
             </p>
             <p className="text-sm text-blue-700">
               <span className="font-medium">Thời gian:</span> {getTimeSincePosted(tradeRequest.requestedAt)}
             </p>
           </div>
 
-          {/* Lock Status */}
-          {(tradeRequest.ownerLocked || tradeRequest.requesterLocked) && (
-            <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-4 mb-4 border border-green-200">
-              <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                Trạng thái khóa
+          {/* Lock Status - Only show for ongoing trades */}
+          {isOngoingTrade && tradeRequest.status.toLowerCase() === 'accepted' && (
+            <div className="bg-white rounded-xl p-4 mb-4 border border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Trạng thái khóa giao dịch
               </h3>
-              <div className="space-y-2">
-                {tradeRequest.ownerLocked && (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-green-800">Chủ sở hữu đã khóa giao dịch</span>
-                  </div>
-                )}
-                {tradeRequest.requesterLocked && (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-green-800">Bạn đã khóa giao dịch</span>
-                  </div>
-                )}
+              <Progress value={calculateProgress(tradeRequest.ownerLocked, tradeRequest.requesterLocked)} className="w-full mb-3" />
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  {tradeRequest.ownerLocked ? <CheckCircle className="w-4 h-4 text-green-600" /> : <XCircle className="w-4 h-4 text-gray-400" />}
+                  <span className={tradeRequest.ownerLocked ? "text-gray-800" : "text-gray-500"}>
+                    Chủ sở hữu đã khóa
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {tradeRequest.requesterLocked ? <CheckCircle className="w-4 h-4 text-green-600" /> : <XCircle className="w-4 h-4 text-gray-400" />}
+                  <span className={tradeRequest.requesterLocked ? "text-gray-800" : "text-gray-500"}>
+                    Bạn đã khóa
+                  </span>
+                </div>
               </div>
             </div>
           )}
@@ -286,12 +327,18 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
               </div>
               
               <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Người nhận:</span>
+                <span className="text-gray-600">Đối tác:</span>
                 <span className="font-medium text-gray-900">
-                  {tradeRequest.requesterName}
+                  {tradeRequest.listingOwnerName || 'Không xác định'}
                 </span>
               </div>
               
+              <div className="flex justify-between py-2">
+                <span className="text-gray-600">ID Giao dịch:</span>
+                <span className="font-mono text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  {tradeRequest.id}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -320,8 +367,8 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
               </div>
               <p className="text-xs text-blue-700">
                 {isOngoingTrade 
-                  ? 'Giao dịch đang được thực hiện. Vui lòng làm theo hướng dẫn để hoàn tất.'
-                  : 'Chủ sở hữu đã chấp nhận yêu cầu trao đổi của bạn. Giao dịch sẽ được bắt đầu.'
+                  ? 'Giao dịch đang được thực hiện. Vui lòng theo dõi trạng thái khóa giao dịch.'
+                  : 'Yêu cầu trao đổi đã được chấp nhận. Giao dịch sẽ được bắt đầu.'
                 }
               </p>
             </div>

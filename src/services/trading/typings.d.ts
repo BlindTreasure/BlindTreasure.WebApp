@@ -16,6 +16,7 @@ declare namespace API {
     listingItemName: string;
     listingItemTier: string;
     listingItemImgUrl: string;
+    listingOwnerName?: string;
     requesterId: string;
     requesterName: string;
     offeredItems: OfferedItem[];
