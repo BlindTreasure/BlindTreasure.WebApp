@@ -3,8 +3,9 @@ import Footer from "@/components/footer";
 import Header from "@/components/header";
 import { openMessageUser } from "@/stores/difference-slice";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import CustomerSellerChat from "@/components/chat-widget";
 
 export default function UserLayout({
     children,
@@ -28,16 +29,20 @@ export default function UserLayout({
                 </main>
                 {!hideHeaderFooter && <Footer />}
                 {(!userState.user || userState.user?.roleName === "Customer") && (
-                    <button
-                        onClick={handleOpenChat}
-                        className="fixed bottom-6 right-6 w-14 h-14 bg-[#fb8500] text-white rounded-full flex items-center justify-center shadow-lg hover:opacity-80 transition"
-                    >
-                        <img
-                            src="https://cdn-icons-png.flaticon.com/512/2040/2040946.png"
-                            alt="Chatbot"
-                            className="w-10 h-10 object-cover"
-                        />
-                    </button>
+                    <>
+                        <button
+                            onClick={handleOpenChat}
+                            className="fixed bottom-24 right-6 w-14 h-14 bg-[#fb8500] text-white rounded-full flex items-center justify-center shadow-lg hover:opacity-80 transition z-40"
+                        >
+                            <img
+                                src="https://cdn-icons-png.flaticon.com/512/2040/2040946.png"
+                                alt="Chatbot"
+                                className="w-10 h-10 object-cover"
+                            />
+                        </button>
+
+                        <CustomerSellerChat />
+                    </>
                 )}
             </div>
         </WishlistProvider>
