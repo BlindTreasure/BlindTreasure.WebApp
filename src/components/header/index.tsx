@@ -20,15 +20,19 @@ import {
 } from "@/components/ui/sheet";
 import { selectTotalItems } from "@/stores/cart-slice";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useWishlistContext } from "@/contexts/WishlistContext";
 
 const Header: React.FC = () => {
   const userState = useAppSelector((state) => state.userSlice);
-  const user = useAppSelector((state) => state.userSlice.user);
   const currentPath = usePathname();
   const router = useRouter();
   const [avatarTooltip, setAvatarTooltip] = useState(false);
   const totalItems = useAppSelector(selectTotalItems);
   const isLoggedIn = useAppSelector((state) => !!state.userSlice.user);
+  const { wishlistStatus } = useWishlistContext();
+
+  // Calculate total wishlist items (only for logged in users)
+  const totalWishlistItems = isLoggedIn ? Object.keys(wishlistStatus).length : 0;
 
   const navLinks = [
     { href: "/", label: "Trang chủ" },
@@ -54,6 +58,14 @@ const Header: React.FC = () => {
       router.push("/login");
     } else {
       router.push("/cart");
+    }
+  };
+
+  const handleClickWishlist = () => {
+    if (!isLoggedIn) {
+      router.push("/login");
+    } else {
+      router.push("/wishlist");
     }
   };
 
@@ -88,9 +100,16 @@ const Header: React.FC = () => {
               <div className="flex items-center gap-4">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Link href="/wishlist" className="text-gray-600 hover:text-[#d02a2a] text-2xl">
-                      <PiHeartStraightLight />
-                    </Link>
+                    <div className="relative">
+                      <Link href="/wishlist" className="text-gray-600 hover:text-[#d02a2a] text-2xl">
+                        <PiHeartStraightLight />
+                      </Link>
+                      {totalWishlistItems > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                          {totalWishlistItems}
+                        </span>
+                      )}
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Sản phẩm yêu thích</p>
@@ -163,10 +182,27 @@ const Header: React.FC = () => {
             )}
           </div>
 
-          <div className="md:hidden flex items-center">
-            <Link href="/cart" className="text-gray-600 hover:text-[#d02a2a] text-2xl">
-              <PiShoppingCartLight />
-            </Link>
+          <div className="md:hidden flex items-center gap-4">
+            <div className="relative cursor-pointer" onClick={handleClickWishlist}>
+              <div className="text-gray-600 hover:text-[#d02a2a] text-2xl">
+                <PiHeartStraightLight />
+              </div>
+              {totalWishlistItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                  {totalWishlistItems}
+                </span>
+              )}
+            </div>
+            <div className="relative cursor-pointer" onClick={handleClickCart}>
+              <div className="text-gray-600 hover:text-[#d02a2a] text-2xl">
+                <PiShoppingCartLight />
+              </div>
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                  {totalItems}
+                </span>
+              )}
+            </div>
             <Sheet>
               <SheetTrigger asChild>
                 <button className="p-2 text-gray-600 hover:text-[#d02a2a] focus:outline-none">

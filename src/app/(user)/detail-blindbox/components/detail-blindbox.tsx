@@ -14,6 +14,7 @@ import useAddBlindboxToCart from "../hooks/useAddBlindboxToCart"
 import { BlindBox } from '@/services/blindboxes/typings';
 import { Backdrop } from '@/components/backdrop';
 import { ProductTabs } from '@/components/tabs';
+import ProductReviews from '@/components/product-reviews';
 import { BlindboxStatus, Rarity, StockStatus, stockStatusMap } from '@/const/products';
 import { BlindboxItemSheet } from '@/components/thumbnail-blindbox';
 import LightboxGallery from '@/components/lightbox-gallery';
@@ -456,6 +457,14 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                 viewport={{ once: true, amount: 0.7 }}
                 className='py-8'>
                 <ProductTabs description={blindbox?.description || ""} />
+            </motion.div>
+
+            <motion.div
+                variants={fadeIn("up", 0.4)}
+                initial="hidden"
+                animate="show"
+                className='py-8'>
+                <ProductReviews productId={blindBoxId} productType="blindbox" />
             </motion.div>
 
             {relatedBlindboxes.filter((box) => box.items?.length > 0).length > 0 && (

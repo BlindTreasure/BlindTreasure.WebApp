@@ -1,7 +1,7 @@
 "use client";
 
 import { OrderDetail, PaymentInfo } from "@/services/order/typings";
-import { OrderStatus, OrderStatusText, PaymentInfoStatus, PaymentInfoStatusText, PaymentStatus, PaymentStatusText } from "@/const/products";
+import { OrderStatus, OrderStatusText, PaymentInfoStatus, PaymentInfoStatusText } from "@/const/products";
 import {
     Dialog,
     DialogTrigger,
@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Backdrop } from "../backdrop";
 import { Button } from "../ui/button";
+import WriteReview from "../product-reviews/write-review";
 
 // Helper function to determine actual status from logs
 const getActualStatusFromLogs = (logs: string, currentStatus: OrderStatus): OrderStatus => {
@@ -87,10 +88,23 @@ export default function OrderCard({
 }: OrderCardProps) {
     const router = useRouter();
     const [loadingPage, setLoadingPage] = useState(false);
+    const [showWriteReview, setShowWriteReview] = useState(false);
+    const [selectedProductForReview, setSelectedProductForReview] = useState<OrderDetail | null>(null);
 
     const handleViewInvoiceDetail = (id: string) => {
         setLoadingPage(true);
         router.push(`/orderhistory/${id}`);
+    };
+
+    const handleSubmitReview = async (reviewData: any) => {
+        // TODO: Implement API call to submit review
+        console.log('Submitting review for order:', orderId, reviewData);
+
+        // Close the review form after successful submission
+        setShowWriteReview(false);
+
+        // TODO: Show success message or update UI
+        alert('Đánh giá đã được gửi thành công!');
     };
     return (
         <div className="border rounded-md shadow-sm bg-white mb-4" >
@@ -121,7 +135,7 @@ export default function OrderCard({
                         <div className="font-medium mb-2">
                             {detail.blindBoxId && detail.blindBoxName ? detail.blindBoxName : detail.productName}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <div className="text-sm text-gray-500">x{detail.quantity}</div>
                             {(() => {
                                 const actualStatus = getActualStatusFromLogs(detail.logs || '', detail.status);
@@ -147,6 +161,18 @@ export default function OrderCard({
                                     </span>
                                 );
                             })()}
+                            {payment?.status === PaymentInfoStatus.Paid && (
+                                <button
+                                    className="text-xs bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedProductForReview(detail);
+                                        setShowWriteReview(true);
+                                    }}
+                                >
+                                    Đánh giá
+                                </button>
+                            )}
                         </div>
                     </div>
                     <div className="text-right">
@@ -199,7 +225,7 @@ export default function OrderCard({
                                         </tbody>
                                     </table>
                                 </div>
-                                
+
                                 <div className="border-t pt-4 text-right text-sm flex justify-between items-center">
                                     <div> <Button onClick={(e) => {
                                         e.stopPropagation();
@@ -255,14 +281,57 @@ export default function OrderCard({
                                 </div>
                             </div>
                         </DialogContent>
-
                     </Dialog>
 
-                    <button className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600">
+                    <button className=" text-black border border-gray-300 px-4 py-1 rounded hover:bg-gray-100">
                         Liên hệ người bán
                     </button>
                 </div>
             </div>
+
+            {/* Review Dialog for Selected Product */}
+            <Dialog open={showWriteReview} onOpenChange={setShowWriteReview}>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-3">
+                            {selectedProductForReview && (
+                                <>
+                                    <img
+                                        src={
+                                            selectedProductForReview.blindBoxId && selectedProductForReview.blindBoxImage
+                                                ? selectedProductForReview.blindBoxImage
+                                                : selectedProductForReview.productImages?.[0] || "/placeholder.jpg"
+                                        }
+                                        alt="product"
+                                        className="w-12 h-12 object-cover rounded border"
+                                    />
+                                    <div>
+                                        <div className="font-medium">
+                                            Đánh giá sản phẩm
+                                        </div>
+                                        <div className="text-sm text-gray-600 font-normal">
+                                            {selectedProductForReview.blindBoxId && selectedProductForReview.blindBoxName
+                                                ? selectedProductForReview.blindBoxName
+                                                : selectedProductForReview.productName}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </DialogTitle>
+                    </DialogHeader>
+                    {selectedProductForReview && (
+                        <WriteReview
+                            productId={selectedProductForReview.productId || selectedProductForReview.blindBoxId || orderId}
+                            onSubmit={handleSubmitReview}
+                            onCancel={() => {
+                                setShowWriteReview(false);
+                                setSelectedProductForReview(null);
+                            }}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+
             <Backdrop open={loadingPage} />
         </div>
     );

@@ -7,6 +7,7 @@ import 'swiper/css/thumbs';
 import 'swiper/css/navigation';
 import type { Swiper as SwiperType } from 'swiper';
 import { ProductTabs } from '@/components/tabs';
+import ProductReviews from '@/components/product-reviews';
 import { motion } from "framer-motion";
 import { fadeIn } from '@/utils/variants';
 import { AllProduct, GetAllProducts, TAllProductResponse } from '@/services/product/typings';
@@ -374,6 +375,14 @@ export default function Detail({ detailId }: DetailProps) {
                 viewport={{ once: true, amount: 0.7 }}
                 className='py-8'>
                 <ProductTabs description={products?.description || ""} />
+            </motion.div>
+
+            <motion.div
+                variants={fadeIn("up", 0.4)}
+                initial="hidden"
+                animate="show"
+                className='py-8'>
+                <ProductReviews productId={detailId} productType="product" />
             </motion.div>
 
             {relatedProducts.length > 0 && (

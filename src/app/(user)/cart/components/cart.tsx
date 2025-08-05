@@ -4,21 +4,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X, Plus, Minus, Trash2, Truck } from 'lucide-react';
+import { X, Plus, Minus, Trash2 } from 'lucide-react';
 import useGetCartByCustomer from '../hooks/useGetCartByCustomer';
 import useUpdateCartQuantity from "../hooks/useUpdateQuantityItemCart";
 import useDeleteCartItem from "../hooks/useDeleteCartItem";
 import useClearAllCartItem from "../hooks/useClearAllCartItem";
-import usePreviewShipping from '../hooks/usePreviewShipping';
+
 import useDebounce from '@/hooks/use-debounce';
 import Image from 'next/image';
 import { SlHandbag } from "react-icons/sl";
 
-import useCreateOrder from '../hooks/useCreateOrder';
-import { Dialog, DialogContent, DialogFooter, DialogTitle } from '@/components/ui/dialog';
-import { AlertDialogHeader } from '@/components/ui/alert-dialog';
+
 import useToast from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+
 
 const QuantitySelector = ({
   value,
@@ -100,11 +99,7 @@ const QuantitySelector = ({
 const Cart: React.FC = () => {
   // Lấy dữ liệu từ Redux thông qua hook
   const { isPending, data } = useGetCartByCustomer();
-
-  // Memoize sellerItems to prevent unnecessary re-renders
   const sellerItems = useMemo(() => data?.sellerItems || [], [data?.sellerItems]);
-
-  // Flatten all items from all sellers for easier processing - memoize to prevent unnecessary re-renders
   const cartItems = useMemo(() =>
     sellerItems.flatMap(sellerGroup => sellerGroup.items),
     [sellerItems]
@@ -116,94 +111,26 @@ const Cart: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-  const [promotionId, setPromotionId] = useState<string | null>(null);
+
   const isInitializedRef = useRef(false);
   const cartItemsRef = useRef<API.CartItem[]>([]);
 
-  const { createOrder, isPending: isCreatingOrder } = useCreateOrder();
-  const [orderItems, setOrderItems] = useState<REQUEST.CreateOrderItem[]>([]);
-  const [pendingOrderData, setPendingOrderData] = useState<REQUEST.CreateOrderList | null>(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
   const { addToast } = useToast();
   const router = useRouter();
-  const [isShip, setIsShip] = useState(false);
-  const [shippingData, setShippingData] = useState<API.ShipmentPreview[] | null>(null);
-  const { previewShipping, isPending: isLoadingShipping } = usePreviewShipping();
-
-  // Fetch shipping preview only when isShip changes to true
-  useEffect(() => {
-    const fetchShippingPreview = async () => {
-      if (!isShip || selectedItems.length === 0) {
-        setShippingData(null);
-        return;
-      }
-
-      const orderSellerItems: REQUEST.CreateOrderSellerGroup[] = sellerItems
-        .map(sellerGroup => {
-          const filteredItems = sellerGroup.items
-            .filter(item => selectedItems.includes(item.id))
-            .map(item => ({
-              id: item.id,
-              productId: item.productId ?? "",
-              productName: item.productName ?? "",
-              productImages: item.productImages,
-              blindBoxId: item.blindBoxId ?? "",
-              blindBoxName: item.blindBoxName ?? "",
-              blindBoxImage: item.blindBoxImage,
-              quantity: quantities[item.id] ?? item.quantity,
-              unitPrice: item.unitPrice,
-              totalPrice: (quantities[item.id] ?? item.quantity) * item.unitPrice,
-              createdAt: item.createdAt,
-            }));
-
-          return {
-            sellerId: sellerGroup.sellerId,
-            sellerName: sellerGroup.sellerName,
-            items: filteredItems,
-            ...(promotionId && { promotionId }),
-          };
-        })
-        .filter(sellerGroup => sellerGroup.items.length > 0);
-
-      const payload: REQUEST.CreateOrderList = {
-        sellerItems: orderSellerItems,
-        isShip: true,
-      };
-
-      try {
-        const result = await previewShipping(payload);
-        setShippingData(result);
-      } catch (error) {
-        console.error('Error fetching shipping preview:', error);
-        setShippingData(null);
-      }
-    };
-
-    // Only fetch when isShip is true
-    if (isShip) {
-      fetchShippingPreview();
-    } else {
-      setShippingData(null);
-    }
-  }, [isShip]); // Only depend on isShip to avoid infinite loops
-
   // Khởi tạo selectedItems và quantities khi cartItems thay đổi
   useEffect(() => {
     cartItemsRef.current = cartItems;
 
     if (cartItems.length > 0) {
-      // Chỉ khởi tạo khi chưa được khởi tạo hoặc có items mới
       const currentItemIds = new Set(cartItems.map((item: API.CartItem) => item.id));
       const existingItemIds = new Set(Object.keys(quantities));
-
-      // Check if we need to initialize or if there are new items
       const hasNewItems = cartItems.some(item => !existingItemIds.has(item.id));
       const hasRemovedItems = Array.from(existingItemIds).some(id => !currentItemIds.has(id));
 
       const shouldInitialize = !isInitializedRef.current || hasNewItems || hasRemovedItems;
 
       if (shouldInitialize) {
-        // Only update if there's actually a change
         setSelectedItems(prev => {
           const newSelected = cartItems.map((item: API.CartItem) => item.id);
           if (JSON.stringify(prev.sort()) !== JSON.stringify(newSelected.sort())) {
@@ -211,15 +138,12 @@ const Cart: React.FC = () => {
           }
           return prev;
         });
-
-        // Khởi tạo quantities từ dữ liệu Redux, preserve existing quantities for unchanged items
         setQuantities(prev => {
           const newQuantities: Record<string, number> = {};
           cartItems.forEach((item: API.CartItem) => {
             newQuantities[item.id] = prev[item.id] ?? item.quantity;
           });
 
-          // Only update if there's actually a change
           if (JSON.stringify(prev) !== JSON.stringify(newQuantities)) {
             return newQuantities;
           }
@@ -236,7 +160,7 @@ const Cart: React.FC = () => {
         isInitializedRef.current = false;
       }
     }
-  }, [cartItems]); // Only depend on cartItems
+  }, [cartItems]); 
 
   const debouncedQuantities = useDebounce(quantities, 500);
 
@@ -306,6 +230,8 @@ const Cart: React.FC = () => {
     setQuantities((prev) => ({ ...prev, [id]: newQuantity }));
   }, []);
 
+
+
   const subtotal: number = useMemo(() =>
     cartItems
       .filter((item) => selectedItems.includes(item.id))
@@ -316,91 +242,20 @@ const Cart: React.FC = () => {
     [cartItems, selectedItems, quantities]
   );
 
-  const totalShippingFee: number = useMemo(() =>
-    isShip && shippingData
-      ? shippingData.reduce((acc, shipment) => acc + shipment.ghnPreviewResponse.totalFee, 0)
-      : 0,
-    [isShip, shippingData]
-  );
+  const total: number = subtotal;
 
-  const total: number = useMemo(() => subtotal + totalShippingFee, [subtotal, totalShippingFee]);
-
-  const handlePreviewOrder = useCallback(() => {
-    const orderSellerItems: REQUEST.CreateOrderSellerGroup[] = sellerItems
-      .map(sellerGroup => {
-        const filteredItems = sellerGroup.items
-          .filter(item => selectedItems.includes(item.id))
-          .map(item => ({
-            id: item.id,
-            productId: item.productId ?? "",
-            productName: item.productName ?? "",
-            productImages: item.productImages,
-            blindBoxId: item.blindBoxId ?? "",
-            blindBoxName: item.blindBoxName ?? "",
-            blindBoxImage: item.blindBoxImage,
-            quantity: quantities[item.id] ?? item.quantity,
-            unitPrice: item.unitPrice,
-            totalPrice: (quantities[item.id] ?? item.quantity) * item.unitPrice,
-            createdAt: item.createdAt,
-          }));
-
-        return {
-          sellerId: sellerGroup.sellerId,
-          sellerName: sellerGroup.sellerName,
-          items: filteredItems,
-          ...(promotionId && { promotionId }),
-        };
-      })
-      .filter(sellerGroup => sellerGroup.items.length > 0);
-
-    const payload: REQUEST.CreateOrderList = {
-      sellerItems: orderSellerItems,
-      isShip,
+  const handleProceedToCheckout = useCallback(() => {
+    const checkoutData = {
+      selectedItems,
+      sellerItems,
+      quantities,
+      subtotal
     };
 
-    setPendingOrderData(payload);
-    setShowConfirmModal(true);
-  }, [sellerItems, selectedItems, promotionId, quantities, isShip]);
+    localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
 
-  const handleCheckout = useCallback(async () => {
-    // Convert sellerItems to new format
-    const orderSellerItems: REQUEST.CreateOrderSellerGroup[] = sellerItems
-      .map(sellerGroup => {
-        const filteredItems = sellerGroup.items
-          .filter(item => selectedItems.includes(item.id))
-          .map(item => ({
-            id: item.id,
-            productId: item.productId ?? "",
-            productName: item.productName ?? "",
-            productImages: item.productImages,
-            blindBoxId: item.blindBoxId ?? "",
-            blindBoxName: item.blindBoxName ?? "",
-            blindBoxImage: item.blindBoxImage,
-            quantity: quantities[item.id] ?? item.quantity,
-            unitPrice: item.unitPrice,
-            totalPrice: (quantities[item.id] ?? item.quantity) * item.unitPrice,
-            createdAt: item.createdAt,
-          }));
-
-        return {
-          sellerId: sellerGroup.sellerId,
-          sellerName: sellerGroup.sellerName,
-          items: filteredItems,
-          ...(promotionId && { promotionId }),
-        };
-      })
-      .filter(sellerGroup => sellerGroup.items.length > 0);
-
-    const payload: REQUEST.CreateOrderList = {
-      sellerItems: orderSellerItems,
-      isShip,
-    };
-
-    const url = await createOrder(payload);
-    if (url) {
-      window.location.href = url;
-    }
-  }, [selectedItems, sellerItems, quantities, promotionId, createOrder, isShip]);
+    router.push('/checkout');
+  }, [selectedItems, sellerItems, quantities, subtotal, router]);
 
 
   const handleContinueShopping = () => {
@@ -503,7 +358,6 @@ const Cart: React.FC = () => {
 
               {sellerItems.map((sellerGroup) => (
                 <div key={sellerGroup.sellerId} className="mb-6">
-                  {/* Header của seller */}
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-4">
                     <div className="flex-1">
                       <h3 className="font-semibold text-sm text-gray-800">
@@ -515,7 +369,6 @@ const Cart: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Items của seller */}
                   {sellerGroup.items.map((item) => {
                     const isProduct = Boolean(item.productId);
                     const name = isProduct ? item.productName : item.blindBoxName;
@@ -591,37 +444,10 @@ const Cart: React.FC = () => {
           <Card className="w-full lg:w-80 h-fit sticky top-40">
             <CardContent className="p-4 sm:p-6">
               <h2 className="text-lg font-semibold mb-4">Tóm tắt đơn hàng</h2>
-
-              <div className="mb-4 p-3 border rounded-lg bg-gray-50">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Checkbox
-                    id="shipping-option"
-                    checked={isShip}
-                    onCheckedChange={(checked) => setIsShip(checked as boolean)}
-                  />
-                  <label htmlFor="shipping-option" className="text-sm font-medium flex items-center gap-2">
-                    <Truck className="w-4 h-4" />
-                    Giao hàng tận nơi
-                  </label>
-                </div>
-                {isShip && isLoadingShipping && (
-                  <p className="text-xs text-gray-500 ml-6">
-                    Đang tính phí vận chuyển...
-                  </p>
-                )}
-
-                {isShip && cartItems.some(item => selectedItems.includes(item.id) && !Boolean(item.productId)) && (
-                  <div className="text-xs px-2 py-1 bg-amber-50 border border-amber-200 rounded text-amber-700 flex items-center gap-1 ml-6 mt-2">
-                    <span>⚠️</span>
-                    <span>Lưu ý: Sản phẩm blindbox chỉ được giao sau khi bạn mở hộp và nhận sản phẩm cụ thể.</span>
-                  </div>
-                )}
-              </div>
-
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
                   <span>Số sản phẩm đã chọn:</span>
-                  <span>{selectedItems.length}</span>
+                  <span>{selectedItems.reduce((sum, itemId) => sum + (quantities[itemId] || 1), 0)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Tạm tính:</span>
@@ -632,20 +458,6 @@ const Cart: React.FC = () => {
                     Từ {sellerItems.length} cửa hàng khác nhau
                   </div>
                 )}
-                {isShip && (
-                  <div className="flex justify-between text-sm">
-                    <span>Phí vận chuyển:</span>
-                    <span>
-                      {isLoadingShipping ? (
-                        "Đang tính..."
-                      ) : totalShippingFee > 0 ? (
-                        `${totalShippingFee.toLocaleString('vi-VN')}₫`
-                      ) : (
-                        "0₫"
-                      )}
-                    </span>
-                  </div>
-                )}
                 <div className="flex justify-between text-sm font-semibold border-t pt-2">
                   <span>Tổng tiền:</span>
                   <span className="text-[#d02a2a]">
@@ -654,20 +466,13 @@ const Cart: React.FC = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handlePreviewOrder}
-                  disabled={selectedItems.length === 0 || total === 0}
-                  className="w-full sm:w-auto"
-                >
-                  Xem trước đơn hàng
-                </Button>
+
                 <Button
                   className="w-full"
-                  onClick={handleCheckout}
+                  onClick={handleProceedToCheckout}
                   disabled={selectedItems.length === 0 || total === 0}
                 >
-                  Thanh toán ({selectedItems.length} sản phẩm)
+                  Tiến hành thanh toán ({selectedItems.length} sản phẩm)
                 </Button>
 
                 <Button
@@ -682,99 +487,6 @@ const Cart: React.FC = () => {
           </Card>
         </div>
       )}
-      <Dialog open={showConfirmModal} onOpenChange={() => setShowConfirmModal(false)}>
-        <DialogContent className="max-w-lg">
-          <AlertDialogHeader>
-            <DialogTitle>Xác nhận đơn hàng</DialogTitle>
-          </AlertDialogHeader>
-
-          <div className="max-h-[300px] overflow-auto space-y-4">
-            {pendingOrderData?.sellerItems.map((sellerGroup, sellerIndex) => (
-              <div key={sellerIndex} className="space-y-2">
-                <h4 className="font-medium text-sm text-gray-700">🏪 {sellerGroup.sellerName}</h4>
-                {sellerGroup.items.map((item, itemIndex) => (
-                  <div key={itemIndex} className="flex justify-between text-sm ml-4">
-                    <div>
-                      <p className="font-medium">{item.productName || item.blindBoxName}</p>
-                      <p>Số lượng: {item.quantity}</p>
-                    </div>
-                    <div className="text-right">
-                      <p>₫{item.unitPrice.toLocaleString()}</p>
-                      <p className="text-muted-foreground">Tổng: ₫{item.totalPrice.toLocaleString()}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-4 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Tạm tính:</span>
-              <span>₫{pendingOrderData?.sellerItems
-                .flatMap(sellerGroup => sellerGroup.items)
-                .reduce((sum, item) => sum + item.totalPrice, 0)
-                .toLocaleString()}</span>
-            </div>
-            {pendingOrderData?.isShip && (
-              <div className="flex justify-between">
-                <span>Phí vận chuyển:</span>
-                <span>₫{totalShippingFee.toLocaleString()}</span>
-              </div>
-            )}
-            <div className="flex justify-between font-semibold text-base border-t pt-2">
-              <span>Tổng cộng:</span>
-              <span className="text-[#d02a2a]">
-                ₫{(
-                  (pendingOrderData?.sellerItems
-                    .flatMap(sellerGroup => sellerGroup.items)
-                    .reduce((sum, item) => sum + item.totalPrice, 0) || 0) +
-                  (pendingOrderData?.isShip ? totalShippingFee : 0)
-                ).toLocaleString()}
-              </span>
-            </div>
-            {pendingOrderData?.isShip && (
-              <div className="text-xs text-gray-500 flex items-center gap-1">
-                <Truck className="w-3 h-3" />
-                Đơn hàng sẽ được giao tận nơi
-              </div>
-            )}
-
-            {pendingOrderData?.sellerItems
-              .flatMap(sellerGroup => sellerGroup.items)
-              .some(item => item.blindBoxId && item.blindBoxName) && (
-                <div className="text-xs px-3 py-2 bg-blue-50 border border-blue-200 rounded text-blue-700 mt-3">
-                  <div className="flex items-start gap-2">
-                    <span className="text-blue-500">ℹ️</span>
-                    <div>
-                      <p className="font-medium mb-1">Lưu ý về Blindbox:</p>
-                      <p>• Blindbox sẽ được lưu trong túi đồ của bạn sau khi thanh toán</p>
-                      <p>• Bạn cần mở hộp để nhận sản phẩm cụ thể</p>
-                      <p>• Chỉ sản phẩm đã mở mới có thể được giao hàng tận nơi</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-          </div>
-
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
-              Hủy
-            </Button>
-            <Button
-              onClick={async () => {
-                setShowConfirmModal(false);
-                if (pendingOrderData) {
-                  const url = await createOrder(pendingOrderData);
-                  if (url) window.location.href = url;
-                }
-              }}
-            >
-              Xác nhận & Thanh toán
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
     </div>
   );
