@@ -39,7 +39,7 @@ const Header: React.FC = () => {
     { href: "/", label: "Trang chủ" },
     { href: "/aboutus", label: "Về chúng tôi" },
     { href: "/contact", label: "Liên hệ" },
-
+    { href: "/marketplace", label: "Marketplace"}
   ];
 
   const handleToggleAvatarTooltip = () => {

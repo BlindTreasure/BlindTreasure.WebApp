@@ -1,29 +1,29 @@
 import useToast from "@/hooks/use-toast";
-import { viewMyTradeRequest } from "@/services/trading/api-services";
+import { viewTradeRequestHistory } from "@/services/trading/api-services";
 import { isTResponseData } from "@/utils/compare";
 import { useCallback, useState } from "react";
 
-export default function useGetAllMyTradeRequest() {
+export default function useGetTradeRequestHistory() {
   const { addToast } = useToast();
   const [isPending, setPending] = useState(false);
 
-  const getAllMyTradeRequestApi = useCallback(async () => {
+  const getTradeRequestHistoryApi = useCallback(async (params: REQUEST.ViewTradingHistory) => {
     setPending(true);
     try {
-      const res = await viewMyTradeRequest();
+      const res = await viewTradeRequestHistory(params);
       if (isTResponseData(res)) {
-        return res as TResponseData<API.TradeRequest[]>;
+        return res as TResponseData<API.ResponseDataTradeHistory>;
       } else {
         addToast({
           type: "error",
-          description: "Failed to fetch my trade request",
+          description: "Failed to fetch trading history",
         });
         return null;
       }
     } catch (error) {
       addToast({
         type: "error",
-        description: "An error occurred while fetching my trade request",
+        description: "An error occurred while fetching history",
       });
       return null;
     } finally {
@@ -31,5 +31,5 @@ export default function useGetAllMyTradeRequest() {
     }
   }, []);
 
-  return { isPending, getAllMyTradeRequestApi };
+  return { isPending, getTradeRequestHistoryApi };
 }

@@ -4,7 +4,8 @@ export interface Notification {
   id: string;
   title: string;
   message: string;
-  type: 'System' | 'Order' | 'Promotion' | 'Product' | 'General';
+  sourceUrl?: string;
+  type: 'System' | 'Order' | 'Promotion' | 'Product' | 'General' | 'Trading';
   sentAt: string;
   isRead: boolean;
   isDeleted: boolean;

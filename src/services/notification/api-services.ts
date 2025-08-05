@@ -3,7 +3,8 @@ import API_ENDPOINTS from "./api-path";
 
 export const getNotifications = async ({
   pageIndex,
-  pageSize
+  pageSize,
+  type
 }: REQUEST.NotificationParamsRequest) => {
   const response = await request<TResponseData<API.NotificationListResponse>>(
     API_ENDPOINTS.NOTIFICATION,
@@ -11,7 +12,8 @@ export const getNotifications = async ({
       method: "GET",
       params:{
         pageIndex,
-        pageSize
+        pageSize,
+        type
       },
     }
   );

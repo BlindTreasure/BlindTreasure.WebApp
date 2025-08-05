@@ -7,6 +7,20 @@ declare namespace REQUEST {
     tradeRequestId: string;
     isAccepted: boolean;
   }
+
+  type ViewTradingHistory = {
+    finalStatus?: string;
+    requesterId?: string;
+    listingId?: string;
+    completedFromDate?: string;
+    completedToDate?: string;
+    createdFromDate?: string;
+    createdToDate?: string;
+    sortBy?: string;
+    pageIndex?: number;
+    pageSize?: number;
+    desc?: boolean;
+  }
 }
 
 declare namespace API {
@@ -17,8 +31,10 @@ declare namespace API {
     listingItemTier: string;
     listingItemImgUrl: string;
     listingOwnerName?: string;
+    listingOwnerAvatarUrl: string;
     requesterId: string;
     requesterName: string;
+    requesterAvatarUrl: string
     offeredItems: OfferedItem[];
     status: string;
     requestedAt: string;
@@ -32,4 +48,26 @@ declare namespace API {
     imageUrl: string;
     tier: string
   }
+
+  type TradingHistory = {
+    id: string;
+    listingId: string;
+    listingItemName: string;
+    listingItemImage: string;
+    requesterId: string;
+    requesterName: string;
+    offeredItemName: string;
+    offeredItemImage: string;
+    finalStatus: string;
+    completedAt: string;
+    createdAt: string;
+  }
+
+  type ResponseDataTradeHistory = {
+    result: TradingHistory[];
+    count: number;
+    pageSize: number;
+    currentPage: number;
+    totalPages: number;
+  };
 }

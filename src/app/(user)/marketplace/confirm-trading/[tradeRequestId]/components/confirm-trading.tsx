@@ -305,11 +305,11 @@ const TradeConfirmationPage: React.FC = () => {
   const currentUserLocked = isRequester ? lockState.requesterLocked : lockState.ownerLocked;
   const otherUserLocked = isRequester ? lockState.ownerLocked : lockState.requesterLocked;
 
-  // Prepare user data
+  // Prepare user data - SỬ DỤNG ĐÚNG CÁC FIELD TỪ API
   const currentUser: TradeUser = {
     id: userId,
-    name: "Bạn",
-    avatar: userAvatar,
+    name: isRequester ? tradeData.requesterName : (tradeData.listingOwnerName || "Chủ sở hữu"),
+    avatar: isRequester ? (tradeData.requesterAvatarUrl || userAvatar) : (tradeData.listingOwnerAvatarUrl || userAvatar),
     items: isRequester ? 
       tradeData.offeredItems?.map(item => ({
         id: item.inventoryItemId,
@@ -329,8 +329,8 @@ const TradeConfirmationPage: React.FC = () => {
   
   const otherUser: TradeUser = {
     id: isRequester ? 'owner' : tradeData.requesterId,
-    name: isRequester ? 'Chủ sở hữu' : 'Người yêu cầu',
-    avatar: '/default-avatar.png',
+    name: isRequester ? (tradeData.listingOwnerName || 'Chủ sở hữu') : tradeData.requesterName,
+    avatar: isRequester ? (tradeData.listingOwnerAvatarUrl || '/default-avatar.png') : (tradeData.requesterAvatarUrl || '/default-avatar.png'),
     items: isRequester ? 
       [{
         id: tradeData.listingId,

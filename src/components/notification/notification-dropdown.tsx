@@ -4,6 +4,7 @@ import { useNotification } from '@/hooks/use-notification';
 import { formatDistanceToNow } from 'date-fns';
 import { useAppSelector } from '@/stores/store';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 interface NotificationDropdownProps {
   onClose: () => void;
@@ -25,6 +26,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
   const userRole = user?.roleName || 'Customer';
   const observer = useRef<IntersectionObserver | null>(null);
   const lastNotificationElementRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     fetchNotifications({ pageIndex: 0, pageSize: 10 });
@@ -59,18 +61,24 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
     }
   }, [page, fetchNotifications]);
 
-  const handleMarkAsRead = async (notificationId: string) => {
+  const handleMarkAsRead = async (notificationId: string, sourceUrl?: string) => {
     const response = await markNotificationAsRead(notificationId);
     if (response.isSuccess) {
-      // Thông báo đã được đánh dấu đã đọc thành công
       console.log(`[NotificationDropdown] Notification ${notificationId} marked as read`);
+      
+      // Nếu có sourceUrl thì chuyển hướng đến trang đó
+      if (sourceUrl) {
+        // Đóng dropdown trước khi chuyển hướng
+        onClose();
+        // Chuyển hướng đến sourceUrl
+        router.push(sourceUrl);
+      }
     }
   };
 
   const handleMarkAllAsRead = async () => {
     const response = await markAllNotificationsAsRead();
     if (response.isSuccess) {
-      // Tất cả thông báo đã được đánh dấu đã đọc thành công
       console.log('[NotificationDropdown] All notifications marked as read');
     }
   };
@@ -78,7 +86,6 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
   const handleDelete = async (notificationId: string) => {
     const response = await deleteNotification(notificationId);
     if (response.isSuccess) {
-      // Thông báo đã được xóa thành công
       console.log(`[NotificationDropdown] Notification ${notificationId} deleted`);
     }
   };
@@ -176,6 +183,8 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
           <div className="divide-y divide-gray-200">
             {filteredNotifications.map((notification, index) => {
               const isLastElement = index === filteredNotifications.length - 1;
+              const hasSourceUrl = notification.type === 'Trading' && notification.sourceUrl;
+              
               return (
                 <div
                   ref={isLastElement ? lastNotificationElementRef : null}
@@ -208,9 +217,13 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
                         <div className="flex items-center gap-1 ml-2">
                           {!notification.isRead && (
                             <button
-                              onClick={() => handleMarkAsRead(notification.id)}
-                              className="p-1 text-gray-400 hover:text-green-600 transition-colors"
-                              title="Đánh dấu đã đọc"
+                              onClick={() => handleMarkAsRead(notification.id, hasSourceUrl ? notification.sourceUrl : undefined)}
+                              className={`p-1 transition-colors ${
+                                hasSourceUrl 
+                                  ? 'text-orange-500 hover:text-orange-700' 
+                                  : 'text-gray-400 hover:text-green-600'
+                              }`}
+                              title={hasSourceUrl ? "Đánh dấu đã đọc và xem chi tiết" : "Đánh dấu đã đọc"}
                             >
                               <Check className="h-3 w-3" />
                             </button>
@@ -241,4 +254,4 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
   );
 };
 
-export default NotificationDropdown; 
+export default NotificationDropdown;

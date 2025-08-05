@@ -66,12 +66,36 @@ export const lockTradeRequest= async (
   return response.data;
 };
 
-export const viewMyTradeRequest = async ()
-: Promise<TResponseData<API.TradeRequest[]>> => {
-  const response = await request<TResponseData<API.TradeRequest[]>>(
-    API_ENDPOINTS.VIEW_MY_TRADE_REQUEST,
+export const viewTradeRequestHistory = async ({
+  pageIndex,
+  pageSize,
+  desc,
+  sortBy,
+  finalStatus,
+  listingId,
+  requesterId,
+  completedFromDate,
+  completedToDate,
+  createdFromDate,
+  createdToDate
+}: REQUEST.ViewTradingHistory): Promise<TResponseData<API.ResponseDataTradeHistory>> => {
+  const response = await request<TResponseData<API.ResponseDataTradeHistory>>(
+    API_ENDPOINTS.VIEW_MY_TRADING_HISTORY,
     {
       method: "GET",
+      params: {
+        pageIndex,
+        pageSize,
+        desc,
+        sortBy,
+        finalStatus,
+        listingId,
+        requesterId,
+        completedFromDate,
+        completedToDate,
+        createdFromDate,
+        createdToDate
+      }
     }
   );
   return response.data;

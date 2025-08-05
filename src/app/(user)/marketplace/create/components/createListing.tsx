@@ -1,7 +1,8 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import {X, Camera, Search, Package } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import {X, Camera, Search, Package, User } from 'lucide-react';
 import useGetAllAvailableItem from "../hooks/useGetAllAvailableItem";
 import { useServiceCreateListing } from "@/services/listing/services";
 import {API} from "@/services/listing/typings";
@@ -113,6 +114,10 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
 
 const MarketplaceListing: React.FC = () => {
   const router = useRouter();
+  
+  // Get user info from Redux store
+  const { avatarUrl, fullName } = useSelector((state : any) => state.userSlice.user);
+  
   const [selectedItem, setSelectedItem] = useState<API.AvailableItem | null>(null);
   const [description, setDescription] = useState('');
   const [isFree, setIsFree] = useState(true);
@@ -190,6 +195,17 @@ const MarketplaceListing: React.FC = () => {
     setDescription('');
     setIsFree(true);
     setDesiredItemName('');
+  };
+
+  // Helper function to get user initials for fallback
+  const getUserInitials = (name?: string) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   const isSubmitting = createListingMutation.isPending;
@@ -324,12 +340,28 @@ const MarketplaceListing: React.FC = () => {
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Thông tin người bán</h3>
                 <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-semibold">NQ</span>
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center overflow-hidden">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={fullName || 'User'}
+                        className="w-8 h-8 object-cover"
+                        onError={(e) => {
+                          // Fallback to initials if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : (
+                      <User className="text-white" size={16} />
+                    )}
+                    {/* Fallback initials - hidden by default, shown if image fails */}
+                    <span className={`text-white text-xs font-semibold ${avatarUrl ? 'hidden' : ''}`}>
+                      {getUserInitials(fullName)}
+                    </span>
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Nhat Quang</p>
-                    <p className="text-xs text-gray-500">Đã niêm yết về giấy trước</p>
+                    <p className="font-medium text-sm">{fullName || 'Người dùng'}</p>
                   </div>
                 </div>
               </div>
@@ -448,11 +480,28 @@ const MarketplaceListing: React.FC = () => {
                     <div className="border-t pt-6">
                       <h3 className="text-lg font-semibold mb-3">Thông tin người bán</h3>
                       <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                          <span className="text-white font-semibold">NQ</span>
+                        <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center overflow-hidden">
+                          {avatarUrl ? (
+                            <img
+                              src={avatarUrl}
+                              alt={fullName || 'User'}
+                              className="w-12 h-12 object-cover"
+                              onError={(e) => {
+                                // Fallback to initials if image fails to load
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                          ) : (
+                            <User className="text-white" size={20} />
+                          )}
+                          {/* Fallback initials - hidden by default, shown if image fails */}
+                          <span className={`text-white font-semibold ${avatarUrl ? 'hidden' : ''}`}>
+                            {getUserInitials(fullName)}
+                          </span>
                         </div>
                         <div>
-                          <p className="font-semibold">Nhat Quang</p>
+                          <p className="font-semibold">{fullName || 'Người dùng'}</p>
                         </div>
                       </div>
                       
