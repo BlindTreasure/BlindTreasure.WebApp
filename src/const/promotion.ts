@@ -19,3 +19,12 @@ export const DiscountTypeText: Record<DiscountType, string> = {
   [DiscountType.Percentage]: "Phần trăm",
   [DiscountType.Fixed]: "Giá cố định",
 };
+export enum PromotionType {
+    Percentage = "Percentage",
+    Fixed = "Fixed"
+}
+
+export enum PromotionCreateByRole {
+    Staff = "Staff",
+    Seller = "Seller",
+}

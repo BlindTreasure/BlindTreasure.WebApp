@@ -34,7 +34,8 @@ declare namespace API {
     dateOfBirth?: string;
     taxId?: string;
     companyAddress?: string;
-    sellerStatus: string
+    sellerStatus: string;
+    sellerId?: string
   };
 
   type SellerById = {
