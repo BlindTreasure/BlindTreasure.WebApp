@@ -21,12 +21,14 @@ export const useNotification = () => {
   // Fetch notifications from API
   const fetchNotifications = useCallback(async ({
   pageIndex,
-  pageSize
+  pageSize,
+  type
 }: REQUEST.NotificationParamsRequest) => {
     try {
       var params = {
         pageIndex,
-        pageSize
+        pageSize,
+        type
       }
       
       dispatch(setLoading(true));

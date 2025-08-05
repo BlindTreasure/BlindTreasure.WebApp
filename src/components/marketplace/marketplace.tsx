@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Clock, Gift, RefreshCw, Loader2, ChevronLeft, ChevronRight, CheckCircle, XCircle, Package } from 'lucide-react';
+import { Heart, Clock, Gift, RefreshCw, Loader2, ChevronLeft, ChevronRight, CheckCircle, XCircle, Package, History } from 'lucide-react';
 import MarketplaceSidebar from '../marketplace/marketplace-sidebar'; // Import sidebar component
 import {API} from "@/services/listing/typings"
 import { ListingStatus } from "@/const/listing"
@@ -23,7 +23,7 @@ interface MarketplaceUIProps {
   isFreeFilter?: boolean | null;
   onIsFreeChange?: (isFree: boolean | null) => void;
   // Navigation props
-  activeSection?: string;
+  activeSection?: string; // 'all' | 'transaction-history' | 'buying' | 'selling'
   onNavigationChange?: (section: string, params?: any) => void;
 }
 
@@ -117,8 +117,8 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
       filters.push('Sản phẩm của tôi');
     } else if (activeSection === 'buying') {
       filters.push('Đang trao đổi');
-    } else if (activeSection === 'notifications') {
-      filters.push('Thông báo');
+    } else if (activeSection === 'transaction-history') {
+      filters.push('Lịch sử giao dịch');
     } else if (activeSection === 'inbox') {
       filters.push('Hộp thư');
     }
@@ -143,14 +143,17 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
         return 'Sản phẩm của tôi';
       case 'buying':
         return 'Đang trao đổi';
-      case 'notifications':
-        return 'Thông báo';
+      case 'transaction-history':
+        return 'Lịch sử giao dịch';
       case 'inbox':
         return 'Hộp thư';
       default:
         return 'Lựa chọn hôm nay';
     }
   };
+
+  // Show transaction history placeholder when in transaction-history section
+  const showTransactionHistoryPlaceholder = activeSection === 'transaction-history' && filteredProducts.length === 0 && !isLoading;
 
   return (
     <div className="flex min-h-screen bg-gray-50 pt-32">
@@ -177,18 +180,18 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
             <div className="flex items-center justify-between">
               <p className="text-gray-500 flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                Cập nhật gần đây
+                {activeSection === 'transaction-history' ? 'Giao dịch gần đây' : 'Cập nhật gần đây'}
               </p>
               {totalItems > 0 && (
                 <p className="text-sm text-gray-500">
-                  Hiển thị {startItem}-{endItem} của {totalItems} sản phẩm
+                  Hiển thị {startItem}-{endItem} của {totalItems} {activeSection === 'transaction-history' ? 'giao dịch' : 'sản phẩm'}
                 </p>
               )}
             </div>
           </div>
 
           {/* Quick Stats */}
-          {!isLoading && totalItems > 0 && (
+          {!isLoading && totalItems > 0 && activeSection !== 'transaction-history' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                 <div className="flex items-center gap-3">
@@ -234,6 +237,53 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
             </div>
           )}
 
+          {/* Transaction History Stats - Special stats for transaction history */}
+          {!isLoading && totalItems > 0 && activeSection === 'transaction-history' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Hoàn thành</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {filteredProducts.filter(p => p.status === 'completed' || p.status === 'sold').length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Đang xử lý</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {filteredProducts.filter(p => p.status === 'pending' || p.status === 'active').length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <History className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Tổng giao dịch</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {totalItems}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Loading State */}
           {isLoading && (
             <div className="flex items-center justify-center py-12">
@@ -243,7 +293,7 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
           )}
 
           {/* Products Grid */}
-          {!isLoading && (
+          {!isLoading && !showTransactionHistoryPlaceholder && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {filteredProducts.map((product) => {
                 const statusDisplay = getStatusDisplay(product.status);
@@ -286,22 +336,34 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
                         </div>
                       </div>
 
-                      {/* Heart button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleLike(product.inventoryId);
-                        }}
-                        className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-all"
-                      >
-                        <Heart
-                          className={`w-4 h-4 ${
-                            likedItems.has(product.inventoryId)
-                              ? 'text-red-500 fill-red-500'
-                              : 'text-gray-400'
-                          }`}
-                        />
-                      </button>
+                      {/* Heart button - Hide in transaction history */}
+                      {activeSection !== 'transaction-history' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleLike(product.inventoryId);
+                          }}
+                          className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-all"
+                        >
+                          <Heart
+                            className={`w-4 h-4 ${
+                              likedItems.has(product.inventoryId)
+                                ? 'text-red-500 fill-red-500'
+                                : 'text-gray-400'
+                            }`}
+                          />
+                        </button>
+                      )}
+            
+                      {/* Transaction History specific info */}
+                      {activeSection === 'transaction-history' && (
+                        <div className="absolute top-3 right-3">
+                          <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm">
+                            <History className="w-3 h-3 inline mr-1" />
+                            Giao dịch
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="p-4">
@@ -325,8 +387,31 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
             </div>
           )}
 
-          {/* No results message */}
-          {!isLoading && filteredProducts.length === 0 && (
+          {/* Transaction History Placeholder */}
+          {showTransactionHistoryPlaceholder && (
+            <div className="text-center py-12">
+              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <History className="w-12 h-12 text-green-600" />
+              </div>
+              <p className="text-gray-500 text-lg">Chưa có giao dịch nào</p>
+              <p className="text-gray-400 text-sm mt-2">
+                Lịch sử giao dịch của bạn sẽ hiển thị tại đây khi bạn có giao dịch
+              </p>
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg max-w-md mx-auto">
+                <h4 className="text-sm font-medium text-blue-900 mb-2">Bộ lọc có sẵn:</h4>
+                <ul className="text-xs text-blue-700 space-y-1">
+                  <li>• Trạng thái cuối cùng (FinalStatus)</li>
+                  <li>• ID người yêu cầu (RequesterId)</li>
+                  <li>• ID sản phẩm (ListingId)</li>
+                  <li>• Ngày hoàn thành (CompletedFromDate - CompletedToDate)</li>
+                  <li>• Ngày tạo (CreatedFromDate - CreatedToDate)</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* No results message for other sections */}
+          {!isLoading && filteredProducts.length === 0 && activeSection !== 'transaction-history' && (
             <div className="text-center py-12">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Gift className="w-12 h-12 text-gray-400" />

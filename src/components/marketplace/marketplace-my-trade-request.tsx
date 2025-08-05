@@ -1,64 +1,126 @@
 'use client'
-import React, { useState, useEffect } from 'react';
-import { X, Star, ChevronLeft, ChevronRight, Gift, RefreshCw, Clock, Shield, Loader2, User, MessageCircle, CheckCircle, XCircle, AlertTriangle, Handshake, Eye, Package, Lock, Unlock } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Star, ChevronLeft, ChevronRight, Gift, RefreshCw, Clock, Shield, Loader2, User, MessageCircle, CheckCircle, XCircle, AlertTriangle, Handshake, Eye, Package, Lock, Unlock, History, Calendar } from 'lucide-react';
 import { Progress } from "@/components/ui/progress"
+
+// History item type
+interface HistoryItem {
+  id: string;
+  listingId?: string;
+  listingItemName?: string;
+  listingItemTier?: string;
+  listingItemImgUrl?: string;
+  listingOwnerName?: string;
+  requesterId?: string;
+  requesterName?: string;
+  offeredItems?: API.OfferedItem[];
+  status?: string;
+  finalStatus?: string;
+  requestedAt?: string;
+  completedAt?: string;
+  createdAt?: string;
+  timeRemaining?: number;
+  ownerLocked?: boolean;
+  requesterLocked?: boolean;
+}
 
 // Updated interface to match the props being passed from parent
 interface MyTradeRequestDetailProps {
-  tradeRequest: TradeRequest;
+  tradeRequest: API.TradeRequest | HistoryItem;
   onClose: () => void;
   isLoading?: boolean;
+  isHistoryView?: boolean; // New prop to indicate if this is a history view
 }
 
-// TradeRequest type based on the parent component
-type TradeRequest = {
-  id: string;
-  listingId: string;
-  listingItemName: string;
-  listingItemTier: string;
-  listingItemImgUrl: string;
-  requesterId: string;
-  requesterName: string;
-  offeredItems: OfferedItem[];
-  status: string;
-  requestedAt: string;
-  timeRemaining?: number;
-  ownerLocked: boolean;
-  requesterLocked: boolean;
-  listingOwnerName?: string; // Add this as it might be available
-}
-
-type OfferedItem = {
-  inventoryItemId: string;
-  itemName: string;
-  imageUrl: string;
-  tier: string;
-}
 
 const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({ 
   tradeRequest, 
   onClose, 
-  isLoading = false
+  isLoading = false,
+  isHistoryView = false
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentOfferedIndex, setCurrentOfferedIndex] = useState(0);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside to close modal
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !contentRef.current?.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('keydown', handleEscKey);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [onClose]);
 
   // Determine if this is an ongoing trade based on status
-  const isOngoingTrade = ['accepted', 'in_progress', 'locked'].includes(tradeRequest.status.toLowerCase());
+  const currentStatus = isHistoryView ? ((tradeRequest as HistoryItem).finalStatus || tradeRequest.status) : tradeRequest.status;
+  const isOngoingTrade = !isHistoryView && ['accepted', 'in_progress', 'locked'].includes(currentStatus?.toLowerCase() || '');
   
   // For trade requests, the current user is always the requester
   const isCurrentUserRequester = true;
 
-  const calculateProgress = (ownerLocked: boolean, requesterLocked: boolean): number => {
+  // Get the appropriate data based on view type
+  const getItemName = (): string => {
+    return tradeRequest.listingItemName || 'Không xác định';
+  };
+
+  const getItemImage = (): string => {
+    return tradeRequest.listingItemImgUrl || '';
+  };
+
+  const getItemTier = (): string => {
+    return tradeRequest.listingItemTier || '';
+  };
+
+  const getOwnerName = (): string => {
+    return tradeRequest.listingOwnerName || tradeRequest.requesterName || 'Không xác định';
+  };
+
+  const getDateTime = (): string => {
+    if (isHistoryView) {
+      return (tradeRequest as HistoryItem).completedAt || (tradeRequest as HistoryItem).createdAt || tradeRequest.requestedAt || '';
+    }
+    return tradeRequest.requestedAt || '';
+  };
+
+  const calculateProgress = (ownerLocked?: boolean, requesterLocked?: boolean): number => {
     if (ownerLocked && requesterLocked) return 100;
     if (ownerLocked || requesterLocked) return 50;
     return 0;
   };
 
   // Format ngày tháng
-  const getTimeSincePosted = (requestedAt: string): string => {
+  const getTimeSincePosted = (dateString: string): string => {
+    if (!dateString) return 'Không xác định';
+    
     const now = new Date();
-    const posted = new Date(requestedAt);
+    const posted = new Date(dateString);
     const diffInHours = Math.floor((now.getTime() - posted.getTime()) / (1000 * 60 * 60));
     
     if (diffInHours < 1) return 'Vừa tạo';
@@ -75,8 +137,9 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
   };
 
   // Get status text and color
-  const getStatusText = (status: string) => {
-    switch (status?.toLowerCase()) {
+  const getStatusText = (status?: string): string => {
+    const statusLower = status?.toLowerCase() || '';
+    switch (statusLower) {
       case 'pending':
         return isOngoingTrade ? 'Đang chờ xử lý' : 'Đang chờ phản hồi';
       case 'accepted':
@@ -98,8 +161,9 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
+  const getStatusColor = (status?: string): string => {
+    const statusLower = status?.toLowerCase() || '';
+    switch (statusLower) {
       case 'pending':
         return 'text-yellow-600 bg-yellow-50 border-yellow-200';
       case 'accepted':
@@ -119,7 +183,7 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
   };
 
   // Get time remaining text
-  const getTimeRemainingText = () => {
+  const getTimeRemainingText = (): string | null => {
     if (!tradeRequest.timeRemaining) return null;
     
     const hours = Math.floor(tradeRequest.timeRemaining / 3600);
@@ -131,14 +195,22 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
     return `${minutes} phút`;
   };
 
+  // Get header title based on view type
+  const getHeaderTitle = (): string => {
+    if (isHistoryView) {
+      return 'Lịch sử giao dịch';
+    }
+    return isOngoingTrade ? 'Đang trao đổi' : 'Yêu cầu trao đổi';
+  };
+
   // Loading skeleton
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex">
-        <div className="w-full max-w-md bg-white ml-auto h-full overflow-y-auto">
+      <div ref={modalRef} className="fixed inset-0 bg-black bg-opacity-50 z-50 flex">
+        <div ref={contentRef} className="w-full max-w-md bg-white ml-auto h-full overflow-y-auto">
           <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
             <h2 className="text-lg font-semibold text-gray-900">
-              {isOngoingTrade ? 'Đang trao đổi' : 'Yêu cầu trao đổi'}
+              {getHeaderTitle()}
             </h2>
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <X className="w-5 h-5" />
@@ -154,12 +226,13 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex">
-      <div className="w-full max-w-md bg-white ml-auto h-full overflow-y-auto">
+    <div ref={modalRef} className="fixed inset-0 bg-black bg-opacity-50 z-50 flex">
+      <div ref={contentRef} className="w-full max-w-md bg-white ml-auto h-full overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {isOngoingTrade ? 'Đang trao đổi' : 'Yêu cầu trao đổi'}
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            {isHistoryView && <History className="w-5 h-5" />}
+            {getHeaderTitle()}
           </h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
             <X className="w-5 h-5" />
@@ -169,12 +242,12 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
         <div className="p-4">
           {/* Status and Time */}
           <div className="flex items-center justify-between mb-4">
-            <span className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusColor(tradeRequest.status)}`}>
-              <Shield className="w-3 h-3" />
-              {getStatusText(tradeRequest.status)}
+            <span className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusColor(currentStatus)}`}>
+              {isHistoryView ? <History className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
+              {getStatusText(currentStatus)}
             </span>
             
-            {tradeRequest.timeRemaining && tradeRequest.status.toLowerCase() === 'accepted' && (
+            {!isHistoryView && tradeRequest.timeRemaining && (currentStatus?.toLowerCase() || '') === 'accepted' && (
               <div className="flex items-center gap-1 text-sm text-red-600 font-medium animate-pulse">
                 <Clock className="w-4 h-4" />
                 <span>Còn {getTimeRemainingText()}</span>
@@ -183,23 +256,27 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
           </div>
 
           {/* Trade Request Info */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-4 mb-4 border border-blue-200">
+          <div className={`${isHistoryView ? 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200' : 'bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200'} rounded-xl p-4 mb-4 border`}>
             <div className="flex items-center gap-2 mb-2">
-              <Handshake className="w-5 h-5 text-blue-600" />
-              <h3 className="font-semibold text-blue-900">
-                {isOngoingTrade ? 'Thông tin trao đổi' : 'Thông tin yêu cầu'}
+              {isHistoryView ? <Calendar className="w-5 h-5 text-gray-600" /> : <Handshake className="w-5 h-5 text-blue-600" />}
+              <h3 className={`font-semibold ${isHistoryView ? 'text-gray-900' : 'text-blue-900'}`}>
+                {isHistoryView ? 'Thông tin lịch sử' : (isOngoingTrade ? 'Thông tin trao đổi' : 'Thông tin yêu cầu')}
               </h3>
             </div>
-            <p className="text-sm text-blue-800 mb-1">
-              <span className="font-medium">Người bán:</span> {tradeRequest.listingOwnerName || 'Không xác định'}
+            <p className={`text-sm ${isHistoryView ? 'text-gray-800' : 'text-blue-800'} mb-1`}>
+              <span className="font-medium">
+                {isHistoryView ? 'Đối tác:' : 'Người bán:'}
+              </span> {getOwnerName()}
             </p>
-            <p className="text-sm text-blue-700">
-              <span className="font-medium">Thời gian:</span> {getTimeSincePosted(tradeRequest.requestedAt)}
+            <p className={`text-sm ${isHistoryView ? 'text-gray-700' : 'text-blue-700'}`}>
+              <span className="font-medium">
+                {isHistoryView ? ((tradeRequest as HistoryItem).completedAt ? 'Hoàn thành:' : 'Thời gian:') : 'Thời gian:'}
+              </span> {getTimeSincePosted(getDateTime())}
             </p>
           </div>
 
           {/* Lock Status - Only show for ongoing trades */}
-          {isOngoingTrade && tradeRequest.status.toLowerCase() === 'accepted' && (
+          {!isHistoryView && isOngoingTrade && (currentStatus?.toLowerCase() || '') === 'accepted' && (
             <div className="bg-white rounded-xl p-4 mb-4 border border-gray-200">
               <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <Lock className="w-4 h-4" />
@@ -227,177 +304,191 @@ const MyTradeRequestDetail: React.FC<MyTradeRequestDetailProps> = ({
           <div className="mb-6">
             <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <Eye className="w-4 h-4" />
-              Sản phẩm bạn muốn
+              {isHistoryView ? 'Sản phẩm đã giao dịch' : 'Sản phẩm bạn muốn'}
             </h3>
             
             <div className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-3">
                 <img
-                  src={tradeRequest.listingItemImgUrl}
-                  alt={tradeRequest.listingItemName}
+                  src={getItemImage()}
+                  alt={getItemName()}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.currentTarget.src = '/placeholder-image.jpg';
+                    // Prevent infinite loop by checking if already using fallback
+                    if (e.currentTarget.src !== window.location.origin + '/placeholder-image.jpg') {
+                      e.currentTarget.src = '/placeholder-image.jpg';
+                    }
                   }}
                 />
               </div>
               
               <h4 className="font-semibold text-gray-900 mb-1">
-                {tradeRequest.listingItemName}
+                {getItemName()}
               </h4>
               
-              {tradeRequest.listingItemTier && (
+              {getItemTier() && (
                 <div className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 rounded-full text-xs font-medium">
                   <Star className="w-3 h-3" />
-                  {tradeRequest.listingItemTier}
+                  {getItemTier()}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Offered Items (What you're offering) */}
-          <div className="mb-6">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              Sản phẩm bạn đề nghị ({tradeRequest.offeredItems?.length || 0} món)
-            </h3>
-            
-            {tradeRequest.offeredItems && tradeRequest.offeredItems.length > 0 ? (
-              <div className="space-y-3">
-                {tradeRequest.offeredItems.map((item, index) => (
-                  <div key={`offered-${item.inventoryItemId}-${index}`} className="bg-white border border-gray-200 rounded-xl p-4">
-                    <div className="flex gap-3">
-                      <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                        <img
-                          src={item.imageUrl}
-                          alt={item.itemName}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder-image.jpg';
-                          }}
-                        />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 mb-1 truncate">
-                          {item.itemName}
-                        </h4>
+          {/* Offered Items (What you're offering) - Only show if not history view or if data exists */}
+          {(!isHistoryView || (tradeRequest.offeredItems && tradeRequest.offeredItems.length > 0)) && (
+            <div className="mb-6">
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Package className="w-4 h-4" />
+                {isHistoryView ? 'Sản phẩm đã đề nghị' : 'Sản phẩm bạn đề nghị'} ({tradeRequest.offeredItems?.length || 0} món)
+              </h3>
+              
+              {tradeRequest.offeredItems && tradeRequest.offeredItems.length > 0 ? (
+                <div className="space-y-3">
+                  {tradeRequest.offeredItems.map((item: API.OfferedItem, index: number) => (
+                    <div key={`offered-${item.inventoryItemId}-${index}`} className="bg-white border border-gray-200 rounded-xl p-4">
+                      <div className="flex gap-3">
+                        <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.itemName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Prevent infinite loop by checking if already using fallback
+                              const target = e.currentTarget as HTMLImageElement;
+                              if (target.src !== window.location.origin + '/placeholder-image.jpg') {
+                                target.src = '/placeholder-image.jpg';
+                              }
+                            }}
+                          />
+                        </div>
                         
-                        {item.tier && (
-                          <div className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 rounded-full text-xs font-medium mb-2">
-                            <Star className="w-3 h-3" />
-                            {item.tier}
-                          </div>
-                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 mb-1 truncate">
+                            {item.itemName}
+                          </h4>
+                          
+                          {item.tier && (
+                            <div className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 rounded-full text-xs font-medium mb-2">
+                              <Star className="w-3 h-3" />
+                              {item.tier}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
-                <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600 text-sm">Không có sản phẩm đề nghị</p>
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
+                  <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600 text-sm">
+                    {isHistoryView ? 'Không có thông tin sản phẩm đề nghị' : 'Không có sản phẩm đề nghị'}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Status Information */}
+          {/* Status Information - Removed ID field */}
           <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
             <h3 className="font-semibold text-gray-900 mb-3">Thông tin chi tiết</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between py-2 border-b border-gray-100">
                 <span className="text-gray-600">Trạng thái:</span>
                 <span className="font-medium text-gray-900">
-                  {getStatusText(tradeRequest.status)}
+                  {getStatusText(currentStatus)}
                 </span>
               </div>
               
               <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Thời gian tạo:</span>
+                <span className="text-gray-600">
+                  {isHistoryView ? ((tradeRequest as HistoryItem).completedAt ? 'Hoàn thành:' : 'Thời gian tạo:') : 'Thời gian tạo:'}
+                </span>
                 <span className="font-medium text-gray-900">
-                  {new Date(tradeRequest.requestedAt).toLocaleDateString('vi-VN', {
+                  {getDateTime() ? new Date(getDateTime()).toLocaleDateString('vi-VN', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit'
-                  })}
-                </span>
-              </div>
-              
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">Đối tác:</span>
-                <span className="font-medium text-gray-900">
-                  {tradeRequest.listingOwnerName || 'Không xác định'}
+                  }) : 'Không xác định'}
                 </span>
               </div>
               
               <div className="flex justify-between py-2">
-                <span className="text-gray-600">ID Giao dịch:</span>
-                <span className="font-mono text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                  {tradeRequest.id}
+                <span className="text-gray-600">Đối tác:</span>
+                <span className="font-medium text-gray-900">
+                  {getOwnerName()}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Status-based Information */}
-          {tradeRequest.status?.toLowerCase() === 'pending' && !isOngoingTrade && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Clock className="w-4 h-4 text-yellow-600" />
-                <span className="text-sm font-medium text-yellow-800">
-                  Đang chờ phản hồi
-                </span>
-              </div>
-              <p className="text-xs text-yellow-700">
-                Yêu cầu trao đổi của bạn đã được gửi và đang chờ chủ sở hữu sản phẩm phản hồi.
-              </p>
-            </div>
+          {/* Status-based Information - Only show for non-history views */}
+          {!isHistoryView && (
+            <>
+              {(currentStatus?.toLowerCase() || '') === 'pending' && !isOngoingTrade && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="w-4 h-4 text-yellow-600" />
+                    <span className="text-sm font-medium text-yellow-800">
+                      Đang chờ phản hồi
+                    </span>
+                  </div>
+                  <p className="text-xs text-yellow-700">
+                    Yêu cầu trao đổi của bạn đã được gửi và đang chờ chủ sở hữu sản phẩm phản hồi.
+                  </p>
+                </div>
+              )}
+
+              {(currentStatus?.toLowerCase() || '') === 'accepted' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">
+                      Yêu cầu đã được chấp nhận
+                    </span>
+                  </div>
+                  <p className="text-xs text-blue-700">
+                    {isOngoingTrade 
+                      ? 'Giao dịch đang được thực hiện. Vui lòng theo dõi trạng thái khóa giao dịch.'
+                      : 'Yêu cầu trao đổi đã được chấp nhận. Giao dịch sẽ được bắt đầu.'
+                    }
+                  </p>
+                </div>
+              )}
+
+              {(currentStatus?.toLowerCase() || '') === 'rejected' && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <XCircle className="w-4 h-4 text-red-600" />
+                    <span className="text-sm font-medium text-red-800">
+                      Yêu cầu đã bị từ chối
+                    </span>
+                  </div>
+                  <p className="text-xs text-red-700">
+                    Chủ sở hữu đã từ chối yêu cầu trao đổi của bạn. Bạn có thể thử tạo yêu cầu khác.
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
-          {tradeRequest.status?.toLowerCase() === 'accepted' && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-800">
-                  Yêu cầu đã được chấp nhận
-                </span>
-              </div>
-              <p className="text-xs text-blue-700">
-                {isOngoingTrade 
-                  ? 'Giao dịch đang được thực hiện. Vui lòng theo dõi trạng thái khóa giao dịch.'
-                  : 'Yêu cầu trao đổi đã được chấp nhận. Giao dịch sẽ được bắt đầu.'
-                }
-              </p>
-            </div>
-          )}
-
-          {tradeRequest.status?.toLowerCase() === 'rejected' && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <XCircle className="w-4 h-4 text-red-600" />
-                <span className="text-sm font-medium text-red-800">
-                  Yêu cầu đã bị từ chối
-                </span>
-              </div>
-              <p className="text-xs text-red-700">
-                Chủ sở hữu đã từ chối yêu cầu trao đổi của bạn. Bạn có thể thử tạo yêu cầu khác.
-              </p>
-            </div>
-          )}
-
-          {tradeRequest.status?.toLowerCase() === 'completed' && (
+          {/* History-specific or completed status information */}
+          {(isHistoryView || (currentStatus?.toLowerCase() || '') === 'completed') && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle className="w-4 h-4 text-green-600" />
                 <span className="text-sm font-medium text-green-800">
-                  Giao dịch hoàn thành
+                  {isHistoryView ? 'Giao dịch trong lịch sử' : 'Giao dịch hoàn thành'}
                 </span>
               </div>
               <p className="text-xs text-green-700">
-                Giao dịch đã được hoàn thành thành công. Cảm ơn bạn đã sử dụng dịch vụ!
+                {isHistoryView 
+                  ? 'Đây là một giao dịch đã hoàn thành trong quá khứ.'
+                  : 'Giao dịch đã được hoàn thành thành công. Cảm ơn bạn đã sử dụng dịch vụ!'
+                }
               </p>
             </div>
           )}

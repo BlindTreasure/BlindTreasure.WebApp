@@ -19,6 +19,7 @@ export const useSignalRNotification = (user: any) => {
       return;
     }
 
+
     const initializeNotifications = async () => {
       try {
         const notificationsResponse = await getNotifications({ pageIndex: 0, pageSize: 10 });
@@ -69,7 +70,7 @@ export const useSignalRNotification = (user: any) => {
 
       switch (userRole) {
         case "Customer":
-          return ["Order", "Promotion", "General"].includes(notification.type);
+          return ["Order", "Promotion", "General", "Trading"].includes(notification.type);
         case "Seller":
           return ["Order", "Product", "General"].includes(notification.type);
         case "Staff":

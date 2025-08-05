@@ -1,14 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, Settings, Bell, Archive, ShoppingBag, Plus, ChevronRight, Filter, X, Gift, RefreshCw, CheckCircle, XCircle, Package, Clock } from 'lucide-react';
-
-// Updated enum to match the provided definition
-enum ListingStatus {
-  Available = 'Available',
-  Pending = 'Pending',
-  Completed = 'Completed',
-  Cancelled = 'Cancelled'
-}
+import { Search, MapPin, Settings, History, Archive, ShoppingBag, Plus, ChevronRight, Filter, X, Gift, RefreshCw, CheckCircle, XCircle, Package, Clock } from 'lucide-react';
 
 interface MarketplaceSidebarProps {
   searchTerm: string;
@@ -19,7 +11,7 @@ interface MarketplaceSidebarProps {
   isFreeFilter?: boolean | null; // null = all, true = free only, false = paid only
   onIsFreeChange?: (isFree: boolean | null) => void;
   // Navigation props
-  activeSection?: string; // 'all' | 'notifications' | 'buying' | 'selling'
+  activeSection?: string; // 'all' | 'transaction-history' | 'buying' | 'selling'
   onNavigationChange?: (section: string, params?: any) => void;
 }
 
@@ -40,22 +32,8 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
     router.push('/marketplace/create');
   };
 
-  // Clear all filters
-  const clearFilters = () => {
-    onSearchChange('');
-    if (onIsFreeChange) {
-      onIsFreeChange(null);
-    }
-  };
-
   // Handle navigation click
   const handleNavigationClick = (section: string, params?: any) => {
-    if (section === 'notifications') {
-      // Thông báo chức năng chưa được triển khai
-      alert('Chức năng thông báo đang được phát triển');
-      return;
-    }
-    
     if (onNavigationChange) {
       onNavigationChange(section, params);
     }
@@ -181,33 +159,37 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
             </div>
           </div>
 
-          {/* Thông báo - Currently not implemented */}
+          {/* Lịch sử giao dịch - Replaced Thông báo */}
           <div className="px-6 py-1">
             <div 
-              onClick={() => handleNavigationClick('notifications')}
-              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
-                activeSection === 'notifications'
-                  ? 'bg-gradient-to-r from-orange-50 to-orange-100 border-l-4 border-orange-500 shadow-sm'
+              onClick={() => handleNavigationClick('transaction-history')}
+              className={`flex items-center justify-between gap-3 p-3 rounded-xl cursor-pointer transition-all ${
+                activeSection === 'transaction-history'
+                  ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 shadow-sm'
                   : 'hover:bg-gray-50'
               }`}
             >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                activeSection === 'notifications'
-                  ? 'bg-gradient-to-br from-orange-500 to-orange-600 shadow-md'
-                  : 'bg-gradient-to-br from-orange-100 to-orange-200'
-              }`}>
-                <Bell className={`w-5 h-5 ${
-                  activeSection === 'notifications' ? 'text-white' : 'text-orange-600'
-                }`} />
-              </div>
-              <div className="flex flex-col">
-                <span className={`text-sm font-medium ${
-                  activeSection === 'notifications' ? 'text-gray-900' : 'text-gray-700'
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                  activeSection === 'transaction-history'
+                    ? 'bg-gradient-to-br from-green-500 to-emerald-600 shadow-md'
+                    : 'bg-gradient-to-br from-green-100 to-emerald-200'
                 }`}>
-                  Thông báo
-                </span>
-                <span className="text-xs text-gray-400">Đang phát triển</span>
+                  <History className={`w-5 h-5 ${
+                    activeSection === 'transaction-history' ? 'text-white' : 'text-green-600'
+                  }`} />
+                </div>
+                <div className="flex flex-col">
+                  <span className={`text-sm font-medium ${
+                    activeSection === 'transaction-history' ? 'text-gray-900' : 'text-gray-700'
+                  }`}>
+                    Lịch sử giao dịch
+                  </span>
+                </div>
               </div>
+              <ChevronRight className={`w-4 h-4 ${
+                activeSection === 'transaction-history' ? 'text-green-500' : 'text-gray-400'
+              }`} />
             </div>
           </div>
 
