@@ -8,7 +8,6 @@ import MyTradeRequestDetail from '@/components/marketplace/marketplace-my-trade-
 import useGetAllListing from '../hooks/useGetAllListing';
 import useGetListingById from '../hooks/useGetListingById';
 import useGetAllTradeRequestByListingId from "../hooks/useGetAllTradeRequestByListingId"
-import useGetAllMyTradeRequest from "../hooks/useGetAllMyTradeRequest";
 import useGetTradeRequestHistory from "../hooks/useGetAllMyTradeHistory";
 import { useServiceCloseListing } from '@/services/listing/services';
 import { useServiceCreateTradeRequest } from '@/services/trading/services';
@@ -60,7 +59,7 @@ const mapApiDataToProduct = (apiItem: APILISTING.ListingItem): APILISTING.Listin
 };
 
 // Map TradeRequest to ListingItem format for display in marketplace UI
-const mapTradeRequestToProduct = (tradeRequest: API.TradeRequest): APILISTING.ListingItem => {
+const mapTradeRequestToProduct = (tradeRequest: TradingHistory): APILISTING.ListingItem => {
   const getStatusText = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'pending':
@@ -83,14 +82,14 @@ const mapTradeRequestToProduct = (tradeRequest: API.TradeRequest): APILISTING.Li
     id: tradeRequest.listingId,
     inventoryId: tradeRequest.id,
     productName: tradeRequest.listingItemName,
-    productImage: tradeRequest.listingItemImgUrl,
+    productImage: tradeRequest.listingItemImage,
     isFree: false,
-    description: `${getStatusText(tradeRequest.status)} • ${tradeRequest.requesterName}`,
-    status: tradeRequest.status,
-    listedAt: tradeRequest.requestedAt,
+    description: `${getStatusText(tradeRequest.finalStatus)} • ${tradeRequest.requesterName}`,
+    status: tradeRequest.finalStatus,
+    listedAt: tradeRequest.createdAt,
     ownerName: tradeRequest.requesterName,
     _originalTradeRequest: tradeRequest
-  } as APILISTING.ListingItem & { _originalTradeRequest: API.TradeRequest };
+  } as APILISTING.ListingItem & { _originalTradeRequest: TradingHistory };
 };
 
 // Map history item to ListingItem format for display
@@ -125,19 +124,19 @@ const mapHistoryToProduct = (historyItem: TradingHistory): APILISTING.ListingIte
 };
 
 // Map ongoing trades with slightly different description
-const mapOngoingTradeToProduct = (tradeRequest: API.TradeRequest): APILISTING.ListingItem => {
+const mapOngoingTradeToProduct = (tradeRequest: TradingHistory): APILISTING.ListingItem => {
   return {
     id: tradeRequest.listingId,
     inventoryId: tradeRequest.id,
     productName: tradeRequest.listingItemName,
-    productImage: tradeRequest.listingItemImgUrl,
+    productImage: tradeRequest.listingItemImage,
     isFree: false,
     description: `Đang trao đổi với ${tradeRequest.requesterName}`,
-    status: tradeRequest.status,
-    listedAt: tradeRequest.requestedAt,
+    status: tradeRequest.finalStatus,
+    listedAt: tradeRequest.createdAt,
     ownerName: tradeRequest.requesterName,
     _originalTradeRequest: tradeRequest
-  } as APILISTING.ListingItem & { _originalTradeRequest: API.TradeRequest };
+  } as APILISTING.ListingItem & { _originalTradeRequest: TradingHistory };
 };
 
 const mapToMyListingItem = (apiItem: APILISTING.ListingItem, tradeRequests: API.TradeRequest[] = []): any => {
@@ -181,7 +180,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
   const { isPending, getAllListingApi } = useGetAllListing();
   const { isPending: isDetailLoading, getListingByIdApi } = useGetListingById();
   const { isPending: isTradeRequestLoading, getAllTradeRequestByListingId } = useGetAllTradeRequestByListingId()
-  const { isPending: isMyTradeRequestLoading, getAllMyTradeRequestApi } = useGetAllMyTradeRequest();
   const { isPending: isHistoryLoading, getTradeRequestHistoryApi } = useGetTradeRequestHistory();
   const { mutate: closeListingMutation, isPending: isClosingListing } = useServiceCloseListing();
   const { mutate: respondTradeRequestMutation, isPending: isRespondingTradeRequest } = useServiceRespondTradeRequest();
@@ -195,11 +193,11 @@ const Marketplace: React.FC<MarketplaceProps> = ({
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<APILISTING.ListingItem | null>(null);
   const [selectedProductDetail, setSelectedProductDetail] = useState<APILISTING.ListingItem | null>(null);
-  const [selectedTradeRequest, setSelectedTradeRequest] = useState<API.TradeRequest | null>(null);
+  const [selectedTradeRequest, setSelectedTradeRequest] = useState<TradingHistory | null>(null);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<TradingHistory | null>(null);
   const [tradeRequests, setTradeRequests] = useState<API.TradeRequest[]>([]);
-  const [myTradeRequests, setMyTradeRequests] = useState<API.TradeRequest[]>([]);
-  const [ongoingTrades, setOngoingTrades] = useState<API.TradeRequest[]>([]);
+  const [myTradeRequests, setMyTradeRequests] = useState<TradingHistory[]>([]);
+  const [ongoingTrades, setOngoingTrades] = useState<TradingHistory[]>([]);
   const [tradingHistory, setTradingHistory] = useState<TradingHistory[]>([]);
   const [products, setProducts] = useState<APILISTING.ListingItem[]>([]);
   const [totalItems, setTotalItems] = useState(0);
@@ -215,7 +213,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Helper function to check if product has original trade request data
-  const hasOriginalTradeRequest = (product: APILISTING.ListingItem): product is APILISTING.ListingItem & { _originalTradeRequest: API.TradeRequest } => {
+  const hasOriginalTradeRequest = (product: APILISTING.ListingItem): product is APILISTING.ListingItem & { _originalTradeRequest: TradingHistory } => {
     return '_originalTradeRequest' in product;
   };
 
@@ -273,21 +271,26 @@ const Marketplace: React.FC<MarketplaceProps> = ({
     }
   }, [pageSize, initialFilters, getAllListingApi]);
 
-  // Function to fetch my trade requests (pending/rejected requests) - FIXED: Removed dependency
+  // Function to fetch my trade requests (pending/rejected requests)
   const fetchMyTradeRequests = useCallback(async (
-    searchValue?: string
+    searchValue?: string,
+    pageIndex: number = 1
   ) => {
     try {
-      const response = await getAllMyTradeRequestApi();
+      const params: ViewTradingHistory = {
+        finalStatus: 'PENDING', // Chỉ lấy các request đang pending
+        pageIndex: pageIndex,
+        pageSize: pageSize,
+        desc: true
+      };
+
+      const response = await getTradeRequestHistoryApi(params);
       
       if (response?.value.data) {
-        let filteredRequests = response.value.data.filter((request: API.TradeRequest) => 
-          request.status.toLowerCase() === 'pending' || 
-          request.status.toLowerCase() === 'rejected'
-        );
+        let filteredRequests = response.value.data.result || response.value.data || [];
         
         if (searchValue?.trim()) {
-          filteredRequests = filteredRequests.filter((request: API.TradeRequest) => 
+          filteredRequests = filteredRequests.filter((request: TradingHistory) => 
             request.listingItemName.toLowerCase().includes(searchValue.toLowerCase()) ||
             request.requesterName.toLowerCase().includes(searchValue.toLowerCase())
           );
@@ -296,7 +299,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({
         setMyTradeRequests(filteredRequests);
         const mappedProducts = filteredRequests.map(mapTradeRequestToProduct);
         setProducts(mappedProducts);
-        setTotalItems(mappedProducts.length);
+        setTotalItems(response.value.data.count || mappedProducts.length);
       }
     } catch (error) {
       console.error('Error fetching my trade requests:', error);
@@ -304,24 +307,28 @@ const Marketplace: React.FC<MarketplaceProps> = ({
       setProducts([]);
       setTotalItems(0);
     }
-  }, [getAllMyTradeRequestApi]);
+  }, [pageSize, getTradeRequestHistoryApi]);
 
-  // Function to fetch ongoing trades - FIXED: Removed dependency
+  // Function to fetch ongoing trades
   const fetchOngoingTrades = useCallback(async (
-    searchValue?: string
+    searchValue?: string,
+    pageIndex: number = 1
   ) => {
     try {
-      const response = await getAllMyTradeRequestApi();
+      const params: ViewTradingHistory = {
+        finalStatus: 'IN_PROGRESS', // Hoặc status nào đó cho ongoing trades
+        pageIndex: pageIndex,
+        pageSize: pageSize,
+        desc: true
+      };
+
+      const response = await getTradeRequestHistoryApi(params);
       
       if (response?.value.data) {
-        let ongoingTradesData = response.value.data.filter((request: API.TradeRequest) => 
-          request.status.toLowerCase() === 'accepted' || 
-          request.status.toLowerCase() === 'in_progress' || 
-          request.status.toLowerCase() === 'locked'
-        );
+        let ongoingTradesData = response.value.data.result || response.value.data || [];
         
         if (searchValue?.trim()) {
-          ongoingTradesData = ongoingTradesData.filter((request: API.TradeRequest) => 
+          ongoingTradesData = ongoingTradesData.filter((request: TradingHistory) => 
             request.listingItemName.toLowerCase().includes(searchValue.toLowerCase()) ||
             request.requesterName.toLowerCase().includes(searchValue.toLowerCase())
           );
@@ -330,7 +337,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({
         setOngoingTrades(ongoingTradesData);
         const mappedProducts = ongoingTradesData.map(mapOngoingTradeToProduct);
         setProducts(mappedProducts);
-        setTotalItems(mappedProducts.length);
+        setTotalItems(response.value.data.count || mappedProducts.length);
       }
     } catch (error) {
       console.error('Error fetching ongoing trades:', error);
@@ -338,15 +345,16 @@ const Marketplace: React.FC<MarketplaceProps> = ({
       setProducts([]);
       setTotalItems(0);
     }
-  }, [getAllMyTradeRequestApi]);
+  }, [pageSize, getTradeRequestHistoryApi]);
 
-  // Function to fetch trading history - FIXED: Removed unstable dependency
+  // Function to fetch trading history
   const fetchTradingHistory = useCallback(async (
     searchValue?: string,
     pageIndex: number = 1
   ) => {
     try {
       const params: ViewTradingHistory = {
+        finalStatus: 'COMPLETED', // Chỉ lấy các giao dịch đã hoàn thành
         pageIndex: pageIndex,
         pageSize: pageSize,
         desc: true
@@ -376,7 +384,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({
       setProducts([]);
       setTotalItems(0);
     }
-  }, [pageSize]); // REMOVED: getTradeRequestHistoryApi dependency
+  }, [pageSize, getTradeRequestHistoryApi]);
 
   // Fetch product detail
   const fetchProductDetail = useCallback(async (listingId: string) => {
@@ -411,32 +419,32 @@ const Marketplace: React.FC<MarketplaceProps> = ({
     if (isInitialMount.current) {
       isInitialMount.current = false;
       if (activeSection === 'buying') {
-        fetchMyTradeRequests(searchTerm);
+        fetchMyTradeRequests(searchTerm, 1);
       } else if (activeSection === 'trading') {
-        fetchOngoingTrades(searchTerm);
+        fetchOngoingTrades(searchTerm, 1);
       } else if (activeSection === 'transaction-history') {
         fetchTradingHistory(searchTerm, 1);
       } else {
         fetchListings(1, searchTerm, isFreeFilter, activeSection);
       }
     }
-  }, []); // FIXED: Empty dependency array
+  }, []);
 
   // Handle section change - gọi ngay lập tức
   useEffect(() => {
     if (!isInitialMount.current) {
       setCurrentPage(1);
       if (activeSection === 'buying') {
-        fetchMyTradeRequests(searchTerm);
+        fetchMyTradeRequests(searchTerm, 1);
       } else if (activeSection === 'trading') {
-        fetchOngoingTrades(searchTerm);
+        fetchOngoingTrades(searchTerm, 1);
       } else if (activeSection === 'transaction-history') {
         fetchTradingHistory(searchTerm, 1);
       } else {
         fetchListings(1, searchTerm, isFreeFilter, activeSection);
       }
     }
-  }, [activeSection]); // FIXED: Only depend on activeSection
+  }, [activeSection]);
 
   // Handle search with debounce - delay 500ms
   useEffect(() => {
@@ -448,9 +456,9 @@ const Marketplace: React.FC<MarketplaceProps> = ({
       if (!isInitialMount.current) {
         setCurrentPage(1);
         if (activeSection === 'buying') {
-          fetchMyTradeRequests(searchTerm);
+          fetchMyTradeRequests(searchTerm, 1);
         } else if (activeSection === 'trading') {
-          fetchOngoingTrades(searchTerm);
+          fetchOngoingTrades(searchTerm, 1);
         } else if (activeSection === 'transaction-history') {
           fetchTradingHistory(searchTerm, 1);
         } else {
@@ -464,7 +472,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [searchTerm]); // FIXED: Only depend on searchTerm
+  }, [searchTerm]);
 
   // Handle filter change - gọi ngay lập tức (only for non-buying, non-trading, and non-history sections)
   useEffect(() => {
@@ -472,9 +480,9 @@ const Marketplace: React.FC<MarketplaceProps> = ({
       setCurrentPage(1);
       fetchListings(1, searchTerm, isFreeFilter, activeSection);
     }
-  }, [isFreeFilter]); // FIXED: Only depend on isFreeFilter
+  }, [isFreeFilter]);
 
-  // Handle product selection - FIXED: Better dependency management
+  // Handle product selection
   useEffect(() => {
     if (selectedProduct?.id) {
       if (activeSection === 'buying') {
@@ -502,7 +510,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({
       setSelectedHistoryItem(null);
       setTradeRequests([]);
     }
-  }, [selectedProduct?.id, activeSection]); // FIXED: Only depend on stable values
+  }, [selectedProduct?.id, activeSection]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -551,14 +559,16 @@ const Marketplace: React.FC<MarketplaceProps> = ({
 
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
-    if (activeSection === 'buying' || activeSection === 'trading') {
-      // For buying and trading sections, we already have all data
+    if (activeSection === 'buying') {
+      fetchMyTradeRequests(searchTerm, page);
+    } else if (activeSection === 'trading') {
+      fetchOngoingTrades(searchTerm, page);
     } else if (activeSection === 'transaction-history') {
       fetchTradingHistory(searchTerm, page);
     } else {
       fetchListings(page, searchTerm, isFreeFilter, activeSection);
     }
-  }, [activeSection, searchTerm, isFreeFilter, fetchListings, fetchTradingHistory]);
+  }, [activeSection, searchTerm, isFreeFilter, fetchListings, fetchMyTradeRequests, fetchOngoingTrades, fetchTradingHistory]);
 
   const handleCloseDetail = useCallback(() => {
     setSelectedProduct(null);
@@ -597,9 +607,9 @@ const Marketplace: React.FC<MarketplaceProps> = ({
       closeListingMutation(productId, {
         onSuccess: () => {
           if (activeSection === 'buying') {
-            fetchMyTradeRequests(searchTerm);
+            fetchMyTradeRequests(searchTerm, currentPage);
           } else if (activeSection === 'trading') {
-            fetchOngoingTrades(searchTerm);
+            fetchOngoingTrades(searchTerm, currentPage);
           } else if (activeSection === 'transaction-history') {
             fetchTradingHistory(searchTerm, currentPage);
           } else {
@@ -669,9 +679,8 @@ const Marketplace: React.FC<MarketplaceProps> = ({
   const isTradingSection = activeSection === 'trading';
   const isHistorySection = activeSection === 'transaction-history';
 
-  // Determine loading state based on active section
-  const currentLoading = isBuyingSection || isTradingSection ? isMyTradeRequestLoading : 
-                        isHistorySection ? isHistoryLoading : isPending;
+  // Determine loading state based on active section - tất cả đều dùng isHistoryLoading
+  const currentLoading = isPending || isHistoryLoading;
 
   return (
     <>
@@ -725,9 +734,33 @@ const Marketplace: React.FC<MarketplaceProps> = ({
       {/* My trade request detail (for buying section) */}
       {selectedProduct && isBuyingSection && selectedTradeRequest && (
         <MyTradeRequestDetail
-          tradeRequest={selectedTradeRequest}
+          tradeRequest={{
+            id: selectedTradeRequest.id,
+            listingId: selectedTradeRequest.listingId,
+            listingItemName: selectedTradeRequest.listingItemName,
+            listingItemTier: '',
+            listingItemImgUrl: selectedTradeRequest.listingItemImage,
+            listingOwnerName: '',
+            listingOwnerAvatarUrl: '',
+            requesterId: selectedTradeRequest.requesterId,
+            requesterName: selectedTradeRequest.requesterName,
+            requesterAvatarUrl: '',
+            offeredItems: [
+              {
+                inventoryItemId: selectedTradeRequest.id,
+                itemName: selectedTradeRequest.offeredItemName,
+                imageUrl: selectedTradeRequest.offeredItemImage,
+                tier: ''
+              }
+            ],
+            status: selectedTradeRequest.finalStatus,
+            requestedAt: selectedTradeRequest.createdAt,
+            timeRemaining: undefined,
+            ownerLocked: false,
+            requesterLocked: false
+          }}
           onClose={handleCloseDetail}
-          isLoading={isMyTradeRequestLoading}
+          isLoading={isHistoryLoading}
           isHistoryView={false}
         />
       )}
@@ -735,9 +768,33 @@ const Marketplace: React.FC<MarketplaceProps> = ({
       {/* Ongoing trade detail (for trading section) */}
       {selectedProduct && isTradingSection && selectedTradeRequest && (
         <MyTradeRequestDetail
-          tradeRequest={selectedTradeRequest}
+          tradeRequest={{
+            id: selectedTradeRequest.id,
+            listingId: selectedTradeRequest.listingId,
+            listingItemName: selectedTradeRequest.listingItemName,
+            listingItemTier: '',
+            listingItemImgUrl: selectedTradeRequest.listingItemImage,
+            listingOwnerName: '',
+            listingOwnerAvatarUrl: '',
+            requesterId: selectedTradeRequest.requesterId,
+            requesterName: selectedTradeRequest.requesterName,
+            requesterAvatarUrl: '',
+            offeredItems: [
+              {
+                inventoryItemId: selectedTradeRequest.id,
+                itemName: selectedTradeRequest.offeredItemName,
+                imageUrl: selectedTradeRequest.offeredItemImage,
+                tier: ''
+              }
+            ],
+            status: selectedTradeRequest.finalStatus,
+            requestedAt: selectedTradeRequest.createdAt,
+            timeRemaining: undefined,
+            ownerLocked: false,
+            requesterLocked: false
+          }}
           onClose={handleCloseDetail}
-          isLoading={isMyTradeRequestLoading}
+          isLoading={isHistoryLoading}
           isHistoryView={false}
         />
       )}
