@@ -2,8 +2,9 @@ import { PromotionStatus, DiscountType } from "@/const/promotion";
 
 export type TGetPromotion = {
   search?: string;
-  sellerId?: string;
   status?: PromotionStatus;
+  isParticipated?: boolean;
+  participantSellerId?: string;
   pageIndex?: number;
   pageSize?: number;
 };

@@ -4,24 +4,23 @@ import { TGetPromotion, Promotion, RPromotion } from "./typing";
 
 export const getAllPromotion = async ({
   search,
-  sellerId,
   status,
+  isParticipated,
+  participantSellerId,
   pageIndex,
   pageSize,
 }: TGetPromotion): Promise<TResponseData<RPromotion>> => {
-  // Tạo params object, chỉ include sellerId nếu nó có giá trị
   const params: any = {
     search,
     status,
+    isParticipated,
+    participantSellerId,
     pageIndex,
     pageSize,
   };
-
-  // Chỉ thêm sellerId vào params nếu nó có giá trị
-  // Nếu sellerId là undefined/null, API sẽ trả về global promotions
-  if (sellerId !== undefined && sellerId !== null) {
-    params.sellerId = sellerId;
-  }
+  // if (sellerId !== undefined && sellerId !== null) {
+  //   params.sellerId = sellerId;
+  // }
 
   const response = await request<TResponseData<RPromotion>>(
     API_ENDPOINTS.PROMOTION,
@@ -56,22 +55,22 @@ export const createPromotion = async (
   formData.append("StartDate", data.startDate);
   formData.append("EndDate", data.endDate);
   formData.append("UsageLimit", data.usageLimit.toString());
-  
+
   const response = await request<TResponseData<API.Promotion>>(
     API_ENDPOINTS.PROMOTION,
     {
       method: "POST",
       data: formData,
       headers: {
-      "Content-Type": "multipart/form-data",
-    },
+        "Content-Type": "multipart/form-data",
+      },
     }
   );
   return response.data;
 };
 
 export const updatePromotion = async (
-  payload: REQUEST.PromotionForm & { promotionId: string}
+  payload: REQUEST.PromotionForm & { promotionId: string }
 ): Promise<TResponseData<API.Promotion>> => {
   const { promotionId, ...data } = payload;
 
@@ -83,15 +82,15 @@ export const updatePromotion = async (
   formData.append("StartDate", data.startDate);
   formData.append("EndDate", data.endDate);
   formData.append("UsageLimit", data.usageLimit.toString());
-  
+
   const response = await request<TResponseData<API.Promotion>>(
     API_ENDPOINTS.PROMOTION_WITH_ID(promotionId),
     {
       method: "PUT",
       data: formData,
       headers: {
-      "Content-Type": "multipart/form-data",
-    },
+        "Content-Type": "multipart/form-data",
+      },
     }
   );
   return response.data;
@@ -103,7 +102,7 @@ export const deletePromotion = async (
   const response = await request<TResponseData<API.Promotion>>(
     API_ENDPOINTS.PROMOTION_WITH_ID(promotionId),
     {
-      method: "DELETE"
+      method: "DELETE",
     }
   );
   return response.data;
@@ -116,7 +115,7 @@ export const reviewPromotion = async (
     API_ENDPOINTS.REVIEW_PROMOTION,
     {
       method: "POST",
-      data: data
+      data: data,
     }
   );
   return response.data;
@@ -128,7 +127,7 @@ export const participantPromotion = async (
   const response = await request<TResponseData<API.ParticipantPromotion>>(
     API_ENDPOINTS.PROMOTION_WITH_ID(promotionId),
     {
-      method: "POST"
+      method: "POST",
     }
   );
   return response.data;
@@ -138,9 +137,8 @@ export const withdrawPromotion = async (
   param: REQUEST.withdrawPromotion
 ): Promise<TResponseData<API.ParticipantPromotion>> => {
   const formData = new FormData();
-  if(param.sellerId != undefined)
-    formData.append("SellerId", param.sellerId);
-  
+  if (param.sellerId != undefined) formData.append("SellerId", param.sellerId);
+
   formData.append("PromotionId", param.promotionId);
   const response = await request<TResponseData<API.ParticipantPromotion>>(
     API_ENDPOINTS.WITHDRAW_PROMOTION,
@@ -148,8 +146,8 @@ export const withdrawPromotion = async (
       method: "DELETE",
       data: formData,
       headers: {
-      "Content-Type": "multipart/form-data"
-      }
+        "Content-Type": "multipart/form-data",
+      },
     }
   );
   return response.data;
@@ -159,8 +157,10 @@ export const getAllPromotionParticipant = async ({
   promotionId,
   pageIndex,
   pageSize,
-  desc
-}: REQUEST.GetPromotionParticipant): Promise<TResponseData<API.ViewParticipantPromotion[]>> => {
+  desc,
+}: REQUEST.GetPromotionParticipant): Promise<
+  TResponseData<API.ViewParticipantPromotion[]>
+> => {
   const response = await request<TResponseData<API.ViewParticipantPromotion[]>>(
     API_ENDPOINTS.PROMOTION_PARTICIPANT,
     {
@@ -169,7 +169,7 @@ export const getAllPromotionParticipant = async ({
         promotionId,
         pageIndex,
         pageSize,
-        desc
+        desc,
       },
     }
   );

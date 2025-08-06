@@ -14,8 +14,9 @@ export default function useGetPromotions() {
       setPending(true);
       try {
         const res = await getAllPromotion({
-          sellerId: sellerId || undefined, 
           status: PromotionStatus.Approved, 
+          isParticipated: true,
+          participantSellerId: sellerId || undefined,
           pageIndex: 1,
           pageSize: 100, 
         });
