@@ -6,11 +6,20 @@ export interface Review {
   rating: number;
   comment: string;
   createdAt: string;
-  category?: string;
+  updatedAt?: string;
+  category?: "BlindBox" | "Product" | string;
+  itemName?: string;
+  images?: string[];
+  isApproved?: boolean;
+  approvedAt?: string;
+  orderDetailId?: string;
+  blindBoxId?: string;
+  productId?: string;
+  sellerId?: string;
+  // Legacy fields for backward compatibility
   experience?: string;
   appearance?: string;
-  images?: string[];
-  likes: number;
+  likes?: number;
   sellerReply?: {
     content: string;
     createdAt: string;
@@ -31,5 +40,6 @@ export interface ReviewStats {
 
 export interface ProductReviewsProps {
   productId: string;
-  productType?: 'product' | 'blindbox';
+  productType?: "product" | "blindbox";
+  newReview?: any; // New review data to add
 }

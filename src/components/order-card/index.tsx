@@ -14,6 +14,7 @@ import { useState } from "react";
 import { Backdrop } from "../backdrop";
 import { Button } from "../ui/button";
 import WriteReview from "../product-reviews/write-review";
+import useCreateReview from "@/app/(user)/purchased/hooks/useCreateReview";
 
 // Helper function to determine actual status from logs
 const getActualStatusFromLogs = (logs: string, currentStatus: OrderStatus): OrderStatus => {
@@ -73,6 +74,7 @@ interface OrderCardProps {
     finalAmount?: number;
     shippingAddress?: ShippingAddress;
     totalShippingFee?: number;
+    onReviewCreated?: (reviewData: any) => void;
 }
 
 export default function OrderCard({
@@ -85,26 +87,47 @@ export default function OrderCard({
     shippingAddress,
     finalAmount = 0,
     totalShippingFee = 0,
+    onReviewCreated,
 }: OrderCardProps) {
     const router = useRouter();
     const [loadingPage, setLoadingPage] = useState(false);
     const [showWriteReview, setShowWriteReview] = useState(false);
     const [selectedProductForReview, setSelectedProductForReview] = useState<OrderDetail | null>(null);
 
+    // Sử dụng hook tạo review (có form validation + toast thành công)
+    const { onSubmit, isPending: isSubmittingReview } = useCreateReview();
+
     const handleViewInvoiceDetail = (id: string) => {
         setLoadingPage(true);
         router.push(`/orderhistory/${id}`);
     };
 
-    const handleSubmitReview = async (reviewData: any) => {
-        // TODO: Implement API call to submit review
-        console.log('Submitting review for order:', orderId, reviewData);
+    const handleSubmitReview = async (data: any) => {
+        if (!selectedProductForReview) return;
 
-        // Close the review form after successful submission
-        setShowWriteReview(false);
+        // Set orderDetailId vào form data
+        const formData = {
+            ...data,
+            orderDetailId: selectedProductForReview.id,
+        };
 
-        // TODO: Show success message or update UI
-        alert('Đánh giá đã được gửi thành công!');
+        try {
+            const result = await onSubmit(formData);
+            if (result) {
+                console.log('Review created successfully:', result);
+
+                // Gọi callback để cập nhật danh sách reviews nếu có
+                if (onReviewCreated) {
+                    onReviewCreated(result);
+                }
+
+                // Đóng form sau khi submit thành công
+                setShowWriteReview(false);
+                setSelectedProductForReview(null);
+            }
+        } catch (error) {
+            console.error('Error submitting review:', error);
+        }
     };
     return (
         <div className="border rounded-md shadow-sm bg-white mb-4" >
@@ -323,6 +346,7 @@ export default function OrderCard({
                         <WriteReview
                             productId={selectedProductForReview.productId || selectedProductForReview.blindBoxId || orderId}
                             onSubmit={handleSubmitReview}
+                            isSubmitting={isSubmittingReview}
                             onCancel={() => {
                                 setShowWriteReview(false);
                                 setSelectedProductForReview(null);

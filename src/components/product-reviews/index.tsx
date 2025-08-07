@@ -1,66 +1,200 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { fadeIn } from '@/utils/variants';
 import RatingOverview from './rating-overview';
 import ReviewFilters from './review-filters';
 import ReviewItem from './review-item';
-
 import { Review, ReviewStats, ProductReviewsProps } from './types';
+import { getReview } from '@/services/review/api-services';
+import { isTResponseData } from '@/utils/compare';
 
-// Mock data
-const mockReviews: Review[] = [
-  {
-    id: '1',
-    userId: 'user1',
-    userName: 'h****3',
-    userAvatar: '',
-    rating: 5,
-    comment: 'Giao hàng nhanh, sp y hình, sp chỉ làm đây ko làm đâi nha, mì mình đã uốn nên khi chuột sẽ đây hơn thui, mau khô, chuột xong nhớ lấy đầu con lại chải ra mới tới nha',
-    createdAt: '2025-06-10T13:08:00Z',
-    category: 'Phân loại hàng: LE01',
-    experience: 'chuột mì làm đây mì',
-    appearance: 'chuột mì',
-    images: ['/images/review1.jpg', '/images/review2.jpg', '/images/review3.jpg'],
-    likes: 4,
-    sellerReply: {
-      content: 'Xin chào! Rất cảm ơn tình cảm và sự đánh giá cao của bạn. Sự hài lòng của bạn là phần thưởng lớn nhất của chúng tôi, cửa hàng sẽ làm việc chăm chỉ hơn và rất mong được bạn ghé thăm lần sau.',
-      createdAt: '2025-06-11T09:30:00Z'
+const ProductReviews: React.FC<ProductReviewsProps> = ({
+  productId,
+  productType = 'product',
+  newReview
+}) => {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [stats, setStats] = useState<ReviewStats>({
+    averageRating: 0,
+    totalReviews: 0,
+    ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+  });
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<{
+    minRating?: number;
+    maxRating?: number;
+    hasComment?: boolean;
+    hasImage?: boolean;
+  }>({});
+
+  const calculateStats = (reviewList: Review[]): ReviewStats => {
+    if (reviewList.length === 0) {
+      return {
+        averageRating: 0,
+        totalReviews: 0,
+        ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+      };
     }
-  },
-  {
-    id: '2',
-    userId: 'user2',
-    userName: 'a****5',
-    userAvatar: '',
-    rating: 4,
-    comment: 'Sản phẩm tốt, đóng gói cẩn thận. Giao hàng nhanh chóng.',
-    createdAt: '2025-06-08T15:20:00Z',
-    category: 'Phân loại hàng: LE02',
-    experience: 'tốt',
-    appearance: 'đẹp',
-    likes: 2
-  }
-];
 
-const mockStats: ReviewStats = {
-  averageRating: 4.95,
-  totalReviews: 1745,
-  ratingDistribution: {
-    5: 70,
-    4: 17,
-    3: 8,
-    2: 4,
-    1: 1
-  }
-};
+    const totalReviews = reviewList.length;
+    const ratingSum = reviewList.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = ratingSum / totalReviews;
 
-const ProductReviews: React.FC<ProductReviewsProps> = ({ productId, productType = 'product' }) => {
-  const [reviews, setReviews] = useState<Review[]>(mockReviews);
-  const [stats, setStats] = useState<ReviewStats>(mockStats);
-  const [sortBy, setSortBy] = useState<string>('newest');
-  const [filterBy, setFilterBy] = useState<string>('all');
+    const ratingDistribution = reviewList.reduce(
+      (dist, review) => {
+        dist[review.rating as keyof typeof dist]++;
+        return dist;
+      },
+      { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    );
+
+    return {
+      averageRating: Math.round(averageRating * 100) / 100,
+      totalReviews,
+      ratingDistribution
+    };
+  };
+
+  const fetchReviews = async () => {
+    if (!productId) return;
+
+    setIsPending(true);
+    setError(null);
+
+    try {
+      const params = {
+        ProductId: productType === 'product' ? productId : '',
+        BlindBoxId: productType === 'blindbox' ? productId : '',
+        SellerId: '',
+        MinRating: filters.minRating,
+        MaxRating: filters.maxRating,
+        HasComment: filters.hasComment,
+        HasImage: filters.hasImage,
+        PageIndex: 1,
+        PageSize: 10
+      };
+
+      console.log('Fetching reviews with params:', params);
+      const response = await getReview(params);
+
+      if (response && isTResponseData(response)) {
+        const reviewData = response.value.data.result || [];
+        console.log('Reviews fetched successfully:', reviewData);
+        const convertedReviews: Review[] = reviewData.map((review: any) => ({
+          id: review.id,
+          userId: review.userId,
+          userName: review.userName,
+          userAvatar: review.userAvatar,
+          rating: review.rating,
+          comment: review.comment,
+          createdAt: review.createdAt,
+          updatedAt: review.updatedAt,
+          category: review.category,
+          itemName: review.itemName,
+          images: review.images || [],
+          isApproved: review.isApproved,
+          approvedAt: review.approvedAt,
+          orderDetailId: review.orderDetailId,
+          blindBoxId: review.blindBoxId,
+          productId: review.productId,
+          sellerId: review.sellerId,
+        }));
+
+        setReviews(convertedReviews);
+        setStats(calculateStats(convertedReviews));
+      } else {
+        console.log('No review data found or invalid response format');
+        setReviews([]);
+        setStats({
+          averageRating: 0,
+          totalReviews: 0,
+          ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching reviews:', err);
+      setError('Không thể tải đánh giá');
+      setReviews([]);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, [productId, productType, filters]);
+
+  useEffect(() => {
+    if (newReview) {
+      const review: Review = {
+        id: newReview.id,
+        userId: newReview.userId,
+        userName: newReview.userName,
+        userAvatar: newReview.userAvatar,
+        rating: newReview.rating,
+        comment: newReview.comment,
+        createdAt: newReview.createdAt,
+        updatedAt: newReview.updatedAt,
+        category: newReview.category,
+        itemName: newReview.itemName,
+        images: newReview.images || [],
+        isApproved: newReview.isApproved,
+        approvedAt: newReview.approvedAt,
+        orderDetailId: newReview.orderDetailId,
+        blindBoxId: newReview.blindBoxId,
+        productId: newReview.productId,
+        sellerId: newReview.sellerId,
+      };
+
+      setReviews(prev => [review, ...prev]);
+      setStats(prev => {
+        const newTotal = prev.totalReviews + 1;
+        const newSum = (prev.averageRating * prev.totalReviews) + newReview.rating;
+        const newAverage = newSum / newTotal;
+
+        const newDistribution = { ...prev.ratingDistribution };
+        newDistribution[newReview.rating as keyof typeof newDistribution]++;
+
+        return {
+          averageRating: Math.round(newAverage * 100) / 100,
+          totalReviews: newTotal,
+          ratingDistribution: newDistribution
+        };
+      });
+    }
+  }, [newReview]);
+
+  if (isPending) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold">Đánh giá sản phẩm</h2>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Đang tải đánh giá...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold">Đánh giá sản phẩm</h2>
+        <div className="text-center py-8">
+          <p className="text-red-600">{error}</p>
+          <button
+            onClick={fetchReviews}
+            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -69,10 +203,13 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId, productType 
       <RatingOverview stats={stats} />
 
       <ReviewFilters
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        filterBy={filterBy}
-        setFilterBy={setFilterBy}
+        minRating={filters.minRating}
+        maxRating={filters.maxRating}
+        hasComment={filters.hasComment}
+        hasImage={filters.hasImage}
+        onFilterChange={(newFilters) => {
+          setFilters(newFilters);
+        }}
       />
 
       <motion.div
@@ -81,9 +218,52 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId, productType 
         animate="show"
         className="space-y-6"
       >
-        {reviews.map((review) => (
-          <ReviewItem key={review.id} review={review} />
-        ))}
+        {reviews.length === 0 ? (
+          <div className="text-center py-8">
+            <img
+              src="/images/Empty-items.jpg"
+              alt="Chưa có đánh giá"
+              className="w-32 h-32 mx-auto mb-4 opacity-60"
+            />
+            <p className="text-gray-500">Chưa có đánh giá nào cho sản phẩm này</p>
+          </div>
+        ) : (
+          reviews.map((review) => (
+            <ReviewItem
+              key={review.id}
+              review={review}
+              onReviewDeleted={(reviewId) => {
+                setReviews(prev => prev.filter(r => r.id !== reviewId));
+                setStats(prev => {
+                  const newTotal = prev.totalReviews - 1;
+                  if (newTotal === 0) {
+                    return {
+                      averageRating: 0,
+                      totalReviews: 0,
+                      ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+                    };
+                  }
+
+                  const deletedReview = reviews.find(r => r.id === reviewId);
+                  if (deletedReview) {
+                    const newSum = (prev.averageRating * prev.totalReviews) - deletedReview.rating;
+                    const newAverage = newSum / newTotal;
+
+                    const newDistribution = { ...prev.ratingDistribution };
+                    newDistribution[deletedReview.rating as keyof typeof newDistribution]--;
+
+                    return {
+                      averageRating: Math.round(newAverage * 100) / 100,
+                      totalReviews: newTotal,
+                      ratingDistribution: newDistribution
+                    };
+                  }
+                  return prev;
+                });
+              }}
+            />
+          ))
+        )}
       </motion.div>
     </div>
   );

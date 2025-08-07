@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Star, Upload, X } from 'lucide-react';
+import { Star, Upload, X, Image, Video } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
@@ -14,16 +14,18 @@ interface WriteReviewProps {
   productId: string;
   onSubmit: (reviewData: any) => void;
   onCancel?: () => void;
+  isSubmitting?: boolean;
 }
 
-const WriteReview: React.FC<WriteReviewProps> = ({ productId, onSubmit, onCancel }) => {
+const WriteReview: React.FC<WriteReviewProps> = ({ productId, onSubmit, onCancel, isSubmitting: externalIsSubmitting }) => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
   const [experience, setExperience] = useState('');
   const [appearance, setAppearance] = useState('');
-  const [images, setImages] = useState<File[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]); // Chứa cả ảnh và video
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const actualIsSubmitting = externalIsSubmitting ?? isSubmitting;
 
   const starDescriptions = {
     1: 'Tệ',
@@ -32,17 +34,30 @@ const WriteReview: React.FC<WriteReviewProps> = ({ productId, onSubmit, onCancel
     4: 'Hài lòng',
     5: 'Tuyệt vời',
   }
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    if (images.length + files.length > 5) {
-      alert('Chỉ được tải lên tối đa 5 hình ảnh');
+    const currentFiles = mediaFiles.length;
+
+    // Kiểm tra tổng số files (tối đa 5 files bao gồm cả ảnh và video)
+    if (currentFiles + files.length > 5) {
+      alert('Tối đa 5 files (ảnh + video)');
       return;
     }
-    setImages(prev => [...prev, ...files]);
+
+    // Kiểm tra kích thước video (tối đa 50MB)
+    const videoFiles = files.filter(file => file.type.startsWith('video/'));
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    const oversizedVideos = videoFiles.filter(file => file.size > maxSize);
+    if (oversizedVideos.length > 0) {
+      alert('Kích thước video không được vượt quá 50MB');
+      return;
+    }
+
+    setMediaFiles(prev => [...prev, ...files]);
   };
 
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+  const removeMediaFile = (index: number) => {
+    setMediaFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,7 +73,10 @@ const WriteReview: React.FC<WriteReviewProps> = ({ productId, onSubmit, onCancel
       return;
     }
 
-    setIsSubmitting(true);
+    // Chỉ set loading state nếu không có external isSubmitting
+    if (externalIsSubmitting === undefined) {
+      setIsSubmitting(true);
+    }
 
     try {
       const reviewData = {
@@ -67,20 +85,27 @@ const WriteReview: React.FC<WriteReviewProps> = ({ productId, onSubmit, onCancel
         comment: comment.trim(),
         experience: experience.trim(),
         appearance: appearance.trim(),
-        images
+        images: mediaFiles, // Gửi tất cả files (ảnh + video)
+        videos: [] // Không cần videos riêng nữa
       };
 
       await onSubmit(reviewData);
+
+      // Reset form sau khi submit thành công
       setRating(0);
       setComment('');
       setExperience('');
       setAppearance('');
-      setImages([]);
+      setMediaFiles([]);
     } catch (error) {
       console.error('Error submitting review:', error);
-      alert('Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.');
+      if (externalIsSubmitting === undefined) {
+        alert('Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.');
+      }
     } finally {
-      setIsSubmitting(false);
+      if (externalIsSubmitting === undefined) {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -142,46 +167,63 @@ const WriteReview: React.FC<WriteReviewProps> = ({ productId, onSubmit, onCancel
 
             <div className="space-y-2">
               <Label className="text-sm font-medium">
-                Hình ảnh sản phẩm (tối đa 5 ảnh)
+                Hình ảnh & Video (tối đa 5 files) - Hiện tại: {mediaFiles.length}/5
               </Label>
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <input
                     type="file"
-                    id="images"
+                    id="media"
                     multiple
-                    accept="image/*"
-                    onChange={handleImageUpload}
+                    accept="image/*,video/*"
+                    onChange={handleMediaUpload}
                     className="hidden"
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => document.getElementById('images')?.click()}
-                    disabled={images.length >= 5}
+                    onClick={() => document.getElementById('media')?.click()}
+                    disabled={mediaFiles.length >= 5}
                     className="flex items-center gap-2"
                   >
                     <Upload className="w-4 h-4" />
-                    Tải ảnh lên
+                    Tải ảnh/video lên
                   </Button>
                   <span className="text-xs text-gray-500">
-                    {images.length}/5 ảnh
+                    {mediaFiles.filter(f => f.type.startsWith('image/')).length} ảnh, {mediaFiles.filter(f => f.type.startsWith('video/')).length} video (tổng: {mediaFiles.length}/5)
                   </span>
                 </div>
 
-                {images.length > 0 && (
-                  <div className="grid grid-cols-5 gap-2">
-                    {images.map((image, index) => (
+                {mediaFiles.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2">
+                    {mediaFiles.map((file, index) => (
                       <div key={index} className="relative group">
-                        <img
-                          src={URL.createObjectURL(image)}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-20 object-cover rounded border"
-                        />
+                        {file.type.startsWith('image/') ? (
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-20 object-cover rounded border"
+                          />
+                        ) : (
+                          <div className="relative">
+                            <video
+                              src={URL.createObjectURL(file)}
+                              className="w-full h-20 object-cover rounded border"
+                              controls={false}
+                              muted
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded">
+                              <Video className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="absolute bottom-1 left-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded">
+                              {(file.size / (1024 * 1024)).toFixed(1)}MB
+                            </div>
+                          </div>
+                        )}
                         <button
                           type="button"
-                          onClick={() => removeImage(index)}
+                          onClick={() => removeMediaFile(index)}
                           className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X className="w-3 h-3" />
@@ -196,10 +238,20 @@ const WriteReview: React.FC<WriteReviewProps> = ({ productId, onSubmit, onCancel
             <div className="flex justify-end gap-3 pt-4">
               <Button
                 type="submit"
-                disabled={isSubmitting || rating === 0 || !comment.trim()}
+                disabled={actualIsSubmitting || rating === 0 || !comment.trim()}
               >
-                {isSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}
+                {actualIsSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}
               </Button>
+              {onCancel && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCancel}
+                  disabled={actualIsSubmitting}
+                >
+                  Hủy
+                </Button>
+              )}
             </div>
           </form>
         </CardContent>

@@ -38,12 +38,12 @@ const RatingOverview: React.FC<RatingOverviewProps> = ({ stats }) => {
         <div className="flex items-center gap-1">
           <StarRating rating={Math.round(stats.averageRating)} size="md" />
           <span className="text-2xl font-bold text-gray-800 ml-2">
-            {stats.averageRating} out of 5
+            <span className='text-4xl text-red-600'>{stats.averageRating}</span> <span className='text-lg font-light'>trên 5</span>
           </span>
         </div>
       </div>
 
-      <p className="text-gray-600 mb-4">{stats.totalReviews.toLocaleString()} global ratings</p>
+      <p className="text-gray-600 mb-4">{stats.totalReviews.toLocaleString()} đánh giá</p>
 
       <div className="space-y-2">
         {[5, 4, 3, 2, 1].map((rating) => (

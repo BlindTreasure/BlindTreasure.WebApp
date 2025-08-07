@@ -1,29 +1,79 @@
 'use client';
 
 import React from 'react';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { fadeIn } from '@/utils/variants';
 
 interface ReviewFiltersProps {
-  sortBy: string;
-  setSortBy: (value: string) => void;
-  filterBy: string;
-  setFilterBy: (value: string) => void;
+  minRating?: number;
+  maxRating?: number;
+  hasComment?: boolean;
+  hasImage?: boolean;
+  onFilterChange: (filters: {
+    minRating?: number;
+    maxRating?: number;
+    hasComment?: boolean;
+    hasImage?: boolean;
+  }) => void;
 }
 
 const ReviewFilters: React.FC<ReviewFiltersProps> = ({
-  sortBy,
-  setSortBy,
-  filterBy,
-  setFilterBy
+  minRating,
+  maxRating,
+  hasComment,
+  hasImage,
+  onFilterChange
 }) => {
+  const handleRatingFilter = (value: string) => {
+    if (value === "all") {
+      onFilterChange({ minRating: undefined, maxRating: undefined, hasComment, hasImage });
+    } else if (value === "5") {
+      onFilterChange({ minRating: 5, maxRating: 5, hasComment, hasImage });
+    } else if (value === "4") {
+      onFilterChange({ minRating: 4, maxRating: 4, hasComment, hasImage });
+    } else if (value === "3") {
+      onFilterChange({ minRating: 3, maxRating: 3, hasComment, hasImage });
+    } else if (value === "2") {
+      onFilterChange({ minRating: 2, maxRating: 2, hasComment, hasImage });
+    } else if (value === "1") {
+      onFilterChange({ minRating: 1, maxRating: 1, hasComment, hasImage });
+    } else if (value === "4-5") {
+      onFilterChange({ minRating: 4, maxRating: 5, hasComment, hasImage });
+    } else if (value === "3-5") {
+      onFilterChange({ minRating: 3, maxRating: 5, hasComment, hasImage });
+    }
+  };
+
+  const handleImageFilter = (value: string) => {
+    const hasImageValue = value === "with-image" ? true : value === "without-image" ? false : undefined;
+    onFilterChange({ minRating, maxRating, hasComment, hasImage: hasImageValue });
+  };
+
+  const getCurrentRatingFilter = () => {
+    if (!minRating && !maxRating) return "all";
+    if (minRating === 5 && maxRating === 5) return "5";
+    if (minRating === 4 && maxRating === 4) return "4";
+    if (minRating === 3 && maxRating === 3) return "3";
+    if (minRating === 2 && maxRating === 2) return "2";
+    if (minRating === 1 && maxRating === 1) return "1";
+    if (minRating === 4 && maxRating === 5) return "4-5";
+    if (minRating === 3 && maxRating === 5) return "3-5";
+    return "all";
+  };
+
+  const getCurrentImageFilter = () => {
+    if (hasImage === true) return "with-image";
+    if (hasImage === false) return "without-image";
+    return "all-image";
+  };
+
   return (
     <motion.div
       variants={fadeIn("up", 0.2)}
@@ -31,20 +81,7 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = ({
       animate="show"
       className="flex flex-wrap gap-4"
     >
-      <Select value={sortBy} onValueChange={setSortBy}>
-        <SelectTrigger className="w-48">
-          <SelectValue placeholder="Sắp xếp theo" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="newest">Mới nhất</SelectItem>
-          <SelectItem value="oldest">Cũ nhất</SelectItem>
-          <SelectItem value="highest">Đánh giá cao nhất</SelectItem>
-          <SelectItem value="lowest">Đánh giá thấp nhất</SelectItem>
-          <SelectItem value="most-helpful">Hữu ích nhất</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select value={filterBy} onValueChange={setFilterBy}>
+      <Select value={getCurrentRatingFilter()} onValueChange={handleRatingFilter}>
         <SelectTrigger className="w-48">
           <SelectValue placeholder="Lọc theo rating" />
         </SelectTrigger>
@@ -55,8 +92,19 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = ({
           <SelectItem value="3">3 sao</SelectItem>
           <SelectItem value="2">2 sao</SelectItem>
           <SelectItem value="1">1 sao</SelectItem>
-          <SelectItem value="with-images">Có hình ảnh</SelectItem>
-          <SelectItem value="with-reply">Có phản hồi</SelectItem>
+          <SelectItem value="4-5">4-5 sao</SelectItem>
+          <SelectItem value="3-5">3-5 sao</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select value={getCurrentImageFilter()} onValueChange={handleImageFilter}>
+        <SelectTrigger className="w-48">
+          <SelectValue placeholder="Lọc theo hình ảnh" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all-image">Tất cả</SelectItem>
+          <SelectItem value="with-image">Có hình ảnh</SelectItem>
+          <SelectItem value="without-image">Không có hình ảnh</SelectItem>
         </SelectContent>
       </Select>
     </motion.div>
