@@ -92,11 +92,17 @@ const ShippingSection: React.FC<ShippingSectionProps> = ({
     setIsShip(checked);
   };
 
-
-
   const hasBlindboxItems = sellerItems
     .flatMap(seller => seller.items)
     .some(item => selectedItems.includes(item.id) && !Boolean(item.productId));
+  const selectedItemsData = sellerItems
+    .flatMap(seller => seller.items)
+    .filter(item => selectedItems.includes(item.id));
+  const hasOnlyBlindboxItems = selectedItemsData.length > 0 &&
+    selectedItemsData.every(item => !Boolean(item.productId));
+  if (hasOnlyBlindboxItems) {
+    return null;
+  }
 
   return (
     <Card>
