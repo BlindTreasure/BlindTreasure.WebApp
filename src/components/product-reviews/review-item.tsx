@@ -190,7 +190,15 @@ const ReviewItem: React.FC<ReviewItemProps> = ({ review, onReviewDeleted }) => {
           {review.sellerReply && (
             <div className="bg-gray-50 p-4 rounded-lg mb-4">
               <div className="flex items-center gap-2 mb-2">
-                <span className="font-medium text-gray-800">Phản Hồi Của Người Bán</span>
+                <span className="font-medium text-gray-800">
+                  {review.sellerReply.sellerName
+                    ? `Phản Hồi Từ ${review.sellerReply.sellerName}`
+                    : "Phản Hồi Của Người Bán"
+                  }
+                </span>
+                <span className="text-xs text-gray-500">
+                  {formatDate(review.sellerReply.createdAt)}
+                </span>
               </div>
               <p className="text-gray-700 text-sm leading-relaxed">
                 {review.sellerReply.content}

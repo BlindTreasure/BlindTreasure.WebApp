@@ -5,6 +5,7 @@ import {
   ReviewResponse,
   ReviewListResponse,
   ReviewGetRequest,
+  ReviewReplyRequest,
 } from "./typings";
 
 export const createReview = async (
@@ -95,6 +96,22 @@ export const deleteReview = async (reviewId: string): Promise<TResponse> => {
     API_ENDPOINTS.DELETE_REVIEW(reviewId),
     {
       method: "DELETE",
+    }
+  );
+  return response.data;
+};
+
+export const replyReview = async (
+  reviewId: string,
+  body: ReviewReplyRequest
+): Promise<TResponseData<ReviewResponse>> => {
+  const formData = new FormData();
+  formData.append("content", body.content);
+  const response = await request<TResponseData<ReviewResponse>>(
+    API_ENDPOINTS.REVIEW_REPLY(reviewId),
+    {
+      method: "POST",
+      data: body,
     }
   );
   return response.data;

@@ -16,13 +16,10 @@ export interface Review {
   blindBoxId?: string;
   productId?: string;
   sellerId?: string;
-  // Legacy fields for backward compatibility
-  experience?: string;
-  appearance?: string;
-  likes?: number;
   sellerReply?: {
     content: string;
     createdAt: string;
+    sellerName?: string;
   };
 }
 
@@ -41,5 +38,5 @@ export interface ReviewStats {
 export interface ProductReviewsProps {
   productId: string;
   productType?: "product" | "blindbox";
-  newReview?: any; // New review data to add
+  newReview?: any; 
 }

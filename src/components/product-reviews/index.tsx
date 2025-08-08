@@ -101,6 +101,12 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
           blindBoxId: review.blindBoxId,
           productId: review.productId,
           sellerId: review.sellerId,
+          sellerName: review.sellerName,
+          sellerReply: review.sellerReply ? {
+            content: review.sellerReply.content,
+            createdAt: review.sellerReply.createdAt,
+            sellerName: review.sellerReply.sellerName
+          } : undefined,
         }));
 
         setReviews(convertedReviews);
@@ -147,6 +153,11 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
         blindBoxId: newReview.blindBoxId,
         productId: newReview.productId,
         sellerId: newReview.sellerId,
+        sellerReply: newReview.sellerReply ? {
+          content: newReview.sellerReply.content,
+          createdAt: newReview.sellerReply.createdAt,
+          sellerName: newReview.sellerReply.sellerName
+        } : undefined,
       };
 
       setReviews(prev => [review, ...prev]);

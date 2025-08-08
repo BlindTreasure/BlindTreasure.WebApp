@@ -16,6 +16,7 @@ import { useAppSelector, useAppDispatch } from "@/stores/store";
 import { closeSidebar, openSidebar } from "@/stores/difference-slice";
 import { CiAlignLeft } from "react-icons/ci";
 import { BsThreeDots } from "react-icons/bs";
+import { ChatIcon } from "@/icons";
 
 const sidebarItems = [
   {
@@ -63,9 +64,9 @@ const sidebarItems = [
     href: "/seller/unbox-logs",
   },
   {
-    label: "Khách hàng",
-    icon: Users,
-    href: "/seller/customers",
+    label: "Phản hồi khách hàng",
+    icon: ChatIcon,
+    href: "/seller/reply",
   },
   {
     label: "Voucher",

@@ -2,7 +2,7 @@ export type ReviewCreateRequest = {
   orderDetailId: string;
   rating: number;
   comment: string;
-  images: File[]; 
+  images: File[];
 };
 
 export type ReviewGetRequest = {
@@ -15,6 +15,10 @@ export type ReviewGetRequest = {
   HasImage?: boolean;
   PageIndex?: number;
   PageSize?: number;
+};
+
+export type ReviewReplyRequest = {
+  content: string;
 };
 
 export type ReviewResponse = {
@@ -31,10 +35,16 @@ export type ReviewResponse = {
   images: string[];
   isApproved: boolean;
   approvedAt: string;
+  sellerReply?: {
+    content: string;
+    createdAt: string;
+    sellerName: string;
+  };
   orderDetailId: string;
   blindBoxId?: string;
   productId?: string;
   sellerId: string;
+  sellerName?: string;
 };
 
 export type ReviewListResponse = {
