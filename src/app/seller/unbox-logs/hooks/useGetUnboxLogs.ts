@@ -2,7 +2,7 @@ import { isTResponseData } from "@/utils/compare";
 import { getUnboxLogs } from "@/services/unbox/api-services";
 import { useState } from "react";
 import useToast from "@/hooks/use-toast";
-import { GetUnboxLogsParams, ResponseUnboxLogs } from "@/services/unbox/typings";
+import { GetUnboxLogsParams, ResponseUnboxLogs, ResponseUnboxLogsList } from "@/services/unbox/typings";
 
 export default function useGetUnboxLogs() {
   const { addToast } = useToast();
@@ -13,7 +13,7 @@ export default function useGetUnboxLogs() {
     try {
       const res = await getUnboxLogs(params);
       if (isTResponseData(res)) {
-        return res as TResponseData<ResponseUnboxLogs[]>;
+        return res as TResponseData<ResponseUnboxLogsList>;
       }
       return null;
     } catch (error) {

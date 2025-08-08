@@ -11,6 +11,8 @@ export type UnboxResult = {
 export type GetUnboxLogsParams = {
   userId?: string;
   productId?: string;
+  PageIndex?: number;
+  PageSize?: number;
 };
 
 export type ResponseUnboxLogs = {
@@ -25,4 +27,12 @@ export type ResponseUnboxLogs = {
   unboxedAt: string;
   blindBoxName: string;
   reason: string;
+};
+
+export type ResponseUnboxLogsList = {
+  count: number;
+  pageSize: number;
+  currentPage: number;
+  totalPages: number;
+  result: ResponseUnboxLogs[];
 };

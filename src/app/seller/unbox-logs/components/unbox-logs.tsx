@@ -7,13 +7,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Skeleton } from "@/components/ui/skeleton";
 import { BsEye } from "react-icons/bs";
 import moment from "moment";
-import { ResponseUnboxLogs } from "@/services/unbox/typings";
+import { ResponseUnboxLogs, ResponseUnboxLogsList } from "@/services/unbox/typings";
 import useGetUnboxLogs from "../hooks/useGetUnboxLogs";
 import useGetProductByIdWeb from "@/app/(user)/detail/hooks/useGetProductByIdWeb";
 import { AllProduct } from "@/services/product/typings";
 import { Button } from "@/components/ui/button";
 import { Rarity, RarityColorClass, RarityText } from "@/const/products";
 import ReactMarkdown from 'react-markdown'
+import { PaginationFooter } from "@/components/pagination-footer";
 
 export default function UnboxLogs() {
     const { isPending, getUnboxLogsApi } = useGetUnboxLogs();
@@ -21,16 +22,23 @@ export default function UnboxLogs() {
     const [logs, setLogs] = useState<ResponseUnboxLogs[]>([]);
     const [selectedLog, setSelectedLog] = useState<ResponseUnboxLogs | null>(null);
     const [productDetail, setProductDetail] = useState<AllProduct | null>(null);
+    const [paginationData, setPaginationData] = useState<ResponseUnboxLogsList | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(5);
 
     useEffect(() => {
         const fetchLogs = async () => {
-            const res = await getUnboxLogsApi({});
+            const res = await getUnboxLogsApi({
+                PageIndex: currentPage,
+                PageSize: pageSize
+            });
             if (res?.value?.data) {
-                setLogs(res.value.data);
+                setLogs(res.value.data.result);
+                setPaginationData(res.value.data);
             }
         };
         fetchLogs();
-    }, []);
+    }, [currentPage, pageSize]);
 
     useEffect(() => {
         const fetchProductDetail = async () => {
@@ -94,6 +102,20 @@ export default function UnboxLogs() {
                         </TableBody>
                     </Table>
 
+                    {paginationData && (
+                        <PaginationFooter
+                            currentPage={currentPage}
+                            totalPages={paginationData.totalPages}
+                            totalItems={paginationData.count}
+                            pageSize={pageSize}
+                            onPageSizeChange={(newSize) => {
+                                setPageSize(newSize);
+                                setCurrentPage(1);
+                            }}
+                            onPageChange={setCurrentPage}
+                        />
+                    )}
+
                     {selectedLog && (
                         <Dialog open={true} onOpenChange={() => {
                             setSelectedLog(null);
@@ -143,7 +165,6 @@ export default function UnboxLogs() {
                             </DialogContent>
                         </Dialog>
                     )}
-
                 </CardContent>
             </Card>
         </div>
