@@ -1,275 +1,65 @@
-// "use client";
-// // import Chart from "react-apexcharts";
-// import { ApexOptions } from "apexcharts";
-
-// import dynamic from "next/dynamic";
-// import { Dropdown } from "../ui/dropdown/Dropdown";
-// import { MoreDotIcon } from "@/icons";
-// import { useEffect, useState } from "react";
-// import { DropdownItem } from "../ui/dropdown/DropdownItem";
-// import useGetDashboard from "@/app/admin/dashboard/hooks/useGetStatistics";
-// // Dynamically import the ReactApexChart component
-// const ReactApexChart = dynamic(() => import("react-apexcharts"), {
-//   ssr: false,
-// });
-
-// export default function MonthlyTarget() {
-//   const { isPending, getDashboardApi } = useGetDashboard();
-//   const [dashboardData, setDashboardData] = useState<API.MonthlyTarget | null>(null);
-
-//   useEffect(() => {
-//     const currentDate = new Date();
-//     const year = currentDate.getFullYear();
-//     const fetchData = async () => {
-//       const response = await getDashboardApi({ year });
-//       if (response && response.value) {
-//         setDashboardData(response.value.data.monthlyTarget);
-//       }
-//     };
-
-//     fetchData();
-//   }, []);
-
-//   const series = [dashboardData?.progress || 0];
-//   const options: ApexOptions = {
-//     colors: ["#465FFF"],
-//     chart: {
-//       fontFamily: "Outfit, sans-serif",
-//       type: "radialBar",
-//       height: 330,
-//       sparkline: {
-//         enabled: true,
-//       },
-//     },
-//     plotOptions: {
-//       radialBar: {
-//         startAngle: -85,
-//         endAngle: 85,
-//         hollow: {
-//           size: "80%",
-//         },
-//         track: {
-//           background: "#E4E7EC",
-//           strokeWidth: "100%",
-//           margin: 5, // margin is in pixels
-//         },
-//         dataLabels: {
-//           name: {
-//             show: false,
-//           },
-//           value: {
-//             fontSize: "36px",
-//             fontWeight: "600",
-//             offsetY: -40,
-//             color: "#1D2939",
-//             formatter: function (val) {
-//               return val + "%";
-//             },
-//           },
-//         },
-//       },
-//     },
-//     fill: {
-//       type: "solid",
-//       colors: ["#465FFF"],
-//     },
-//     stroke: {
-//       lineCap: "round",
-//     },
-//     labels: ["Progress"],
-//   };
-
-//   const [isOpen, setIsOpen] = useState(false);
-
-//   function toggleDropdown() {
-//     setIsOpen(!isOpen);
-//   }
-
-//   function closeDropdown() {
-//     setIsOpen(false);
-//   }
-
-//   const formatNumber = (num: number): string => {
-//     if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(1) + "B";
-//     if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
-//     if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
-//     return num.toString();
-//   };
-
-//   const isIncrease = !((dashboardData?.comparison ?? 0) < 0 && (dashboardData?.target ?? 0) > 0)
-//     && (dashboardData?.target ?? 0) > (dashboardData?.comparison ?? 0);
-
-
-//   return (
-//     <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
-//       <div className="px-5 pt-5 bg-white shadow-default rounded-2xl pb-11 dark:bg-gray-900 sm:px-6 sm:pt-6">
-//         <div className="flex justify-between">
-//           <div>
-//             <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-//               Mục tiêu hàng tháng
-//             </h3>
-//             <p className="mt-1 font-normal text-gray-500 text-theme-sm dark:text-gray-400">
-//               Mục tiêu đã đặt ra cho mỗi tháng
-//             </p>
-//           </div>
-//           <div className="relative inline-block">
-//             <button onClick={toggleDropdown} className="dropdown-toggle">
-//               <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
-//             </button>
-//             <Dropdown
-//               isOpen={isOpen}
-//               onClose={closeDropdown}
-//               className="w-40 p-2"
-//             >
-//               <DropdownItem
-//                 tag="a"
-//                 onItemClick={closeDropdown}
-//                 className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-//               >
-//                 View More
-//               </DropdownItem>
-//               <DropdownItem
-//                 tag="a"
-//                 onItemClick={closeDropdown}
-//                 className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-//               >
-//                 Delete
-//               </DropdownItem>
-//             </Dropdown>
-//           </div>
-//         </div>
-//         <div className="relative ">
-//           <div className="max-h-[330px]">
-//             <ReactApexChart
-//               options={options}
-//               series={series}
-//               type="radialBar"
-//               height={330}
-//             />
-//           </div>
-
-//           <span className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full bg-success-50 px-3 py-1 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
-//             +{dashboardData?.growthPercentage}
-//           </span>
-//         </div>
-//         <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
-//           {(dashboardData?.todayRevenue ?? 0) >= (dashboardData?.target ?? 0) ? (
-//             <>
-//               Bạn đã đạt được mục tiêu hôm nay với doanh thu {formatNumber(dashboardData?.todayRevenue ?? 0)}! Xuất sắc!
-//             </>
-//           ) : (
-//             <>
-//               Bạn kiếm được {formatNumber(dashboardData?.todayRevenue ?? 0)} {dashboardData?.currency} hôm nay. Hãy tiếp tục cố gắng để đạt mục tiêu {formatNumber(dashboardData?.target ?? 0)}!
-//             </>
-//           )}
-//         </p>
-
-//       </div>
-
-//       <div className="flex items-center justify-center gap-5 px-6 py-3.5 sm:gap-8 sm:py-5">
-//         <div>
-//           <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-//             Mục tiêu
-//           </p>
-//           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-//             {formatNumber(dashboardData?.target ?? 0)}
-//             <svg
-//               width="16"
-//               height="16"
-//               viewBox="0 0 16 16"
-//               fill="none"
-//               xmlns="http://www.w3.org/2000/svg"
-//             >
-//               <path
-//                 fillRule="evenodd"
-//                 clipRule="evenodd"
-//                 d={
-//                   isIncrease
-//                     ? "M7.60141 2.33683C7.73885 2.18084 7.9401 2.08243 8.16435 2.08243C8.16475 2.08243 8.16516 2.08243 8.16556 2.08243C8.35773 2.08219 8.54998 2.15535 8.69664 2.30191L12.6968 6.29924C12.9898 6.59203 12.9899 7.0669 12.6971 7.3599C12.4044 7.6529 11.9295 7.65306 11.6365 7.36027L8.91435 4.64004L8.91435 13.5C8.91435 13.9142 8.57856 14.25 8.16435 14.25C7.75013 14.25 7.41435 13.9142 7.41435 13.5L7.41435 4.64442L4.69679 7.36025C4.4038 7.65305 3.92893 7.6529 3.63613 7.35992C3.34333 7.06693 3.34348 6.59206 3.63646 6.29926L7.60141 2.33683Z"
-//                     : "M7.26816 13.6632C7.4056 13.8192 7.60686 13.9176 7.8311 13.9176C7.83148 13.9176 7.83187 13.9176 7.83226 13.9176C8.02445 13.9178 8.21671 13.8447 8.36339 13.6981L12.3635 9.70076C12.6565 9.40797 12.6567 8.9331 12.3639 8.6401C12.0711 8.34711 11.5962 8.34694 11.3032 8.63973L8.5811 11.36L8.5811 2.5C8.5811 2.08579 8.24531 1.75 7.8311 1.75C7.41688 1.75 7.0811 2.08579 7.0811 2.5L7.0811 11.3556L4.36354 8.63975C4.07055 8.34695 3.59568 8.3471 3.30288 8.64009C3.01008 8.93307 3.01023 9.40794 3.30321 9.70075L7.26816 13.6632Z"
-//                 }
-//                 fill={isIncrease ? "#039855" : "#D92D20"}
-//               />
-//             </svg>
-//           </p>
-//         </div>
-
-//         <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
-
-//         <div>
-//           <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-//             Doanh thu
-//           </p>
-//           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-//             {formatNumber(dashboardData?.revenue ?? 0)}
-//             <svg
-//               width="16"
-//               height="16"
-//               viewBox="0 0 16 16"
-//               fill="none"
-//               xmlns="http://www.w3.org/2000/svg"
-//             >
-//               <path
-//                 fillRule="evenodd"
-//                 clipRule="evenodd"
-//                 d={(dashboardData?.revenue ?? 0) >= (dashboardData?.target ?? 0)
-//                   ? "M7.60141 2.33683C7.73885 2.18084 7.9401 2.08243 8.16435 2.08243C8.16475 2.08243 8.16516 2.08243 8.16556 2.08243C8.35773 2.08219 8.54998 2.15535 8.69664 2.30191L12.6968 6.29924C12.9898 6.59203 12.9899 7.0669 12.6971 7.3599C12.4044 7.6529 11.9295 7.65306 11.6365 7.36027L8.91435 4.64004L8.91435 13.5C8.91435 13.9142 8.57856 14.25 8.16435 14.25C7.75013 14.25 7.41435 13.9142 7.41435 13.5L7.41435 4.64442L4.69679 7.36025C4.4038 7.65305 3.92893 7.6529 3.63613 7.35992C3.34333 7.06693 3.34348 6.59206 3.63646 6.29926L7.60141 2.33683Z"
-//                   : "M7.26816 13.6632C7.4056 13.8192 7.60686 13.9176 7.8311 13.9176C7.83148 13.9176 7.83187 13.9176 7.83226 13.9176C8.02445 13.9178 8.21671 13.8447 8.36339 13.6981L12.3635 9.70076C12.6565 9.40797 12.6567 8.9331 12.3639 8.6401C12.0711 8.34711 11.5962 8.34694 11.3032 8.63973L8.5811 11.36L8.5811 2.5C8.5811 2.08579 8.24531 1.75 7.8311 1.75C7.41688 1.75 7.0811 2.08579 7.0811 2.5L7.0811 11.3556L4.36354 8.63975C4.07055 8.34695 3.59568 8.3471 3.30288 8.64009C3.01008 8.93307 3.01023 9.40794 3.30321 9.70075L7.26816 13.6632Z"}
-//                 fill={(dashboardData?.revenue ?? 0) >= (dashboardData?.target ?? 0) ? "#039855" : "#D92D20"}
-//               />
-//             </svg>
-//           </p>
-//         </div>
-
-
-//         <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
-
-//         <div>
-//           <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-//             Hôm nay
-//           </p>
-//           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-//             {formatNumber(dashboardData?.todayRevenue ?? 0)}
-//             <svg
-//               width="16"
-//               height="16"
-//               viewBox="0 0 16 16"
-//               fill="none"
-//               xmlns="http://www.w3.org/2000/svg"
-//             >
-//               <path
-//                 fillRule="evenodd"
-//                 clipRule="evenodd"
-//                 d={
-//                   (dashboardData?.todayRevenue ?? 0) >= (dashboardData?.target ?? 0)
-//                     ? "M7.60141 2.33683C7.73885 2.18084 7.9401 2.08243 8.16435 2.08243C8.16475 2.08243 8.16516 2.08243 8.16556 2.08243C8.35773 2.08219 8.54998 2.15535 8.69664 2.30191L12.6968 6.29924C12.9898 6.59203 12.9899 7.0669 12.6971 7.3599C12.4044 7.6529 11.9295 7.65306 11.6365 7.36027L8.91435 4.64004L8.91435 13.5C8.91435 13.9142 8.57856 14.25 8.16435 14.25C7.75013 14.25 7.41435 13.9142 7.41435 13.5L7.41435 4.64442L4.69679 7.36025C4.4038 7.65305 3.92893 7.6529 3.63613 7.35992C3.34333 7.06693 3.34348 6.59206 3.63646 6.29926L7.60141 2.33683Z"
-//                     : "M7.26816 13.6632C7.4056 13.8192 7.60686 13.9176 7.8311 13.9176C7.83148 13.9176 7.83187 13.9176 7.83226 13.9176C8.02445 13.9178 8.21671 13.8447 8.36339 13.6981L12.3635 9.70076C12.6565 9.40797 12.6567 8.9331 12.3639 8.6401C12.0711 8.34711 11.5962 8.34694 11.3032 8.63973L8.5811 11.36L8.5811 2.5C8.5811 2.08579 8.24531 1.75 7.8311 1.75C7.41688 1.75 7.0811 2.08579 7.0811 2.5L7.0811 11.3556L4.36354 8.63975C4.07055 8.34695 3.59568 8.3471 3.30288 8.64009C3.01008 8.93307 3.01023 9.40794 3.30321 9.70075L7.26816 13.6632Z"
-//                 }
-//                 fill={(dashboardData?.todayRevenue ?? 0) >= (dashboardData?.target ?? 0) ? "#039855" : "#D92D20"}
-//               />
-//             </svg>
-//           </p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 "use client";
-// import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
-
 import dynamic from "next/dynamic";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { MoreDotIcon } from "@/icons";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-// Dynamically import the ReactApexChart component
+import { StatisticRange } from "@/const/seller";
+import { getSellerStatistics } from "@/services/seller-dashboard/api-services";
+
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
 export default function MonthlyTarget() {
-  const series = [75.55];
+  const [isOpen, setIsOpen] = useState(false);
+  const [targetPercentage, setTargetPercentage] = useState(0);
+  const [monthlyTarget] = useState(5000000);
+  const [monthlyData, setMonthlyData] = useState<any>(null);
+  const [todayData, setTodayData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const hasCalledApiRef = useRef(false);
+
+  useEffect(() => {
+    if (hasCalledApiRef.current) return;
+
+    const fetchData = async () => {
+      hasCalledApiRef.current = true;
+      setIsLoading(true);
+
+      try {
+        const monthlyResponse = await getSellerStatistics({
+          range: StatisticRange.MONTH,
+        });
+        setMonthlyData(monthlyResponse);
+
+        const todayResponse = await getSellerStatistics({
+          range: StatisticRange.DAY,
+        });
+        setTodayData(todayResponse);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!monthlyData) return;
+
+    const overview = (monthlyData as any)?.overview;
+    if (overview && overview.totalRevenue !== undefined) {
+      const currentRevenue = overview.totalRevenue;
+      const percentage = Math.min((currentRevenue / monthlyTarget) * 100, 100);
+      setTargetPercentage(Math.round(percentage * 100) / 100);
+    }
+  }, [monthlyData, monthlyTarget]);
+
+  const series = [targetPercentage];
   const options: ApexOptions = {
     colors: ["#465FFF"],
     chart: {
@@ -290,7 +80,7 @@ export default function MonthlyTarget() {
         track: {
           background: "#E4E7EC",
           strokeWidth: "100%",
-          margin: 5, // margin is in pixels
+          margin: 5,
         },
         dataLabels: {
           name: {
@@ -318,8 +108,6 @@ export default function MonthlyTarget() {
     labels: ["Progress"],
   };
 
-  const [isOpen, setIsOpen] = useState(false);
-
   function toggleDropdown() {
     setIsOpen(!isOpen);
   }
@@ -328,21 +116,34 @@ export default function MonthlyTarget() {
     setIsOpen(false);
   }
 
+
+  const formatCurrency = (amount: number) => {
+    if (amount >= 1000000) {
+      return `${(amount / 1000000).toFixed(1)}M ₫`;
+    } else if (amount >= 1000) {
+      return `${(amount / 1000).toFixed(1)}K ₫`;
+    }
+    return `${amount.toLocaleString('vi-VN')} ₫`;
+  };
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="px-5 pt-5 bg-white shadow-default rounded-2xl pb-11 dark:bg-gray-900 sm:px-6 sm:pt-6">
         <div className="flex justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-              Monthly Target
+              Mục tiêu hàng tháng
             </h3>
-            <p className="mt-1 font-normal text-gray-500 text-theme-sm dark:text-gray-400">
-              Target you’ve set for each month
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Mục tiêu doanh thu tháng này
             </p>
           </div>
-          <div className="relative inline-block">
-            <button onClick={toggleDropdown} className="dropdown-toggle">
-              <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
+          <div className="relative z-50">
+            <button
+              onClick={toggleDropdown}
+              className="dropdown-toggle flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+            >
+              <MoreDotIcon />
             </button>
             <Dropdown
               isOpen={isOpen}
@@ -350,18 +151,16 @@ export default function MonthlyTarget() {
               className="w-40 p-2"
             >
               <DropdownItem
-                tag="a"
                 onItemClick={closeDropdown}
                 className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
-                View More
+                Xem chi tiết
               </DropdownItem>
               <DropdownItem
-                tag="a"
                 onItemClick={closeDropdown}
                 className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
-                Delete
+                Xuất dữ liệu
               </DropdownItem>
             </Dropdown>
           </div>
@@ -376,88 +175,77 @@ export default function MonthlyTarget() {
             />
           </div>
 
-          <span className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full bg-success-50 px-3 py-1 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
-            +10%
-          </span>
+          {(() => {
+            const overview = (monthlyData as any)?.overview;
+            return overview && overview.revenueGrowthPercent !== undefined && (
+              <span className={`absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full px-3 py-1 text-xs font-medium ${overview.revenueGrowthPercent >= 0
+                ? 'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500'
+                : 'bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-500'
+                }`}>
+                {overview.revenueGrowthPercent > 0 ? '+' : ''}
+                {overview.revenueGrowthPercent.toFixed(1)}%
+              </span>
+            );
+          })()}
         </div>
         <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
-          You earn $3287 today, it&apos;s higher than last month. Keep up your
-          good work!
+          {(() => {
+            const overview = (monthlyData as any)?.overview;
+
+            if (overview && overview.totalRevenue !== undefined) {
+              return (
+                <>
+                  Bạn đã đạt được {targetPercentage}% mục tiêu tháng này
+                  {overview.revenueGrowthPercent !== undefined && (
+                    overview.revenueGrowthPercent > 0
+                      ? `, tăng ${overview.revenueGrowthPercent.toFixed(1)}% so với tháng trước!`
+                      : overview.revenueGrowthPercent < 0
+                        ? `, giảm ${Math.abs(overview.revenueGrowthPercent).toFixed(1)}% so với tháng trước.`
+                        : `, không thay đổi so với tháng trước.`
+                  )}
+                </>
+              );
+            } else if (isLoading) {
+              return "Đang tải dữ liệu...";
+            } else {
+              return "Không có dữ liệu để hiển thị";
+            }
+          })()}
         </p>
-      </div>
 
-      <div className="flex items-center justify-center gap-5 px-6 py-3.5 sm:gap-8 sm:py-5">
-        <div>
-          <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-            Target
-          </p>
-          <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            $20K
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M7.26816 13.6632C7.4056 13.8192 7.60686 13.9176 7.8311 13.9176C7.83148 13.9176 7.83187 13.9176 7.83226 13.9176C8.02445 13.9178 8.21671 13.8447 8.36339 13.6981L12.3635 9.70076C12.6565 9.40797 12.6567 8.9331 12.3639 8.6401C12.0711 8.34711 11.5962 8.34694 11.3032 8.63973L8.5811 11.36L8.5811 2.5C8.5811 2.08579 8.24531 1.75 7.8311 1.75C7.41688 1.75 7.0811 2.08579 7.0811 2.5L7.0811 11.3556L4.36354 8.63975C4.07055 8.34695 3.59568 8.3471 3.30288 8.64009C3.01008 8.93307 3.01023 9.40794 3.30321 9.70075L7.26816 13.6632Z"
-                fill="#D92D20"
-              />
-            </svg>
-          </p>
-        </div>
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Mục tiêu tháng</p>
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              {formatCurrency(monthlyTarget)}
+            </p>
+          </div>
 
-        <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
+          <div className="text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Doanh thu tháng</p>
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              {(() => {
+                const overview = (monthlyData as any)?.overview;
+                if (overview && overview.totalRevenue !== undefined) {
+                  return formatCurrency(overview.totalRevenue);
+                }
+                return "0 ₫";
+              })()}
+            </p>
+          </div>
 
-        <div>
-          <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-            Revenue
-          </p>
-          <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            $20K
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M7.60141 2.33683C7.73885 2.18084 7.9401 2.08243 8.16435 2.08243C8.16475 2.08243 8.16516 2.08243 8.16556 2.08243C8.35773 2.08219 8.54998 2.15535 8.69664 2.30191L12.6968 6.29924C12.9898 6.59203 12.9899 7.0669 12.6971 7.3599C12.4044 7.6529 11.9295 7.65306 11.6365 7.36027L8.91435 4.64004L8.91435 13.5C8.91435 13.9142 8.57856 14.25 8.16435 14.25C7.75013 14.25 7.41435 13.9142 7.41435 13.5L7.41435 4.64442L4.69679 7.36025C4.4038 7.65305 3.92893 7.6529 3.63613 7.35992C3.34333 7.06693 3.34348 6.59206 3.63646 6.29926L7.60141 2.33683Z"
-                fill="#039855"
-              />
-            </svg>
-          </p>
-        </div>
-
-        <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
-
-        <div>
-          <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-            Today
-          </p>
-          <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            $20K
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M7.60141 2.33683C7.73885 2.18084 7.9401 2.08243 8.16435 2.08243C8.16475 2.08243 8.16516 2.08243 8.16556 2.08243C8.35773 2.08219 8.54998 2.15535 8.69664 2.30191L12.6968 6.29924C12.9898 6.59203 12.9899 7.0669 12.6971 7.3599C12.4044 7.6529 11.9295 7.65306 11.6365 7.36027L8.91435 4.64004L8.91435 13.5C8.91435 13.9142 8.57856 14.25 8.16435 14.25C7.75013 14.25 7.41435 13.9142 7.41435 13.5L7.41435 4.64442L4.69679 7.36025C4.4038 7.65305 3.92893 7.6529 3.63613 7.35992C3.34333 7.06693 3.34348 6.59206 3.63646 6.29926L7.60141 2.33683Z"
-                fill="#039855"
-              />
-            </svg>
-          </p>
+          <div className="text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Doanh thu hôm nay</p>
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              {(() => {
+                const todayOverview = (todayData as any)?.overview;
+                if (todayOverview && todayOverview.totalRevenue !== undefined) {
+                  return formatCurrency(todayOverview.totalRevenue);
+                }
+                return "0 ₫";
+              })()}
+            </p>
+          </div>
         </div>
       </div>
     </div>

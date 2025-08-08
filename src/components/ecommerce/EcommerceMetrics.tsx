@@ -1,133 +1,103 @@
-// "use client";
-// import React, { useEffect, useState } from "react";
-// import Badge from "@/components/ui/badge/Badge";
-// import { ArrowDownIcon, ArrowUpIcon, BoxIconLine, GroupIcon, DollarLineIcon } from "@/icons/index";
-// import useGetDashboard from "@/app/admin/dashboard/hooks/useGetStatistics";
-
-// export const EcommerceMetrics = () => {
-//   const { isPending, getDashboardApi } = useGetDashboard();
-//   const [metrics, setMetrics] = useState({
-//     customers: 0,
-//     orders: 0,
-//     customerGrowth: 0,
-//     orderGrowth: 0,
-//     revenue: 0,
-//   });
-
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       const currentYear = new Date().getFullYear();
-//       try {
-//         const res = await getDashboardApi({ year: currentYear });
-//         if (res?.value?.data) {
-//           const { customersCount, ordersCount, monthlyTarget } = res.value.data;
-//           setMetrics({
-//             customers: customersCount,
-//             orders: ordersCount,
-//             customerGrowth: 11.01,
-//             orderGrowth: -9.05,
-//             revenue: monthlyTarget.revenue,
-//           });
-//         }
-//       } catch (error) {
-//         console.error("Lỗi khi tải dữ liệu:", error);
-//       }
-//     };
-
-//     fetchData();
-//   }, []);
-
-//   return (
-//     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
-//       <div className="col-span-2 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6 w-1/2 mx-auto">
-//         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-//           <DollarLineIcon className="text-gray-800 dark:text-white/90" />
-//         </div>
-//         <div className="flex items-end justify-between mt-5">
-//           <div>
-//             <span className="text-sm text-gray-500 dark:text-gray-400">Tổng doanh thu</span>
-//             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-//               {isPending ? "Loading..." : metrics.revenue.toLocaleString()}
-//             </h4>
-//           </div>
-//           <Badge color={metrics.orderGrowth >= 0 ? "success" : "error"}>
-//             {metrics.orderGrowth >= 0 ? <ArrowUpIcon /> : <ArrowDownIcon />}
-//             {Math.abs(metrics.orderGrowth)}%
-//           </Badge>
-//         </div>
-//       </div>
-//       {/* Customers Metric */}
-//       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-//         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-//           <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
-//         </div>
-//         <div className="flex items-end justify-between mt-5">
-//           <div>
-//             <span className="text-sm text-gray-500 dark:text-gray-400">Khách hàng</span>
-//             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-//               {isPending ? "Loading..." : metrics.customers.toLocaleString()}
-//             </h4>
-//           </div>
-//           <Badge color={metrics.customerGrowth >= 0 ? "success" : "error"}>
-//             {metrics.customerGrowth >= 0 ? <ArrowUpIcon /> : <ArrowDownIcon />}
-//             {Math.abs(metrics.customerGrowth)}%
-//           </Badge>
-//         </div>
-//       </div>
-
-//       {/* Orders Metric */}
-//       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-//         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-//           <BoxIconLine className="text-gray-800 dark:text-white/90" />
-//         </div>
-//         <div className="flex items-end justify-between mt-5">
-//           <div>
-//             <span className="text-sm text-gray-500 dark:text-gray-400">Đơn bán</span>
-//             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-//               {isPending ? "Loading..." : metrics.orders.toLocaleString()}
-//             </h4>
-//           </div>
-//           <Badge color={metrics.orderGrowth >= 0 ? "success" : "error"}>
-//             {metrics.orderGrowth >= 0 ? <ArrowUpIcon /> : <ArrowDownIcon />}
-//             {Math.abs(metrics.orderGrowth)}%
-//           </Badge>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
 "use client";
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Badge from "../ui/badge/Badge";
 import { ArrowDownIcon, ArrowUpIcon, BoxIconLine, GroupIcon } from "@/icons/index";
+import { DollarSign, TrendingUp } from "lucide-react";
+import { getSellerStatisticsOverview } from "@/services/seller-dashboard/api-services";
+import { StatisticRange } from "@/const/seller";
+import { SellerStatisticsOverview } from "@/services/seller-dashboard/typings";
+import { TbShoppingCartCheck } from "react-icons/tb";
 
 export const EcommerceMetrics = () => {
+  const [overviewData, setOverviewData] = useState<SellerStatisticsOverview | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const hasCalledApiRef = useRef(false);
+
+  useEffect(() => {
+    if (hasCalledApiRef.current) return;
+
+    const fetchOverviewData = async () => {
+      hasCalledApiRef.current = true;
+      setIsLoading(true);
+
+      try {
+        const response = await getSellerStatisticsOverview({
+          range: StatisticRange.QUARTER,
+        });
+
+        if (response.value?.data) {
+          setOverviewData(response.value.data);
+        }
+      } catch (error) {
+        console.error("Error fetching overview data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOverviewData();
+  }, []);
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toLocaleString();
+  };
+
+  const formatGrowthPercent = (percent: number) => {
+    return Math.abs(percent).toFixed(2);
+  };
+
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
-      {/* <!-- Metric Item Start --> */}
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 md:gap-6">
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-          <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
+          <DollarSign className="text-gray-800 size-6 dark:text-white/90" />
         </div>
-
         <div className="flex items-end justify-between mt-5">
           <div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Customers
+              Tổng doanh thu
             </span>
-            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              3,782
+            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90 text-2xl">
+              {isLoading ? "..." : overviewData ? `${formatNumber(overviewData.totalRevenue)} ₫` : "0 ₫"}
             </h4>
           </div>
-          <Badge color="success">
-            <ArrowUpIcon />
-            11.01%
-          </Badge>
+
+          {overviewData && (
+            <Badge color={overviewData.revenueGrowthPercent >= 0 ? "success" : "error"}>
+              {overviewData.revenueGrowthPercent >= 0 ? <ArrowUpIcon /> : <ArrowDownIcon />}
+              {formatGrowthPercent(overviewData.revenueGrowthPercent)}%
+            </Badge>
+          )}
         </div>
       </div>
-      {/* <!-- Metric Item End --> */}
 
-      {/* <!-- Metric Item Start --> */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+        <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
+         <TbShoppingCartCheck className="text-gray-800 size-6 dark:text-white/90" />
+        </div>
+        <div className="flex items-end justify-between mt-5">
+          <div>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Tổng số sản phẩm đã bán
+            </span>
+            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90 text-2xl">
+              {isLoading ? "..." : overviewData ? formatNumber(overviewData.totalProductsSold) : "0"}
+            </h4>
+          </div>
+          {overviewData && (
+            <Badge color={overviewData.productsSoldGrowthPercent >= 0 ? "success" : "error"}>
+              {overviewData.productsSoldGrowthPercent >= 0 ? <ArrowUpIcon /> : <ArrowDownIcon />}
+              {formatGrowthPercent(overviewData.productsSoldGrowthPercent)}%
+            </Badge>
+          )}
+        </div>
+      </div>
+
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
           <BoxIconLine className="text-gray-800 dark:text-white/90" />
@@ -135,20 +105,44 @@ export const EcommerceMetrics = () => {
         <div className="flex items-end justify-between mt-5">
           <div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Orders
+              Tổng số đơn hàng
             </span>
-            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              5,359
+            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90 text-2xl">
+              {isLoading ? "..." : overviewData ? formatNumber(overviewData.totalOrders) : "0"}
             </h4>
           </div>
 
-          <Badge color="error">
-            <ArrowDownIcon className="text-error-500" />
-            9.05%
-          </Badge>
+          {overviewData && (
+            <Badge color={overviewData.ordersGrowthPercent >= 0 ? "success" : "error"}>
+              {overviewData.ordersGrowthPercent >= 0 ? <ArrowUpIcon /> : <ArrowDownIcon />}
+              {formatGrowthPercent(overviewData.ordersGrowthPercent)}%
+            </Badge>
+          )}
         </div>
       </div>
-      {/* <!-- Metric Item End --> */}
+
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+        <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
+          <TrendingUp className="text-gray-800 size-6 dark:text-white/90" />
+        </div>
+        <div className="flex items-end justify-between mt-5">
+          <div>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Giá trị trung bình mỗi đơn hàng
+            </span>
+            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90 text-2xl">
+              {isLoading ? "..." : overviewData ? `${formatNumber(overviewData.averageOrderValue)} ₫` : "0 ₫"}
+            </h4>
+          </div>
+
+          {overviewData && (
+            <Badge color={overviewData.averageOrderValueGrowthPercent >= 0 ? "success" : "error"}>
+              {overviewData.averageOrderValueGrowthPercent >= 0 ? <ArrowUpIcon /> : <ArrowDownIcon />}
+              {formatGrowthPercent(overviewData.averageOrderValueGrowthPercent)}%
+            </Badge>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

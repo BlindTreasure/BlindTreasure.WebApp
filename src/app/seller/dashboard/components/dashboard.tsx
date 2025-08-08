@@ -2,8 +2,10 @@
 import useRedirectIfSellerInfoEmpty from "@/app/seller/dashboard/hooks/useRedirectIfSellerInfoEmpty";
 import { EcommerceMetrics } from "@/components/ecommerce/EcommerceMetrics";
 import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
+import OrderStatusStats from "@/components/ecommerce/OrderStatusStats";
 import StatisticsChart from "@/components/ecommerce/StatisticsChart";
-import RecentOrders from "@/components/ecommerce/RecentOrders";
+import TopBlindboxes from "@/components/ecommerce/TopBlindboxes";
+import TopProducts from "@/components/ecommerce/TopProducts";
 import React from "react";
 
 export default function SellerDashboard() {
@@ -25,7 +27,11 @@ export default function SellerDashboard() {
         <StatisticsChart />
       </div>
       <div className="col-span-12">
-        <RecentOrders />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <TopProducts />
+          <TopBlindboxes />
+          <OrderStatusStats />
+        </div>
       </div>
     </div>
   );
