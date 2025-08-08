@@ -43,23 +43,124 @@ import {
 } from "@/stores/filter-product-slice";
 import { useWishlistContext } from "@/contexts/WishlistContext";
 
-interface Blindbox {
-  id: string;
-  type: "blindbox" | "normal";
-  tags?: ("sale" | "new")[];
-  title: string;
-  price: number;
-  percent?: number;
-  brand?: string;
-  status?: string;
-  material?: string[];
-  packaging?: string;
-  variants?: {
-    name: string;
-    quantity?: number;
-  }[];
-  images?: string[];
+// Interface cho thông báo marquee
+interface MarqueeMessage {
+  text: string;
+  tier: 'legendary' | 'epic' | 'rare';
+  tierText: string;
 }
+
+// Component thanh thông báo marquee
+const MarqueeNotification = () => {
+  const [currentMessage, setCurrentMessage] = useState<MarqueeMessage | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Fake data cho thông báo với tier colors
+  const messages: MarqueeMessage[] = [
+    {
+      text: "🎉 Nguyễn Minh A vừa mở được Figure Naruto Limited Edition từ Mystery Anime Box!",
+      tier: "legendary",
+      tierText: "Huyền Thoại"
+    },
+    {
+      text: "⭐ Trần Thị B vừa trúng Gundam RX-78-2 Real Grade từ Mecha Collection Box!",
+      tier: "epic", 
+      tierText: "Sử Thi"
+    },
+    {
+      text: "💎 Lê Văn C vừa nhận được Pokemon Charizard Holographic từ Pokemon TCG Mystery Box!",
+      tier: "rare",
+      tierText: "Hiếm"
+    },
+    {
+      text: "👑 Phạm Thị D vừa mở ra One Piece Luffy Gear 5 Figure từ One Piece Ultimate Box!",
+      tier: "legendary",
+      tierText: "Huyền Thoại"
+    },
+    {
+      text: "🌟 Hoàng Minh E vừa trúng Dragon Ball Goku Ultra Instinct từ Dragon Ball Z Collection!",
+      tier: "epic",
+      tierText: "Sử Thi"
+    },
+    {
+      text: "🔥 Mai Lan F vừa nhận được Attack on Titan Eren Figure từ AOT Mystery Box!",
+      tier: "rare",
+      tierText: "Hiếm"
+    },
+    {
+      text: "✨ Võ Thành G vừa mở được Demon Slayer Tanjiro Sword từ Demon Slayer Collection!",
+      tier: "legendary",
+      tierText: "Huyền Thoại"
+    }
+  ];
+
+  useEffect(() => {
+    const showRandomMessage = () => {
+      const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+      setCurrentMessage(randomMessage);
+      setIsVisible(true);
+
+      // Ẩn thông báo sau 12 giây
+      setTimeout(() => {
+        setIsVisible(false);
+      }, 12000);
+    };
+
+    // Hiển thị thông báo đầu tiên
+    showRandomMessage();
+
+    // Hiển thị thông báo mới mỗi 15-20 giây
+    const interval = setInterval(() => {
+      if (!isVisible) {
+        showRandomMessage();
+      }
+    }, Math.random() * 5000 + 15000);
+
+    return () => clearInterval(interval);
+  }, [isVisible]);
+
+  if (!isVisible || !currentMessage) return null;
+
+  // Hàm lấy màu theo tier
+  const getTierColors = (tier: 'legendary' | 'epic' | 'rare'): string => {
+    switch(tier) {
+      case 'legendary':
+        return 'from-yellow-500/70 via-orange-500/70 to-red-600/70'; // Vàng đỏ với opacity
+      case 'epic':
+        return 'from-purple-500/70 via-blue-600/70 to-indigo-700/70'; // Tím với opacity
+      case 'rare':
+        return 'from-blue-500/70 via-cyan-500/70 to-teal-600/70'; // Xanh với opacity
+      default:
+        return 'from-gray-500/70 to-gray-700/70'; // Mặc định với opacity
+    }
+  };
+
+  return (
+    <div className="w-full mb-6">
+      <div className={`bg-gradient-to-r ${getTierColors(currentMessage.tier)} text-white py-4 overflow-hidden shadow-lg backdrop-blur-sm`}>
+        <div 
+          className="whitespace-nowrap text-sm md:text-base font-medium"
+          style={{
+            animation: 'marquee 12s linear infinite'
+          }}
+        >
+          {currentMessage.text} ({currentMessage.tierText})
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes marquee {
+          0% {
+            transform: translateX(100%);
+          }
+          100% {
+            transform: translateX(-100%);
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
 
 export default function HomePage() {
   const images = [
@@ -223,7 +324,6 @@ export default function HomePage() {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 8);
 
-
   const visibleBlindboxes = blindboxes?.result.filter(
     (box) => box.items && box.items.length > 0
   ) ?? [];
@@ -232,6 +332,9 @@ export default function HomePage() {
     <>
       <div className="relative overflow-hidden">
         <HeroVideoSection />
+
+        {/* THANH THÔNG BÁO - Thêm ở đây */}
+        <MarqueeNotification />
 
         <motion.div
           variants={fadeIn("up", 0.3)}
@@ -477,40 +580,6 @@ export default function HomePage() {
           </Button>
         </motion.div>
 
-        {/* <motion.div
-          variants={fadeIn("up", 0.3)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.7 }}
-          className="flex justify-center pb-8">
-          <Carousel
-            opts={{
-              align: "start",
-            }}
-            className="w-96 sm:w-full max-w-[1400px]"
-          >
-            <CarouselContent>
-              {products?.result.map((product) => {
-                const wishlistStatus = getItemWishlistStatus(product.id);
-                return (
-                  <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onViewDetail={handleViewDetail}
-                      initialIsInWishlist={wishlistStatus.isInWishlist}
-                      initialWishlistId={wishlistStatus.wishlistId}
-                      onWishlistChange={refreshWishlistStatus}
-                    />
-                  </CarouselItem>
-                );
-              })}
-            </CarouselContent>
-            <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
-            <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
-          </Carousel>
-        </motion.div> */}
-
         <motion.h1
           id="4"
           variants={fadeIn("up", 0.3)}
@@ -579,7 +648,6 @@ export default function HomePage() {
             )}
           </Carousel>
         </motion.div>
-
 
         <motion.h1
           variants={fadeIn("up", 0.3)}

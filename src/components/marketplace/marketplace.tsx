@@ -25,6 +25,7 @@ interface MarketplaceUIProps {
   // Navigation props
   activeSection?: string; // 'all' | 'transaction-history' | 'buying' | 'selling'
   onNavigationChange?: (section: string, params?: any) => void;
+  onOpenGuideDialog?: () => void;
 }
 
 const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
@@ -44,7 +45,8 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
   isFreeFilter = null,
   onIsFreeChange,
   activeSection = 'all',
-  onNavigationChange
+  onNavigationChange,
+  onOpenGuideDialog,
 }) => {
   const getTimeSincePosted = (listedAt: string): string => {
     const now = new Date();
@@ -167,6 +169,7 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
         onIsFreeChange={onIsFreeChange}
         activeSection={activeSection}
         onNavigationChange={onNavigationChange}
+        onOpenGuideDialog={onOpenGuideDialog}
       />
 
       {/* Main Content */}
@@ -397,16 +400,6 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
               <p className="text-gray-400 text-sm mt-2">
                 Lịch sử giao dịch của bạn sẽ hiển thị tại đây khi bạn có giao dịch
               </p>
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg max-w-md mx-auto">
-                <h4 className="text-sm font-medium text-blue-900 mb-2">Bộ lọc có sẵn:</h4>
-                <ul className="text-xs text-blue-700 space-y-1">
-                  <li>• Trạng thái cuối cùng (FinalStatus)</li>
-                  <li>• ID người yêu cầu (RequesterId)</li>
-                  <li>• ID sản phẩm (ListingId)</li>
-                  <li>• Ngày hoàn thành (CompletedFromDate - CompletedToDate)</li>
-                  <li>• Ngày tạo (CreatedFromDate - CreatedToDate)</li>
-                </ul>
-              </div>
             </div>
           )}
 
