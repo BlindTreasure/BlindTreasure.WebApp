@@ -5,6 +5,7 @@ import MarketplaceUI from '@/components/marketplace/marketplace';
 import ProductMarketplaceDetail from '@/components/marketplace/martketplace-detail';
 import MyListingDetail from '@/components/marketplace/marketplace-detail-owner';
 import MyTradeRequestDetail from '@/components/marketplace/marketplace-my-trade-request';
+import MarketplaceGuideDialog from '@/components/marketplace/marketplace-guide-dialog';
 import useGetAllListing from '../hooks/useGetAllListing';
 import useGetListingById from '../hooks/useGetListingById';
 import useGetAllTradeRequestByListingId from "../hooks/useGetAllTradeRequestByListingId"
@@ -202,6 +203,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({
   const [products, setProducts] = useState<APILISTING.ListingItem[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false); // State for dialog visibility
 
   const { mutate: createTradeRequestMutation, isPending: isCreatingTradeRequest } = useServiceCreateTradeRequest(
     selectedProduct?.id || ''
@@ -673,35 +675,50 @@ const Marketplace: React.FC<MarketplaceProps> = ({
     });
   }, [respondTradeRequestMutation, selectedProduct?.id, fetchTradeRequests, fetchProductDetail]);
 
+  // Handle opening the guide dialog
+  const handleOpenGuideDialog = useCallback(() => {
+    setIsGuideDialogOpen(true);
+  }, []);
+
   // Determine which section we're in
   const isSellingSection = activeSection === 'selling';
   const isBuyingSection = activeSection === 'buying';
   const isTradingSection = activeSection === 'trading';
   const isHistorySection = activeSection === 'transaction-history';
 
-  // Determine loading state based on active section - tất cả đều dùng isHistoryLoading
+  // Determine loading state based on active section
   const currentLoading = isPending || isHistoryLoading;
 
   return (
     <>
-      <MarketplaceUI
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        filteredProducts={products}
-        likedItems={likedItems}
-        onToggleLike={toggleLike}
-        onProductClick={handleProductClick}
-        title={customTitle || "Marketplace - Figure & Blind Box"}
-        searchPlaceholder="Tìm kiếm figure, blind box..."
-        isLoading={currentLoading}
-        totalItems={totalItems}
-        currentPage={currentPage}
-        pageSize={pageSize}
-        onPageChange={handlePageChange}
-        isFreeFilter={(isBuyingSection || isTradingSection || isHistorySection) ? null : isFreeFilter}
-        onIsFreeChange={(isBuyingSection || isTradingSection || isHistorySection) ? undefined : handleIsFreeChange}
-        activeSection={activeSection}
-        onNavigationChange={handleNavigationChange}
+      <div className="relative">
+        <MarketplaceUI
+          searchTerm={searchTerm}
+          onSearchChange={handleSearchChange}
+          filteredProducts={products}
+          likedItems={likedItems}
+          onToggleLike={toggleLike}
+          onProductClick={handleProductClick}
+          title={customTitle || "Marketplace - Figure & Blind Box"}
+          searchPlaceholder="Tìm kiếm figure, blind box..."
+          isLoading={currentLoading}
+          totalItems={totalItems}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={handlePageChange}
+          isFreeFilter={(isBuyingSection || isTradingSection || isHistorySection) ? null : isFreeFilter}
+          onIsFreeChange={(isBuyingSection || isTradingSection || isHistorySection) ? undefined : handleIsFreeChange}
+          activeSection={activeSection}
+          onNavigationChange={handleNavigationChange}
+          onOpenGuideDialog={handleOpenGuideDialog}
+        />
+      </div>
+
+      {/* Marketplace Guide Dialog */}
+      <MarketplaceGuideDialog
+        open={isGuideDialogOpen}
+        onOpenChange={setIsGuideDialogOpen}
+        forceShow={isGuideDialogOpen} // Force show when opened via button
       />
 
       {/* Regular product detail */}
@@ -806,9 +823,9 @@ const Marketplace: React.FC<MarketplaceProps> = ({
             id: selectedHistoryItem.id,
             listingId: selectedHistoryItem.listingId,
             listingItemName: selectedHistoryItem.listingItemName,
-            listingItemTier: '', // Not available in TradingHistory
+            listingItemTier: '',
             listingItemImgUrl: selectedHistoryItem.listingItemImage,
-            listingOwnerName: '', // Not available in TradingHistory  
+            listingOwnerName: '',
             listingOwnerAvatarUrl: '',
             requesterId: selectedHistoryItem.requesterId,
             requesterName: selectedHistoryItem.requesterName,

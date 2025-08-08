@@ -1,6 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, Settings, History, Archive, ShoppingBag, Plus, ChevronRight, Filter, X, Gift, RefreshCw, CheckCircle, XCircle, Package, Clock } from 'lucide-react';
+import { Search, MapPin, Settings, History, Archive, ShoppingBag, Plus, ChevronRight, Filter, X, Gift, RefreshCw, CheckCircle, XCircle, Package, Clock, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface MarketplaceSidebarProps {
   searchTerm: string;
@@ -13,6 +14,8 @@ interface MarketplaceSidebarProps {
   // Navigation props
   activeSection?: string; // 'all' | 'transaction-history' | 'buying' | 'selling'
   onNavigationChange?: (section: string, params?: any) => void;
+  // Guide dialog prop
+  onOpenGuideDialog?: () => void;
 }
 
 const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
@@ -23,7 +26,8 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
   isFreeFilter = null,
   onIsFreeChange,
   activeSection = 'all',
-  onNavigationChange
+  onNavigationChange,
+  onOpenGuideDialog
 }) => {
   const router = useRouter();
 
@@ -54,7 +58,20 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
               </div>
               {title}
             </h1>
-            <Settings className="w-6 h-6 text-gray-400 cursor-pointer hover:text-blue-500 transition-colors" />
+            <div className="flex items-center gap-2">
+              {/* Guide button */}
+              {onOpenGuideDialog && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={onOpenGuideDialog}
+                  className="h-8 w-8 bg-white border-gray-200 text-blue-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+                  title="Xem hướng dẫn Marketplace"
+                >
+                  <Info className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
