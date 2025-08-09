@@ -15,12 +15,12 @@ interface ReviewFiltersProps {
   minRating?: number;
   maxRating?: number;
   hasComment?: boolean;
-  hasImage?: boolean;
+  hasImages?: boolean;
   onFilterChange: (filters: {
     minRating?: number;
     maxRating?: number;
     hasComment?: boolean;
-    hasImage?: boolean;
+    hasImages?: boolean;
   }) => void;
 }
 
@@ -28,37 +28,37 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = ({
   minRating,
   maxRating,
   hasComment,
-  hasImage,
+  hasImages,
   onFilterChange
 }) => {
   const handleRatingFilter = (value: string) => {
     if (value === "all") {
-      onFilterChange({ minRating: undefined, maxRating: undefined, hasComment, hasImage });
+      onFilterChange({ minRating: undefined, maxRating: undefined, hasComment, hasImages });
     } else if (value === "5") {
-      onFilterChange({ minRating: 5, maxRating: 5, hasComment, hasImage });
+      onFilterChange({ minRating: 5, maxRating: 5, hasComment, hasImages });
     } else if (value === "4") {
-      onFilterChange({ minRating: 4, maxRating: 4, hasComment, hasImage });
+      onFilterChange({ minRating: 4, maxRating: 4, hasComment, hasImages });
     } else if (value === "3") {
-      onFilterChange({ minRating: 3, maxRating: 3, hasComment, hasImage });
+      onFilterChange({ minRating: 3, maxRating: 3, hasComment, hasImages });
     } else if (value === "2") {
-      onFilterChange({ minRating: 2, maxRating: 2, hasComment, hasImage });
+      onFilterChange({ minRating: 2, maxRating: 2, hasComment, hasImages });
     } else if (value === "1") {
-      onFilterChange({ minRating: 1, maxRating: 1, hasComment, hasImage });
+      onFilterChange({ minRating: 1, maxRating: 1, hasComment, hasImages });
     } else if (value === "4-5") {
-      onFilterChange({ minRating: 4, maxRating: 5, hasComment, hasImage });
+      onFilterChange({ minRating: 4, maxRating: 5, hasComment, hasImages });
     } else if (value === "3-5") {
-      onFilterChange({ minRating: 3, maxRating: 5, hasComment, hasImage });
+      onFilterChange({ minRating: 3, maxRating: 5, hasComment, hasImages });
     }
   };
 
   const handleImageFilter = (value: string) => {
     const hasImageValue = value === "with-image" ? true : value === "without-image" ? false : undefined;
-    onFilterChange({ minRating, maxRating, hasComment, hasImage: hasImageValue });
+    onFilterChange({ minRating, maxRating, hasComment, hasImages: hasImageValue });
   };
 
   const handleCommentFilter = (value: string) => {
     const hasCommentValue = value === "with-comment" ? true : value === "without-comment" ? false : undefined;
-    onFilterChange({ minRating, maxRating, hasComment: hasCommentValue, hasImage });
+    onFilterChange({ minRating, maxRating, hasComment: hasCommentValue, hasImages });
   };
 
   const getCurrentRatingFilter = () => {
@@ -74,8 +74,8 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = ({
   };
 
   const getCurrentImageFilter = () => {
-    if (hasImage === true) return "with-image";
-    if (hasImage === false) return "without-image";
+    if (hasImages === true) return "with-image";
+    if (hasImages === false) return "without-image";
     return "all-image";
   };
 

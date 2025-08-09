@@ -10,11 +10,12 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Backdrop } from "../backdrop";
 import { Button } from "../ui/button";
 import WriteReview from "../product-reviews/write-review";
 import useCreateReview from "@/app/(user)/purchased/hooks/useCreateReview";
+import useGetReviewStatus from "@/app/(user)/purchased/hooks/useGetReviewStatus";
 
 // Helper function to determine actual status from logs
 const getActualStatusFromLogs = (logs: string, currentStatus: OrderStatus): OrderStatus => {
@@ -94,8 +95,45 @@ export default function OrderCard({
     const [showWriteReview, setShowWriteReview] = useState(false);
     const [selectedProductForReview, setSelectedProductForReview] = useState<OrderDetail | null>(null);
 
+    // State để lưu trạng thái review của từng order detail
+    const [reviewStatuses, setReviewStatuses] = useState<Record<string, boolean>>({});
+    const [loadingReviewStatuses, setLoadingReviewStatuses] = useState<Record<string, boolean>>({});
+
     // Sử dụng hook tạo review (có form validation + toast thành công)
     const { onSubmit, isPending: isSubmittingReview } = useCreateReview();
+    const { getReviewStatusApi } = useGetReviewStatus();
+
+    useEffect(() => {
+        const checkReviewStatuses = async () => {
+            const statusPromises = details.map(async (detail) => {
+                setLoadingReviewStatuses(prev => ({ ...prev, [detail.id]: true }));
+                try {
+                    const response = await getReviewStatusApi(detail.id);
+                    if (response?.isSuccess) {
+                        return { id: detail.id, canReview: !response.value.data };
+                    }
+                    return { id: detail.id, canReview: true };
+                } catch (error) {
+                    console.error(`Error checking review status for ${detail.id}:`, error);
+                    return { id: detail.id, canReview: true }; 
+                } finally {
+                    setLoadingReviewStatuses(prev => ({ ...prev, [detail.id]: false }));
+                }
+            });
+
+            const results = await Promise.all(statusPromises);
+            const statusMap = results.reduce((acc, { id, canReview }) => {
+                acc[id] = canReview;
+                return acc;
+            }, {} as Record<string, boolean>);
+
+            setReviewStatuses(statusMap);
+        };
+
+        if (details.length > 0) {
+            checkReviewStatuses();
+        }
+    }, [details]);
 
     const handleViewInvoiceDetail = (id: string) => {
         setLoadingPage(true);
@@ -104,24 +142,20 @@ export default function OrderCard({
 
     const handleSubmitReview = async (data: any) => {
         if (!selectedProductForReview) return;
-
-        // Set orderDetailId vào form data
         const formData = {
             ...data,
             orderDetailId: selectedProductForReview.id,
         };
-
         try {
             const result = await onSubmit(formData);
             if (result) {
-                console.log('Review created successfully:', result);
-
-                // Gọi callback để cập nhật danh sách reviews nếu có
+                setReviewStatuses(prev => ({
+                    ...prev,
+                    [selectedProductForReview.id]: false 
+                }));
                 if (onReviewCreated) {
                     onReviewCreated(result);
                 }
-
-                // Đóng form sau khi submit thành công
                 setShowWriteReview(false);
                 setSelectedProductForReview(null);
             }
@@ -185,16 +219,45 @@ export default function OrderCard({
                                 );
                             })()}
                             {payment?.status === PaymentInfoStatus.Paid && (
-                                <button
-                                    className="text-xs bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600 transition-colors"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedProductForReview(detail);
-                                        setShowWriteReview(true);
-                                    }}
-                                >
-                                    Đánh giá
-                                </button>
+                                (() => {
+                                    const canReview = reviewStatuses[detail.id];
+                                    const isLoading = loadingReviewStatuses[detail.id];
+
+                                    if (isLoading) {
+                                        return (
+                                            <button
+                                                className="text-xs bg-gray-400 text-white px-2 py-1 rounded cursor-not-allowed"
+                                                disabled
+                                            >
+                                                Đang kiểm tra...
+                                            </button>
+                                        );
+                                    }
+
+                                    if (canReview === false) {
+                                        return (
+                                            <button
+                                                className="text-xs bg-gray-400 text-white px-2 py-1 rounded cursor-not-allowed"
+                                                disabled
+                                            >
+                                                Đã đánh giá
+                                            </button>
+                                        );
+                                    }
+
+                                    return (
+                                        <button
+                                            className="text-xs bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600 transition-colors"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedProductForReview(detail);
+                                                setShowWriteReview(true);
+                                            }}
+                                        >
+                                            Đánh giá
+                                        </button>
+                                    );
+                                })()
                             )}
                         </div>
                     </div>
@@ -311,8 +374,7 @@ export default function OrderCard({
                     </button>
                 </div>
             </div>
-
-            {/* Review Dialog for Selected Product */}
+            
             <Dialog open={showWriteReview} onOpenChange={setShowWriteReview}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>

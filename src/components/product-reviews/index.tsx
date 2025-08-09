@@ -25,7 +25,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
     minRating?: number;
     maxRating?: number;
     hasComment?: boolean;
-    hasImage?: boolean;
+    hasImages?: boolean;
   }>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -74,7 +74,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
         MinRating: filters.minRating,
         MaxRating: filters.maxRating,
         HasComment: filters.hasComment,
-        HasImage: filters.hasImage,
+        HasImages: filters.hasImages,
         PageIndex: currentPage,
         PageSize: pageSize
       };
@@ -223,7 +223,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
         minRating={filters.minRating}
         maxRating={filters.maxRating}
         hasComment={filters.hasComment}
-        hasImage={filters.hasImage}
+        hasImages={filters.hasImages}
         onFilterChange={(newFilters) => {
           setFilters(newFilters);
         }}

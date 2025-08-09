@@ -48,11 +48,11 @@ export const getAllReviews = async (params?: {
   return response.data;
 };
 
-export const canReview = async (
+export const getReviewStats = async (
   orderDetailId: string
-): Promise<TResponseData<{ canReview: boolean }>> => {
-  const response = await request<TResponseData<{ canReview: boolean }>>(
-    API_ENDPOINTS.REVIEW_CAN_REVIEW(orderDetailId),
+): Promise<TResponseData<boolean>> => {
+  const response = await request<TResponseData<boolean>>(
+    API_ENDPOINTS.REVIEW_STATS(orderDetailId),
     {
       method: "GET",
     }
@@ -67,7 +67,8 @@ export const getReview = async ({
   MinRating,
   MaxRating,
   HasComment,
-  HasImage,
+  HasImages,
+  HasSellerReply,
   PageIndex,
   PageSize,
 }: ReviewGetRequest): Promise<TResponseData<ReviewListResponse>> => {
@@ -82,7 +83,8 @@ export const getReview = async ({
         MinRating,
         MaxRating,
         HasComment,
-        HasImage,
+        HasImages,
+        HasSellerReply,
         PageIndex,
         PageSize,
       },

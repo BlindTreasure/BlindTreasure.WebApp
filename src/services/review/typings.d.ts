@@ -12,7 +12,8 @@ export type ReviewGetRequest = {
   MinRating?: number;
   MaxRating?: number;
   HasComment?: boolean;
-  HasImage?: boolean;
+  HasImages?: boolean;
+  HasSellerReply?: boolean;
   PageIndex?: number;
   PageSize?: number;
 };

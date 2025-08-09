@@ -13,8 +13,8 @@ interface UseSellerReviewsProps {
   minRating?: number;
   maxRating?: number;
   hasComment?: boolean;
-  hasImage?: boolean;
-  hasReply?: boolean;
+  hasSellerReply?: boolean;
+  hasImages?: boolean;
 }
 
 export default function useSellerReviews({
@@ -25,8 +25,8 @@ export default function useSellerReviews({
   minRating,
   maxRating,
   hasComment,
-  hasImage,
-  hasReply,
+  hasSellerReply,
+  hasImages,
 }: UseSellerReviewsProps) {
   const [reviews, setReviews] = useState<ReviewResponse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -52,8 +52,8 @@ export default function useSellerReviews({
         MinRating: minRating,
         MaxRating: maxRating,
         HasComment: hasComment,
-        HasImage: hasImage,
-        HasReply: hasReply,
+        HasImages: hasImages,
+        HasSellerReply: hasSellerReply,
         PageIndex: pageIndex,
         PageSize: pageSize,
       };
@@ -87,8 +87,8 @@ export default function useSellerReviews({
     minRating,
     maxRating,
     hasComment,
-    hasImage,
-    hasReply,
+    hasImages,
+    hasSellerReply,
   ]);
 
   const refetch = () => {

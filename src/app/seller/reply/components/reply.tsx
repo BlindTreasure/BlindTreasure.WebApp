@@ -21,8 +21,8 @@ function Reply() {
         minRating: undefined as number | undefined,
         maxRating: undefined as number | undefined,
         hasComment: undefined as boolean | undefined,
-        hasImage: undefined as boolean | undefined,
-        hasReply: undefined as boolean | undefined,
+        hasImages: undefined as boolean | undefined,
+        hasSellerReply: undefined as boolean | undefined,
     });
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
@@ -148,20 +148,6 @@ function Reply() {
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4 py-4">
                             <div className="flex flex-wrap items-center gap-4">
                                 <Select
-                                    value={filters.hasReply === undefined ? "all" : filters.hasReply.toString()}
-                                    onValueChange={(value) => handleFilterChange("hasReply", value === "all" ? undefined : value === "true")}
-                                >
-                                    <SelectTrigger className="w-40">
-                                        <SelectValue placeholder="Trạng thái" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">Tất cả</SelectItem>
-                                        <SelectItem value="false">Chưa phản hồi</SelectItem>
-                                        <SelectItem value="true">Đã phản hồi</SelectItem>
-                                    </SelectContent>
-                                </Select>
-
-                                <Select
                                     value={`${filters.minRating || 'all'}-${filters.maxRating || 'all'}`}
                                     onValueChange={(value) => {
                                         if (value === "all-all") {
@@ -200,6 +186,34 @@ function Reply() {
                                         <SelectItem value="all">Tất cả</SelectItem>
                                         <SelectItem value="true">Có bình luận</SelectItem>
                                         <SelectItem value="false">Không có bình luận</SelectItem>
+                                    </SelectContent>
+                                </Select>
+
+                                <Select
+                                    value={filters.hasSellerReply === undefined ? "all" : filters.hasSellerReply.toString()}
+                                    onValueChange={(value) => handleFilterChange("hasSellerReply", value === "all" ? undefined : value === "true")}
+                                >
+                                    <SelectTrigger className="w-40">
+                                        <SelectValue placeholder="Phản hồi" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Tất cả</SelectItem>
+                                        <SelectItem value="true">Đã phản hồi</SelectItem>
+                                        <SelectItem value="false">Chưa phản hồi</SelectItem>
+                                    </SelectContent>
+                                </Select>
+
+                                <Select
+                                    value={filters.hasImages === undefined ? "all" : filters.hasImages.toString()}
+                                    onValueChange={(value) => handleFilterChange("hasImages", value === "all" ? undefined : value === "true")}
+                                >
+                                    <SelectTrigger className="w-40">
+                                        <SelectValue placeholder="Hình ảnh" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Tất cả</SelectItem>
+                                        <SelectItem value="true">Có hình ảnh</SelectItem>
+                                        <SelectItem value="false">Không có hình ảnh</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
