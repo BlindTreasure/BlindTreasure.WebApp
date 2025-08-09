@@ -9,6 +9,7 @@ interface PaginationFooterProps {
     pageSize: number;
     onPageSizeChange: (newSize: number) => void;
     onPageChange: (page: number) => void;
+    hideItemsInfo?: boolean;
 }
 
 export const PaginationFooter: React.FC<PaginationFooterProps> = ({
@@ -17,7 +18,8 @@ export const PaginationFooter: React.FC<PaginationFooterProps> = ({
     totalItems,
     pageSize,
     onPageSizeChange,
-    onPageChange
+    onPageChange,
+    hideItemsInfo = false
 }) => {
     const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
     const endIndex = Math.min(currentPage * pageSize, totalItems);
@@ -40,14 +42,16 @@ export const PaginationFooter: React.FC<PaginationFooterProps> = ({
                 <span>mỗi trang</span>
             </div>
 
-            <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400 text-sm">
-                <span className="hidden sm:inline">
-                    Đang hiển thị {startIndex} - {endIndex} / {totalItems} sản phẩm
-                </span>
-                <span className="inline sm:hidden">
-                    {startIndex} - {endIndex} / {totalItems}
-                </span>
-            </div>
+            {!hideItemsInfo && (
+                <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400 text-sm">
+                    <span className="hidden sm:inline">
+                        Đang hiển thị {startIndex} - {endIndex} / {totalItems} sản phẩm
+                    </span>
+                    <span className="inline sm:hidden">
+                        {startIndex} - {endIndex} / {totalItems}
+                    </span>
+                </div>
+            )}
 
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
         </div>

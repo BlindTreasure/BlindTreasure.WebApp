@@ -3,8 +3,8 @@ import API_ENDPOINTS from "@/services/stripe/api-path";
 
 export const createOrder = async (
   data: REQUEST.CreateOrderList
-): Promise<TResponseData<string>> => {
-  const response = await request.post<TResponseData<string>>(
+): Promise<TResponseData<API.CreateOrderData>> => {
+  const response = await request.post<TResponseData<API.CreateOrderData>>(
     API_ENDPOINTS.CHECKOUT_DIRECT,
     data,
   );

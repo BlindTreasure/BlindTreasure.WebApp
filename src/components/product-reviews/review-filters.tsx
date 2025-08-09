@@ -56,6 +56,11 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = ({
     onFilterChange({ minRating, maxRating, hasComment, hasImage: hasImageValue });
   };
 
+  const handleCommentFilter = (value: string) => {
+    const hasCommentValue = value === "with-comment" ? true : value === "without-comment" ? false : undefined;
+    onFilterChange({ minRating, maxRating, hasComment: hasCommentValue, hasImage });
+  };
+
   const getCurrentRatingFilter = () => {
     if (!minRating && !maxRating) return "all";
     if (minRating === 5 && maxRating === 5) return "5";
@@ -72,6 +77,12 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = ({
     if (hasImage === true) return "with-image";
     if (hasImage === false) return "without-image";
     return "all-image";
+  };
+
+  const getCurrentCommentFilter = () => {
+    if (hasComment === true) return "with-comment";
+    if (hasComment === false) return "without-comment";
+    return "all-comment";
   };
 
   return (
@@ -94,6 +105,17 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = ({
           <SelectItem value="1">1 sao</SelectItem>
           <SelectItem value="4-5">4-5 sao</SelectItem>
           <SelectItem value="3-5">3-5 sao</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select value={getCurrentCommentFilter()} onValueChange={handleCommentFilter}>
+        <SelectTrigger className="w-48">
+          <SelectValue placeholder="Lọc theo bình luận" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all-comment">Tất cả</SelectItem>
+          <SelectItem value="with-comment">Có bình luận</SelectItem>
+          <SelectItem value="without-comment">Không có bình luận</SelectItem>
         </SelectContent>
       </Select>
 

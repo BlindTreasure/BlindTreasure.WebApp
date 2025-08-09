@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { fadeIn } from '@/utils/variants';
 import RatingOverview from './rating-overview';
 import ReviewFilters from './review-filters';
-import ReviewItem from './review-item';
+import ReviewList from './review-list';
 import { Review, ReviewStats, ProductReviewsProps } from './types';
 import { getReview } from '@/services/review/api-services';
 import { isTResponseData } from '@/utils/compare';
@@ -29,6 +27,10 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
     hasComment?: boolean;
     hasImage?: boolean;
   }>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [pageSize, setPageSize] = useState(5);
 
   const calculateStats = (reviewList: Review[]): ReviewStats => {
     if (reviewList.length === 0) {
@@ -73,16 +75,14 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
         MaxRating: filters.maxRating,
         HasComment: filters.hasComment,
         HasImage: filters.hasImage,
-        PageIndex: 1,
-        PageSize: 10
+        PageIndex: currentPage,
+        PageSize: pageSize
       };
-
-      console.log('Fetching reviews with params:', params);
       const response = await getReview(params);
 
       if (response && isTResponseData(response)) {
         const reviewData = response.value.data.result || [];
-        console.log('Reviews fetched successfully:', reviewData);
+        const paginationData = response.value.data;
         const convertedReviews: Review[] = reviewData.map((review: any) => ({
           id: review.id,
           userId: review.userId,
@@ -111,17 +111,19 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
 
         setReviews(convertedReviews);
         setStats(calculateStats(convertedReviews));
+        setTotalPages(paginationData.totalPages || 0);
+        setTotalReviews(paginationData.count || 0);
       } else {
-        console.log('No review data found or invalid response format');
         setReviews([]);
         setStats({
           averageRating: 0,
           totalReviews: 0,
           ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
         });
+        setTotalPages(0);
+        setTotalReviews(0);
       }
     } catch (err) {
-      console.error('Error fetching reviews:', err);
       setError('Không thể tải đánh giá');
       setReviews([]);
     } finally {
@@ -131,7 +133,11 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
 
   useEffect(() => {
     fetchReviews();
-  }, [productId, productType, filters]);
+  }, [productId, productType, filters, currentPage, pageSize]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, pageSize]);
 
   useEffect(() => {
     if (newReview) {
@@ -223,59 +229,48 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
         }}
       />
 
-      <motion.div
-        variants={fadeIn("up", 0.3)}
-        initial="hidden"
-        animate="show"
-        className="space-y-6"
-      >
-        {reviews.length === 0 ? (
-          <div className="text-center py-8">
-            <img
-              src="/images/Empty-items.jpg"
-              alt="Chưa có đánh giá"
-              className="w-32 h-32 mx-auto mb-4 opacity-60"
-            />
-            <p className="text-gray-500">Chưa có đánh giá nào cho sản phẩm này</p>
-          </div>
-        ) : (
-          reviews.map((review) => (
-            <ReviewItem
-              key={review.id}
-              review={review}
-              onReviewDeleted={(reviewId) => {
-                setReviews(prev => prev.filter(r => r.id !== reviewId));
-                setStats(prev => {
-                  const newTotal = prev.totalReviews - 1;
-                  if (newTotal === 0) {
-                    return {
-                      averageRating: 0,
-                      totalReviews: 0,
-                      ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
-                    };
-                  }
+      <ReviewList
+        reviews={reviews}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalReviews={totalReviews}
+        pageSize={pageSize}
+        isPending={isPending}
+        onReviewDeleted={(reviewId) => {
+          setReviews(prev => prev.filter(r => r.id !== reviewId));
+          setStats(prev => {
+            const newTotal = prev.totalReviews - 1;
+            if (newTotal === 0) {
+              return {
+                averageRating: 0,
+                totalReviews: 0,
+                ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+              };
+            }
 
-                  const deletedReview = reviews.find(r => r.id === reviewId);
-                  if (deletedReview) {
-                    const newSum = (prev.averageRating * prev.totalReviews) - deletedReview.rating;
-                    const newAverage = newSum / newTotal;
+            const deletedReview = reviews.find(r => r.id === reviewId);
+            if (deletedReview) {
+              const newSum = (prev.averageRating * prev.totalReviews) - deletedReview.rating;
+              const newAverage = newSum / newTotal;
 
-                    const newDistribution = { ...prev.ratingDistribution };
-                    newDistribution[deletedReview.rating as keyof typeof newDistribution]--;
+              const newDistribution = { ...prev.ratingDistribution };
+              newDistribution[deletedReview.rating as keyof typeof newDistribution]--;
 
-                    return {
-                      averageRating: Math.round(newAverage * 100) / 100,
-                      totalReviews: newTotal,
-                      ratingDistribution: newDistribution
-                    };
-                  }
-                  return prev;
-                });
-              }}
-            />
-          ))
-        )}
-      </motion.div>
+              return {
+                averageRating: Math.round(newAverage * 100) / 100,
+                totalReviews: newTotal,
+                ratingDistribution: newDistribution
+              };
+            }
+            return prev;
+          });
+        }}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize);
+          setCurrentPage(1);
+        }}
+      />
     </div>
   );
 };

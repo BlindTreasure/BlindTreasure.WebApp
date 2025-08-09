@@ -23,7 +23,7 @@ const WriteReview: React.FC<WriteReviewProps> = ({ productId, onSubmit, onCancel
   const [comment, setComment] = useState('');
   const [experience, setExperience] = useState('');
   const [appearance, setAppearance] = useState('');
-  const [mediaFiles, setMediaFiles] = useState<File[]>([]); // Chứa cả ảnh và video
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]); 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const actualIsSubmitting = externalIsSubmitting ?? isSubmitting;
 
@@ -38,15 +38,13 @@ const WriteReview: React.FC<WriteReviewProps> = ({ productId, onSubmit, onCancel
     const files = Array.from(event.target.files || []);
     const currentFiles = mediaFiles.length;
 
-    // Kiểm tra tổng số files (tối đa 5 files bao gồm cả ảnh và video)
     if (currentFiles + files.length > 5) {
       alert('Tối đa 5 files (ảnh + video)');
       return;
     }
 
-    // Kiểm tra kích thước video (tối đa 50MB)
     const videoFiles = files.filter(file => file.type.startsWith('video/'));
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    const maxSize = 50 * 1024 * 1024; 
     const oversizedVideos = videoFiles.filter(file => file.size > maxSize);
     if (oversizedVideos.length > 0) {
       alert('Kích thước video không được vượt quá 50MB');
@@ -73,7 +71,6 @@ const WriteReview: React.FC<WriteReviewProps> = ({ productId, onSubmit, onCancel
       return;
     }
 
-    // Chỉ set loading state nếu không có external isSubmitting
     if (externalIsSubmitting === undefined) {
       setIsSubmitting(true);
     }
@@ -83,22 +80,18 @@ const WriteReview: React.FC<WriteReviewProps> = ({ productId, onSubmit, onCancel
         productId,
         rating,
         comment: comment.trim(),
-        experience: experience.trim(),
-        appearance: appearance.trim(),
-        images: mediaFiles, // Gửi tất cả files (ảnh + video)
-        videos: [] // Không cần videos riêng nữa
+        images: mediaFiles, 
+        videos: [] 
       };
 
       await onSubmit(reviewData);
 
-      // Reset form sau khi submit thành công
       setRating(0);
       setComment('');
       setExperience('');
       setAppearance('');
       setMediaFiles([]);
     } catch (error) {
-      console.error('Error submitting review:', error);
       if (externalIsSubmitting === undefined) {
         alert('Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.');
       }

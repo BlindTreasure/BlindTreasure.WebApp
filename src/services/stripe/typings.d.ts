@@ -44,7 +44,6 @@ declare namespace REQUEST {
   };
 }
 
-
 declare namespace API {
   type ShipmentPreviewFee = {
     mainService: number;
@@ -70,5 +69,20 @@ declare namespace API {
     sellerId: string;
     sellerCompanyName: string;
     ghnPreviewResponse: GhnPreviewResponse;
+  };
+
+  type OrderInfo = {
+    orderId: string;
+    sellerId: string;
+    sellerName: string;
+    paymentUrl: string;
+    finalAmount: number;
+  };
+
+  type CreateOrderData = {
+    orders: OrderInfo[];
+    message: string;
+    generalPaymentUrl: string;
+    checkoutGroupId: string;
   };
 }

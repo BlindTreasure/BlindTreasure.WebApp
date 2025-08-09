@@ -23,7 +23,7 @@ export const OrderService = {
     try {
       const response = await createOrder(data);
       if (response.isSuccess) {
-        return response.value.data;
+        return response.value.data.generalPaymentUrl;
       } else {
         throw new Error(response.error.message || "Tạo đơn hàng thất bại");
       }
@@ -46,8 +46,7 @@ export const useServicePreviewShipping = () => {
     mutationFn: async (data: REQUEST.CreateOrderList) => {
       return await previewShipping(data);
     },
-    onSuccess: (data) => {
-    },
+    onSuccess: (data) => {},
     onError: (error) => {
       handleCartShippingError(error, router);
     },
