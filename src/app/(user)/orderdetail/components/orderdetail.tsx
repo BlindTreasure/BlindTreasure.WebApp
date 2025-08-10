@@ -264,13 +264,17 @@ export default function OrderDetail() {
     );
   }
 
-  const shippingFee: number = order.totalShippingFee || 0;
+  const shippingFee: number = order.details.reduce((total, detail) => {
+    const detailShippingFee = detail.shipments?.reduce((shipTotal, shipment) =>
+      shipTotal + (shipment.totalFee || 0), 0) || 0;
+    return total + detailShippingFee;
+  }, 0) || 0;
 
   const discountAmount = order.payment
     ? Math.max(0, order.payment.amount - order.payment.netAmount)
     : 0;
 
-  const hasShipping = !!order.shippingAddress;
+  const hasShipping = order.details.some(detail => detail.shipments && detail.shipments.length > 0);
 
   const getEstimatedDeliveryDate = () => {
     if (!hasShipping || order.status === "PENDING") {
@@ -310,7 +314,7 @@ export default function OrderDetail() {
 
       <OrderTrackingTimeline order={order} estimatedDeliveryDate={estimatedDeliveryDate} />
 
-      <Card>
+      {/* <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <MapPin className="w-5 h-5" />
@@ -328,25 +332,25 @@ export default function OrderDetail() {
                 {order.shippingAddress.country && `, ${order.shippingAddress.country}`}
               </div>
               <div>
-                {shippingFee > 0 && (
+                {hasShipping && shippingFee > 0 && (
                   <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mt-2 inline-block">
                     <Truck className="w-3 h-3 inline mr-1" />
                     Phí vận chuyển: ₫{shippingFee.toLocaleString("vi-VN")}
                   </div>
                 )}
 
-                {shippingFee === 0 && hasShipping && (
-                  order.status === "PENDING" ? (
-                    <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded mt-2 inline-block">
-                      <Truck className="w-3 h-3 inline mr-1" />
-                      Không áp dụng phí vận chuyển
-                    </div>
-                  ) : (
-                    <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded mt-2 inline-block">
-                      <Truck className="w-3 h-3 inline mr-1" />
-                      Miễn phí vận chuyển
-                    </div>
-                  )
+                {hasShipping && shippingFee === 0 && (
+                  <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded mt-2 inline-block">
+                    <Truck className="w-3 h-3 inline mr-1" />
+                    Miễn phí vận chuyển
+                  </div>
+                )}
+
+                {!hasShipping && (
+                  <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded mt-2 inline-block">
+                    <Truck className="w-3 h-3 inline mr-1" />
+                    Không áp dụng phí vận chuyển
+                  </div>
                 )}
               </div>
               {estimatedDeliveryDate && (
@@ -362,7 +366,7 @@ export default function OrderDetail() {
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
 
       <Card>
         <CardHeader className="pb-3">
@@ -439,9 +443,6 @@ export default function OrderDetail() {
                 </div>
 
                 <div className="text-right">
-                  <div className="text-sm text-gray-500 line-through">
-                    ₫{(item.unitPrice * 1.2 * item.quantity).toLocaleString("vi-VN")}
-                  </div>
                   <div className="font-semibold text-red-500">
                     ₫{item.totalPrice.toLocaleString("vi-VN")}
                   </div>
@@ -456,7 +457,7 @@ export default function OrderDetail() {
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Phí vận chuyển</span>
                 <span>
-                  {hasShipping && order.status !== "PENDING" ? (
+                  {hasShipping ? (
                     shippingFee > 0 ? (
                       `₫${shippingFee.toLocaleString("vi-VN")}`
                     ) : (
@@ -473,16 +474,10 @@ export default function OrderDetail() {
                   <span className="text-green-600">-₫{discountAmount.toLocaleString("vi-VN")}</span>
                 </div>
               )}
-              {order.promotionNote && (
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Khuyến mãi</span>
-                  <span className="text-green-600">{order.promotionNote}</span>
-                </div>
-              )}
               <Separator />
               <div className="flex justify-between items-center text-lg font-semibold">
                 <span>Thành tiền</span>
-                <span className="text-red-500">₫{(order.payment?.netAmount || (order.finalAmount + shippingFee)).toLocaleString("vi-VN")}</span>
+                <span className="text-red-500">₫{(order.totalAmount + shippingFee - discountAmount).toLocaleString("vi-VN")}</span>
               </div>
               {order.payment?.method && (
                 <div className="text-sm text-gray-500">

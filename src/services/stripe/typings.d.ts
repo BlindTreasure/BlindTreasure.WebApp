@@ -1,21 +1,3 @@
-// declare namespace REQUEST {
-//   type CreateOrderItem = {
-//     productId: string;
-//     productName: string;
-//     blindBoxId: string;
-//     blindBoxName: string;
-//     quantity: number;
-//     unitPrice: number;
-//     totalPrice: number;
-//   };
-
-//   type CreateOrderList = {
-//     isShip?: boolean;
-//     promotionId?: string;
-//     items: CreateOrderItem[];
-//   };
-// }
-
 declare namespace REQUEST {
   type CreateOrderItem = {
     id: string;
@@ -41,6 +23,9 @@ declare namespace REQUEST {
   type CreateOrderList = {
     isShip?: boolean;
     sellerItems: CreateOrderSellerGroup[];
+  };
+  type CreateGroupPaymentLink = {
+    checkoutGroupId: string;
   };
 }
 

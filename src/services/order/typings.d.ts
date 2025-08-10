@@ -17,6 +17,7 @@ export type GetOrderParams = {
   status?: PaymentStatus;
   placedFrom?: string;
   placedTo?: string;
+  CheckoutGroupId?: string;
   pageIndex?: number;
   pageSize?: number;
 };
@@ -32,7 +33,26 @@ export type OrderResponse = {
   payment?: PaymentInfo | null;
   finalAmount: number;
   totalShippingFee: number;
-  promotionNote: string;
+  checkoutGroupId: string;
+  sellerId: string;
+  seller?: Seller;
+};
+
+export type Seller = {
+  sellerId: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  dateOfBirth: string;
+  avatarUrl: string;
+  status: string;
+  companyName: string;
+  taxId: string;
+  companyAddress: string;
+  coaDocumentUrl: string;
+  sellerStatus: string;
+  isVerified: boolean;
 };
 
 export type ShippingAddress = {
@@ -62,6 +82,8 @@ export type OrderDetail = {
   status: OrderStatus;
   shipments: Shipment[];
   inventoryItems: InventoryItem[];
+  detailDiscountPromotion: number;
+  finalDetailPrice: number;
 };
 
 export type PaymentInfo = {
@@ -72,7 +94,6 @@ export type PaymentInfo = {
   netAmount: number;
   method: string;
   status: PaymentInfoStatus;
-  transactionId: string;
   paymentIntentId?: string;
   paidAt: string | null;
   refundedAmount: number;
@@ -84,7 +105,7 @@ export type PaymentTransaction = {
   type: "Checkout" | string;
   amount: number;
   currency: string;
-  status: "Pending" | "Success" | "Failed";
+  status: "Pending" | "Successful" | "Failed";
   occurredAt: string;
   externalRef: string;
 };
@@ -114,6 +135,9 @@ export type OrderDetails = {
   totalPrice: number;
   status: OrderStatus;
   shipments: Shipment[];
+  inventoryItems: InventoryItem[];
+  detailDiscountPromotion: number;
+  finalDetailPrice: number;
 };
 export type OrderDetailListResponse = {
   result: OrderDetails[];

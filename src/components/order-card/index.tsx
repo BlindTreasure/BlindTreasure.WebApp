@@ -16,6 +16,7 @@ import { Button } from "../ui/button";
 import WriteReview from "../product-reviews/write-review";
 import useCreateReview from "@/app/(user)/purchased/hooks/useCreateReview";
 import useGetReviewStatus from "@/app/(user)/purchased/hooks/useGetReviewStatus";
+import { useServiceCreateGroupPaymentLink } from "@/services/stripe/services";
 
 // Helper function to determine actual status from logs
 const getActualStatusFromLogs = (logs: string, currentStatus: OrderStatus): OrderStatus => {
@@ -75,6 +76,7 @@ interface OrderCardProps {
     finalAmount?: number;
     shippingAddress?: ShippingAddress;
     totalShippingFee?: number;
+    checkoutGroupId: string;
     onReviewCreated?: (reviewData: any) => void;
 }
 
@@ -88,20 +90,40 @@ export default function OrderCard({
     shippingAddress,
     finalAmount = 0,
     totalShippingFee = 0,
+    checkoutGroupId,
     onReviewCreated,
 }: OrderCardProps) {
     const router = useRouter();
     const [loadingPage, setLoadingPage] = useState(false);
     const [showWriteReview, setShowWriteReview] = useState(false);
     const [selectedProductForReview, setSelectedProductForReview] = useState<OrderDetail | null>(null);
-
-    // State để lưu trạng thái review của từng order detail
     const [reviewStatuses, setReviewStatuses] = useState<Record<string, boolean>>({});
     const [loadingReviewStatuses, setLoadingReviewStatuses] = useState<Record<string, boolean>>({});
-
-    // Sử dụng hook tạo review (có form validation + toast thành công)
     const { onSubmit, isPending: isSubmittingReview } = useCreateReview();
     const { getReviewStatusApi } = useGetReviewStatus();
+    const { mutate: createGroupPaymentLink, isPending: isRetryingPayment } = useServiceCreateGroupPaymentLink();
+    const handleRetryPayment = (checkoutGroupId: string) => {
+        if (!checkoutGroupId) {
+            console.error('checkoutGroupId is required for retry payment');
+            return;
+        }
+
+        createGroupPaymentLink(
+            { checkoutGroupId },
+            {
+                onSuccess: (response) => {
+                    if (response.value?.data && typeof response.value.data === 'string') {
+                        window.location.href = response.value.data;
+                    } else {
+                        console.error('No payment URL found in response:', response);
+                    }
+                },
+                onError: (error) => {
+                    console.error('Error creating group payment link:', error);
+                }
+            }
+        );
+    };
 
     useEffect(() => {
         const checkReviewStatuses = async () => {
@@ -115,7 +137,7 @@ export default function OrderCard({
                     return { id: detail.id, canReview: true };
                 } catch (error) {
                     console.error(`Error checking review status for ${detail.id}:`, error);
-                    return { id: detail.id, canReview: true }; 
+                    return { id: detail.id, canReview: true };
                 } finally {
                     setLoadingReviewStatuses(prev => ({ ...prev, [detail.id]: false }));
                 }
@@ -151,7 +173,7 @@ export default function OrderCard({
             if (result) {
                 setReviewStatuses(prev => ({
                     ...prev,
-                    [selectedProductForReview.id]: false 
+                    [selectedProductForReview.id]: false
                 }));
                 if (onReviewCreated) {
                     onReviewCreated(result);
@@ -196,6 +218,12 @@ export default function OrderCard({
                             <div className="text-sm text-gray-500">x{detail.quantity}</div>
                             {(() => {
                                 const actualStatus = getActualStatusFromLogs(detail.logs || '', detail.status);
+
+                                let displayText = OrderStatusText[actualStatus] ?? "Không xác định";
+                                if (actualStatus === OrderStatus.PENDING && payment?.status === PaymentInfoStatus.Pending) {
+                                    displayText = "Chờ thanh toán";
+                                }
+
                                 return (
                                     <span
                                         className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase
@@ -214,7 +242,7 @@ export default function OrderCard({
                                                                     : "bg-gray-100 text-gray-600"
                                             }`}
                                     >
-                                        {OrderStatusText[actualStatus] ?? "Không xác định"}
+                                        {displayText}
                                     </span>
                                 );
                             })()}
@@ -271,6 +299,18 @@ export default function OrderCard({
 
             <div className="p-4 flex flex-col sm:flex-row sm:justify-end sm:items-center bg-gray-50 gap-4">
                 <div className="flex flex-wrap gap-2 items-center">
+                    {payment?.status === PaymentInfoStatus.Pending && (
+                        <button
+                            className="bg-[#d02a2a] text-white border border-gray-300 px-4 py-1 rounded hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleRetryPayment(checkoutGroupId);
+                            }}
+                            disabled={isRetryingPayment}
+                        >
+                            {isRetryingPayment ? 'Đang xử lý...' : 'Thanh toán lại'}
+                        </button>
+                    )}
                     <Dialog>
                         <DialogTrigger asChild>
                             <button className="border border-gray-300 px-4 py-1 rounded hover:bg-gray-100" onClick={(e) => e.stopPropagation()}>
@@ -342,7 +382,7 @@ export default function OrderCard({
                                                 )}
                                                 <div className="flex gap-2 font-semibold text-base border-t pt-2 mt-2">
                                                     <span>Tổng thanh toán:</span>
-                                                    <span className="text-red-500">{payment.netAmount.toLocaleString()}₫</span>
+                                                    <span className="text-red-500">{(payment.amount + totalShippingFee - (payment.amount - payment.netAmount)).toLocaleString()}₫</span>
                                                 </div>
                                             </>
                                         ) : (
@@ -374,7 +414,7 @@ export default function OrderCard({
                     </button>
                 </div>
             </div>
-            
+
             <Dialog open={showWriteReview} onOpenChange={setShowWriteReview}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>

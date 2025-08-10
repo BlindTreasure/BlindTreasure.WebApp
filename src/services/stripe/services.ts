@@ -1,5 +1,5 @@
 import useToast from "@/hooks/use-toast";
-import { createOrder, previewShipping } from "./api-services";
+import { createGroupPaymentLink, createOrder, previewShipping } from "./api-services";
 import { useMutation } from "@tanstack/react-query";
 import { handleError } from "@/hooks/error";
 import { useRouter } from "next/navigation";
@@ -49,6 +49,26 @@ export const useServicePreviewShipping = () => {
     onSuccess: (data) => {},
     onError: (error) => {
       handleCartShippingError(error, router);
+    },
+  });
+};
+
+export const useServiceCreateGroupPaymentLink = () => { 
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<any>, Error, REQUEST.CreateGroupPaymentLink>({
+    mutationFn: async (data: REQUEST.CreateGroupPaymentLink) => {
+      return await createGroupPaymentLink(data);
+    },
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
     },
   });
 };

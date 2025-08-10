@@ -51,13 +51,17 @@ export default function Purchased() {
                     const firstShipment = detail.shipments?.[0];
                     const shippedDate = firstShipment?.shippedAt || new Date().toISOString();
                     const estimatedDelivery = firstShipment?.estimatedDelivery;
+                    const totalShippingFee = detail.shipments?.reduce((total, shipment) => total + (shipment.totalFee || 0), 0) || 0;
 
                     return {
-                        id: detail.orderId, 
+                        id: detail.orderId,
                         status: PaymentStatus.PAID,
                         totalAmount: detail.totalPrice,
                         placedAt: shippedDate,
                         completedAt: estimatedDelivery || null,
+                        checkoutGroupId: '',
+                        sellerId: '',
+                        seller: undefined,
                         details: [{
                             id: detail.id,
                             logs: detail.logs,
@@ -73,7 +77,9 @@ export default function Purchased() {
                             totalPrice: detail.totalPrice,
                             status: detail.status,
                             shipments: detail.shipments || [],
-                            inventoryItems: []
+                            inventoryItems: [],
+                            detailDiscountPromotion: detail.detailDiscountPromotion,
+                            finalDetailPrice: detail.totalPrice - detail.detailDiscountPromotion,
                         }],
                         payment: {
                             id: '',
@@ -88,9 +94,9 @@ export default function Purchased() {
                             refundedAmount: 0,
                             transactions: []
                         },
-                        finalAmount: detail.totalPrice,
-                        totalShippingFee: detail.totalPrice,
-                        promotionNote: firstShipment ? `Mã vận đơn: ${firstShipment.trackingNumber}` : '',
+                        finalAmount: detail.totalPrice + totalShippingFee,
+                        totalShippingFee: totalShippingFee,
+                        // promotionNote: firstShipment ? `Mã vận đơn: ${firstShipment.trackingNumber}` : '',
                         shippingAddress: firstShipment ? {
                             id: firstShipment.id,
                             fullName: 'Khách hàng',
@@ -114,7 +120,21 @@ export default function Purchased() {
             });
 
             if (res?.value?.data) {
-                setOrders(res.value.data.result);
+                const updatedOrders = res.value.data.result.map(order => {
+                    const actualShippingFee = order.details.reduce((total, detail) => {
+                        const detailShippingFee = detail.shipments?.reduce((shipTotal, shipment) =>
+                            shipTotal + (shipment.totalFee || 0), 0) || 0;
+                        return total + detailShippingFee;
+                    }, 0);
+
+                    return {
+                        ...order,
+                        totalShippingFee: actualShippingFee,
+                        finalAmount: order.totalAmount + actualShippingFee
+                    };
+                });
+
+                setOrders(updatedOrders);
                 setTotalPages(res.value.data.totalPages || 1);
             }
         }
@@ -145,6 +165,7 @@ export default function Purchased() {
                         <OrderCard
                             key={order.id}
                             orderId={order.id}
+                            checkoutGroupId={order.checkoutGroupId}
                             shopName="Blind Treasure"
                             details={order.details}
                             total={order.totalAmount}

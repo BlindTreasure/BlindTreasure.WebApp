@@ -17,6 +17,8 @@ const REFUND_CALLBACK_HANDLER = `${STRIPE}/refund-callback-handler`;
 
 const PREVIEW_SHIPPING_DIRECT = `${STRIPE}/preview-shipping-direct`;
 
+const GROUP_PAYMENT_LINK = `${STRIPE}/group-payment-link`;
+
 export default {
   CHECKOUT_DIRECT,
   CHECKOUT_CART,
@@ -29,4 +31,5 @@ export default {
   VERIFY_SELLER_ACCOUNT,
   REFUND_CALLBACK_HANDLER,
   PREVIEW_SHIPPING_DIRECT,
+  GROUP_PAYMENT_LINK,
 };

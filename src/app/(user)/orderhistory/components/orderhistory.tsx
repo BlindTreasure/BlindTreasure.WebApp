@@ -112,7 +112,7 @@ export default function OrderHistory() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Mã giao dịch:</span>
-                  <span className="font-medium">{order.payment?.paymentIntentId || order.payment?.transactionId || "Chưa có thông tin"}</span>
+                  <span className="font-medium">{order.payment?.paymentIntentId || "Chưa có thông tin"}</span>
                 </div>
                 {order.payment?.paidAt && (
                   <div className="flex justify-between">
@@ -191,12 +191,6 @@ export default function OrderHistory() {
                 <div className="flex justify-between text-green-600">
                   <span>Giảm giá:</span>
                   <span>-{(order.payment.amount - order.payment.netAmount).toLocaleString("vi-VN")}₫</span>
-                </div>
-              )}
-              {order.promotionNote && (
-                <div className="flex justify-between text-green-600">
-                  <span>Khuyến mãi:</span>
-                  <span>{order.promotionNote}</span>
                 </div>
               )}
               <div className="border-t pt-2 mt-2">
