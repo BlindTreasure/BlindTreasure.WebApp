@@ -46,7 +46,7 @@ interface InventoryItem {
 }
 
 // Define status filter type - chỉ giữ lại các status cần thiết
-type StatusFilter = 'all' | 'Available' | 'Shipment_requested' | 'Delivering' | 'Reserved' | 'Listed' | 'Sold' | 'Archived' | 'OnHold'
+type StatusFilter = 'all' | 'Available' | 'Shipment_requested' | 'Delivering' | 'Delivered' | 'Reserved' | 'Listed' | 'Sold' | 'Archived' | 'OnHold'
 
 // Status display mapping - cập nhật để chỉ có các status cần thiết
 const statusDisplayMap: Record<StatusFilter, string> = {
@@ -54,6 +54,7 @@ const statusDisplayMap: Record<StatusFilter, string> = {
     'Available': 'Có sẵn',
     'Shipment_requested': 'Yêu cầu vận chuyển',
     'Delivering': 'Đang giao hàng',
+    'Delivered': 'Đã giao hàng',
     'Reserved': 'Đã đặt trước',
     'Listed': 'Đang niêm yết',
     'Sold': 'Đã bán',
@@ -67,6 +68,7 @@ const statusFilters: StatusFilter[] = [
     'Available',
     'Shipment_requested',
     'Delivering',
+    'Delivered',
     'Reserved',
     'Listed',
     'Sold',
@@ -370,6 +372,8 @@ export default function Inventory() {
             case 'Listed':
                 return 'text-purple-600 bg-purple-50'
             case 'Sold':
+                return 'text-gray-600 bg-gray-50'
+            case 'Delivered':
                 return 'text-gray-600 bg-gray-50'
             default:
                 return 'text-gray-400 bg-gray-50'
