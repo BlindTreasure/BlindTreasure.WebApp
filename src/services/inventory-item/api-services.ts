@@ -13,6 +13,7 @@ import {
 export const getItemInventory = async ({
   pageIndex,
   pageSize,
+  status
 }: GetItemInventoryParams): Promise<
   TResponseData<GetItemInventoryResponse>
 > => {
@@ -23,6 +24,7 @@ export const getItemInventory = async ({
       params: {
         pageIndex,
         pageSize,
+        status
       },
     }
   );

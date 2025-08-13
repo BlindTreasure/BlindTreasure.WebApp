@@ -265,7 +265,7 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
                 <span className={`text-sm font-medium ${
                   activeSection === 'selling' ? 'text-gray-900' : 'text-gray-700'
                 }`}>
-                  Bán hàng
+                  Đổi hàng
                 </span>
               </div>
               <ChevronRight className={`w-4 h-4 ${

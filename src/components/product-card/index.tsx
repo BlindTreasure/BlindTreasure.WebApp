@@ -24,6 +24,7 @@ import useToggleWishlist from "@/app/(user)/wishlist/hooks/useToggleWishlist";
 interface ProductCardProps {
   product: Product;
   onViewDetail: (id: string) => void;
+  onAddToCart?: (productId: string, quantity: number) => Promise<void>;
   ribbonTypes?: ("new" | "sale" | "blindbox")[];
   initialIsInWishlist?: boolean;
   initialWishlistId?: string;
@@ -33,12 +34,14 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onViewDetail,
+  onAddToCart,
   ribbonTypes = [],
   initialIsInWishlist = false,
   initialWishlistId,
   onWishlistChange
 }) => {
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const {
     isInWishlist,
@@ -61,6 +64,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleIncrease = () => {
     setQuantity(quantity + 1);
+  };
+
+  const handleAddToCart = async (quantityToAdd: number = 1) => {
+    if (!onAddToCart || isAddingToCart) return;
+    
+    setIsAddingToCart(true);
+    try {
+      await onAddToCart(product.id, quantityToAdd);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   const handleToggleWishlist = async () => {
@@ -194,8 +210,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
                           </button>
                         </div>
 
-                        <Button className="py-5">
-                          Mua ngay
+                        <Button 
+                          className="py-5"
+                          onClick={() => handleAddToCart(quantity)}
+                          disabled={isAddingToCart}
+                        >
+                          {isAddingToCart ? "Đang thêm..." : "Mua ngay"}
                         </Button>
                       </div>
 
@@ -220,8 +240,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         <div className="mt-4 flex justify-between items-center">
-          <Button className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
-            Thêm vào giỏ hàng
+          <Button 
+            className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105"
+            onClick={() => handleAddToCart(1)}
+            disabled={isAddingToCart}
+          >
+            {isAddingToCart ? "Đang thêm..." : "Thêm vào giỏ hàng"}
           </Button>
           <button
             onClick={handleToggleWishlist}

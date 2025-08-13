@@ -45,6 +45,8 @@ export namespace API {
     createdAt: string;
     isFromBlindBox: boolean;
     sourceCustomerBlindBoxId: string;
+    isOnHold: boolean;
+    hasActiveListing: boolean;
   }
 
   type ListingCreated = {
