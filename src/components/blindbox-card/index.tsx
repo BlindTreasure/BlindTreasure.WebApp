@@ -16,6 +16,7 @@ import { useAppSelector } from "@/stores/store";
 interface BlindboxCardProps {
     blindbox: BlindBox;
     onViewDetail: (id: string) => void;
+    onAddToCart?: (blindBoxId: string, quantity: number) => Promise<void>;
     ribbonTypes?: ("new" | "sale" | "blindbox")[];
     initialIsInWishlist?: boolean;
     initialWishlistId?: string;
@@ -25,12 +26,14 @@ interface BlindboxCardProps {
 const BlindboxCard: React.FC<BlindboxCardProps> = ({
     blindbox,
     onViewDetail,
+    onAddToCart,
     ribbonTypes = [],
     initialIsInWishlist = false,
     initialWishlistId,
     onWishlistChange
 }) => {
     const [open, setOpen] = useState(false);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
     const image = blindbox.imageUrl || "/images/cart.webp";
     const [quantity, setQuantity] = useState<number>(1);
     const isLoggedIn = useAppSelector((state) => !!state.userSlice.user);
@@ -51,6 +54,19 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({
 
     const handleIncrease = () => {
         setQuantity(quantity + 1);
+    };
+
+    const handleAddToCart = async (quantityToAdd: number = 1) => {
+        if (!onAddToCart || isAddingToCart) return;
+
+        setIsAddingToCart(true);
+        try {
+            await onAddToCart(blindbox.id, quantityToAdd);
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+        } finally {
+            setIsAddingToCart(false);
+        }
     };
 
     const handleToggleWishlist = async () => {
@@ -153,8 +169,12 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({
                                                         </button>
                                                     </div>
 
-                                                    <Button className="py-5">
-                                                        Mua ngay
+                                                    <Button
+                                                        className="py-5"
+                                                        onClick={() => handleAddToCart(quantity)}
+                                                        disabled={isAddingToCart}
+                                                    >
+                                                        {isAddingToCart ? "Đang thêm..." : "Mua ngay"}
                                                     </Button>
                                                 </div>
                                             )}
@@ -182,9 +202,23 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({
                 </div>
 
                 <div className="mt-4 flex justify-between items-center">
-                    <Button className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
-                        Thêm vào giỏ hàng
-                    </Button>
+                    {isReleased ? (
+                        <Button
+                            className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105"
+                            onClick={() => handleAddToCart(1)}
+                            disabled={isAddingToCart}
+                        >
+                            {isAddingToCart ? "Đang thêm..." : "Thêm vào giỏ hàng"}
+                        </Button>
+                    ) : (
+                        <Button
+                            className="text-xs px-3 py-2 rounded-md bg-gray-400 text-white cursor-not-allowed"
+                            disabled
+                        >
+                            Chưa phát hành
+                        </Button>
+                    )}
+
                     {isLoggedIn && (
                         <button
                             onClick={handleToggleWishlist}

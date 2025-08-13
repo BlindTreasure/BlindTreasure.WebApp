@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Lock, Unlock, Clock, CheckCircle, AlertTriangle, ArrowLeftRight, Loader2 } from 'lucide-react';
 import useGetTradeRequestDetail from '../hooks/useGetTradeRequestDetail';
 import { useParams } from 'next/navigation';
@@ -29,21 +29,29 @@ const TradeConfirmationPage: React.FC = () => {
   const [tradeData, setTradeData] = useState<API.TradeRequest | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   
-  // Sử dụng hook SignalR đã được update với React Query
   const { lockState, lockDeal, setLockState, isLocking, lockError } = useTradeRequestLock(tradeRequestId);
   
-  // Refs để tracking thời gian chính xác
   const serverTimeRef = useRef<number>(0);
   const localStartTimeRef = useRef<number>(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const componentStartTimeRef = useRef<number>(Date.now());
   
-  // Get user data from Redux
+  const [hasStableTime, setHasStableTime] = useState(false);
+  const [consecutiveStableSync, setConsecutiveStableSync] = useState(0);
+  const initialSyncCountRef = useRef(0);
+  const maxInitialSyncs = 5;
+  
+  const lastSyncDataRef = useRef<string>('');
+  const syncInProgressRef = useRef<boolean>(false);
+  const lastUserActivityRef = useRef<number>(Date.now());
+  const lastSignalRUpdateRef = useRef<number>(Date.now());
+  const [isPageVisible, setIsPageVisible] = useState(true);
+
   const userSlice = useSelector((state: any) => state.userSlice);
   const userAvatar = userSlice?.user.avatarUrl || '/default-avatar.png';
   const userId = userSlice?.user.userId || '';
 
-  // Hàm tính toán thời gian còn lại chính xác
   const calculateTimeLeft = useCallback(() => {
     if (serverTimeRef.current === 0 || localStartTimeRef.current === 0) return 0;
     
@@ -54,7 +62,6 @@ const TradeConfirmationPage: React.FC = () => {
     return remaining;
   }, []);
 
-  // Hàm tính toán progress từ lockState
   const calculateProgress = useCallback(() => {
     if (lockState.isCompleted) return 100;
     if (lockState.ownerLocked && lockState.requesterLocked) return 100;
@@ -62,56 +69,142 @@ const TradeConfirmationPage: React.FC = () => {
     return 0;
   }, [lockState.ownerLocked, lockState.requesterLocked, lockState.isCompleted]);
 
-  // Hàm sync với server để lấy data và update thời gian
-  const syncWithServer = useCallback(async () => {
-    if (!tradeRequestId) return;
+  const trackUserActivity = useCallback(() => {
+    lastUserActivityRef.current = Date.now();
+  }, []);
+
+  const shouldSync = useCallback(() => {
+    const now = Date.now();
+    const timeSinceComponentStart = now - componentStartTimeRef.current;
+    
+    if (lockState.isCompleted) return false;
+    if (!isPageVisible) return false;
+    
+    // Sync aggressive hơn trong 45s đầu hoặc chưa stable
+    if ((timeSinceComponentStart < 45000 && initialSyncCountRef.current < 5) || 
+        (!hasStableTime && initialSyncCountRef.current < 5)) {
+      return true;
+    }
+    
+    const timeSinceLastSignalR = now - lastSignalRUpdateRef.current;
+    const timeSinceLastActivity = now - lastUserActivityRef.current;
+    
+    if (timeSinceLastSignalR < 5000) return true;
+    if (timeSinceLastActivity > 120000) return true;
+    
+    return false;
+  }, [lockState.isCompleted, isPageVisible, hasStableTime]);
+
+  const syncWithServer = useCallback(async (force = false) => {
+    if (!tradeRequestId || (syncInProgressRef.current && !force)) return;
+    
+    syncInProgressRef.current = true;
+    initialSyncCountRef.current++;
     
     try {
       const response = await getTradeRequestDetailApi(tradeRequestId);
       
       if (response?.value?.data) {
         const data = response.value.data as API.TradeRequest;
+        const serverTime = data.timeRemaining || 0;
+        const currentCalculatedTime = calculateTimeLeft();
+        const timeDifference = Math.abs(currentCalculatedTime - serverTime);
         
-        // Update trade data
-        setTradeData(data);
-        
-        // Update thời gian từ server
-        if (data.timeRemaining !== undefined) {
-          serverTimeRef.current = data.timeRemaining;
-          localStartTimeRef.current = Date.now();
-          setTimeLeft(data.timeRemaining);
+        if (!hasStableTime) {
+          if (timeDifference <= 0.5) {  // Chặt hơn: <= 0.5s
+            setConsecutiveStableSync(prev => prev + 1);
+            if (consecutiveStableSync >= 0) { // Chỉ cần 1 lần stable
+              setHasStableTime(true);
+            }
+          } else {
+            setConsecutiveStableSync(0);
+          }
         }
         
-        // Update lock state từ server data (fallback nếu SignalR chưa update)
-        const serverOwnerLocked = data.ownerLocked || false;
-        const serverRequesterLocked = data.requesterLocked || false;
-        const serverIsCompleted = serverOwnerLocked && serverRequesterLocked;
+        const shouldUpdateTime = timeDifference > 2 || serverTimeRef.current === 0;
+        const shouldUpdateLockState = 
+          (data.ownerLocked || false) !== lockState.ownerLocked ||
+          (data.requesterLocked || false) !== lockState.requesterLocked;
         
-        // Chỉ update nếu có sự khác biệt với state hiện tại
-        if (lockState.ownerLocked !== serverOwnerLocked || 
-            lockState.requesterLocked !== serverRequesterLocked || 
-            lockState.isCompleted !== serverIsCompleted) {
-          setLockState({
-            ownerLocked: serverOwnerLocked,
-            requesterLocked: serverRequesterLocked,
-            isCompleted: serverIsCompleted,
-            progress: serverIsCompleted ? 100 : (serverOwnerLocked || serverRequesterLocked ? 50 : 0)
-          });
+        const currentDataHash = JSON.stringify({
+          timeRemaining: data.timeRemaining,
+          ownerLocked: data.ownerLocked || false,
+          requesterLocked: data.requesterLocked || false,
+          listingItemName: data.listingItemName,
+          requesterName: data.requesterName,
+          offeredItemsCount: data.offeredItems?.length || 0
+        });
+        
+        if (shouldUpdateTime || shouldUpdateLockState || force || lastSyncDataRef.current !== currentDataHash) {
+          lastSyncDataRef.current = currentDataHash;
+          setTradeData(data);
+          
+          if (shouldUpdateTime) {
+            serverTimeRef.current = serverTime;
+            localStartTimeRef.current = Date.now();
+            setTimeLeft(serverTime);
+          }
+          
+          if (shouldUpdateLockState) {
+            const serverOwnerLocked = data.ownerLocked || false;
+            const serverRequesterLocked = data.requesterLocked || false;
+            const serverIsCompleted = serverOwnerLocked && serverRequesterLocked;
+            
+            setLockState(prevState => {
+              if (prevState.ownerLocked === serverOwnerLocked && 
+                  prevState.requesterLocked === serverRequesterLocked && 
+                  prevState.isCompleted === serverIsCompleted) {
+                return prevState;
+              }
+              
+              const newProgress = serverIsCompleted ? 100 : 
+                                 (serverOwnerLocked || serverRequesterLocked ? 50 : 0);
+              
+              return {
+                ownerLocked: serverOwnerLocked,
+                requesterLocked: serverRequesterLocked,
+                isCompleted: serverIsCompleted,
+                progress: newProgress
+              };
+            });
+          }
         }
       }
     } catch (error) {
-      console.error('Error syncing with server:', error);
+    } finally {
+      syncInProgressRef.current = false;
     }
-  }, [tradeRequestId, getTradeRequestDetailApi, lockState, setLockState]);
+  }, [tradeRequestId, getTradeRequestDetailApi, calculateTimeLeft, lockState.ownerLocked, lockState.requesterLocked, hasStableTime, consecutiveStableSync]);
 
-  // Fetch initial data
   useEffect(() => {
-    syncWithServer();
+    syncWithServer(true);
   }, []);
 
-  // Update progress khi lockState thay đổi
+  useEffect(() => {
+    lastSignalRUpdateRef.current = Date.now();
+    
+    if (hasStableTime && initialSyncCountRef.current >= maxInitialSyncs) {
+      setTimeout(() => syncWithServer(), 500);
+    }
+  }, [lockState.ownerLocked, lockState.requesterLocked, hasStableTime, syncWithServer]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const isVisible = !document.hidden;
+      setIsPageVisible(isVisible);
+      
+      if (isVisible) {
+        syncWithServer(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [syncWithServer]);
+
   useEffect(() => {
     const newProgress = calculateProgress();
+    
     if (lockState.progress !== newProgress) {
       setLockState(prev => ({
         ...prev,
@@ -119,9 +212,8 @@ const TradeConfirmationPage: React.FC = () => {
         isCompleted: newProgress === 100
       }));
     }
-  }, [lockState.ownerLocked, lockState.requesterLocked, calculateProgress]);
+  }, [lockState.ownerLocked, lockState.requesterLocked, calculateProgress, lockState.progress]);
 
-  // Setup timer để cập nhật UI mỗi giây
   useEffect(() => {
     if (lockState.isCompleted || timeLeft <= 0) {
       if (timerIntervalRef.current) {
@@ -155,7 +247,6 @@ const TradeConfirmationPage: React.FC = () => {
     };
   }, [lockState.isCompleted, timeLeft, calculateTimeLeft]);
 
-  // Setup sync định kỳ để đảm bảo consistency
   useEffect(() => {
     if (lockState.isCompleted) {
       if (syncIntervalRef.current) {
@@ -169,10 +260,18 @@ const TradeConfirmationPage: React.FC = () => {
       clearInterval(syncIntervalRef.current);
     }
 
-    // Sync mỗi 15 giây để update thời gian và check consistency (giảm từ 30s)
+    const getSyncInterval = () => {
+      if (!hasStableTime && initialSyncCountRef.current < maxInitialSyncs) {
+        return 5000;
+      }
+      return 30000;
+    };
+
     syncIntervalRef.current = setInterval(() => {
-      syncWithServer();
-    }, 15000);
+      if (shouldSync()) {
+        syncWithServer();
+      }
+    }, getSyncInterval());
 
     return () => {
       if (syncIntervalRef.current) {
@@ -180,9 +279,8 @@ const TradeConfirmationPage: React.FC = () => {
         syncIntervalRef.current = null;
       }
     };
-  }, [lockState.isCompleted, syncWithServer]);
+  }, [lockState.isCompleted, shouldSync, syncWithServer, hasStableTime]);
 
-  // Cleanup khi component unmount
   useEffect(() => {
     return () => {
       if (timerIntervalRef.current) {
@@ -194,10 +292,8 @@ const TradeConfirmationPage: React.FC = () => {
     };
   }, []);
 
-  // Handle trade completion - chỉ cleanup timers, không tự động chuyển trang
   useEffect(() => {
     if (lockState.isCompleted && lockState.ownerLocked && lockState.requesterLocked) {
-      // Clear all timers
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = null;
@@ -209,12 +305,10 @@ const TradeConfirmationPage: React.FC = () => {
     }
   }, [lockState.isCompleted, lockState.ownerLocked, lockState.requesterLocked, tradeRequestId]);
 
-  // Handle trade completion redirect (backup từ custom event) - chỉ cleanup timers
   useEffect(() => {
     const handleTradeCompleted = (event: Event) => {
       const data = (event as CustomEvent).detail;
       if (data.tradeRequestId === tradeRequestId) {
-        // Clear all timers
         if (timerIntervalRef.current) {
           clearInterval(timerIntervalRef.current);
           timerIntervalRef.current = null;
@@ -230,27 +324,10 @@ const TradeConfirmationPage: React.FC = () => {
     return () => window.removeEventListener('trade-completed', handleTradeCompleted);
   }, [tradeRequestId]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const getRarityColor = (rarity: string) => {
-    const colors = {
-      common: 'bg-gray-100 text-gray-800 border-gray-300',
-      rare: 'bg-blue-100 text-blue-800 border-blue-300',
-      epic: 'bg-purple-100 text-purple-800 border-purple-300',
-      legendary: 'bg-orange-100 text-orange-800 border-orange-300'
-    };
-    return colors[rarity as keyof typeof colors] || colors.common;
-  };
-
-  const handleLockToggle = async () => {
+  const handleLockToggle = useCallback(async () => {
     if (lockState.isCompleted || isLocking) return;
     
     try {
-      // Optimistic update - update UI ngay lập tức
       const isRequester = userId === tradeData?.requesterId;
       const newLockState = {
         ...lockState,
@@ -258,36 +335,109 @@ const TradeConfirmationPage: React.FC = () => {
         requesterLocked: isRequester ? true : lockState.requesterLocked
       };
       
-      // Update progress ngay
       const newProgress = (newLockState.ownerLocked && newLockState.requesterLocked) ? 100 : 
                          (newLockState.ownerLocked || newLockState.requesterLocked) ? 50 : 0;
       
       newLockState.progress = newProgress;
       newLockState.isCompleted = newProgress === 100;
       
-      // Set optimistic state
       setLockState(newLockState);
       
       const success = await lockDeal(tradeRequestId);
       if (success) {
-        console.log('Lock deal successful, optimistic update applied');
-        // Sync lại với server để đảm bảo consistency
         setTimeout(() => {
-          syncWithServer();
+          syncWithServer(true);
         }, 1000);
       } else {
-        // Revert optimistic update nếu thất bại
         setLockState(lockState);
+        syncWithServer(true);
       }
     } catch (error) {
-      console.error('Failed to lock trade:', error);
-      // Revert optimistic update nếu có lỗi
       setLockState(lockState);
+      syncWithServer(true);
     }
-  };
+  }, [lockState, isLocking, userId, tradeData?.requesterId, lockDeal, tradeRequestId, syncWithServer]);
 
-  // Loading state
-  if (isPending || !tradeData) {
+  const formatTime = useCallback((seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }, []);
+
+  const getRarityColor = useCallback((rarity: string) => {
+    const colors = {
+      common: 'bg-gray-100 text-gray-800 border-gray-300',
+      rare: 'bg-blue-100 text-blue-800 border-blue-300',
+      epic: 'bg-purple-100 text-purple-800 border-purple-300',
+      legendary: 'bg-orange-100 text-orange-800 border-orange-300'
+    };
+    return colors[rarity as keyof typeof colors] || colors.common;
+  }, []);
+
+  const { currentUser, otherUser, isRequester } = useMemo(() => {
+    if (!tradeData) return { currentUser: null, otherUser: null, isRequester: false };
+    
+    const isReq = userId === tradeData.requesterId;
+    
+    const current: TradeUser = {
+      id: userId,
+      name: isReq ? tradeData.requesterName : (tradeData.listingOwnerName || "Chủ sở hữu"),
+      avatar: isReq ? (tradeData.requesterAvatarUrl || userAvatar) : (tradeData.listingOwnerAvatarUrl || userAvatar),
+      items: isReq ? 
+        tradeData.offeredItems?.map(item => ({
+          id: item.inventoryItemId,
+          name: item.itemName,
+          image: item.imageUrl || '/default-item.png',
+          rarity: (item.tier?.toLowerCase() as any) || 'common',
+          description: 'Item đề xuất'
+        })) || [] : 
+        [{
+          id: tradeData.listingId,
+          name: tradeData.listingItemName,
+          image: tradeData.listingItemImgUrl || '/default-item.png',
+          rarity: tradeData.listingItemTier.toLowerCase() as any,
+          description: 'Item listing'
+        }]
+    };
+    
+    const other: TradeUser = {
+      id: isReq ? 'owner' : tradeData.requesterId,
+      name: isReq ? (tradeData.listingOwnerName || 'Chủ sở hữu') : tradeData.requesterName,
+      avatar: isReq ? (tradeData.listingOwnerAvatarUrl || '/default-avatar.png') : (tradeData.requesterAvatarUrl || '/default-avatar.png'),
+      items: isReq ? 
+        [{
+          id: tradeData.listingId,
+          name: tradeData.listingItemName,
+          image: tradeData.listingItemImgUrl || '/default-item.png',
+          rarity: tradeData.listingItemTier.toLowerCase() as any,
+          description: 'Item listing'
+        }] :
+        tradeData.offeredItems?.map(item => ({
+          id: item.inventoryItemId,
+          name: item.itemName,
+          image: item.imageUrl || '/default-item.png',
+          rarity: (item.tier?.toLowerCase() as any) || 'common',
+          description: 'Item đề xuất'
+        })) || []
+    };
+
+    return { currentUser: current, otherUser: other, isRequester: isReq };
+  }, [tradeData, userId, userAvatar]);
+
+  const { currentUserLocked, otherUserLocked } = useMemo(() => ({
+    currentUserLocked: isRequester ? lockState.requesterLocked : lockState.ownerLocked,
+    otherUserLocked: isRequester ? lockState.ownerLocked : lockState.requesterLocked
+  }), [isRequester, lockState.requesterLocked, lockState.ownerLocked]);
+
+  const statusMessage = useMemo(() => {
+    if (lockState.isCompleted) return "Đang xử lý giao dịch...";
+    if (!currentUserLocked && !otherUserLocked) return "Cả hai bên cần khóa để hoàn tất giao dịch";
+    if (currentUserLocked && !otherUserLocked) return "Đang chờ bên kia khóa giao dịch...";
+    if (!currentUserLocked && otherUserLocked) return "Bạn cần khóa để hoàn tất giao dịch";
+    return "";
+  }, [lockState.isCompleted, currentUserLocked, otherUserLocked]);
+
+  if (isPending || !tradeData || !currentUser || !otherUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 text-center">
@@ -298,70 +448,11 @@ const TradeConfirmationPage: React.FC = () => {
     );
   }
 
-  // Xác định role của user hiện tại
-  const isRequester = userId === tradeData.requesterId;
-  const isOwner = !isRequester;
-
-  const currentUserLocked = isRequester ? lockState.requesterLocked : lockState.ownerLocked;
-  const otherUserLocked = isRequester ? lockState.ownerLocked : lockState.requesterLocked;
-
-  // Prepare user data - SỬ DỤNG ĐÚNG CÁC FIELD TỪ API
-  const currentUser: TradeUser = {
-    id: userId,
-    name: isRequester ? tradeData.requesterName : (tradeData.listingOwnerName || "Chủ sở hữu"),
-    avatar: isRequester ? (tradeData.requesterAvatarUrl || userAvatar) : (tradeData.listingOwnerAvatarUrl || userAvatar),
-    items: isRequester ? 
-      tradeData.offeredItems?.map(item => ({
-        id: item.inventoryItemId,
-        name: item.itemName,
-        image: item.imageUrl || '/default-item.png',
-        rarity: (item.tier?.toLowerCase() as any) || 'common',
-        description: 'Item đề xuất'
-      })) || [] : 
-      [{
-        id: tradeData.listingId,
-        name: tradeData.listingItemName,
-        image: tradeData.listingItemImgUrl || '/default-item.png',
-        rarity: tradeData.listingItemTier.toLowerCase() as any,
-        description: 'Item listing'
-      }]
-  };
-  
-  const otherUser: TradeUser = {
-    id: isRequester ? 'owner' : tradeData.requesterId,
-    name: isRequester ? (tradeData.listingOwnerName || 'Chủ sở hữu') : tradeData.requesterName,
-    avatar: isRequester ? (tradeData.listingOwnerAvatarUrl || '/default-avatar.png') : (tradeData.requesterAvatarUrl || '/default-avatar.png'),
-    items: isRequester ? 
-      [{
-        id: tradeData.listingId,
-        name: tradeData.listingItemName,
-        image: tradeData.listingItemImgUrl || '/default-item.png',
-        rarity: tradeData.listingItemTier.toLowerCase() as any,
-        description: 'Item listing'
-      }] :
-      tradeData.offeredItems?.map(item => ({
-        id: item.inventoryItemId,
-        name: item.itemName,
-        image: item.imageUrl || '/default-item.png',
-        rarity: (item.tier?.toLowerCase() as any) || 'common',
-        description: 'Item đề xuất'
-      })) || []
-  };
-
-  const getStatusMessage = () => {
-    if (lockState.isCompleted) return "Đang xử lý giao dịch...";
-    if (!currentUserLocked && !otherUserLocked) return "Cả hai bên cần khóa để hoàn tất giao dịch";
-    if (currentUserLocked && !otherUserLocked) return "Đang chờ bên kia khóa giao dịch...";
-    if (!currentUserLocked && otherUserLocked) return "Bạn cần khóa để hoàn tất giao dịch";
-    return "";
-  };
-
-  // Success screen với animation - chỉ hiển thị nút, không tự động chuyển trang
   if (lockState.isCompleted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center transform transition-all duration-500 scale-100 animate-pulse">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-12 h-12 text-green-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Giao dịch thành công!</h2>
@@ -379,7 +470,6 @@ const TradeConfirmationPage: React.FC = () => {
     );
   }
 
-  // Timeout screen
   if (timeLeft === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center p-4">
@@ -405,7 +495,6 @@ const TradeConfirmationPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 pt-36">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Xác nhận giao dịch</h1>
@@ -414,8 +503,6 @@ const TradeConfirmationPage: React.FC = () => {
                 <Clock className="w-5 h-5" />
                 <span className="font-semibold">{formatTime(timeLeft)}</span>
               </div>
-
-              {/* Progress với animation */}
               <div className="flex items-center space-x-2">
                 <div className="w-20 bg-gray-200 rounded-full h-2">
                   <div 
@@ -428,11 +515,8 @@ const TradeConfirmationPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Trade Window với animations */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-            {/* Current User Side */}
             <div className={`p-6 border-r border-gray-200 transition-all duration-300 ${currentUserLocked ? 'bg-green-50' : ''}`}>
               <div className="flex items-center space-x-3 mb-6">
                 <img src={currentUser.avatar} alt={currentUser.name} className="w-10 h-10 rounded-full" />
@@ -447,8 +531,6 @@ const TradeConfirmationPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Items */}
               <div className="space-y-3 mb-6">
                 {currentUser.items.map((item) => (
                   <div key={item.id} className="bg-gray-50 rounded-lg p-3 flex items-center space-x-3">
@@ -467,8 +549,6 @@ const TradeConfirmationPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-
-              {/* Lock Button */}
               <button
                 onClick={handleLockToggle}
                 disabled={currentUserLocked || isLocking || lockState.isCompleted}
@@ -490,15 +570,11 @@ const TradeConfirmationPage: React.FC = () => {
                 )}
               </button>
             </div>
-
-            {/* Center Arrow với animation */}
             <div className="flex items-center justify-center p-6 bg-gray-50">
               <div className={`bg-white rounded-full p-4 shadow-lg transition-all duration-500 ${lockState.progress > 0 ? 'animate-pulse' : ''}`}>
                 <ArrowLeftRight className="w-8 h-8 text-blue-600" />
               </div>
             </div>
-
-            {/* Other User Side */}
             <div className={`p-6 border-l border-gray-200 transition-all duration-300 ${otherUserLocked ? 'bg-green-50' : ''}`}>
               <div className="flex items-center space-x-3 mb-6">
                 <img src={otherUser.avatar} alt={otherUser.name} className="w-10 h-10 rounded-full" />
@@ -508,13 +584,11 @@ const TradeConfirmationPage: React.FC = () => {
                     {otherUserLocked ? (
                       <><Lock className="w-4 h-4 text-green-600 animate-pulse" /><span className="text-sm text-green-600">Đã khóa</span></>
                     ) : (
-                      <><Unlock className="w-4 h-4 text-gray-400" /><span className="text-sm text-gray-400">Chưa khóa</span></>
+                      <><Unlock className="w-4 h-4 text-gray-400" /><span className="text-sm text-gray-400">Đang chờ khóa</span></>
                     )}
                   </div>
                 </div>
               </div>
-
-              {/* Items */}
               <div className="space-y-3 mb-6">
                 {otherUser.items.map((item) => (
                   <div key={item.id} className="bg-gray-50 rounded-lg p-3 flex items-center space-x-3">
@@ -530,8 +604,6 @@ const TradeConfirmationPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-
-              {/* Other User Status */}
               <div className={`w-full py-3 px-4 rounded-lg font-semibold text-center border-2 transition-all duration-300 ${
                 otherUserLocked
                   ? 'bg-green-100 text-green-700 border-green-300'
@@ -545,11 +617,9 @@ const TradeConfirmationPage: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Bottom Status */}
           <div className="bg-gray-50 p-6 border-t">
             <div className="text-center text-sm text-gray-600">
-              {getStatusMessage()}
+              {statusMessage}
             </div>
           </div>
         </div>

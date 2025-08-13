@@ -387,9 +387,6 @@ const CustomerSellerChat: React.FC = () => {
     if (fileInput) fileInput.value = '';
   };
 
-  // Debug log to check current user ID
-  console.log('Current User ID:', currentUserId);
-
   if (!isOpen) {
     return (
       <div className="fixed bottom-6 right-6 z-40">

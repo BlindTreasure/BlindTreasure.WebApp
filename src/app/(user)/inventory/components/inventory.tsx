@@ -45,6 +45,35 @@ interface InventoryItem {
     inventoryItemStatus?: InventoryItemStatus
 }
 
+// Define status filter type - chỉ giữ lại các status cần thiết
+type StatusFilter = 'all' | 'Available' | 'Shipment_requested' | 'Delivering' | 'Reserved' | 'Listed' | 'Sold' | 'Archived' | 'OnHold'
+
+// Status display mapping - cập nhật để chỉ có các status cần thiết
+const statusDisplayMap: Record<StatusFilter, string> = {
+    'all': 'Tất cả',
+    'Available': 'Có sẵn',
+    'Shipment_requested': 'Yêu cầu vận chuyển',
+    'Delivering': 'Đang giao hàng',
+    'Reserved': 'Đã đặt trước',
+    'Listed': 'Đang niêm yết',
+    'Sold': 'Đã bán',
+    'Archived': 'Đã lưu trữ',
+    'OnHold': 'Tạm giữ'
+}
+
+// Danh sách các status filters theo thứ tự hiển thị
+const statusFilters: StatusFilter[] = [
+    'all',
+    'Available',
+    'Shipment_requested',
+    'Delivering',
+    'Reserved',
+    'Listed',
+    'Sold',
+    'Archived',
+    'OnHold'
+]
+
 export default function Inventory() {
     const router = useRouter()
     const [activeTab, setActiveTab] = useState('all')
@@ -54,6 +83,7 @@ export default function Inventory() {
     const [totalPages, setTotalPages] = useState(1)
     const [totalCount, setTotalCount] = useState(0)
     const [blindboxFilter, setBlindboxFilter] = useState<'all' | 'opened' | 'unopened'>('all')
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
     const { handleUnbox, isUnboxing } = useUnbox()
     const [showPrizeDialog, setShowPrizeDialog] = useState(false)
@@ -129,10 +159,13 @@ export default function Inventory() {
                         setTotalCount(blindboxRes.value.data.count)
                     }
                 } else if (activeTab === 'all') {
-                    const itemRes = await getAllItemInventoryApi({
+                    const paginationParams = {
                         pageIndex: currentPage,
-                        pageSize: PAGE_SIZE
-                    })
+                        pageSize: PAGE_SIZE,
+                        status: statusFilter === 'all' ? undefined : statusFilter
+                    }
+
+                    const itemRes = await getAllItemInventoryApi(paginationParams)
 
                     if (itemRes?.value.data?.result) {
                         const itemItems: InventoryItem[] = itemRes.value.data.result.map((item: any, index: number) => ({
@@ -169,7 +202,8 @@ export default function Inventory() {
         }
 
         fetchInventory()
-    }, [activeTab, currentPage, blindboxFilter])
+    }, [activeTab, currentPage, blindboxFilter, statusFilter])
+    
     useEffect(() => {
         getAllAddressApi()
     }, [])
@@ -320,6 +354,35 @@ export default function Inventory() {
         }
     }
 
+    const getStatusDisplayText = (status?: InventoryItemStatus | null) => {
+        if (!status) return 'Chưa có trạng thái'
+        return statusDisplayMap[status as StatusFilter] || status
+    }
+
+    const getStatusColor = (status?: InventoryItemStatus | null) => {
+        switch (status) {
+            case 'Available':
+                return 'text-green-600 bg-green-50'
+            case 'Shipment_requested':
+                return 'text-blue-600 bg-blue-50'
+            case 'Delivering':
+                return 'text-orange-600 bg-orange-50'
+            case 'Listed':
+                return 'text-purple-600 bg-purple-50'
+            case 'Sold':
+                return 'text-gray-600 bg-gray-50'
+            default:
+                return 'text-gray-400 bg-gray-50'
+        }
+    }
+
+    // Hàm để xử lý filter status
+    const handleStatusFilter = (status: StatusFilter) => {
+        setStatusFilter(status)
+        setCurrentPage(1)
+    }
+
+
     return (
         <div className="p-4 container mx-auto mt-32">
             <InventoryTabs
@@ -327,11 +390,19 @@ export default function Inventory() {
                 onTabChange={(tab) => {
                     setActiveTab(tab)
                     setCurrentPage(1)
+                    // Reset filters when changing tabs
+                    if (tab !== 'blindbox') {
+                        setBlindboxFilter('all')
+                    }
+                    if (tab !== 'all') {
+                        setStatusFilter('all')
+                    }
                 }}
             />
 
+            {/* Filter cho blindbox */}
             {activeTab === 'blindbox' && (
-                <div className="flex gap-2 mt-4 mb-2 px-9">
+                <div className="flex gap-2 mt-4 mb-2 px-9 flex-wrap">
                     <Button
                         variant={blindboxFilter === 'all' ? 'default' : 'outline'}
                         size="sm"
@@ -365,6 +436,25 @@ export default function Inventory() {
                 </div>
             )}
 
+            {/* Filter cho products */}
+            {activeTab === 'all' && (
+                <div className="mt-4 mb-2 px-9">
+                    <div className="flex flex-wrap gap-2">
+                        {statusFilters.map((status) => (
+                            <Button
+                                key={status}
+                                variant={statusFilter === status ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => handleStatusFilter(status)}
+                                className="text-xs sm:text-sm"
+                            >
+                                {statusDisplayMap[status]}
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {getCurrentPageItems().length === 0 && !isLoading && !isItemLoading && !isBlindboxLoading ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                     <img
@@ -387,7 +477,9 @@ export default function Inventory() {
                                 : blindboxFilter === 'unopened'
                                     ? 'Bạn không có BlindBox chưa mở nào. Hãy mua BlindBox mới!'
                                     : 'Bạn chưa có BlindBox nào. Hãy khám phá và mua BlindBox yêu thích!'
-                            : 'Hãy bắt đầu mua sắm để thêm sản phẩm vào kho của bạn!'
+                            : statusFilter !== 'all'
+                                ? `Không có sản phẩm nào với trạng thái "${statusDisplayMap[statusFilter]}"`
+                                : 'Hãy bắt đầu mua sắm để thêm sản phẩm vào kho của bạn!'
                         }
                     </p>
                 </div>
@@ -454,6 +546,12 @@ export default function Inventory() {
                                         {item.quantity && item.quantity > 1 && (
                                             <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
                                                 {item.quantity}
+                                            </div>
+                                        )}
+                                        {/* Status badge for products */}
+                                        {item.type === 'product' && (
+                                            <div className={`absolute bottom-2 right-2 text-xs font-medium px-2 py-1 rounded-full ${getStatusColor(item.inventoryItemStatus)}`}>
+                                                {getStatusDisplayText(item.inventoryItemStatus)}
                                             </div>
                                         )}
                                         <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
