@@ -57,6 +57,7 @@ export type GetItemInventoryResponse = TResponseData<
 export type GetItemInventoryParams = {
   pageIndex?: number;
   pageSize?: number;
+  status?: string;
 };
 
 export type RequestShipment = {

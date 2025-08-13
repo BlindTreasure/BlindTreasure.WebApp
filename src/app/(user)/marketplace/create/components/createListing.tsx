@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
-import {X, Camera, Search, Package, User } from 'lucide-react';
+import {X, Camera, Search, Package, User, Info } from 'lucide-react';
 import useGetAllAvailableItem from "../hooks/useGetAllAvailableItem";
 import { useServiceCreateListing } from "@/services/listing/services";
 import {API} from "@/services/listing/typings";
@@ -23,11 +23,34 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
   isLoading 
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   
   const filteredInventory = items.filter(item =>
     item.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.productId.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const getItemStatusInfo = (item: API.AvailableItem) => {
+    if (item.hasActiveListing) {
+      return {
+        disabled: true,
+        tooltip: 'Sản phẩm này đã được đăng bán',
+        className: 'opacity-50 cursor-not-allowed'
+      };
+    }
+    if (item.isOnHold) {
+      return {
+        disabled: true,
+        tooltip: 'Sản phẩm này mới vừa trao đổi xong, đợi 3 ngày sau thì mới được đăng bán',
+        className: 'opacity-50 cursor-not-allowed'
+      };
+    }
+    return {
+      disabled: false,
+      tooltip: '',
+      className: 'hover:bg-gray-50 cursor-pointer'
+    };
+  };
 
   if (!isOpen) return null;
 
@@ -65,46 +88,68 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
               {searchTerm ? 'Không tìm thấy sản phẩm phù hợp' : 'Chưa có sản phẩm nào trong kho'}
             </div>
           ) : (
-            filteredInventory.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => onSelectItem(item)}
-                className="flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b"
-              >
-                <div className="w-16 h-16 bg-gray-200 rounded-lg mr-4 flex items-center justify-center">
-                  {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.productName || 'Product'}
-                      className="w-16 h-16 object-cover rounded-lg"
-                      onLoad={() => console.log('✅ Image loaded successfully for:', item.productName)}
-                      onError={(e) => {
-                        console.error('❌ Image failed to load for:', item.productName, 'URL:', item.image);
-                        console.error('Error details:', e);
-                      }}
-                    />
-                  ) : (
-                    <>
-                      <Package className="text-gray-400" size={24} />
-                      {console.log('📦 No image for item:', item.productName, 'Image value:', item.image)}
-                    </>
+            filteredInventory.map((item) => {
+              const statusInfo = getItemStatusInfo(item);
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => !statusInfo.disabled && onSelectItem(item)}
+                  onMouseEnter={() => setHoveredItem(item.id)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  className={`flex items-center p-4 border-b relative ${statusInfo.className}`}
+                >
+                  <div className="w-16 h-16 bg-gray-200 rounded-lg mr-4 flex items-center justify-center">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.productName || 'Product'}
+                        className="w-16 h-16 object-cover rounded-lg"
+                        onLoad={() => console.log('✅ Image loaded successfully for:', item.productName)}
+                        onError={(e) => {
+                          console.error('❌ Image failed to load for:', item.productName, 'URL:', item.image);
+                          console.error('Error details:', e);
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <Package className="text-gray-400" size={24} />
+                        {console.log('📦 No image for item:', item.productName, 'Image value:', item.image)}
+                      </>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">
+                      {item.productName || `Product ${item.productId.slice(0, 8)}...`}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {item.isFromBlindBox ? 'Từ Blind Box' : item.location || 'Sản phẩm'}
+                    </p>
+                  </div>
+                  <div className="text-right flex items-center space-x-2">
+                    {statusInfo.disabled && (
+                      <Info className="text-gray-400" size={16} />
+                    )}
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                      statusInfo.disabled 
+                        ? 'bg-gray-100 text-gray-500'
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {item.status}
+                    </span>
+                  </div>
+                  
+                  {/* Tooltip */}
+                  {statusInfo.disabled && hoveredItem === item.id && (
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full z-10 mb-2">
+                      <div className="bg-black text-white text-xs rounded py-2 px-3 max-w-xs text-center">
+                        {statusInfo.tooltip}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black"></div>
+                      </div>
+                    </div>
                   )}
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">
-                    {item.productName || `Product ${item.productId.slice(0, 8)}...`}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {item.isFromBlindBox ? 'Từ Blind Box' : item.location || 'Sản phẩm'}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                    {item.status}
-                  </span>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -208,6 +253,11 @@ const MarketplaceListing: React.FC = () => {
       .slice(0, 2);
   };
 
+  // Count available items that can be listed
+  const availableForListingCount = availableItems.filter(item => 
+    !item.hasActiveListing && !item.isOnHold
+  ).length;
+
   const isSubmitting = createListingMutation.isPending;
 
   return (
@@ -238,7 +288,7 @@ const MarketplaceListing: React.FC = () => {
                       disabled={isSubmitting}
                       className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                     >
-                      Chọn từ kho ({availableItems.length} sản phẩm)
+                      Chọn từ kho ({availableForListingCount} có thể đăng / {availableItems.length} tổng cộng)
                     </button>
                   </div>
                 ) : (

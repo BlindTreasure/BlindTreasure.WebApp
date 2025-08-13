@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ProductFilterSidebar from "@/components/product-filter-sidebar";
 import ProductCard from "@/components/product-card";
 import BlindboxCard from "@/components/blindbox-card";
@@ -16,10 +16,13 @@ import {
   setCategoryId,
   clearFilters
 } from "@/stores/filter-product-slice";
+import { setCart } from "@/stores/cart-slice";
 import { Backdrop } from "@/components/backdrop";
 import useGetCategory from "@/app/staff/category-management/hooks/useGetCategory";
 import Pagination from "@/components/tables/Pagination";
 import { useWishlistContext } from "@/contexts/WishlistContext";
+import useAddProductToCart from '@/app/(user)/detail/hooks/useAddProductToCart'
+import useAddBlindboxToCart from '@/app/(user)/detail-blindbox/hooks/useAddBlindboxToCart'
 
 export default function AllProduct() {
   const dispatch = useAppDispatch();
@@ -57,6 +60,9 @@ export default function AllProduct() {
   const { getAllBlindBoxesApi, isPending: isPendingBlindbox } = useGetAllBlindBoxes();
   const { getCategoryApi } = useGetCategory();
   const { getItemWishlistStatus, refreshWishlistStatus } = useWishlistContext();
+
+  const { isPending: isPendingProductCart, addProductToCartApi } = useAddProductToCart();
+  const { isPending: isPendingBlindboxCart, addBlindboxToCartApi } = useAddBlindboxToCart();
 
   useEffect(() => {
     return () => {
@@ -176,6 +182,16 @@ export default function AllProduct() {
 
   const handleViewBlindboxDetail = (id: string) => {
     router.push(`/detail-blindbox/${id}`);
+  };
+
+  // Handler for adding product to cart
+  const handleAddProductToCart = async (productId: string, quantity: number = 1) => {
+    await addProductToCartApi({ productId, quantity });
+  };
+
+  // Handler for adding blindbox to cart
+  const handleAddBlindboxToCart = async (blindBoxId: string, quantity: number = 1) => {
+    await addBlindboxToCartApi({ blindBoxId, quantity });
   };
 
   const handlePriceFilter = (priceRange: string) => {
@@ -324,7 +340,7 @@ export default function AllProduct() {
   };
 
   const totalPages = Math.ceil(totalItems / pageSize);
-  const isPending = isPendingProducts || isPendingBlindbox;
+  const isPending = isPendingProducts || isPendingBlindbox || isPendingProductCart || isPendingBlindboxCart;
 
   return (
     <div className="mt-16 container mx-auto px-4 sm:px-6 lg:p-20 xl:px-20 2xl:px-20">
@@ -390,6 +406,7 @@ export default function AllProduct() {
                     key={`product-${item.data.id}-${index}`}
                     product={item.data}
                     onViewDetail={handleViewDetail}
+                    onAddToCart={handleAddProductToCart}
                     initialIsInWishlist={wishlistStatus.isInWishlist}
                     initialWishlistId={wishlistStatus.wishlistId}
                     onWishlistChange={refreshWishlistStatus}
@@ -400,6 +417,7 @@ export default function AllProduct() {
                     blindbox={item.data}
                     ribbonTypes={["blindbox"]}
                     onViewDetail={handleViewBlindboxDetail}
+                    onAddToCart={handleAddBlindboxToCart}
                     initialIsInWishlist={wishlistStatus.isInWishlist}
                     initialWishlistId={wishlistStatus.wishlistId}
                     onWishlistChange={refreshWishlistStatus}
