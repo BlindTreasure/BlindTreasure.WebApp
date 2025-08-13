@@ -46,7 +46,7 @@ const RatingOverview: React.FC<RatingOverviewProps> = ({ stats }) => {
       <p className="text-gray-600 mb-4">{stats.totalReviews.toLocaleString()} đánh giá</p>
 
       <div className="space-y-2">
-        {[5, 4, 3, 2, 1].map((rating) => (
+        {/* {[5, 4, 3, 2, 1].map((rating) => (
           <div key={rating} className="flex items-center gap-3">
             <span className="text-yellow-600 font-medium w-12">{rating} sao</span>
             <div className="flex-1 bg-gray-200 rounded-full h-2">
@@ -59,7 +59,26 @@ const RatingOverview: React.FC<RatingOverviewProps> = ({ stats }) => {
               {stats.ratingDistribution[rating as keyof typeof stats.ratingDistribution]}%
             </span>
           </div>
-        ))}
+        ))} */}
+        {[5, 4, 3, 2, 1].map((rating) => {
+          const count = stats.ratingDistribution[rating as keyof typeof stats.ratingDistribution] || 0;
+          const percent = stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0;
+
+          return (
+            <div key={rating} className="flex items-center gap-3">
+              <span className="text-yellow-600 font-medium w-12">{rating} sao</span>
+              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+              <span className="text-gray-600 w-8 text-right">
+                {percent.toFixed(0)}%
+              </span>
+            </div>
+          );
+        })}
       </div>
     </motion.div>
   );

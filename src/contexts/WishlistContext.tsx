@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import useGetWishlist from '@/app/(user)/wishlist/hooks/useGetWishlist';
 import { WishlistItem } from '@/services/customer-favourite/typings';
+import { useAppSelector } from '@/stores/store';
+import { getStorageItem } from '@/utils/local-storage';
 
 interface WishlistStatus {
   [key: string]: {
@@ -27,9 +29,16 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { getWishlistApi } = useGetWishlist();
   const [wishlistStatus, setWishlistStatus] = useState<WishlistStatus>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); 
+  const user = useAppSelector((state) => state.userSlice.user);
 
   const fetchAllWishlistItems = async () => {
+    if (!user || !getStorageItem("accessToken")) {
+      setWishlistStatus({});
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
       let allItems: WishlistItem[] = [];
@@ -65,14 +74,14 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setWishlistStatus(statusMap);
     } catch (error) {
       console.error('Error fetching wishlist status:', error);
+      setWishlistStatus({});
     } finally {
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     fetchAllWishlistItems();
-  }, []);
+  }, [user?.userId]);
 
   const getItemWishlistStatus = (itemId: string) => {
     return wishlistStatus[itemId] || {

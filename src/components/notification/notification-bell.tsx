@@ -2,12 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { PiBellSimpleLight } from 'react-icons/pi';
 import { useNotification } from '@/hooks/use-notification';
 import NotificationDropdown from './notification-dropdown';
+import { useAppSelector } from '@/stores/store';
 
 interface NotificationBellProps {
   className?: string;
 }
 
 export const NotificationBell: React.FC<NotificationBellProps> = ({ className = '' }) => {
+  const user = useAppSelector((state) => state.userSlice.user);
   const { unreadCount } = useNotification();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -29,6 +31,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ className = 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
+  
+  if (!user) {
+    return <div style={{ display: 'none' }} />;
+  }
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
@@ -44,4 +50,4 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ className = 
       )}
     </div>
   );
-}; 
+};

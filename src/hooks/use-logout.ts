@@ -25,7 +25,7 @@ export default function useLogout() {
         persistor.pause();
         await persistor.flush();
         await persistor.purge();
-        router.push("/login");
+        router.push("/");
       },
       onError: async (error: any) => {
         const status = error?.response?.status;

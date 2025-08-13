@@ -4,7 +4,7 @@ import BlindboxDetail from "../components/detail-blindbox";
 import { getRibbonTypes } from "@/utils/getRibbonTypes";
 
 export const metadata: Metadata = {
-    title: "Chi tiết tùi mù",
+    title: "Chi tiết túi mù",
     description: "Chi tiết túi mù của BlindTreasure",
 };
 

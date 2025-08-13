@@ -31,6 +31,16 @@ export const getOrderDetails = async (params?: GetOrderDetailParams) => {
   return response.data;
 };
 
+export const getOrdersByGroup = async (groupId: string) => {
+  const response = await request<TResponseData<OrderResponse[]>>(
+    API_ENDPOINTS.ORDER_GROUP(groupId),
+    {
+      method: "GET",
+    }
+  );
+  return response.data;
+};
+
 export const getOrderDetailById = async (orderId: string) => {
   const response = await request<TResponseData<OrderResponse>>(
     API_ENDPOINTS.ORDER_WITH_ID(orderId),

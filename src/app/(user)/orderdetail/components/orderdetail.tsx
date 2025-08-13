@@ -60,6 +60,26 @@ const OrderTrackingTimeline = ({
     detail => detail.actualStatus === OrderStatus.DELIVERED
   );
 
+  const isStepCompleted = (stepId: number): boolean => {
+    switch (stepId) {
+      case 1: 
+        return true;
+      case 2: 
+        return (
+          order.payment?.status === PaymentInfoStatus.Paid ||
+          order.payment?.status === PaymentInfoStatus.Completed ||
+          hasDeliveredItems 
+        );
+      case 3:
+      case 4:
+        return hasDeliveringItems || hasDeliveredItems; 
+      case 5: 
+        return hasDeliveredItems;
+      default:
+        return false;
+    }
+  };
+
   const deliveringTimeFromLogs = detailsWithActualStatus
     .map(detail => {
       const match = detail.logs?.match(/\[(.*?)\].*Delivering/);
@@ -73,50 +93,66 @@ const OrderTrackingTimeline = ({
     {
       id: 1,
       title: "Đơn Hàng Đã Đặt",
-      // time: format(new Date(order.placedAt), "HH:mm dd-MM-yyyy"),
-      status: "completed",
+      time: order.placedAt ? format(new Date(order.placedAt), "HH:mm dd-MM-yyyy") : "Không xác định",
+      status: isStepCompleted(1) ? "completed" : "pending",
       icon: <Package className="w-5 h-5" />,
     },
     {
       id: 2,
       title: "Đơn Hàng Đã Thanh Toán",
-      // time: order.payment?.paidAt
-      //   ? format(new Date(order.payment.paidAt), "HH:mm dd-MM-yyyy")
-      //   : "",
-      status:
-        order.payment?.status === PaymentInfoStatus.Paid ||
-          order.payment?.status === PaymentInfoStatus.Completed
-          ? "completed"
-          : "pending",
+      time: order.completedAt ? format(new Date(order.completedAt), "HH:mm dd-MM-yyyy") : "Chưa hoàn thành",
+      status: isStepCompleted(2) ? "completed" : "pending",
       icon: <Receipt className="w-5 h-5" />,
     },
     {
       id: 3,
-      title: "Đã Giao Cho ĐVVC",
-      // time: deliveringTimeFromLogs
-      //   ? format(new Date(deliveringTimeFromLogs), "HH:mm dd-MM-yyyy")
-      //   : "",
-      status: hasDeliveringItems ? "completed" : "pending",
+      title: "Dự Kiến Giao Cho ĐVVC",
+      time: (() => {
+        const firstShipment = order.details?.find(detail =>
+          detail.shipments && detail.shipments.length > 0
+        )?.shipments?.[0];
+
+        if (firstShipment?.estimatedPickupTime) {
+          const date = new Date(firstShipment.estimatedPickupTime);
+          return !isNaN(date.getTime()) ? format(date, "HH:mm dd-MM-yyyy") : "";
+        }
+        return "";
+      })(),
+      status: isStepCompleted(3) ? "completed" : "pending",
       icon: <Truck className="w-5 h-5" />,
     },
     {
       id: 4,
       title: "Chờ Giao Hàng",
-      // time: hasDeliveringItems && order.completedAt
-      //   ? format(new Date(order.completedAt), "HH:mm dd-MM-yyyy")
-      //   : estimatedDeliveryDate && hasDeliveringItems
-      //     ? `Dự kiến: ${format(estimatedDeliveryDate, "dd-MM-yyyy")}`
-      //     : "",
-      status: hasDeliveringItems ? "completed" : "pending",
+      time: (() => {
+        const firstShipment = order.details?.find(detail =>
+          detail.shipments && detail.shipments.length > 0
+        )?.shipments?.[0];
+
+        if (firstShipment?.estimatedDelivery) {
+          const date = new Date(firstShipment.estimatedDelivery);
+          return !isNaN(date.getTime()) ? format(date, "HH:mm dd-MM-yyyy") : "";
+        }
+        return "";
+      })(),
+      status: isStepCompleted(4) ? "completed" : "pending",
       icon: <Hourglass className="w-5 h-5" />,
     },
     {
       id: 5,
       title: "Đơn Hàng Đã Hoàn Thành",
-      // time: order.completedAt
-      //   ? format(new Date(order.completedAt), "HH:mm dd-MM-yyyy")
-      //   : "",
-      status: hasDeliveredItems ? "completed" : "pending",
+      time: (() => {
+        const firstShipment = order.details?.find(detail =>
+          detail.shipments && detail.shipments.length > 0
+        )?.shipments?.[0];
+
+        if (firstShipment?.shippedAt) {
+          const date = new Date(firstShipment.shippedAt);
+          return !isNaN(date.getTime()) ? format(date, "HH:mm dd-MM-yyyy") : "";
+        }
+        return "";
+      })(),
+      status: isStepCompleted(5) ? "completed" : "pending",
       icon: <CheckCircle className="w-5 h-5" />,
     },
   ];
@@ -149,9 +185,9 @@ const OrderTrackingTimeline = ({
                   >
                     {step.title}
                   </h3>
-                  {/* {step.time && (
+                  {step.time && (
                     <p className="text-xs text-gray-500 mt-1">{step.time}</p>
-                  )} */}
+                  )}
                 </div>
               </div>
             ))}
@@ -295,8 +331,13 @@ export default function OrderDetail() {
       return null;
     }
 
-    const orderDate = new Date(order.placedAt);
-    return addDays(orderDate, 5);
+    if (order.placedAt) {
+      const orderDate = new Date(order.placedAt);
+      if (!isNaN(orderDate.getTime())) {
+        return addDays(orderDate, 5);
+      }
+    }
+    return null;
   };
 
   const estimatedDeliveryDate = getEstimatedDeliveryDate();

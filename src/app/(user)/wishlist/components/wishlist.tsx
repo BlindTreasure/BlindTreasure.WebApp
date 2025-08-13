@@ -120,7 +120,7 @@ export default function Wishlist() {
             {wishlistItems.length === 0 ? (
                 <div className="text-center py-12">
                     <img
-                        src="/images/Empty-items.jpg"
+                        src="https://cdni.iconscout.com/illustration/premium/thumb/empty-wishlist-12057810-9824480.png"
                         alt="Empty wishlist"
                         className="mx-auto mb-4 w-48 h-48 object-contain"
                     />

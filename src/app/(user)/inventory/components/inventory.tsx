@@ -247,16 +247,17 @@ export default function Inventory() {
     }
 
     const handleSelectAll = () => {
-        const deliverableItems = getCurrentPageItems().filter(item =>
+        const selectableItems = getCurrentPageItems().filter(item =>
             ((item.type === 'product' && !item.isFromBlindBox) ||
                 (item.type === 'product' && item.isFromBlindBox)) &&
-            item.inventoryItemStatus !== InventoryItemStatus.Delivering
+            item.inventoryItemStatus !== InventoryItemStatus.Delivering &&
+            item.inventoryItemStatus !== InventoryItemStatus.Delivered
         )
 
-        if (selectedItems.length === deliverableItems.length) {
+        if (selectedItems.length === selectableItems.length) {
             setSelectedItems([])
         } else {
-            setSelectedItems(deliverableItems.map(item => item.id))
+            setSelectedItems(selectableItems.map(item => item.id))
         }
     }
 
@@ -392,17 +393,23 @@ export default function Inventory() {
                 </div>
             ) : (
                 <>
-                    {activeTab === 'all' && getCurrentPageItems().some(item =>
-                        (item.type === 'product' && !item.isFromBlindBox) ||
-                        (item.type === 'product' && item.isFromBlindBox)
-                    ) && (
+                    {activeTab === 'all' && (() => {
+                        const selectableItems = getCurrentPageItems().filter(item =>
+                            ((item.type === 'product' && !item.isFromBlindBox) ||
+                                (item.type === 'product' && item.isFromBlindBox)) &&
+                            item.inventoryItemStatus !== InventoryItemStatus.Delivering &&
+                            item.inventoryItemStatus !== InventoryItemStatus.Delivered
+                        );
+                        return selectableItems.length > 0;
+                    })() && (
                             <div className="flex items-center justify-between mb-4 p-4 rounded-lg md:mx-9">
                                 <div className="flex items-center gap-4">
                                     <Checkbox
                                         checked={selectedItems.length > 0 && selectedItems.length === getCurrentPageItems().filter(item =>
                                             ((item.type === 'product' && !item.isFromBlindBox) ||
                                                 (item.type === 'product' && item.isFromBlindBox)) &&
-                                            item.inventoryItemStatus !== InventoryItemStatus.Delivering
+                                            item.inventoryItemStatus !== InventoryItemStatus.Delivering &&
+                                            item.inventoryItemStatus !== InventoryItemStatus.Delivered
                                         ).length}
                                         onCheckedChange={handleSelectAll}
                                     />
@@ -427,16 +434,18 @@ export default function Inventory() {
                             <Card key={item.id} className="transition-all duration-300 transform hover:scale-105">
                                 <CardHeader className='p-0'>
                                     <div className="relative group w-full aspect-[3/2] overflow-hidden rounded-t-lg">
-                                        {activeTab === 'all' && ((item.type === 'product' && !item.isFromBlindBox) || (item.type === 'product' && item.isFromBlindBox)) && (
-                                            <div className="absolute top-2 left-2 z-10">
-                                                <Checkbox
-                                                    checked={selectedItems.includes(item.id)}
-                                                    onCheckedChange={() => handleSelectItem(item.id)}
-                                                    disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering}
-                                                    className="bg-white border-2 border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                />
-                                            </div>
-                                        )}
+                                        {activeTab === 'all' &&
+                                            ((item.type === 'product' && !item.isFromBlindBox) || (item.type === 'product' && item.isFromBlindBox)) &&
+                                            item.inventoryItemStatus !== InventoryItemStatus.Delivering &&
+                                            item.inventoryItemStatus !== InventoryItemStatus.Delivered && (
+                                                <div className="absolute top-2 left-2 z-10">
+                                                    <Checkbox
+                                                        checked={selectedItems.includes(item.id)}
+                                                        onCheckedChange={() => handleSelectItem(item.id)}
+                                                        className="bg-white border-2 border-gray-300"
+                                                    />
+                                                </div>
+                                            )}
                                         <img
                                             src={item.image}
                                             alt={item.title}
@@ -499,15 +508,19 @@ export default function Inventory() {
                                             {item.type === 'product' && !item.isFromBlindBox && (
                                                 <Button
                                                     onClick={() => handleDeliver(item.id)}
-                                                    disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering}
+                                                    disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering || item.inventoryItemStatus === InventoryItemStatus.Delivered}
                                                     className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    {item.inventoryItemStatus === InventoryItemStatus.Delivering ? 'Đang giao hàng' : 'Giao hàng'}
+                                                    {item.inventoryItemStatus === InventoryItemStatus.Delivering
+                                                        ? 'Đang giao hàng'
+                                                        : item.inventoryItemStatus === InventoryItemStatus.Delivered
+                                                            ? 'Đã giao hàng'
+                                                            : 'Giao hàng'}
                                                 </Button>
                                             )}
                                             {item.type === 'product' && item.isFromBlindBox && (
                                                 <>
-                                                    {item.inventoryItemStatus !== InventoryItemStatus.Delivering && (
+                                                    {item.inventoryItemStatus !== InventoryItemStatus.Delivering && item.inventoryItemStatus !== InventoryItemStatus.Delivered && (
                                                         <Button
                                                             onClick={() => handleResellItem(item.id)}
                                                             className="flex-1 border border-orange-600 text-orange-600 bg-transparent hover:bg-orange-600 hover:text-white transition"
@@ -517,10 +530,14 @@ export default function Inventory() {
                                                     )}
                                                     <Button
                                                         onClick={() => handleDeliver(item.id)}
-                                                        disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering}
+                                                        disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering || item.inventoryItemStatus === InventoryItemStatus.Delivered}
                                                         className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        {item.inventoryItemStatus === InventoryItemStatus.Delivering ? 'Đang giao hàng' : 'Giao hàng'}
+                                                        {item.inventoryItemStatus === InventoryItemStatus.Delivering
+                                                            ? 'Đang giao hàng'
+                                                            : item.inventoryItemStatus === InventoryItemStatus.Delivered
+                                                                ? 'Đã giao hàng'
+                                                                : 'Giao hàng'}
                                                     </Button>
                                                 </>
                                             )}

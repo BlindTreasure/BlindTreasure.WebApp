@@ -189,7 +189,6 @@ export default function OrderCard({
         <div className="border rounded-md shadow-sm bg-white mb-4" >
             <div className="flex justify-between items-center p-4 border-b bg-gray-50">
                 <div className="flex items-center gap-2">
-                    <div className="bg-red-600 text-white text-xs px-1 py-0.5 rounded-sm font-bold">Mall</div>
                     <div className="font-semibold truncate">{shopName}</div>
                     <button className="ml-2 text-sm px-2 py-0.5 border rounded text-red-500 border-red-500 hover:bg-red-50">
                         Chat

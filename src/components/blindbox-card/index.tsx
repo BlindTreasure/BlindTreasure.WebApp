@@ -11,6 +11,7 @@ import { FaRegHeart, FaHeart } from "react-icons/fa";
 import { BlindBox } from "@/services/blindboxes/typings";
 import { Rarity, StockStatus, stockStatusMap } from "@/const/products";
 import useToggleWishlist from "@/app/(user)/wishlist/hooks/useToggleWishlist";
+import { useAppSelector } from "@/stores/store";
 
 interface BlindboxCardProps {
     blindbox: BlindBox;
@@ -32,6 +33,7 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({
     const [open, setOpen] = useState(false);
     const image = blindbox.imageUrl || "/images/cart.webp";
     const [quantity, setQuantity] = useState<number>(1);
+    const isLoggedIn = useAppSelector((state) => !!state.userSlice.user);
 
     const {
         isInWishlist,
@@ -183,17 +185,19 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({
                     <Button className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105">
                         Thêm vào giỏ hàng
                     </Button>
-                    <button
-                        onClick={handleToggleWishlist}
-                        disabled={isToggling}
-                        className="p-1 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
-                    >
-                        {isInWishlist ? (
-                            <FaHeart className="text-2xl text-red-500" />
-                        ) : (
-                            <FaRegHeart className="text-2xl hover:text-red-500 transition-colors" />
-                        )}
-                    </button>
+                    {isLoggedIn && (
+                        <button
+                            onClick={handleToggleWishlist}
+                            disabled={isToggling}
+                            className="p-1 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
+                        >
+                            {isInWishlist ? (
+                                <FaHeart className="text-2xl text-red-500" />
+                            ) : (
+                                <FaRegHeart className="text-2xl hover:text-red-500 transition-colors" />
+                            )}
+                        </button>
+                    )}
                 </div>
             </Card>
         </div>

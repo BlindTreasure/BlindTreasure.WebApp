@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OrderResponse } from "@/services/order/typings";
 import useGetOrderById from "../hooks/useGetOrderById";
-import { PaymentInfoStatus, PaymentInfoStatusText } from "@/const/products";
+import { OrderStatus, OrderStatusText, PaymentInfoStatus, PaymentInfoStatusText } from "@/const/products";
 
 export default function OrderHistory() {
   const { orderId } = useParams();
@@ -69,7 +69,7 @@ export default function OrderHistory() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Ngày đặt:</span>
-                <span className="font-medium">{format(new Date(order.placedAt), "dd/MM/yyyy HH:mm")}</span>
+                <span className="font-medium">{order.placedAt ? format(new Date(order.placedAt), "dd/MM/yyyy HH:mm") : "Không xác định"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Số lượng sản phẩm:</span>
@@ -81,20 +81,41 @@ export default function OrderHistory() {
                   <span className="font-medium">{format(new Date(order.completedAt), "dd/MM/yyyy HH:mm")}</span>
                 </div>
               )}
-              {order.payment && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Trạng thái:</span>
-                  <span
-                    className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase
-                  ${order.payment.status === PaymentInfoStatus.Paid || order.payment.status === PaymentInfoStatus.Completed
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                      }`}
-                  >
-                    {PaymentInfoStatusText[order.payment.status]}
-                  </span>
-                </div>
-              )}
+              {order.details && order.details.length > 0 && (() => {
+                const orderStatus = order.details[0].status;
+                const getStatusColor = (status: OrderStatus) => {
+                  switch (status) {
+                    case OrderStatus.DELIVERED:
+                    case OrderStatus.PARTIALLY_DELIVERED:
+                      return "bg-green-100 text-green-700";
+                    case OrderStatus.DELIVEREDING:
+                    case OrderStatus.PARTIALLY_DELIVERING:
+                      return "bg-blue-100 text-blue-700";
+                    case OrderStatus.CANCELLED:
+                      return "bg-red-100 text-red-700";
+                    case OrderStatus.PENDING:
+                      return "bg-yellow-100 text-yellow-700";
+                    case OrderStatus.IN_INVENTORY:
+                      return "bg-purple-100 text-purple-700";
+                    case OrderStatus.SHIPPING_REQUESTED:
+                    case OrderStatus.PARTIALLY_SHIPPING_REQUESTED:
+                      return "bg-orange-100 text-orange-700";
+                    default:
+                      return "bg-gray-100 text-gray-700";
+                  }
+                };
+
+                return (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Trạng thái:</span>
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase ${getStatusColor(orderStatus)}`}
+                    >
+                      {OrderStatusText[orderStatus]}
+                    </span>
+                  </div>
+                );
+              })()}
             </div>
           </CardContent>
         </Card>
@@ -122,7 +143,19 @@ export default function OrderHistory() {
                 )}
                 <div className="flex justify-between">
                   <span className="text-gray-600">Trạng thái:</span>
-                  <span className="font-medium">{order.payment?.status || "Chưa có thông tin"}</span>
+                  <span
+                    className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase
+                    ${order.payment?.status === PaymentInfoStatus.Paid || order.payment?.status === PaymentInfoStatus.Completed
+                        ? "bg-green-100 text-green-700"
+                        : order.payment?.status === PaymentInfoStatus.Pending
+                          ? "bg-yellow-100 text-yellow-700"
+                          : order.payment?.status === PaymentInfoStatus.Failed || order.payment?.status === PaymentInfoStatus.Cancelled
+                            ? "bg-red-100 text-red-700"
+                            : "bg-gray-100 text-gray-700"
+                      }`}
+                  >
+                    {order.payment?.status ? PaymentInfoStatusText[order.payment.status as PaymentInfoStatus] : "Chưa có thông tin"}
+                  </span>
                 </div>
                 {order.payment?.refundedAmount > 0 && (
                   <div className="flex justify-between text-red-500">
@@ -181,23 +214,51 @@ export default function OrderHistory() {
                   {(order.finalAmount || order.totalAmount || 0).toLocaleString("vi-VN")}₫
                 </span>
               </div>
-              {order.totalShippingFee && order.totalShippingFee > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Phí vận chuyển:</span>
-                  <span>{order.totalShippingFee.toLocaleString("vi-VN")}₫</span>
-                </div>
-              )}
-              {order.payment?.amount && order.payment?.netAmount && order.payment.amount !== order.payment.netAmount && (
-                <div className="flex justify-between text-green-600">
-                  <span>Giảm giá:</span>
-                  <span>-{(order.payment.amount - order.payment.netAmount).toLocaleString("vi-VN")}₫</span>
-                </div>
-              )}
+              {(() => {
+                const totalShippingFee = order.details?.reduce((total, detail) => {
+                  const detailShippingFee = detail.shipments?.reduce((shipmentTotal, shipment) => {
+                    return shipmentTotal + (shipment.totalFee || 0);
+                  }, 0) || 0;
+                  return total + detailShippingFee;
+                }, 0) || 0;
+
+                return totalShippingFee > 0 ? (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Phí vận chuyển:</span>
+                    <span>{totalShippingFee.toLocaleString("vi-VN")}₫</span>
+                  </div>
+                ) : null;
+              })()}
+              {(() => {
+                const totalDiscount = order.details?.reduce((total, detail) => {
+                  return total + (detail.detailDiscountPromotion || 0);
+                }, 0) || 0;
+
+                return totalDiscount > 0 ? (
+                  <div className="flex justify-between text-green-600">
+                    <span>Giảm giá:</span>
+                    <span>-{totalDiscount.toLocaleString("vi-VN")}₫</span>
+                  </div>
+                ) : null;
+              })()}
               <div className="border-t pt-2 mt-2">
                 <div className="flex justify-between font-semibold text-base">
                   <span>Tổng thanh toán:</span>
                   <span className="text-red-500">
-                    {(order.payment?.netAmount || order.payment?.amount || order.totalAmount || 0).toLocaleString("vi-VN")}₫
+                    {(() => {
+                      const subtotal = order.totalAmount || 0;
+                      const shippingFee = order.details?.reduce((total, detail) => {
+                        const detailShippingFee = detail.shipments?.reduce((shipmentTotal, shipment) => {
+                          return shipmentTotal + (shipment.totalFee || 0);
+                        }, 0) || 0;
+                        return total + detailShippingFee;
+                      }, 0) || 0;
+                      const discount = order.details?.reduce((total, detail) => {
+                        return total + (detail.detailDiscountPromotion || 0);
+                      }, 0) || 0;
+                      const finalTotal = subtotal + shippingFee - discount;
+                      return finalTotal.toLocaleString("vi-VN");
+                    })()}₫
                   </span>
                 </div>
               </div>

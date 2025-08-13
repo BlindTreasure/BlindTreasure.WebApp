@@ -27,7 +27,7 @@ export type OrderResponse = {
   status: PaymentStatus;
   totalAmount: number;
   placedAt: string;
-  completedAt: string | null;
+  completedAt: string;
   shippingAddress?: ShippingAddress;
   details: OrderDetail[];
   payment?: PaymentInfo | null;
@@ -121,6 +121,7 @@ export type Shipment = {
   shippedAt: string;
   estimatedDelivery: string;
   status: ShipmentStatus;
+  estimatedPickupTime: string;
 };
 
 export type OrderDetails = {
@@ -130,6 +131,9 @@ export type OrderDetails = {
   productId: string;
   productName: string;
   productImages: string[];
+  blindBoxId?: string | null;
+  blindBoxName?: string | null;
+  blindBoxImage?: string | null;
   quantity: number;
   unitPrice: number;
   totalPrice: number;

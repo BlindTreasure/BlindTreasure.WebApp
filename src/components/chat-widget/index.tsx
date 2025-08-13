@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from '@/stores/store';
 import useGetAllItemInventory from '@/app/(user)/inventory/hooks/useGetItemInventory';
 import useGetChatConversation from '@/hooks/use-get-conversation-list';
 import useGetUnreadCount from '@/hooks/use-get-unread-count';
@@ -34,22 +34,22 @@ const CustomerSellerChat: React.FC = () => {
   const [inventoryFetched, setInventoryFetched] = useState(false);
 
   // Get current user from Redux store
-  const currentUser = useSelector((state: any) => state.userSlice?.user);
+  const currentUser = useAppSelector((state) => state.userSlice?.user);
   const currentUserId = currentUser?.userId;
 
   // Existing conversation states
   const [conversations, setConversations] = useState<API.ChatConversation[]>([]);
   const [conversationsLoading, setConversationsLoading] = useState(false);
   const [conversationsFetched, setConversationsFetched] = useState(false);
-  
+
   // New state for unread count
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
-  
+
   // New states for chat history
   const [chatHistory, setChatHistory] = useState<API.ChatHistoryDetail[]>([]);
   const [chatHistoryLoading, setChatHistoryLoading] = useState(false);
   const [chatHistoryFetched, setChatHistoryFetched] = useState<Record<string, boolean>>({});
-  
+
   const fetchingRef = useRef(false);
   const conversationsFetchingRef = useRef(false);
   const chatHistoryFetchingRef = useRef<Record<string, boolean>>({});
@@ -60,12 +60,12 @@ const CustomerSellerChat: React.FC = () => {
   // Initialize mark as read hook with callback to update local state
   const markAsReadMutation = useServiceMarkMessageAsRead((fromUserId: string) => {
     // Cập nhật unread count trong conversations ngay lập tức
-    setConversations(prev => prev.map(conv => 
-      conv.otherUserId === fromUserId 
+    setConversations(prev => prev.map(conv =>
+      conv.otherUserId === fromUserId
         ? { ...conv, unreadCount: 0 }
         : conv
     ));
-    
+
     // Cập nhật total unread count
     setTotalUnreadCount(prev => {
       const targetConv = conversations.find(conv => conv.otherUserId === fromUserId);
@@ -86,10 +86,10 @@ const CustomerSellerChat: React.FC = () => {
   useEffect(() => {
     if (realTimeMessages.length > 0 && selectedConversation && currentUserId) {
       const relevantMessages = realTimeMessages
-        .filter(msg => 
+        .filter(msg =>
           msg.receiverId === selectedConversation || msg.senderId === selectedConversation
         );
-      
+
       relevantMessages.forEach(msg => {
         const transformedMessage: API.ChatHistoryDetail = {
           id: `realtime-${Date.now()}-${Math.random()}`,
@@ -108,19 +108,19 @@ const CustomerSellerChat: React.FC = () => {
           fileSize: undefined,
           fileMimeType: undefined
         };
-        
+
         // Avoid duplicates - check if message with same content and timestamp already exists
         setMessages(prev => {
-          const isDuplicate = prev.some(existingMsg => 
+          const isDuplicate = prev.some(existingMsg =>
             existingMsg.content === transformedMessage.content &&
             existingMsg.sentAt === transformedMessage.sentAt &&
             existingMsg.senderId === transformedMessage.senderId
           );
-          
+
           if (isDuplicate) {
             return prev;
           }
-          
+
           return [...prev, transformedMessage];
         });
       });
@@ -130,9 +130,9 @@ const CustomerSellerChat: React.FC = () => {
   // Fetch chat history when a conversation is selected
   useEffect(() => {
     const fetchChatHistory = async () => {
-      if (!selectedConversation || 
-          chatHistoryFetchingRef.current[selectedConversation] || 
-          chatHistoryFetched[selectedConversation]) {
+      if (!selectedConversation ||
+        chatHistoryFetchingRef.current[selectedConversation] ||
+        chatHistoryFetched[selectedConversation]) {
         return;
       }
 
@@ -148,7 +148,7 @@ const CustomerSellerChat: React.FC = () => {
 
         if (response && response.isSuccess && response.value) {
           setChatHistory(response.value.data.result);
-          
+
           const transformedMessages: API.ChatHistoryDetail[] = response.value.data.result.map((msg: API.ChatHistoryDetail) => ({
             id: msg.id || `history-${Date.now()}-${Math.random()}`,
             senderId: msg.senderId || '',
@@ -197,8 +197,10 @@ const CustomerSellerChat: React.FC = () => {
     }
   }, [selectedConversation, chatHistoryFetched]);
 
-  // Fetch unread count when component mounts and periodically
+  // Fetch unread count when component mounts and periodically - chỉ khi đã đăng nhập
   useEffect(() => {
+    if (!currentUser) return;
+
     const fetchUnreadCount = async () => {
       try {
         const response = await getUnreadCountApi();
@@ -213,7 +215,7 @@ const CustomerSellerChat: React.FC = () => {
     fetchUnreadCount();
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
-  }, [getUnreadCountApi]);
+  }, [getUnreadCountApi, currentUser?.userId]); 
 
   // Fetch conversations when chat is opened
   useEffect(() => {
@@ -231,7 +233,7 @@ const CustomerSellerChat: React.FC = () => {
           }),
           getUnreadCountApi()
         ]);
-        
+
         if (conversationsResponse && conversationsResponse.value.data) {
           const transformedConversations: API.ChatConversation[] = conversationsResponse.value.data.result.map((conv: any) => ({
             otherUserId: conv.otherUserId,
@@ -266,7 +268,7 @@ const CustomerSellerChat: React.FC = () => {
 
   useEffect(() => {
     const fetchInventory = async () => {
-      if (fetchingRef.current || inventoryFetched) return; 
+      if (fetchingRef.current || inventoryFetched) return;
 
       fetchingRef.current = true;
       setInventoryLoading(true);
@@ -286,7 +288,7 @@ const CustomerSellerChat: React.FC = () => {
           );
 
           setInventoryItems(availableItems);
-          setInventoryFetched(true); 
+          setInventoryFetched(true);
         }
       } catch (error) {
         console.error('Error fetching inventory:', error);
@@ -299,7 +301,7 @@ const CustomerSellerChat: React.FC = () => {
     if (showInventory && !inventoryFetched) {
       fetchInventory();
     }
-  }, [showInventory, getAllItemInventoryApi, inventoryFetched]); 
+  }, [showInventory, getAllItemInventoryApi, inventoryFetched]);
 
   const filteredConversations = conversations.filter(conv =>
     conv.otherUserName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -310,10 +312,10 @@ const CustomerSellerChat: React.FC = () => {
 
   const handleSelectConversation = (conversationId: string) => {
     setSelectedConversation(conversationId);
-    
+
     // Tìm conversation được chọn
     const selectedConv = conversations.find(conv => conv.otherUserId === conversationId);
-    
+
     // Nếu conversation có unread messages, đánh dấu đã đọc
     if (selectedConv && selectedConv.unreadCount > 0) {
       markAsReadMutation.mutate({ fromUserId: conversationId });

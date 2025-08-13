@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { OrderResponse } from "@/services/order/typings";
-import { PaymentStatus, OrderStatus, PaymentInfoStatus } from "@/const/products";
+import { PaymentStatus, OrderStatus, PaymentInfoStatus, InventoryItemStatus } from "@/const/products";
+import { InventoryItem } from "@/services/inventory-item/typings";
 import useGetAllOrder from "../hooks/useGetOrderByCustomer";
 import useGetOrderDetails from "../hooks/useGetOrderDetails";
+import useGetAllItemInventory from "../../inventory/hooks/useGetItemInventory";
 import OrderCard from "@/components/order-card";
 import Pagination from "@/components/pagination";
+import InventoryDeliveryCard from "./inventory-delivery-card";
 
 type TabConfig = {
     value: string;
@@ -21,6 +24,8 @@ export const TAB_MAP: TabConfig[] = [
     { value: "pending", label: "Chờ thanh toán", statuses: [PaymentStatus.PENDING] },
     { value: "completed", label: "Đã thanh toán", statuses: [PaymentStatus.PAID] },
     { value: "shipping", label: "Đang giao hàng", orderStatuses: [OrderStatus.DELIVEREDING] },
+    { value: "delivered", label: "Hoàn thành", orderStatuses: [OrderStatus.DELIVERED] },
+    { value: "inventory-delivery", label: "Giao hàng túi đồ" },
     { value: "cancelled", label: "Đã hủy", statuses: [PaymentStatus.CANCELLED] },
 ];
 
@@ -28,13 +33,47 @@ const PAGE_SIZE = 5;
 
 export default function Purchased() {
     const [orders, setOrders] = useState<OrderResponse[]>([]);
+    const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
     const [currentTab, setCurrentTab] = useState("all");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const { getAllOrderApi, isPending } = useGetAllOrder();
     const { getOrderDetailsApi, isPending: isOrderDetailsPending } = useGetOrderDetails();
+    const { getAllItemInventoryApi, isPending: isInventoryPending } = useGetAllItemInventory();
+
+    const fetchInventoryItems = async (page = 1) => {
+        try {
+            const res = await getAllItemInventoryApi({
+                pageIndex: page,
+                pageSize: PAGE_SIZE,
+            });
+
+            if (res?.value?.data?.result && Array.isArray(res.value.data.result)) {
+                const deliveryItems = res.value.data.result.filter((item: InventoryItem) =>
+                    (item.status === InventoryItemStatus.Delivering ||
+                        item.status === InventoryItemStatus.Delivered ||
+                        item.status === InventoryItemStatus.Shipment_requested) &&
+                    !item.orderDetailId
+                );
+                setInventoryItems(deliveryItems);
+                setTotalPages(res.value.data.totalPages || 1);
+            } else {
+                setInventoryItems([]);
+                setTotalPages(1);
+            }
+        } catch (error) {
+            console.error('Error fetching inventory items:', error);
+            setInventoryItems([]);
+            setTotalPages(1);
+        }
+    };
 
     const fetchOrders = async (tabValue: string, page = 1) => {
+        if (tabValue === "inventory-delivery") {
+            await fetchInventoryItems(page);
+            return;
+        }
+
         const tab = TAB_MAP.find((t) => t.value === tabValue);
         const statuses = tab?.statuses;
         const orderStatuses = tab?.orderStatuses;
@@ -58,7 +97,7 @@ export default function Purchased() {
                         status: PaymentStatus.PAID,
                         totalAmount: detail.totalPrice,
                         placedAt: shippedDate,
-                        completedAt: estimatedDelivery || null,
+                        completedAt: estimatedDelivery || '',
                         checkoutGroupId: '',
                         sellerId: '',
                         seller: undefined,
@@ -69,34 +108,33 @@ export default function Purchased() {
                             productId: detail.productId,
                             productName: detail.productName,
                             productImages: detail.productImages || [],
-                            blindBoxId: undefined,
-                            blindBoxName: undefined,
-                            blindBoxImage: undefined,
+                            blindBoxId: detail.blindBoxId || undefined,
+                            blindBoxName: detail.blindBoxName || undefined,
+                            blindBoxImage: detail.blindBoxImage || undefined,
                             quantity: detail.quantity,
                             unitPrice: detail.unitPrice,
                             totalPrice: detail.totalPrice,
                             status: detail.status,
                             shipments: detail.shipments || [],
-                            inventoryItems: [],
+                            inventoryItems: detail.inventoryItems || [],
                             detailDiscountPromotion: detail.detailDiscountPromotion,
                             finalDetailPrice: detail.totalPrice - detail.detailDiscountPromotion,
                         }],
                         payment: {
                             id: '',
-                            orderId: detail.id,
+                            orderId: detail.orderId,
                             amount: detail.totalPrice,
                             discountRate: 0,
-                            netAmount: detail.totalPrice,
+                            netAmount: detail.totalPrice - (detail.detailDiscountPromotion || 0),
                             method: firstShipment?.provider || 'Giao hàng nhanh',
                             status: PaymentInfoStatus.Paid,
-                            transactionId: firstShipment?.trackingNumber || '',
+                            paymentIntentId: firstShipment?.trackingNumber || '',
                             paidAt: shippedDate,
                             refundedAmount: 0,
                             transactions: []
                         },
                         finalAmount: detail.totalPrice + totalShippingFee,
                         totalShippingFee: totalShippingFee,
-                        // promotionNote: firstShipment ? `Mã vận đơn: ${firstShipment.trackingNumber}` : '',
                         shippingAddress: firstShipment ? {
                             id: firstShipment.id,
                             fullName: 'Khách hàng',
@@ -223,10 +261,37 @@ export default function Purchased() {
                 <div className="mt-4 sm:mt-6">
                     {TAB_MAP.map((tab) => (
                         <TabsContent key={tab.value} value={tab.value}>
-                            {(isPending || isOrderDetailsPending) ? (
-                                <div className="text-gray-500 text-center py-8">Đang tải đơn hàng...</div>
+                            {tab.value === "inventory-delivery" ? (
+                                isInventoryPending ? (
+                                    <div className="text-gray-500 text-center py-8">Đang tải inventory...</div>
+                                ) : inventoryItems.length === 0 ? (
+                                    <div className="text-gray-500 text-center py-8">
+                                        Không có sản phẩm nào đang được giao hàng từ inventory
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="space-y-3 sm:space-y-4">
+                                            {inventoryItems.map((item) => (
+                                                <InventoryDeliveryCard key={item.id} item={item} />
+                                            ))}
+                                        </div>
+                                        {totalPages > 1 && (
+                                            <div className="mt-6 sm:mt-8 flex justify-center">
+                                                <Pagination
+                                                    currentPage={currentPage}
+                                                    totalPages={totalPages}
+                                                    onPageChange={handlePageChange}
+                                                />
+                                            </div>
+                                        )}
+                                    </>
+                                )
                             ) : (
-                                renderOrders()
+                                (isPending || isOrderDetailsPending) ? (
+                                    <div className="text-gray-500 text-center py-8">Đang tải đơn hàng...</div>
+                                ) : (
+                                    renderOrders()
+                                )
                             )}
                         </TabsContent>
                     ))}

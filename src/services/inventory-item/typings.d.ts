@@ -28,6 +28,38 @@ export type InventoryItem = {
   createdAt: string;
   isFromBlindBox: boolean;
   sourceCustomerBlindBoxId: string;
+  shipmentId?: string;
+  shipment?: Shipment;
+  orderDetailId?: string;
+  orderDetail?: {
+    id: string;
+    productId: string;
+    orderId: string;
+    logs?: string;
+    quantity: number;
+    unitPrice?: number;
+    totalPrice?: number;
+    status: OrderStatus;
+    shipments?: Shipment[];
+    inventoryItems?: any[];
+    finalDetailPrice?: number;
+  };
+  isOnHold?: boolean;
+  hasActiveListing?: boolean;
+};
+
+export type Shipment = {
+  id: string;
+  orderDetailId: string;
+  orderCode: string;
+  totalFee: number;
+  mainServiceFee: number;
+  provider: string;
+  trackingNumber: string;
+  shippedAt: string;
+  estimatedDelivery: string;
+  status: ShipmentStatus;
+  estimatedPickupTime: string;
 };
 
 export type Product = {
@@ -105,8 +137,8 @@ export type Shipment = {
   mainServiceFee: number;
   provider: string;
   trackingNumber: string;
-  shippedAt: string; 
+  shippedAt: string;
   estimatedDelivery: string;
-  status: ShipmentStatus; 
+  status: ShipmentStatus;
   inventoryItems: any[];
 };

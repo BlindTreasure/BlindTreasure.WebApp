@@ -189,20 +189,16 @@ export enum InventoryItemStatus {
   Available = "Available",
   Shipment_requested = "Shipment_requested",
   Delivering = "Delivering",
-  Reserved = "Reserved",
   Listed = "Listed",
   Sold = "Sold",
-  Archived = "Archived",
-  OnHold = "OnHold",
+  Delivered = "Delivered",
 }
 
 export const InventoryItemStatusText: Record<InventoryItemStatus, string> = {
   [InventoryItemStatus.Available]: "Còn hàng",
   [InventoryItemStatus.Shipment_requested]: "Yêu cầu vận chuyển",
   [InventoryItemStatus.Delivering]: "Đang vận chuyển",
-  [InventoryItemStatus.Reserved]: "Đã đặt hàng",
   [InventoryItemStatus.Listed]: "Đã liệt kê",
   [InventoryItemStatus.Sold]: "Đã bán",
-  [InventoryItemStatus.Archived]: "Đã lưu trữ",
-  [InventoryItemStatus.OnHold]: "Đang tạm giữ",
+  [InventoryItemStatus.Delivered]: "Đã giao hàng",
 };
