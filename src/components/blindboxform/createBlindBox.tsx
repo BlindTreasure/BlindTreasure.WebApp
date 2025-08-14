@@ -343,7 +343,7 @@ export default function CreateBlindbox({
                         ) : (
                             <label
                                 htmlFor="uploadFile1"
-                                className="w-full h-32 flex flex-col items-center justify-center cursor-pointer border-2 border-gray-300 border-dashed rounded bg-white text-slate-500 font-semibold text-base"
+                                className="w-full h-32 flex flex-col items-center justify-center cursor-pointer border-2 border-gray-300 border-dashed rounded bg-white dark:bg-gray-900 text-slate-500 font-semibold text-base"
                             >
                                 <LuImagePlus className="text-3xl" />
                                 Thêm hình ảnh (0/1)
@@ -378,7 +378,7 @@ export default function CreateBlindbox({
                 >
                     Hủy
                 </Button>
-                <Button type="submit" className="bg-[#d02a2a] text-white hover:bg-opacity-80">
+                <Button type="submit" className="bg-[#30d02a] text-white hover:bg-opacity-80">
                     Lưu
                 </Button>
             </div>

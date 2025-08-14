@@ -5,6 +5,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import Message from "../components/message/message";
 import useAutoRefreshToken from "@/hooks/use-auto-refresh-token";
 import SignalRProvider from "./signalr-provider";
+import { ThemeProvider } from "@/context/ThemeContext";
 const StoreProvider = dynamic(
     () => import("@/provider/redux-provider").then((mod) => mod.StoreProvider),
     {
@@ -30,12 +31,14 @@ export default function Provider({
     return (
         <StoreProvider>
             <ReactQueryProvider>
-                <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
-                    <SignalRProvider>
-                        <AppInitializer />
-                        <Message>{children}</Message>
-                    </SignalRProvider>
-                </GoogleOAuthProvider>
+                <ThemeProvider>
+                    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
+                        <SignalRProvider>
+                            <AppInitializer />
+                            <Message>{children}</Message>
+                        </SignalRProvider>
+                    </GoogleOAuthProvider>
+                </ThemeProvider>
             </ReactQueryProvider>
         </StoreProvider>
     );

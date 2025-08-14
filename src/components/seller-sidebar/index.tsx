@@ -112,7 +112,7 @@ export default function SellerSidebar() {
               staffState.openSidebar ? closeSidebar() : openSidebar()
             )
           }
-          className="fixed top-4 left-6 z-50 p-2 bg-gray-800 text-white rounded-md"
+          className="fixed top-4 left-6 z-50 p-2 bg-gray-800 dark:bg-gray-700 text-white rounded-md"
         >
           <CiAlignLeft size={26} />
         </button>
@@ -126,7 +126,7 @@ export default function SellerSidebar() {
       )}
 
       <aside
-        className={`fixed lg:static z-[9999] h-screen bg-gray-900 text-white transition-all duration-300 ${isMobile
+        className={`fixed lg:static z-[9999] h-screen bg-gray-900 dark:bg-gray-900 text-white transition-all duration-300 ${isMobile
           ? staffState.openSidebar
             ? "w-72"
             : "w-0 overflow-hidden"
@@ -135,7 +135,7 @@ export default function SellerSidebar() {
             : "w-20"
           }`}
       >
-        <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-700">
+        <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-700 dark:border-gray-600">
           <div className="rounded-full w-16 h-16 flex items-center justify-center font-bold text-xs">
             <img
               src="/images/darkmode_footer.png"
@@ -152,7 +152,7 @@ export default function SellerSidebar() {
         <div className="p-4 w-full">
           <ul className="space-y-1">
             <li
-              className={`flex items-center pt-4 text-sm font-semibold text-gray-400 h-10 ${staffState.openSidebar ? "justify-start" : "justify-center"
+              className={`flex items-center pt-4 text-sm font-semibold text-gray-400 dark:text-gray-500 h-10 ${staffState.openSidebar ? "justify-start" : "justify-center"
                 }`}
             >
               {staffState.openSidebar ? (
@@ -176,7 +176,7 @@ export default function SellerSidebar() {
                     <li key={item.label}>
                       <button
                         onClick={() => toggleDropdown(item.dropdownKey!)}
-                        className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded-md"
+                        className="flex items-center justify-between w-full p-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-md"
                       >
                         <div className="flex items-center space-x-2">
                           <Icon size={20} />
@@ -187,7 +187,7 @@ export default function SellerSidebar() {
 
                         {staffState.openSidebar && (
                           <ChevronDown
-                            className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""} text-gray-400`}
+                            className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""} text-gray-400 dark:text-gray-500`}
                           />
                         )}
                       </button>
@@ -200,7 +200,7 @@ export default function SellerSidebar() {
                               <li key={sub.label}>
                                 <Link
                                   href={sub.href}
-                                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded-md"
+                                  className="flex items-center gap-2 p-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-md"
                                   onClick={() => isMobile && dispatch(closeSidebar())}
                                 >
                                   <SubIcon size={20} />
@@ -218,7 +218,7 @@ export default function SellerSidebar() {
                   <li key={item.label}>
                     <Link
                       href={item.href!}
-                      className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded-md"
+                      className="flex items-center gap-2 p-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-md"
                       onClick={() => isMobile && dispatch(closeSidebar())}
                     >
                       <Icon size={20} />

@@ -85,7 +85,7 @@ function Reply() {
                 <div className="p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+                            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
                                 Quản Lý Đánh Giá
                             </h1>
                             <p className="text-gray-600 mt-1">

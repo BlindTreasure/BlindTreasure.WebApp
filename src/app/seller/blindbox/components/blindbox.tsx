@@ -226,7 +226,7 @@ export default function BlindboxTabs() {
                     Thêm sản phẩm vào túi
                 </TabsTrigger>
             </TabsList>
-            <div className="shadow-lg rounded-lg bg-white border border-gray-200 p-8">
+            <div className="shadow-lg rounded-lg bg-white dark:bg-gray-900 border border-gray-200 p-8">
                 <TabsContent value="blindbox">
                     <h2 className="text-xl font-semibold mb-4">Thông tin túi mù</h2>
                     <CreateBlindbox

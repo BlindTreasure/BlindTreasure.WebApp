@@ -8,12 +8,14 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { StatisticRange } from "@/const/seller";
 import { getSellerStatistics } from "@/services/seller-dashboard/api-services";
 import { Skeleton } from "../ui/skeleton";
+import { useTheme } from "@/context/ThemeContext";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
 export default function MonthlyTarget() {
+  const { theme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [targetPercentage, setTargetPercentage] = useState(0);
   const [monthlyTarget] = useState(5000000);
@@ -50,7 +52,7 @@ export default function MonthlyTarget() {
   }, [monthlyTarget]);
 
   const options: ApexOptions = {
-    colors: ["#465FFF"],
+    colors: [theme === "dark" ? "#60A5FA" : "#465FFF"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "radialBar",
@@ -71,7 +73,7 @@ export default function MonthlyTarget() {
           size: "80%",
         },
         track: {
-          background: "#E4E7EC",
+          background: theme === "dark" ? "#374151" : "#E4E7EC",
           strokeWidth: "100%",
           margin: 5,
         },
@@ -83,7 +85,7 @@ export default function MonthlyTarget() {
             fontSize: "36px",
             fontWeight: "600",
             offsetY: -40,
-            color: "#1D2939",
+            color: theme === "dark" ? "#F9FAFB" : "#000000",
             formatter: function (val) {
               return val + "%";
             },
@@ -93,7 +95,7 @@ export default function MonthlyTarget() {
     },
     fill: {
       type: "solid",
-      colors: ["#465FFF"],
+      colors: [theme === "dark" ? "#60A5FA" : "#465FFF"],
     },
     stroke: {
       lineCap: "round",
@@ -162,6 +164,7 @@ export default function MonthlyTarget() {
           <div className="max-h-[330px]">
             {!isLoading && monthlyData ? (
               <ReactApexChart
+                key={theme}
                 options={options}
                 series={[targetPercentage]}
                 type="radialBar"

@@ -55,7 +55,7 @@ export default function OrderStatusStats() {
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-6 py-6 dark:border-gray-800 dark:bg-white/[0.03]">
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-6 py-6 dark:border-gray-900 dark:bg-gray-900">
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
           Thống kê trạng thái đơn hàng
@@ -71,11 +71,11 @@ export default function OrderStatusStats() {
 
         {isLoading ? (
           <div className="py-8 text-center">
-            <div className="text-gray-500">Đang tải dữ liệu...</div>
+            <div className="text-gray-500 dark:text-gray-400">Đang tải dữ liệu...</div>
           </div>
         ) : orderStats.length === 0 ? (
           <div className="py-8 text-center">
-            <div className="text-gray-500">Không có dữ liệu</div>
+            <div className="text-gray-500 dark:text-gray-400">Không có dữ liệu</div>
           </div>
         ) : (
           <div className="space-y-4">

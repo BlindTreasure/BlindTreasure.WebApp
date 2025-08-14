@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { getSellerStatisticsTimeSeries } from "@/services/seller-dashboard/api-services";
 import { StatisticRange } from "@/const/seller";
 import { SellerStatisticsTimeSeries } from "@/services/seller-dashboard/typings";
+import { useTheme } from "@/context/ThemeContext";
 import {
   Select,
   SelectContent,
@@ -18,6 +19,7 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 });
 
 const StatisticsChart = () => {
+  const { theme } = useTheme();
   const [range, setRange] = useState<"day" | "week" | "month" | "quarter" | "year">("month");
   const [statisticsData, setStatisticsData] = useState<SellerStatisticsTimeSeries | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +40,7 @@ const StatisticsChart = () => {
         return StatisticRange.MONTH;
     }
   };
-  
+
   useEffect(() => {
     const fetchStatistics = async () => {
       setIsLoading(true);
@@ -85,8 +87,9 @@ const StatisticsChart = () => {
       height: 310,
       toolbar: { show: false },
       fontFamily: "Outfit, sans-serif",
+      background: "transparent",
     },
-    colors: ["#465FFF", "#9CB9FF"],
+    colors: theme === "dark" ? ["#60A5FA", "#93C5FD"] : ["#465FFF", "#9CB9FF"],
     stroke: { curve: "straight", width: [2, 2] },
     fill: {
       type: "gradient",
@@ -94,14 +97,19 @@ const StatisticsChart = () => {
     },
     markers: {
       size: 0,
-      strokeColors: "#fff",
+      strokeColors: theme === "dark" ? "#374151" : "#fff",
       strokeWidth: 2,
       hover: { size: 6 },
     },
     dataLabels: { enabled: false },
     grid: {
       xaxis: { lines: { show: false } },
-      yaxis: { lines: { show: true } },
+      yaxis: {
+        lines: {
+          show: true
+        }
+      },
+      borderColor: theme === "dark" ? "#374151" : "#E5E7EB",
     },
     xaxis: {
       type: "category",
@@ -109,17 +117,23 @@ const StatisticsChart = () => {
       axisBorder: { show: false },
       axisTicks: { show: false },
       tooltip: { enabled: false },
+      labels: {
+        style: {
+          colors: theme === "dark" ? "#9CA3AF" : "#6B7280",
+        },
+      },
     },
     yaxis: {
       labels: {
         style: {
           fontSize: "12px",
-          colors: ["#6B7280"],
+          colors: theme === "dark" ? "#9CA3AF" : "#6B7280",
         },
       },
     },
     tooltip: {
       enabled: true,
+      theme: theme === "dark" ? "dark" : "light",
     },
     legend: {
       show: false,
@@ -140,11 +154,11 @@ const StatisticsChart = () => {
   ];
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 sm:px-6 sm:pt-6">
+    <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 px-5 pb-5 pt-5 sm:px-6 sm:pt-6">
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-800">Thống kê</h3>
-          <p className="text-gray-500 text-sm">Doanh thu theo từng giai đoạn</p>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Thống kê</h3>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Doanh thu theo từng giai đoạn</p>
         </div>
 
         <Select value={range} onValueChange={(value) => setRange(value as typeof range)}>
@@ -166,10 +180,10 @@ const StatisticsChart = () => {
         <div className="min-w-[1000px] xl:min-w-full">
           {isLoading ? (
             <div className="flex items-center justify-center h-[310px]">
-              <div className="text-gray-500">Đang tải dữ liệu...</div>
+              <div className="text-gray-500 dark:text-gray-400">Đang tải dữ liệu...</div>
             </div>
           ) : (
-            <ReactApexChart options={options} series={series} type="area" height={310} />
+            <ReactApexChart key={theme} options={options} series={series} type="area" height={310} />
           )}
         </div>
       </div>

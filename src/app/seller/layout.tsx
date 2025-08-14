@@ -79,22 +79,22 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   }, [data, pathname, router]);
 
   if (isError || (!isLoading && !data)) {
-    return <div className="p-4 text-red-500">Không thể tải thông tin người bán.</div>;
+    return <div className="p-4 text-red-500 dark:text-red-400 bg-white dark:bg-gray-900 min-h-screen">Không thể tải thông tin người bán.</div>;
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-white dark:bg-gray-900">
       {showFullLayout && <SellerSidebar />}
       <div className="flex flex-col flex-1 overflow-hidden">
-        <div className="min-h-[76px] bg-white shadow-md">
+        <div className="min-h-[76px] bg-white dark:bg-gray-900 shadow-md">
           <SellerHeader />
         </div>
-        <main className="flex-grow p-4 bg-gray-100 overflow-y-auto">
+        <main className="flex-grow p-4 bg-gray-100 dark:bg-gray-800 overflow-y-auto">
           {isLoading && !data ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500 mx-auto mb-2"></div>
-                <p className="text-gray-600">Đang tải dữ liệu...</p>
+                <p className="text-gray-600 dark:text-gray-400">Đang tải dữ liệu...</p>
               </div>
             </div>
           ) : (

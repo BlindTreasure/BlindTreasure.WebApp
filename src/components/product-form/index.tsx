@@ -89,7 +89,7 @@ export default function ProductForm({ defaultValues, onSubmit, isPending, showIm
               sectionRefs.current['Thông tin cơ bản'] = el;
             }}
             id="Thông tin cơ bản"
-            className="bg-white rounded-lg shadow-md p-6"
+            className="bg-white rounded-lg shadow-md p-6 dark:bg-gray-900"
           >
             <h2 className="text-xl font-semibold mb-4">Thông tin cơ bản</h2>
             <Basic
@@ -108,7 +108,7 @@ export default function ProductForm({ defaultValues, onSubmit, isPending, showIm
               sectionRefs.current['Thông tin chi tiết'] = el;
             }}
             id="Thông tin chi tiết"
-            className="bg-white rounded-lg shadow-md p-6"
+            className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6"
           >
             <h2 className="text-xl font-semibold mb-4">Thông tin chi tiết</h2>
             <Detail
@@ -135,7 +135,7 @@ export default function ProductForm({ defaultValues, onSubmit, isPending, showIm
           </Button>
           <Button
             type="submit"
-            className="px-4 py-2 bg-[#d02a2a] text-white rounded hover:bg-opacity-80"
+            className="px-4 py-2 bg-[#1cd12b] text-white rounded hover:bg-opacity-80"
           >
             Lưu
           </Button>

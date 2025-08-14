@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { getSellerStatisticsTopBlindBoxes, getSellerStatisticsTopProducts } from "@/services/seller-dashboard/api-services";
+import { getSellerStatisticsTopBlindBoxes } from "@/services/seller-dashboard/api-services";
 import { StatisticRange } from "@/const/seller";
 import { SellerStatisticsTopBlindboxes } from "@/services/seller-dashboard/typings";
 
@@ -39,7 +39,7 @@ export default function TopBlindboxes() {
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-6 py-6 dark:border-gray-800 dark:bg-white/[0.03]">
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-6 py-6 dark:border-gray-900 dark:bg-gray-900">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
           Top Blindboxes bán chạy
@@ -56,11 +56,11 @@ export default function TopBlindboxes() {
       <div className="space-y-4">
         {isLoading ? (
           <div className="py-8 text-center">
-            <div className="text-gray-500">Đang tải dữ liệu...</div>
+            <div className="text-gray-500 dark:text-gray-400">Đang tải dữ liệu...</div>
           </div>
         ) : topBlindboxes.length === 0 ? (
           <div className="py-8 text-center">
-            <div className="text-gray-500">Chưa có xếp hạng cho blindbox</div>
+            <div className="text-gray-500 dark:text-gray-400">Chưa có xếp hạng cho blindbox</div>
           </div>
         ) : (
           topBlindboxes.slice(0, 5).map((blindbox, index) => (
