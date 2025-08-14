@@ -12,8 +12,8 @@ import {
 
 export const getSellerStatistics = async (
   body: SellerStatistics
-): Promise<TResponseData<SellerStatisticsResponse>> => {
-  const response = await request<TResponseData<SellerStatisticsResponse>>(
+): Promise<SellerStatisticsResponse> => {
+  const response = await request<SellerStatisticsResponse>(
     API_ENDPOINTS.SELLER_STATISTICS_ME,
     {
       method: "POST",

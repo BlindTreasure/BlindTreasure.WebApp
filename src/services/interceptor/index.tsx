@@ -78,11 +78,6 @@ const errorHandler = async (error: AxiosError) => {
       status: 404,
       title: "Not found",
     };
-    addToast({
-      type: "error",
-      description: "Không tìm thấy tài nguyên",
-      duration: 5000,
-    });
     location.href = "/404";
     return Promise.reject(result);
   }

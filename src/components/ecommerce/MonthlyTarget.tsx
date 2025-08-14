@@ -3,10 +3,11 @@ import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { MoreDotIcon } from "@/icons";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { StatisticRange } from "@/const/seller";
 import { getSellerStatistics } from "@/services/seller-dashboard/api-services";
+import { Skeleton } from "../ui/skeleton";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -18,26 +19,26 @@ export default function MonthlyTarget() {
   const [monthlyTarget] = useState(5000000);
   const [monthlyData, setMonthlyData] = useState<any>(null);
   const [todayData, setTodayData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const hasCalledApiRef = useRef(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (hasCalledApiRef.current) return;
-
     const fetchData = async () => {
-      hasCalledApiRef.current = true;
       setIsLoading(true);
-
       try {
-        const monthlyResponse = await getSellerStatistics({
-          range: StatisticRange.MONTH,
-        });
-        setMonthlyData(monthlyResponse);
+        const [monthlyResponse, todayResponse] = await Promise.all([
+          getSellerStatistics({ range: StatisticRange.MONTH }),
+          getSellerStatistics({ range: StatisticRange.DAY })
+        ]);
 
-        const todayResponse = await getSellerStatistics({
-          range: StatisticRange.DAY,
-        });
+        setMonthlyData(monthlyResponse);
         setTodayData(todayResponse);
+
+        const overview = monthlyResponse?.overview;
+        if (overview?.totalRevenue !== undefined) {
+          const currentRevenue = overview.totalRevenue;
+          const percentage = Math.min((currentRevenue / monthlyTarget) * 100, 100);
+          setTargetPercentage(Math.round(percentage * 100) / 100);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -46,20 +47,8 @@ export default function MonthlyTarget() {
     };
 
     fetchData();
-  }, []);
+  }, [monthlyTarget]);
 
-  useEffect(() => {
-    if (!monthlyData) return;
-
-    const overview = (monthlyData as any)?.overview;
-    if (overview && overview.totalRevenue !== undefined) {
-      const currentRevenue = overview.totalRevenue;
-      const percentage = Math.min((currentRevenue / monthlyTarget) * 100, 100);
-      setTargetPercentage(Math.round(percentage * 100) / 100);
-    }
-  }, [monthlyData, monthlyTarget]);
-
-  const series = [targetPercentage];
   const options: ApexOptions = {
     colors: ["#465FFF"],
     chart: {
@@ -68,6 +57,10 @@ export default function MonthlyTarget() {
       height: 330,
       sparkline: {
         enabled: true,
+      },
+      animations: {
+        enabled: true,
+        speed: 800,
       },
     },
     plotOptions: {
@@ -167,49 +160,40 @@ export default function MonthlyTarget() {
         </div>
         <div className="relative ">
           <div className="max-h-[330px]">
-            <ReactApexChart
-              options={options}
-              series={series}
-              type="radialBar"
-              height={330}
-            />
+            {!isLoading && monthlyData ? (
+              <ReactApexChart
+                options={options}
+                series={[targetPercentage]}
+                type="radialBar"
+                height={330}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[330px] space-y-4">
+                <Skeleton className="rounded-full w-[200px] h-[200px]" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+            )}
           </div>
-
-          {(() => {
-            const overview = (monthlyData as any)?.overview;
-            return overview && overview.revenueGrowthPercent !== undefined && (
-              <span className={`absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full px-3 py-1 text-xs font-medium ${overview.revenueGrowthPercent >= 0
-                ? 'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500'
-                : 'bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-500'
-                }`}>
-                {overview.revenueGrowthPercent > 0 ? '+' : ''}
-                {overview.revenueGrowthPercent.toFixed(1)}%
-              </span>
-            );
-          })()}
         </div>
         <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
           {(() => {
-            const overview = (monthlyData as any)?.overview;
-
-            if (overview && overview.totalRevenue !== undefined) {
+            const overview = monthlyData?.overview;
+            if (overview?.totalRevenue !== undefined) {
               return (
                 <>
                   Bạn đã đạt được {targetPercentage}% mục tiêu tháng này
-                  {overview.revenueGrowthPercent !== undefined && (
-                    overview.revenueGrowthPercent > 0
+                  {overview.revenueGrowthPercent !== undefined &&
+                    (overview.revenueGrowthPercent > 0
                       ? `, tăng ${overview.revenueGrowthPercent.toFixed(1)}% so với tháng trước!`
                       : overview.revenueGrowthPercent < 0
                         ? `, giảm ${Math.abs(overview.revenueGrowthPercent).toFixed(1)}% so với tháng trước.`
-                        : `, không thay đổi so với tháng trước.`
-                  )}
+                        : `, không thay đổi so với tháng trước.`)}
                 </>
               );
             } else if (isLoading) {
               return "Đang tải dữ liệu...";
-            } else {
-              return "Không có dữ liệu để hiển thị";
             }
+            return "Không có dữ liệu để hiển thị";
           })()}
         </p>
 
