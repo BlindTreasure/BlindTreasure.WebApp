@@ -9,7 +9,7 @@ export const useServiceGetSellerStatistics = () => {
   const { addToast } = useToast();
 
   return useMutation<
-    TResponseData<SellerStatisticsResponse>,
+    SellerStatisticsResponse,
     Error,
     SellerStatistics
   >({
@@ -17,11 +17,6 @@ export const useServiceGetSellerStatistics = () => {
       return await getSellerStatistics(data);
     },
     onSuccess: (data) => {
-      addToast({
-        type: "success",
-        description: data.value.message,
-        duration: 5000,
-      });
     },
   });
 };
