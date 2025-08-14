@@ -19,7 +19,7 @@ export function handleError(error: any) {
         description: data.error?.message || "Không được phép.",
         duration: 5000,
       });
-      
+
       break;
     case 403:
       addToast({
@@ -34,6 +34,9 @@ export function handleError(error: any) {
         description: data.error?.message || "Không tìm thấy tài nguyên.",
         duration: 5000,
       });
+      if (typeof window !== "undefined") {
+        window.location.href = "/404";
+      }
       break;
     case 409:
       addToast({

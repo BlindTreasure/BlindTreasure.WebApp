@@ -1,15 +1,15 @@
 import React from 'react'
 import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
-import Error from "./error"
+import Error404Page from './404';
 
 export const metadata: Metadata = {
-    title: "Error",
-    description: "Error page",
+    title: "Không tìm thấy trang | BlindTreasure",
+    description: "Không tìm thấy trang BlindTreasure",
 };
 export default function ErrorPage() {
     return (
         <div>
-            <Error />
+            <Error404Page />
         </div>
     )
 }

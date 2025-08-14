@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function ErrorPage() {
+export default function Error404Page() {
     const [darkMode, setDarkMode] = useState(false);
     const [loaded, setLoaded] = useState(true);
 
@@ -74,19 +74,19 @@ export default function ErrorPage() {
                     />
                 </div>
 
-                <p className="mb-6 mt-10 text-base text-gray-700 dark:text-gray-400 sm:text-lg">
-                    We can't seem to find the page you are looking for!
+                <p className="mb-6 mt-10 text-base text-gray-700 dark:text-gray-200 sm:text-lg">
+                    Có vẻ như chúng tôi không thể tìm thấy trang bạn đang tìm kiếm!
                 </p>
 
                 <Link
                     href="/"
-                    className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-3.5 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200"
+                    className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-3.5 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-white dark:text-black dark:hover:bg-white/5 dark:hover:text-gray-200"
                 >
-                    Back to Home Page
+                    Quay về trang chủ
                 </Link>
             </div>
 
-            <div className="mt-12 text-sm text-gray-500">
+            <div className="mt-12 text-sm text-gray-500 dark:text-white">
                 © {new Date().getFullYear()} - Capstone
             </div>
 

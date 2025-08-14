@@ -71,6 +71,22 @@ const errorHandler = async (error: AxiosError) => {
     return Promise.reject(result);
   }
 
+  if (error?.response?.status === 404) {
+    const result: TMeta = {
+      detail: "Not found",
+      errorCode: "NotFound",
+      status: 404,
+      title: "Not found",
+    };
+    addToast({
+      type: "error",
+      description: "Không tìm thấy tài nguyên",
+      duration: 5000,
+    });
+    location.href = "/404";
+    return Promise.reject(result);
+  }
+
   if (error.response?.status === 401 && error?.config &&
     !error.config.url?.includes("/auth/logout") &&
     !error.config.url?.includes("/auth/login")) {
