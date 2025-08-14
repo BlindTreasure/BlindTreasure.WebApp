@@ -213,7 +213,7 @@ export default function AddressDialog({
                             <input
                                 {...register("phone")}
                                 className="border px-3 py-2 rounded w-full"
-                                placeholder="Số điện thoại"
+                                placeholder="VD: 0912345678"
                             />
                             {errors.phone && (
                                 <p className="text-red-500 text-sm mt-1">
