@@ -265,8 +265,13 @@ export default function Purchased() {
                                 isInventoryPending ? (
                                     <div className="text-gray-500 text-center py-8">Đang tải inventory...</div>
                                 ) : inventoryItems.length === 0 ? (
-                                    <div className="text-gray-500 text-center py-8">
-                                        Không có sản phẩm nào đang được giao hàng từ inventory
+                                    <div className="flex flex-col items-center justify-center h-[250px] sm:h-[300px] text-center text-gray-500 px-4">
+                                        <img
+                                            src="/images/no-order.jpg"
+                                            alt="Không có đơn hàng"
+                                            className="w-32 h-32 sm:w-40 sm:h-40 mb-4 opacity-60"
+                                        />
+                                        <p className="text-sm sm:text-base">Không có sản phẩm nào đang được giao hàng từ túi đồ</p>
                                     </div>
                                 ) : (
                                     <>

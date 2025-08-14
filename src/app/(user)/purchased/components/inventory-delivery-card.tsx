@@ -2,7 +2,6 @@
 
 import { Package, Truck, MapPin, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 import { InventoryItemStatus, InventoryItemStatusText } from "@/const/products";
 import { InventoryItem, Shipment } from "@/services/inventory-item/typings";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
