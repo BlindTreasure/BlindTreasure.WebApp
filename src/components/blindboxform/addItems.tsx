@@ -1,6 +1,6 @@
 import { HiOutlineTrash } from "react-icons/hi";
 import { GoPlus } from "react-icons/go";
-import { Rarity, RarityText } from "@/const/products";
+import { Rarity, RarityText, RarityColorClass } from "@/const/products";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Checkbox } from "../ui/checkbox";
@@ -295,12 +295,26 @@ export const AddItemToBlindboxForm = ({
                             onValueChange={(value) => handleRarityChange(index, value as Rarity)}
                         >
                             <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Chọn độ hiếm" />
+                                {item.rarity ? (
+                                    <span
+                                        className={`px-2 py-1 rounded text-xs font-medium ${RarityColorClass[item.rarity]}`}
+                                    >
+                                        {RarityText[item.rarity]}
+                                    </span>
+                                ) : (
+                                    <SelectValue placeholder="Chọn độ hiếm" />
+                                )}
                             </SelectTrigger>
                             <SelectContent>
                                 {selectedRarities.map((rarity) => (
                                     <SelectItem key={rarity} value={rarity}>
-                                        {RarityText[rarity]}
+                                        <div className="flex items-center gap-2">
+                                            <span
+                                                className={`px-2 py-1 rounded text-xs font-medium ${RarityColorClass[rarity]}`}
+                                            >
+                                                {RarityText[rarity]}
+                                            </span>
+                                        </div>
                                     </SelectItem>
                                 ))}
                             </SelectContent>

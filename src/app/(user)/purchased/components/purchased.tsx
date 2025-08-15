@@ -53,7 +53,7 @@ export default function Purchased() {
                     (item.status === InventoryItemStatus.Delivering ||
                         item.status === InventoryItemStatus.Delivered ||
                         item.status === InventoryItemStatus.Shipment_requested) &&
-                    !item.orderDetailId
+                    item.orderDetailId === null
                 );
                 setInventoryItems(deliveryItems);
                 setTotalPages(res.value.data.totalPages || 1);
