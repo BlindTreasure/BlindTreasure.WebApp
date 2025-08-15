@@ -19,7 +19,7 @@ const InventoryTrackingTimeline = ({ item }: { item: InventoryItem }) => {
   const trackingSteps = [
     {
       id: 1,
-      title: "Sản phẩm trong kho",
+      title: "Sản phẩm trong túi đồ",
       time: item.product.createdAt ? format(new Date(item.product.createdAt), "HH:mm dd-MM-yyyy") : "Không xác định",
       status: "completed",
       icon: <Package className="w-4 h-4" />
@@ -31,7 +31,7 @@ const InventoryTrackingTimeline = ({ item }: { item: InventoryItem }) => {
       status: item.status === InventoryItemStatus.Shipment_requested ||
         item.status === InventoryItemStatus.Delivering ||
         item.status === InventoryItemStatus.Delivered ? "completed" : "pending",
-      icon: <Truck className="w-4 h-4" />
+      icon: <MapPin className="w-4 h-4" />
     },
     {
       id: 3,
@@ -220,6 +220,17 @@ export default function InventoryDeliveryCard({ item }: InventoryDeliveryCardPro
               <InventoryTrackingTimeline item={detailedItem} />
             </div>
           )}
+          <div>
+            {detailedItem?.shipment?.totalFee && (
+              <div className=" p-4 rounded-lg">
+                <div className="gap-4 text-sm">
+                  <div className="flex justify-end gap-4 text-xl">
+                    <span className="font-bold font-mono">Phí vận chuyển:</span> {detailedItem?.shipment?.totalFee?.toLocaleString() || 0}₫
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </>
