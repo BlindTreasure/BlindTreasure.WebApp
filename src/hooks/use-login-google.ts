@@ -22,7 +22,7 @@ export default function useLoginGoogle() {
       dispatch(openBackdrop());
       try {
         const res = await loginGoogle({
-          accessTokenGoogle: tokenResponse?.access_token,
+          token: tokenResponse?.access_token,
         });
         // const { authProfile, token } = res;
         // // Save access token in local storage
