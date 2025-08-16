@@ -30,3 +30,11 @@ export const createGroupPaymentLink = async (
   );
   return response.data;
 };
+
+export const cancelPayment = async (data: REQUEST.CancelPayment) => {
+  const response = await request.post<TResponseData<any>>(
+    API_ENDPOINTS.CANCEL_PAYMENT,
+    data,
+  );
+  return response.data;
+};

@@ -1,5 +1,6 @@
 import useToast from "@/hooks/use-toast";
 import {
+  cancelPayment,
   createGroupPaymentLink,
   createOrder,
   previewShipping,
@@ -77,4 +78,24 @@ export const useServiceCreateGroupPaymentLink = () => {
       },
     }
   );
+};
+
+export const useServiceCancelPayment = () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<any>, Error, REQUEST.CancelPayment>({
+    mutationFn: async (data: REQUEST.CancelPayment) => {
+      return await cancelPayment(data);
+    },
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
+    },
+  });
 };

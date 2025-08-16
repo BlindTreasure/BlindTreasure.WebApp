@@ -16,7 +16,7 @@ import { Button } from "../ui/button";
 import WriteReview from "../product-reviews/write-review";
 import useCreateReview from "@/app/(user)/purchased/hooks/useCreateReview";
 import useGetReviewStatus from "@/app/(user)/purchased/hooks/useGetReviewStatus";
-import { useServiceCreateGroupPaymentLink } from "@/services/stripe/services";
+import { useServiceCreateGroupPaymentLink, useServiceCancelPayment } from "@/services/stripe/services";
 
 // Helper function to determine actual status from logs
 const getActualStatusFromLogs = (logs: string, currentStatus: OrderStatus): OrderStatus => {
@@ -77,7 +77,10 @@ interface OrderCardProps {
     shippingAddress?: ShippingAddress;
     totalShippingFee?: number;
     checkoutGroupId: string;
+    currentTab?: string;
+    isGroupDuplicate?: boolean; // Check đơn cùng checkoutGroupId
     onReviewCreated?: (reviewData: any) => void;
+    onOrderCancelled?: () => void; // Callback để refresh data sau khi hủy đơn
 }
 
 export default function OrderCard({
@@ -91,7 +94,10 @@ export default function OrderCard({
     finalAmount = 0,
     totalShippingFee = 0,
     checkoutGroupId,
+    currentTab,
+    isGroupDuplicate = false,
     onReviewCreated,
+    onOrderCancelled,
 }: OrderCardProps) {
     const router = useRouter();
     const [loadingPage, setLoadingPage] = useState(false);
@@ -99,9 +105,11 @@ export default function OrderCard({
     const [selectedProductForReview, setSelectedProductForReview] = useState<OrderDetail | null>(null);
     const [reviewStatuses, setReviewStatuses] = useState<Record<string, boolean>>({});
     const [loadingReviewStatuses, setLoadingReviewStatuses] = useState<Record<string, boolean>>({});
+    const [isCancelled, setIsCancelled] = useState(false);
     const { onSubmit, isPending: isSubmittingReview } = useCreateReview();
     const { getReviewStatusApi } = useGetReviewStatus();
     const { mutate: createGroupPaymentLink, isPending: isRetryingPayment } = useServiceCreateGroupPaymentLink();
+    const { mutate: cancelPayment, isPending: isCancellingOrder } = useServiceCancelPayment();
     const handleRetryPayment = (checkoutGroupId: string) => {
         if (!checkoutGroupId) {
             console.error('checkoutGroupId is required for retry payment');
@@ -123,6 +131,24 @@ export default function OrderCard({
                 }
             }
         );
+    };
+
+    const handleCancelOrder = (orderId: string, checkoutGroupId?: string) => {
+        const data: REQUEST.CancelPayment = {
+            orderId: orderId,
+            checkoutGroupId: checkoutGroupId
+        };
+
+        cancelPayment(data, {
+            onSuccess: () => {
+                setIsCancelled(true);
+                setTimeout(() => {
+                    if (onOrderCancelled) {
+                        onOrderCancelled();
+                    }
+                }, 1000);
+            }
+        });
     };
 
     useEffect(() => {
@@ -159,7 +185,11 @@ export default function OrderCard({
 
     const handleViewInvoiceDetail = (id: string) => {
         setLoadingPage(true);
-        router.push(`/orderhistory/${id}`);
+        if (checkoutGroupId && details.length > 1) {
+            router.push(`/ordergroup/${checkoutGroupId}`);
+        } else {
+            router.push(`/orderhistory/${id}`);
+        }
     };
 
     const handleSubmitReview = async (data: any) => {
@@ -186,10 +216,16 @@ export default function OrderCard({
         }
     };
     return (
-        <div className="border rounded-md shadow-sm bg-white mb-4" >
+        <div className={`border rounded-md shadow-sm mb-4 transition-all duration-300 ${isCancelled ? 'bg-gray-100 opacity-75' : 'bg-white'
+            }`}>
             <div className="flex justify-between items-center p-4 border-b bg-gray-50">
                 <div className="flex items-center gap-2">
                     <div className="font-semibold truncate">{shopName}</div>
+                    {isCancelled && (
+                        <span className="text-sm px-2 py-0.5 bg-red-100 text-red-700 rounded">
+                            Đã hủy đơn
+                        </span>
+                    )}
                     <button className="ml-2 text-sm px-2 py-0.5 border rounded text-red-500 border-red-500 hover:bg-red-50">
                         Chat
                     </button>
@@ -197,7 +233,13 @@ export default function OrderCard({
             </div>
 
             {details.map((detail) => (
-                <div key={detail.id} className="p-4 flex border-b gap-4 cursor-pointer" onClick={() => router.push(`/orderdetail/${orderId}`)}>
+                <div key={detail.id} className="p-4 flex border-b gap-4 cursor-pointer" onClick={() => {
+                    if (checkoutGroupId && details.length > 1) {
+                        router.push(`/ordergroup/${checkoutGroupId}`);
+                    } else {
+                        router.push(`/orderdetail/${orderId}`);
+                    }
+                }}>
                     <img
                         src={
                             detail.blindBoxId && detail.blindBoxImage
@@ -298,18 +340,35 @@ export default function OrderCard({
 
             <div className="p-4 flex flex-col sm:flex-row sm:justify-end sm:items-center bg-gray-50 gap-4">
                 <div className="flex flex-wrap gap-2 items-center">
-                    {payment?.status === PaymentInfoStatus.Pending && (
-                        <button
-                            className="bg-[#d02a2a] text-white border border-gray-300 px-4 py-1 rounded hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleRetryPayment(checkoutGroupId);
-                            }}
-                            disabled={isRetryingPayment}
-                        >
-                            {isRetryingPayment ? 'Đang xử lý...' : 'Thanh toán lại'}
-                        </button>
-                    )}
+                    {payment?.status === PaymentInfoStatus.Pending && (() => {
+                        if (currentTab === "pending") {
+                            return true;
+                        }
+                        return !isGroupDuplicate;
+                    })() && (
+                            <>
+                                <button
+                                    className="bg-[#3bd02a] text-white border border-gray-300 px-4 py-1 rounded hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRetryPayment(checkoutGroupId);
+                                    }}
+                                    disabled={isRetryingPayment || isCancelled}
+                                >
+                                    {isRetryingPayment ? 'Đang xử lý...' : 'Thanh toán lại'}
+                                </button>
+                                <button
+                                    className="bg-[#d02a2a] text-white border border-gray-300 px-4 py-1 rounded hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCancelOrder(orderId, checkoutGroupId);
+                                    }}
+                                    disabled={isCancellingOrder || isCancelled}
+                                >
+                                    {isCancelled ? 'Đã hủy' : isCancellingOrder ? 'Đang hủy...' : 'Hủy đơn'}
+                                </button>
+                            </>
+                        )}
                     <Dialog>
                         <DialogTrigger asChild>
                             <button className="border border-gray-300 px-4 py-1 rounded hover:bg-gray-100" onClick={(e) => e.stopPropagation()}>
@@ -319,7 +378,12 @@ export default function OrderCard({
 
                         <DialogContent className="max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
-                                <DialogTitle>Hóa đơn đơn hàng</DialogTitle>
+                                <DialogTitle>
+                                    {checkoutGroupId && details.length > 1
+                                        ? `Hóa đơn nhóm đơn hàng (${details.length} sản phẩm)`
+                                        : "Hóa đơn đơn hàng"
+                                    }
+                                </DialogTitle>
                             </DialogHeader>
 
                             <div className="space-y-6 text-sm mt-4">
@@ -361,47 +425,42 @@ export default function OrderCard({
 
                                     </div>
                                     <div className="border-t pt-3 mt-3 space-y-2">
-                                        {payment ? (
-                                            <>
-                                                <div className="flex justify-between">
-                                                    <span>Tạm tính:</span>
-                                                    <span>{payment.amount.toLocaleString()}₫</span>
-                                                </div>
-                                                {totalShippingFee > 0 && (
+                                        {(() => {
+                                            const subtotal = total; 
+                                            const totalShipFee = details.reduce((sum, detail) => {
+                                                const shipmentFees = detail.shipments?.reduce((shipSum, shipment) =>
+                                                    shipSum + (shipment.totalFee || 0), 0) || 0;
+                                                return sum + shipmentFees;
+                                            }, 0);
+                                            const totalDiscount = details.reduce((sum, detail) =>
+                                                sum + (detail.detailDiscountPromotion || 0), 0); 
+                                            const finalTotal = subtotal + totalShipFee - totalDiscount; 
+
+                                            return (
+                                                <>
                                                     <div className="flex justify-between">
-                                                        <span>Phí vận chuyển:</span>
-                                                        <span>{totalShippingFee.toLocaleString()}₫</span>
+                                                        <span>Tạm tính:</span>
+                                                        <span>{subtotal.toLocaleString()}₫</span>
                                                     </div>
-                                                )}
-                                                {payment.amount !== payment.netAmount && (
-                                                    <div className="flex justify-between text-green-600">
-                                                        <span>Giảm giá:</span>
-                                                        <span>-{(payment.amount - payment.netAmount).toLocaleString()}₫</span>
+                                                    {totalShipFee > 0 && (
+                                                        <div className="flex justify-between">
+                                                            <span>Phí vận chuyển:</span>
+                                                            <span>{totalShipFee.toLocaleString()}₫</span>
+                                                        </div>
+                                                    )}
+                                                    {totalDiscount > 0 && (
+                                                        <div className="flex justify-between text-green-600">
+                                                            <span>Giảm giá:</span>
+                                                            <span>-{totalDiscount.toLocaleString()}₫</span>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex justify-between font-semibold text-base border-t pt-2 mt-2 space-x-2">
+                                                        <span>Tổng thanh toán:</span>
+                                                        <span className="text-red-500">{finalTotal.toLocaleString()}₫</span>
                                                     </div>
-                                                )}
-                                                <div className="flex gap-2 font-semibold text-base border-t pt-2 mt-2">
-                                                    <span>Tổng thanh toán:</span>
-                                                    <span className="text-red-500">{(payment.amount + totalShippingFee - (payment.amount - payment.netAmount)).toLocaleString()}₫</span>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="flex justify-between">
-                                                    <span>Tạm tính:</span>
-                                                    <span>{total.toLocaleString()}₫</span>
-                                                </div>
-                                                {totalShippingFee > 0 && (
-                                                    <div className="flex justify-between">
-                                                        <span>Phí vận chuyển:</span>
-                                                        <span>{totalShippingFee.toLocaleString()}₫</span>
-                                                    </div>
-                                                )}
-                                                <div className="flex justify-between font-semibold text-base border-t pt-2 mt-2">
-                                                    <span>Tổng thanh toán:</span>
-                                                    <span className="text-red-500">{(total + totalShippingFee).toLocaleString()}₫</span>
-                                                </div>
-                                            </>
-                                        )}
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             </div>

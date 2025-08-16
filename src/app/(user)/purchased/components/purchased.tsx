@@ -31,6 +31,39 @@ export const TAB_MAP: TabConfig[] = [
 
 const PAGE_SIZE = 5;
 
+const groupOrdersByCheckoutGroupId = (orders: OrderResponse[]): OrderResponse[] => {
+    const groupedMap = new Map<string, OrderResponse>();
+
+    orders.forEach(order => {
+        const groupId = order.checkoutGroupId;
+        if (groupedMap.has(groupId)) {
+            const existingOrder = groupedMap.get(groupId)!;
+            const combinedDetails = [...existingOrder.details, ...order.details];
+            const combinedTotalAmount = existingOrder.totalAmount + order.totalAmount;
+            const combinedShippingFee = existingOrder.totalShippingFee + order.totalShippingFee;
+            const combinedFinalAmount = existingOrder.finalAmount + order.finalAmount;
+
+            groupedMap.set(groupId, {
+                ...existingOrder,
+                details: combinedDetails,
+                totalAmount: combinedTotalAmount,
+                totalShippingFee: combinedShippingFee,
+                finalAmount: combinedFinalAmount,
+                placedAt: new Date(existingOrder.placedAt) < new Date(order.placedAt)
+                    ? existingOrder.placedAt
+                    : order.placedAt,
+                completedAt: new Date(existingOrder.completedAt) > new Date(order.completedAt)
+                    ? existingOrder.completedAt
+                    : order.completedAt
+            });
+        } else {
+            groupedMap.set(groupId, { ...order });
+        }
+    });
+
+    return Array.from(groupedMap.values());
+};
+
 export default function Purchased() {
     const [orders, setOrders] = useState<OrderResponse[]>([]);
     const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -172,7 +205,11 @@ export default function Purchased() {
                     };
                 });
 
-                setOrders(updatedOrders);
+                const finalOrders = (tabValue === "pending" || tabValue === "cancelled")
+                    ? groupOrdersByCheckoutGroupId(updatedOrders)
+                    : updatedOrders;
+
+                setOrders(finalOrders);
                 setTotalPages(res.value.data.totalPages || 1);
             }
         }
@@ -184,6 +221,10 @@ export default function Purchased() {
 
     const handlePageChange = (newPage: number) => {
         setCurrentPage(newPage);
+    };
+
+    const handleOrderCancelled = () => {
+        fetchOrders(currentTab, currentPage);
     };
 
     const renderOrders = () => {
@@ -199,21 +240,32 @@ export default function Purchased() {
         ) : (
             <>
                 <div className="space-y-3 sm:space-y-4">
-                    {orders.map((order) => (
-                        <OrderCard
-                            key={order.id}
-                            orderId={order.id}
-                            checkoutGroupId={order.checkoutGroupId}
-                            shopName="Blind Treasure"
-                            details={order.details}
-                            total={order.totalAmount}
-                            deliveryDate={new Date(order.placedAt).toLocaleDateString("vi-VN")}
-                            payment={order.payment}
-                            shippingAddress={order.shippingAddress}
-                            totalShippingFee={order.totalShippingFee || 0}
-                            finalAmount={order.finalAmount}
-                        />
-                    ))}
+                    {orders.map((order) => {
+                        const isGroupDuplicate = (currentTab === "pending" || currentTab === "cancelled")
+                            ? false
+                            : order.checkoutGroupId
+                                ? orders.filter(o => o.checkoutGroupId === order.checkoutGroupId).length > 1
+                                : false;
+
+                        return (
+                            <OrderCard
+                                key={order.id}
+                                orderId={order.id}
+                                checkoutGroupId={order.checkoutGroupId}
+                                shopName="Blind Treasure"
+                                details={order.details}
+                                total={order.totalAmount}
+                                deliveryDate={new Date(order.placedAt).toLocaleDateString("vi-VN")}
+                                payment={order.payment}
+                                currentTab={currentTab}
+                                isGroupDuplicate={isGroupDuplicate}
+                                shippingAddress={order.shippingAddress}
+                                totalShippingFee={order.totalShippingFee || 0}
+                                finalAmount={order.finalAmount}
+                                onOrderCancelled={handleOrderCancelled}
+                            />
+                        );
+                    })}
                 </div>
                 {totalPages > 1 && (
                     <div className="mt-6 sm:mt-8 flex justify-center">
