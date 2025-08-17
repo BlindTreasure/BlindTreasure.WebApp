@@ -5,6 +5,7 @@ import { InventoryItem } from "@/services/inventory-item/typings";
 interface InventoryPanelProps {
   inventoryItems: InventoryItem[];
   inventoryLoading: boolean;
+  isSending: boolean;
   onSendProduct: (item: InventoryItem) => void;
   onClose: () => void;
 }
@@ -12,6 +13,7 @@ interface InventoryPanelProps {
 export default function InventoryPanel({
   inventoryItems,
   inventoryLoading,
+  isSending,
   onSendProduct,
   onClose
 }: InventoryPanelProps) {
@@ -48,8 +50,10 @@ export default function InventoryPanel({
           inventoryItems.map((item) => (
             <div
               key={item.id}
-              className="bg-white rounded-lg p-3 border hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => onSendProduct(item)}
+              className={`bg-white rounded-lg p-3 border hover:shadow-md transition-shadow cursor-pointer ${
+                isSending ? 'opacity-50 pointer-events-none' : ''
+              }`}
+              onClick={() => !isSending && onSendProduct(item)}
             >
               <div className="flex gap-3">
                 <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
@@ -73,7 +77,7 @@ export default function InventoryPanel({
                 </div>
               </div>
               <div className="mt-2 text-xs text-center text-blue-600 font-medium">
-                Click để gửi
+                {isSending ? 'Đang gửi...' : 'Click để gửi'}
               </div>
             </div>
           ))

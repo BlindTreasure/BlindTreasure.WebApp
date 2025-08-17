@@ -14,6 +14,12 @@ declare namespace REQUEST {
     receiverId: string;
     imageFile: File;
   }
+
+  type SendInventoryItemToUser = {
+    receiverId: string;
+    inventoryItemId: string;
+    customMessage?: string;
+  }
 }
 
 declare namespace API {
@@ -39,17 +45,26 @@ declare namespace API {
     isCurrentUserSender: boolean;
     messageType: string;
     isImage: boolean
-    fileUrl?: string;
-    fileName?: string;
-    fileSize?: string;
-    fileMimeType?: string;
-    productInfo?: ProductInfo;
+    fileUrl: string | null;
+    fileName: string | null;
+    fileSize: string | null;
+    fileMimeType: string | null;
+    inventoryItemId: string | null;
+    inventoryItem: InventoryItem | null;
+    isInventoryItem: boolean;
   }
 
-  type ProductInfo = {
+  type InventoryItem = {
     id: string;
-    name: string;
-    imageUrl: string;
+    productId: string;
+    productName: string;
+    image: string;
+    location: string;
+    tier: string;
+    status: string;
+    isFromBlindBox: boolean;
+    isOnHold: boolean;
+    hasActiveListing: boolean
   }
 
   type ResponseChatConversation = {

@@ -1,12 +1,11 @@
 import useToast from "@/hooks/use-toast";
 import { getAllCategory } from "@/services/category/api-services";
 import { isTResponseData } from "@/utils/compare";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 export default function useGetCategory() {
   const { addToast } = useToast();
   const [isPending, setPending] = useState(false);
-  const hasFetchedData = useRef(false);
 
   const getCategoryApi = useCallback(async (params: REQUEST.GetCategory) => {
     setPending(true);

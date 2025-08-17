@@ -44,109 +44,70 @@ import {
 import { useWishlistContext } from "@/contexts/WishlistContext";
 import useAddProductToCart from '@/app/(user)/detail/hooks/useAddProductToCart'
 import useAddBlindboxToCart from '@/app/(user)/detail-blindbox/hooks/useAddBlindboxToCart'
+import { useUnboxingNotification } from '@/hooks/use-signalR-unboxing-notification';
 
-// Interface cho thông báo marquee
-interface MarqueeMessage {
-  text: string;
-  tier: 'legendary' | 'epic' | 'rare';
-  tierText: string;
-}
-
-// Component thanh thông báo marquee
+// Component thanh thông báo marquee với real-time data
 const MarqueeNotification = () => {
-  const [currentMessage, setCurrentMessage] = useState<MarqueeMessage | null>(null);
+  const { latestNotification, unreadCount, isConnected } = useUnboxingNotification();
   const [isVisible, setIsVisible] = useState(false);
 
-  // Fake data cho thông báo với tier colors
-  const messages: MarqueeMessage[] = [
-    {
-      text: "🎉 Nguyễn Minh A vừa mở được Figure Naruto Limited Edition từ Mystery Anime Box!",
-      tier: "legendary",
-      tierText: "Huyền Thoại"
-    },
-    {
-      text: "⭐ Trần Thị B vừa trúng Gundam RX-78-2 Real Grade từ Mecha Collection Box!",
-      tier: "epic", 
-      tierText: "Sử Thi"
-    },
-    {
-      text: "💎 Lê Văn C vừa nhận được Pokemon Charizard Holographic từ Pokemon TCG Mystery Box!",
-      tier: "rare",
-      tierText: "Hiếm"
-    },
-    {
-      text: "👑 Phạm Thị D vừa mở ra One Piece Luffy Gear 5 Figure từ One Piece Ultimate Box!",
-      tier: "legendary",
-      tierText: "Huyền Thoại"
-    },
-    {
-      text: "🌟 Hoàng Minh E vừa trúng Dragon Ball Goku Ultra Instinct từ Dragon Ball Z Collection!",
-      tier: "epic",
-      tierText: "Sử Thi"
-    },
-    {
-      text: "🔥 Mai Lan F vừa nhận được Attack on Titan Eren Figure từ AOT Mystery Box!",
-      tier: "rare",
-      tierText: "Hiếm"
-    },
-    {
-      text: "✨ Võ Thành G vừa mở được Demon Slayer Tanjiro Sword từ Demon Slayer Collection!",
-      tier: "legendary",
-      tierText: "Huyền Thoại"
-    }
-  ];
-
   useEffect(() => {
-    const showRandomMessage = () => {
-      const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-      setCurrentMessage(randomMessage);
+    if (latestNotification) {
       setIsVisible(true);
-
+      
       // Ẩn thông báo sau 12 giây
-      setTimeout(() => {
+      const hideTimer = setTimeout(() => {
         setIsVisible(false);
       }, 12000);
-    };
 
-    // Hiển thị thông báo đầu tiên
-    showRandomMessage();
-
-    // Hiển thị thông báo mới mỗi 15-20 giây
-    const interval = setInterval(() => {
-      if (!isVisible) {
-        showRandomMessage();
-      }
-    }, Math.random() * 5000 + 15000);
-
-    return () => clearInterval(interval);
-  }, [isVisible]);
-
-  if (!isVisible || !currentMessage) return null;
-
-  // Hàm lấy màu theo tier
-  const getTierColors = (tier: 'legendary' | 'epic' | 'rare'): string => {
-    switch(tier) {
-      case 'legendary':
-        return 'from-yellow-500/70 via-orange-500/70 to-red-600/70'; // Vàng đỏ với opacity
-      case 'epic':
-        return 'from-purple-500/70 via-blue-600/70 to-indigo-700/70'; // Tím với opacity
-      case 'rare':
-        return 'from-blue-500/70 via-cyan-500/70 to-teal-600/70'; // Xanh với opacity
-      default:
-        return 'from-gray-500/70 to-gray-700/70'; // Mặc định với opacity
+      return () => clearTimeout(hideTimer);
     }
+  }, [latestNotification]);
+
+  // Nếu không có thông báo hoặc không hiển thị, return null
+  if (!isVisible || !latestNotification || !isConnected) return null;
+
+  // Hàm lấy màu theo rarity
+  const getRarityColors = (rarity: string): string => {
+    const rarityLower = rarity.toLowerCase();
+    
+    if (rarityLower.includes('legendary') || rarityLower.includes('huyền thoại') || rarityLower.includes('ssr')) {
+      return 'from-yellow-500/70 via-orange-500/70 to-red-600/70'; // Vàng đỏ
+    }
+    if (rarityLower.includes('epic') || rarityLower.includes('sử thi') || rarityLower.includes('sr')) {
+      return 'from-purple-500/70 via-blue-600/70 to-indigo-700/70'; // Tím
+    }
+    if (rarityLower.includes('rare') || rarityLower.includes('hiếm') || rarityLower.includes('r')) {
+      return 'from-blue-500/70 via-cyan-500/70 to-teal-600/70'; // Xanh
+    }
+    return 'from-gray-500/70 to-gray-700/70'; // Mặc định
+  };
+
+  // Tạo message từ dữ liệu thực
+  const formatMessage = () => {
+    return `🎉 ${latestNotification.customerName} vừa mở được ${latestNotification.productName} (${latestNotification.rarity}) từ ${latestNotification.blindBoxName}!`;
   };
 
   return (
     <div className="w-full mb-6">
-      <div className={`bg-gradient-to-r ${getTierColors(currentMessage.tier)} text-white py-4 overflow-hidden shadow-lg backdrop-blur-sm`}>
+      <div className={`bg-gradient-to-r ${getRarityColors(latestNotification.rarity)} text-white py-4 overflow-hidden shadow-lg backdrop-blur-sm`}>
         <div 
-          className="whitespace-nowrap text-sm md:text-base font-medium"
+          className="whitespace-nowrap text-sm md:text-base font-medium flex items-center gap-2"
           style={{
             animation: 'marquee 12s linear infinite'
           }}
         >
-          {currentMessage.text} ({currentMessage.tierText})
+          {formatMessage()}
+          {!isConnected && (
+            <span className="bg-red-500/20 px-2 py-1 rounded text-xs">
+              ⚠️ Kết nối bị gián đoạn
+            </span>
+          )}
+          {unreadCount > 1 && (
+            <span className="bg-white/20 px-2 py-1 rounded text-xs">
+              +{unreadCount - 1} thông báo khác
+            </span>
+          )}
         </div>
       </div>
 
@@ -345,7 +306,7 @@ export default function HomePage() {
       <div className="relative overflow-hidden">
         <HeroVideoSection />
 
-        {/* THANH THÔNG BÁO - Thêm ở đây */}
+        {/* THANH THÔNG BÁO REAL-TIME */}
         <MarqueeNotification />
 
         <motion.div

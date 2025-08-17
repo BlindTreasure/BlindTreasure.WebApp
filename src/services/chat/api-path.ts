@@ -4,12 +4,14 @@ const CHAT_UNREAD_COUNT = CHAT + "/unread-count"
 const CHAT_HISTORY = (receiverId : string) => `${CHAT}/history/${receiverId}`
 const MARK_AS_READ = (fromUserId : string) => `${CHAT}/mark-as-read/${fromUserId}`
 const SEND_IMAGE = CHAT + "/send-image"
+const SEND_INVENTORY_ITEM = CHAT + "/share-inventory-item"
 
 export default {
     CHAT_CONVERSATIONS,
     CHAT_UNREAD_COUNT,
     CHAT_HISTORY,
     MARK_AS_READ,
-    SEND_IMAGE
+    SEND_IMAGE,
+    SEND_INVENTORY_ITEM
 };
   

@@ -1,16 +1,16 @@
-import { getUnreadCount } from "@/services/chat/api-services";
+import { sendImage } from "@/services/chat/api-services";
 import { isTResponseData } from "@/utils/compare";
 import { useCallback, useState } from "react";
 
-export default function useGetUnreadCount() {
+export default function useSendImageUser() {
   const [isPending, setPending] = useState(false);
 
-  const getUnreadCountApi = useCallback(async () => {
+  const useSendImageUserApi = useCallback(async (params: REQUEST.SendImageToUser) => {
     setPending(true);
     try {
-      const res = await getUnreadCount();
+      const res = await sendImage(params);
       if (isTResponseData(res)) {
-        return res as TResponseData<number>;
+        return res as TResponseData;
       } else {
         return null;
       }
@@ -21,5 +21,5 @@ export default function useGetUnreadCount() {
     }
   }, []);
 
-  return { isPending, getUnreadCountApi };
+  return { isPending, useSendImageUserApi };
 }

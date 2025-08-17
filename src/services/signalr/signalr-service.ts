@@ -96,27 +96,103 @@ class SignalRService {
 
       // Handle trade request locked events
       this.notificationConnection.on('TradeRequestLocked', (data) => {
-        console.log('[SignalR] TradeRequestLocked received:', data);
         
         window.dispatchEvent(new CustomEvent('trade-request-locked', {
           detail: data
         }));
       });
 
-      // Handle chat events
-      this.chatConnection.on('ReceiveMessage', (message) => {
-        console.log('[SignalR] ReceiveMessage:', message);
+      // CHAT CONNECTION HANDLERS
+
+      // Handle chat messages
+      this.chatConnection.on('ReceiveMessage', (message : SIGNALR.ReceiveMessage) => {
         
         window.dispatchEvent(new CustomEvent('message-received', {
           detail: message
         }));
       });
 
-      this.chatConnection.on('MessageError', (error) => {
-        console.error('[SignalR] MessageError:', error);
+      // Handle inventory item messages
+      this.chatConnection.on('ReceiveInventoryItemMessage', (message : SIGNALR.ReceiveInventoryItemMessage) => {
         
-        window.dispatchEvent(new CustomEvent('message-error', {
+        window.dispatchEvent(new CustomEvent('inventory-item-message-received', {
+          detail: message
+        }));
+      });
+
+      // Handle video messages
+      this.chatConnection.on('ReceiveVideoMessage', (message : SIGNALR.ReceiveInventoryItemMessage) => {
+        
+        window.dispatchEvent(new CustomEvent('video-message-received', {
+          detail: message
+        }));
+      });
+
+      // Handle image messages - Updated to dispatch separate event
+      this.chatConnection.on('ReceiveImageMessage', (message : SIGNALR.ReceiveInventoryItemMessage) => {
+        
+        window.dispatchEvent(new CustomEvent('image-message-received', {
+          detail: message
+        }));
+      });
+
+      // Handle unread count updates
+      this.chatConnection.on('UnreadCountUpdated', (unreadCount: number) => {
+        
+        window.dispatchEvent(new CustomEvent('unread-count-updated', {
+          detail: unreadCount
+        }));
+      });
+
+      this.chatConnection.on("UserOnline", (data: SIGNALR.UserOnlineStatus) => {
+
+        window.dispatchEvent(new CustomEvent('user-online', {
+          detail: data
+        }));
+      });
+
+      this.chatConnection.on("UserOffline", (data: SIGNALR.UserOnlineStatus) => {
+
+        window.dispatchEvent(new CustomEvent('user-offline', {
+          detail: data
+        }));
+      });
+
+      // NEW: Handle response from CheckUserOnlineStatus
+      this.chatConnection.on("UserOnlineStatus", (data: { userId: string; isOnline: boolean; timestamp: string }) => {
+        console.log('[SignalR] Received user online status:', data);
+        window.dispatchEvent(new CustomEvent('user-online-status-response', {
+          detail: data
+        }));
+      });
+
+      // Handle online status error
+      this.chatConnection.on("OnlineStatusError", (error: { error: string }) => {
+        console.error('[SignalR] Online status error:', error);
+        window.dispatchEvent(new CustomEvent('online-status-error', {
           detail: error
+        }));
+      });
+
+      this.chatConnection.on('UserStartedTyping', (senderId: string) => {
+        
+        window.dispatchEvent(new CustomEvent('user-started-typing', {
+          detail: { senderId }
+        }));
+      });
+
+      // Handle typing stop (UPDATED name from StopTyping to UserStoppedTyping)
+      this.chatConnection.on('UserStoppedTyping', (senderId: string) => {
+        
+        window.dispatchEvent(new CustomEvent('user-stopped-typing', {
+          detail: { senderId }
+        }));
+      });
+
+      this.chatConnection.on('ReceiveUnboxingNotification', (data: SIGNALR.UnboxLog) => {
+        
+        window.dispatchEvent(new CustomEvent('receive-unboxing-notification', {
+          detail: data
         }));
       });
 
@@ -138,7 +214,6 @@ class SignalRService {
         });
 
         connection.onreconnected((connectionId) => {
-          console.log(`[SignalR] Reconnected ${type} with ID:`, connectionId);
           this.reconnectAttempts = 0;
         });
       };
@@ -152,7 +227,6 @@ class SignalRService {
         this.chatConnection.start()
       ]);
       
-      console.log('[SignalR] Both connections established successfully');
       this.isConnecting = false;
       this.reconnectAttempts = 0;
 
@@ -169,6 +243,7 @@ class SignalRService {
     }
   }
 
+  // Send message
   async sendMessage(receiverId: string, content: string): Promise<void> {
     if (!this.chatConnection || this.chatConnection.state !== 'Connected') {
       throw new Error('SignalR chat connection is not established');
@@ -183,6 +258,52 @@ class SignalRService {
     } catch (error) {
       console.error('[SignalR] Error sending message:', error);
       throw error;
+    }
+  }
+
+  async getUserOnlineStatus(userId: string): Promise<void> {
+    if (!this.chatConnection || this.chatConnection.state !== 'Connected') {
+      console.warn('[SignalR] Chat connection not established, cannot get user status');
+      return;
+    }
+
+    if (!userId) {
+      console.warn('[SignalR] User ID is required to get online status');
+      return;
+    }
+
+    try {
+      await this.chatConnection.invoke('CheckUserOnlineStatus', userId);
+    } catch (error) {
+      console.error('[SignalR] Error getting user online status:', error);
+    }
+  }
+
+  // Send typing start notification
+  async startTyping(receiverId: string): Promise<void> {
+    if (!this.chatConnection || this.chatConnection.state !== 'Connected') {
+      console.warn('[SignalR] Chat connection not established, cannot send typing notification');
+      return;
+    }
+
+    try {
+      await this.chatConnection.invoke('StartTyping', receiverId);
+    } catch (error) {
+      console.error('[SignalR] Error sending start typing:', error);
+    }
+  }
+
+  // Send typing stop notification
+  async stopTyping(receiverId: string): Promise<void> {
+    if (!this.chatConnection || this.chatConnection.state !== 'Connected') {
+      console.warn('[SignalR] Chat connection not established, cannot send typing notification');
+      return;
+    }
+
+    try {
+      await this.chatConnection.invoke('StopTyping', receiverId);
+    } catch (error) {
+      console.error('[SignalR] Error sending stop typing:', error);
     }
   }
 
@@ -217,7 +338,8 @@ class SignalRService {
     return this.userRole;
   }
 
-  onMessageReceived(callback: (message: any) => void): () => void {
+  // Event listeners
+  onMessageReceived(callback: (message: SIGNALR.ReceiveMessage) => void): () => void {
     const handler = (event: CustomEvent) => {
       callback(event.detail);
     };
@@ -229,15 +351,92 @@ class SignalRService {
     };
   }
 
-  onMessageError(callback: (error: any) => void): () => void {
+  // Listener for inventory item messages
+  onInventoryItemMessageReceived(callback: (message: SIGNALR.ReceiveInventoryItemMessage) => void): () => void {
     const handler = (event: CustomEvent) => {
       callback(event.detail);
     };
     
-    window.addEventListener('message-error', handler as EventListener);
+    window.addEventListener('inventory-item-message-received', handler as EventListener);
     
     return () => {
-      window.removeEventListener('message-error', handler as EventListener);
+      window.removeEventListener('inventory-item-message-received', handler as EventListener);
+    };
+  }
+
+  // Listener for video messages
+  onVideoMessageReceived(callback: (message: SIGNALR.ReceiveMediaMessage) => void): () => void {
+    const handler = (event: CustomEvent) => {
+      callback(event.detail);
+    };
+    
+    window.addEventListener('video-message-received', handler as EventListener);
+    
+    return () => {
+      window.removeEventListener('video-message-received', handler as EventListener);
+    };
+  }
+
+  // NEW: Listener for image messages
+  onImageMessageReceived(callback: (message: SIGNALR.ReceiveMediaMessage) => void): () => void {
+    const handler = (event: CustomEvent) => {
+      callback(event.detail);
+    };
+    
+    window.addEventListener('image-message-received', handler as EventListener);
+    
+    return () => {
+      window.removeEventListener('image-message-received', handler as EventListener);
+    };
+  }
+
+  onUserOnline(callback: (message: SIGNALR.UserOnlineStatus) => void): () => void {
+    const handler = (event: CustomEvent) => {
+      callback(event.detail);
+    };
+    
+    window.addEventListener('user-online', handler as EventListener);
+    
+    return () => {
+      window.removeEventListener('user-online', handler as EventListener);
+    };
+  }
+
+  onUserOffline(callback: (message: SIGNALR.UserOnlineStatus) => void): () => void {
+    const handler = (event: CustomEvent) => {
+      callback(event.detail);
+    };
+    
+    window.addEventListener('user-offline', handler as EventListener);
+    
+    return () => {
+      window.removeEventListener('user-offline', handler as EventListener);
+    };
+  }
+
+  // NEW: Listener for user online status response
+  onUserOnlineStatusResponse(callback: (data: { userId: string; isOnline: boolean; timestamp: string }) => void): () => void {
+    const handler = (event: CustomEvent) => {
+      callback(event.detail);
+    };
+    
+    window.addEventListener('user-online-status-response', handler as EventListener);
+    
+    return () => {
+      window.removeEventListener('user-online-status-response', handler as EventListener);
+    };
+  }
+
+  // NEW: Listener for online status errors
+  onOnlineStatusError(callback: (error: { error: string }) => void): () => void {
+    const handler = (event: CustomEvent) => {
+      callback(event.detail);
+    };
+    
+    window.addEventListener('online-status-error', handler as EventListener);
+    
+    return () => {
+      window.removeEventListener('online-status-error', handler as EventListener);
     };
   }
 
@@ -253,6 +452,18 @@ class SignalRService {
     };
   }
 
+  onUnboxingNotificationReceived(callback: (unboxLog: SIGNALR.UnboxLog) => void): () => void {
+    const handler = (event: CustomEvent) => {
+      callback(event.detail);
+    };
+    
+    window.addEventListener('receive-unboxing-notification', handler as EventListener);
+    
+    return () => {
+      window.removeEventListener('receive-unboxing-notification', handler as EventListener);
+    };
+  }
+
   onTradeRequestLocked(callback: (data: any) => void): () => void {
     const handler = (event: CustomEvent) => {
       callback(event.detail);
@@ -262,6 +473,43 @@ class SignalRService {
     
     return () => {
       window.removeEventListener('trade-request-locked', handler as EventListener);
+    };
+  }
+
+  onUnreadCountUpdated(callback: (data: any) => void): () => void {
+    const handler = (event: CustomEvent) => {
+      callback(event.detail);
+    };
+    
+    window.addEventListener('unread-count-updated', handler as EventListener);
+    
+    return () => {
+      window.removeEventListener('unread-count-updated', handler as EventListener);
+    };
+  }
+
+  // Updated typing indicators listeners
+  onUserStartedTyping(callback: (senderId: string ) => void): () => void {
+    const handler = (event: CustomEvent) => {
+      callback(event.detail.senderId);
+    };
+    
+    window.addEventListener('user-started-typing', handler as EventListener);
+    
+    return () => {
+      window.removeEventListener('user-started-typing', handler as EventListener);
+    };
+  }
+
+  onUserStoppedTyping(callback: (senderId: string ) => void): () => void {
+    const handler = (event: CustomEvent) => {
+      callback(event.detail.senderId);
+    };
+    
+    window.addEventListener('user-stopped-typing', handler as EventListener);
+    
+    return () => {
+      window.removeEventListener('user-stopped-typing', handler as EventListener);
     };
   }
 }
