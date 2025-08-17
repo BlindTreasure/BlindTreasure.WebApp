@@ -78,3 +78,24 @@ export const sendImage = async (
   );
   return response.data;
 };
+
+export const sendInventoryItem = async (
+  data: REQUEST.SendInventoryItemToUser
+): Promise<TResponseData> => {
+  const formData = new FormData();
+  formData.append("receiverId", data.receiverId);
+  formData.append("inventoryItemId", data.inventoryItemId);
+  formData.append("customMessage", data.customMessage != undefined ? data.customMessage : "");
+
+  const response = await request<TResponseData>(
+    API_ENDPOINTS.SEND_INVENTORY_ITEM,
+    {
+      method: "POST",
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return response.data;
+};

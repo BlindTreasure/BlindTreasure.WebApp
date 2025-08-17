@@ -5,6 +5,7 @@ import { InventoryItem } from "@/services/inventory-item/typings";
 interface MobileInventoryModalProps {
   inventoryItems: InventoryItem[];
   inventoryLoading: boolean;
+  isSending: boolean;
   onSendProduct: (item: InventoryItem) => void;
   onClose: () => void;
 }
@@ -12,12 +13,15 @@ interface MobileInventoryModalProps {
 export default function MobileInventoryModal({
   inventoryItems,
   inventoryLoading,
+  isSending,
   onSendProduct,
   onClose
 }: MobileInventoryModalProps) {
   const handleSendProduct = (item: InventoryItem) => {
-    onSendProduct(item);
-    onClose();
+    if (!isSending) {
+      onSendProduct(item);
+      onClose();
+    }
   };
 
   return (
@@ -54,7 +58,9 @@ export default function MobileInventoryModal({
             inventoryItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-lg p-3 border hover:shadow-md transition-shadow cursor-pointer"
+                className={`bg-white rounded-lg p-3 border hover:shadow-md transition-shadow cursor-pointer ${
+                  isSending ? 'opacity-50 pointer-events-none' : ''
+                }`}
                 onClick={() => handleSendProduct(item)}
               >
                 <div className="flex gap-3">
@@ -82,7 +88,7 @@ export default function MobileInventoryModal({
                   </div>
                 </div>
                 <div className="mt-2 text-xs text-center text-blue-600 font-medium">
-                  Click để gửi
+                  {isSending ? 'Đang gửi...' : 'Click để gửi'}
                 </div>
               </div>
             ))

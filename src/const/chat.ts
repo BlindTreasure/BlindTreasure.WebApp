@@ -3,5 +3,6 @@ export enum MessageType {
     UserToAi = 'UserToAi',
     AiToUser = 'AiToUser',
     ImageMessage = 'ImageMessage',
-    InventoryItemMessage = 'InventoryItemMessage'
+    InventoryItemMessage = 'InventoryItemMessage',
+    VideoMessage = 'VideoMessage',
 }
