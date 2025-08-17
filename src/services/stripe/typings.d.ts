@@ -27,6 +27,10 @@ declare namespace REQUEST {
   type CreateGroupPaymentLink = {
     checkoutGroupId: string;
   };
+  type CancelPayment = {
+    orderId?: string;
+    checkoutGroupId?: string;
+  };
 }
 
 declare namespace API {

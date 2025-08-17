@@ -58,13 +58,8 @@ declare namespace API {
     newPassword: string;
   };
 
-  // type TAuthToken = {
-  //   accessToken: string;
-  //   tokenType: string;
-  // };
-
   type TAuthLoginGoogle = {
-    accessTokenGoogle: string;
+    token: string;
   };
 
   type TAuthProfile = {

@@ -22,9 +22,6 @@ export default function useUnbox() {
 
           const searchParams = new URLSearchParams({
             productId: unboxResult.productId,
-            rarity: unboxResult.rarity,
-            weight: unboxResult.weight.toString(),
-            dropRate: unboxResult.dropRate.toString(),
             unboxedAt: unboxResult.unboxedAt,
             blindBoxName: blindBoxName || "BlindBox",
             ...(blindBoxId && { blindBoxId }),

@@ -9,20 +9,25 @@ const persistor = persistStore(store);
 
 export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
     return (
+        // <Provider store={store}>
+        //     {/* <PersistGate
+        //         loading={
+        //             <div className="flex items-center justify-center min-h-screen">
+        //                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+        //             </div>
+        //         }
+        //         persistor={persistor}
+        //     >
+        //         {children}
+        //     </PersistGate> */}
+        //     {/* <PersistGate loading={null} persistor={persistor}> */}
+        //         {children}
+        //     {/* </PersistGate> */}
+        // </Provider>
         <Provider store={store}>
-            {/* <PersistGate
-                loading={
-                    <div className="flex items-center justify-center min-h-screen">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
-                    </div>
-                }
-                persistor={persistor}
-            >
+            <PersistGate loading={null} persistor={persistor}>
                 {children}
-            </PersistGate> */}
-            {/* <PersistGate loading={null} persistor={persistor}> */}
-                {children}
-            {/* </PersistGate> */}
+            </PersistGate>
         </Provider>
     )
 }

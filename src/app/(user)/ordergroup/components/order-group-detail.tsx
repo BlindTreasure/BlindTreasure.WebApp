@@ -109,7 +109,21 @@ export default function OrderGroupDetail() {
     );
   }
 
-  const totalAmount = orders?.reduce((sum, order) => sum + order.finalAmount, 0) || 0;
+  const subtotal = orders?.reduce((sum, order) => sum + order.finalAmount, 0) || 0;
+  const totalDiscounts = orders?.reduce((sum, order) => {
+    const orderDiscounts = order.details?.reduce((discountSum, detail) =>
+      discountSum + (detail.detailDiscountPromotion || 0), 0) || 0;
+    return sum + orderDiscounts;
+  }, 0) || 0;
+  const totalShippingFees = orders?.reduce((sum, order) => {
+    const shippingFees = order.details?.reduce((shippingSum, detail) => {
+      const detailShippingFee = detail.shipments?.reduce((shipmentSum, shipment) =>
+        shipmentSum + (shipment.totalFee || 0), 0) || 0;
+      return shippingSum + detailShippingFee;
+    }, 0) || 0;
+    return sum + shippingFees;
+  }, 0) || 0;
+  const totalAmount = subtotal - totalDiscounts + totalShippingFees;
   const totalItems = orders?.reduce((sum, order) => sum + order.details.length, 0) || 0;
   const uniqueShops = new Set(orders?.map(o => o.sellerId) || []).size;
 
@@ -129,7 +143,7 @@ export default function OrderGroupDetail() {
           <div className="bg-white rounded-xl shadow-sm p-6 mt-20">
             <h1 className="text-2xl font-bold text-gray-800 mb-4">Chi tiết nhóm đơn hàng</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="text-center p-4 bg-orange-50 rounded-lg">
                 <div className="text-2xl font-bold text-orange-600">{orders?.length || 0}</div>
                 <div className="text-sm text-gray-600">Đơn hàng</div>
@@ -142,9 +156,36 @@ export default function OrderGroupDetail() {
                 <div className="text-2xl font-bold text-green-600">{totalItems}</div>
                 <div className="text-sm text-gray-600">Sản phẩm</div>
               </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">{formatCurrency(totalAmount)}</div>
-                <div className="text-sm text-gray-600">Tổng tiền</div>
+            </div>
+
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <CreditCard className="mr-2 h-5 w-5 text-purple-600" />
+                Tổng thanh toán
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between text-gray-700">
+                  <span>Tiền hàng:</span>
+                  <span className="font-medium">{formatCurrency(subtotal)}</span>
+                </div>
+                {totalDiscounts > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Giảm giá:</span>
+                    <span className="font-medium">-{formatCurrency(totalDiscounts)}</span>
+                  </div>
+                )}
+                {totalShippingFees > 0 && (
+                  <div className="flex justify-between text-gray-700">
+                    <span>Phí vận chuyển:</span>
+                    <span className="font-medium">{formatCurrency(totalShippingFees)}</span>
+                  </div>
+                )}
+                <div className="border-t border-purple-200 pt-3">
+                  <div className="flex justify-between text-xl font-bold text-purple-600">
+                    <span>Tổng cộng:</span>
+                    <span>{formatCurrency(totalAmount)}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -222,7 +263,6 @@ export default function OrderGroupDetail() {
             </Card>
           ))}
         </div>
-
       </div>
     </div>
   );
