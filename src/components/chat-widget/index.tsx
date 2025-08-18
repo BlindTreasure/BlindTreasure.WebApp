@@ -70,7 +70,7 @@ const CustomerSellerChat: React.FC = () => {
     clearMessages,
     clearTypingForUser,
     isUserOnline,
-    checkUserOnlineStatus, // NEW
+    checkUserOnlineStatus,
   } = useChat();
 
   const markAsReadMutation = useServiceMarkMessageAsRead((fromUserId: string) => {
@@ -209,18 +209,18 @@ const CustomerSellerChat: React.FC = () => {
         ...baseMessage,
         messageType,
         isInventoryItem: true,
-        inventoryItemId: inventoryMsg.inventoryItem.id,
+        inventoryItemId: inventoryMsg.inventoryItem.Id,
         inventoryItem: {
-          id: inventoryMsg.inventoryItem.id,
-          productId: inventoryMsg.inventoryItem.productId,
-          productName: inventoryMsg.inventoryItem.productName,
-          image: inventoryMsg.inventoryItem.image,
-          tier: inventoryMsg.inventoryItem.tier,
-          location: inventoryMsg.inventoryItem.location,
-          status: inventoryMsg.inventoryItem.status,
-          isFromBlindBox: inventoryMsg.inventoryItem.isFromBlindbox,
-          isOnHold: inventoryMsg.inventoryItem.isOnHold,
-          hasActiveListing: inventoryMsg.inventoryItem.hasActiveListing
+          id: inventoryMsg.inventoryItem.Id,
+          productId: inventoryMsg.inventoryItem.ProductId,
+          productName: inventoryMsg.inventoryItem.ProductName,
+          image: inventoryMsg.inventoryItem.Image,
+          tier: inventoryMsg.inventoryItem.Tier,
+          location: inventoryMsg.inventoryItem.Location,
+          status: inventoryMsg.inventoryItem.Status,
+          isFromBlindBox: inventoryMsg.inventoryItem.IsFromBlindbox,
+          isOnHold: inventoryMsg.inventoryItem.IsOnHold,
+          hasActiveListing: inventoryMsg.inventoryItem.HasActiveListing 
         }
       };
     }

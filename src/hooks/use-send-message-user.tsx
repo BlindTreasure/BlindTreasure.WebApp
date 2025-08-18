@@ -155,7 +155,6 @@ export const useChat = (): UseChatReturn => {
   // NEW: Listen for user online status response (from CheckUserOnlineStatus)
   useEffect(() => {
     const unsubscribeStatusResponse = signalRService.onUserOnlineStatusResponse((data: { userId: string; isOnline: boolean; timestamp: string }) => {
-      console.log('[useChat] Received user online status response:', data);
       
       setUserStatuses(prev => ({
         ...prev,
@@ -332,7 +331,6 @@ export const useChat = (): UseChatReturn => {
     }
 
     try {
-      console.log('[useChat] Checking online status for user:', userId);
       await signalRService.getUserOnlineStatus(userId);
     } catch (error) {
       console.error('[useChat] Error checking user online status:', error);
