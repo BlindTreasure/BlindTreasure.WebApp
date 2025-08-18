@@ -134,6 +134,9 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
                   Giới hạn
                 </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
+                  Giới hạn/User
+                </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
                   Trạng thái
                 </th>
@@ -148,7 +151,7 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
             <tbody className="bg-white divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
                       <p className="text-lg font-medium">Đang tải dữ liệu...</p>
@@ -157,7 +160,7 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
                 </tr>
               ) : promotions.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center">
                       <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                         <Plus className="w-6 h-6 text-gray-400" />
@@ -212,6 +215,9 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                         {promotion.usageLimit?.toString() || '∞'}
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                        {promotion.maxUsagePerUser?.toString() || '1'}
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1">

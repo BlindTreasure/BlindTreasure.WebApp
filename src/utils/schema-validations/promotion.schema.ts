@@ -39,7 +39,14 @@ export const promotionSchema = z.object({
       required_error: 'Giới hạn sử dụng là bắt buộc',
       invalid_type_error: 'Giới hạn sử dụng phải là số'
     })
-    .min(0, 'Giới hạn sử dụng không được âm')
+    .min(0, 'Giới hạn sử dụng không được âm'),
+
+  maxUsagePerUser: z
+    .number({
+      required_error: 'Số lượng tối đa 1 người có thể dùng là bắt buộc',
+      invalid_type_error: 'Số lượng tối đa 1 người có thể dùng phải là số'
+    })
+    .min(1, 'Số lượng tối đa 1 người có thể dùng không được âm'),
 }).refine(
   (data) => {
     if (data.discountType === PromotionType.Percentage) {
@@ -75,5 +82,6 @@ export const defaultValues: PromotionFormData = {
   discountValue: 0,
   startDate: '',
   endDate: '',
-  usageLimit: 0
+  usageLimit: 0,
+  maxUsagePerUser: 1
 };

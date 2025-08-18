@@ -43,19 +43,19 @@ declare namespace SIGNALR {
   }
 
   type InventoryItemDTO = {
-    id: string;
-    userId: string;
-    productId: string;
-    productName: string;
-    image: string;
-    createdAt: string;
-    isFromBlindbox: boolean;
-    sourceCustomerBlindBoxId: string;
-    isOnHold: boolean;
-    hasActiveListing: boolean;
-    tier: string;
-    status: string;
-    location: string;
+    Id: string;
+    UserId: string;
+    ProductId: string;
+    ProductName: string;
+    Image: string;
+    CreatedAt: string;
+    IsFromBlindbox: boolean;
+    SourceCustomerBlindBoxId: string;
+    IsOnHold: boolean;
+    HasActiveListing: boolean;
+    Tier: string;
+    Status: string;
+    Location: string;
   }
 
   type UnboxLog = {
