@@ -18,6 +18,7 @@ export type Promotion = {
   startDate: string;
   endDate: string;
   usageLimit?: number;
+  maxUsagePerUser: number;
   status: PromotionStatus;
   sellerId?: string;
   createdByRole: string;

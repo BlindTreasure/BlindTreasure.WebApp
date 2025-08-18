@@ -9,10 +9,11 @@ import useLogout from "@/hooks/use-logout";
 import { closeSidebar, openSidebar } from "@/stores/difference-slice";
 import { AlignJustify } from "lucide-react";
 import { ThemeToggleButton } from "../common/ThemeToggleButton";
-import NotificationDropdown from "../right-header-admin/NotificationDropdown";
+import { NotificationBell } from "../notification/notification-bell";
 import UserDropdown from "../right-header-admin/UserDropdown";
 import { CiAlignLeft } from "react-icons/ci";
 import { BsThreeDots } from "react-icons/bs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function StaffHeader() {
     const userState = useAppSelector((state) => state.userSlice);
@@ -110,7 +111,18 @@ export default function StaffHeader() {
                 {/* Layout chính: hiện vào các màn lớn, ẩn khi mở menu */}
                 {!isLayoutHidden && (
                     <div className="hidden lg:flex items-center gap-4">
-                        <NotificationDropdown />
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="text-gray-600 hover:text-[#d02a2a]">
+                                        <NotificationBell />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Thông báo</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                         <UserDropdown setIsLoggingOut={setIsLoggingOut}/>
                     </div>
                 )}
@@ -129,7 +141,9 @@ export default function StaffHeader() {
                     {rightMenuOpen && (
                         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-50">
                             <div className="p-2 border-b border-gray-200">
-                                <NotificationDropdown />
+                                <div className="text-gray-600 hover:text-[#d02a2a]">
+                                    <NotificationBell />
+                                </div>
                             </div>
                             <div className="p-2">
                                 <UserDropdown setIsLoggingOut={setIsLoggingOut}/>

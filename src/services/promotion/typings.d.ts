@@ -7,6 +7,7 @@ declare namespace REQUEST {
     startDate: string;
     endDate: string;
     usageLimit: number
+    maxUsagePerUser: number;
   }
 
   type GetPromotion = {
@@ -45,6 +46,7 @@ declare namespace API {
     startDate: string;
     endDate: string;
     usageLimit: number;
+    maxUsagePerUser: number;
     status: PromotionStatus
     sellerId?: string;
     createdByRole: PromotionCreateByRole;
