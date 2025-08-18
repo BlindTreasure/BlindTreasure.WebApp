@@ -55,6 +55,7 @@ export const createPromotion = async (
   formData.append("StartDate", data.startDate);
   formData.append("EndDate", data.endDate);
   formData.append("UsageLimit", data.usageLimit.toString());
+  formData.append("MaxUsagePerUser", data.maxUsagePerUser.toString())
 
   const response = await request<TResponseData<API.Promotion>>(
     API_ENDPOINTS.PROMOTION,
@@ -82,6 +83,7 @@ export const updatePromotion = async (
   formData.append("StartDate", data.startDate);
   formData.append("EndDate", data.endDate);
   formData.append("UsageLimit", data.usageLimit.toString());
+  formData.append("MaxUsagePerUser", data.maxUsagePerUser.toString())
 
   const response = await request<TResponseData<API.Promotion>>(
     API_ENDPOINTS.PROMOTION_WITH_ID(promotionId),

@@ -30,25 +30,23 @@ const isImageUrl = (url: string): boolean => {
 const getTierColor = (tier?: string): string => {
   if (!tier) return '';
   
-  const tierLower = tier.toLowerCase();
-  
-  if (tierLower.includes('secret') || tierLower.includes('huyền thoại') || tierLower.includes('ssr')) {
+  if (tier.includes('Secret')) {
     return 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white';
   }
-  if (tierLower.includes('epic') || tierLower.includes('sử thi') || tierLower.includes('sr')) {
+  if (tier.includes('Epic')) {
     return 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white';
   }
-  if (tierLower.includes('rare') || tierLower.includes('hiếm') || tierLower.includes('r')) {
+  if (tier.includes('Rare')) {
     return 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white';
   }
-  if (tierLower.includes('common') || tierLower.includes('thường') || tierLower.includes('n')) {
+  if (tier.includes('Common')) {
     return 'bg-gradient-to-r from-gray-400 to-gray-500 text-white';
   }
   
   return 'bg-gradient-to-r from-gray-400 to-gray-500 text-white';
 };
 
-// Hàm format status text
+// Hàm format status text - cập nhật theo enum backend
 const getStatusInfo = (status: string, isOnHold: boolean) => {
   // Ưu tiên isOnHold nếu true
   if (isOnHold) {
@@ -58,30 +56,50 @@ const getStatusInfo = (status: string, isOnHold: boolean) => {
     };
   }
 
-  // Mapping status
-  switch (status.toLowerCase()) {
-    case 'available':
+  // Mapping status theo enum backend
+  switch (status) {
+    case 'Available':
       return {
         text: 'Có sẵn',
         className: 'bg-green-100 text-green-700'
       };
-    case 'sold':
+    case 'Shipment_requested':
       return {
-        text: 'Đã bán',
-        className: 'bg-gray-100 text-gray-700'
+        text: 'Yêu cầu vận chuyển',
+        className: 'bg-blue-100 text-blue-700'
+      };
+    case 'Delivering':
+      return {
+        text: 'Đang giao',
+        className: 'bg-yellow-100 text-yellow-700'
+      };
+    case 'Listed':
+      return {
+        text: 'Đã niêm yết',
+        className: 'bg-indigo-100 text-indigo-700'
       };
     case 'OnHold':
-    case 'on_hold':
       return {
         text: 'Đang giữ',
         className: 'bg-orange-100 text-orange-700'
       };
-    case 'processing':
+    case 'Delivered':
+      return {
+        text: 'Đã giao',
+        className: 'bg-gray-100 text-gray-700'
+      };
+    // Fallback cho các status cũ nếu có
+    case 'Sold':
+      return {
+        text: 'Đã bán',
+        className: 'bg-gray-100 text-gray-700'
+      };
+    case 'Processing':
       return {
         text: 'Đang xử lý',
         className: 'bg-yellow-100 text-yellow-700'
       };
-    case 'reserved':
+    case 'Reserved':
       return {
         text: 'Đã đặt trước',
         className: 'bg-blue-100 text-blue-700'
@@ -99,8 +117,6 @@ export default function ChatMessage({
   selectedConversationInfo, 
   shouldShowOnlineDot = false 
 }: ChatMessageProps) {
-  console.log(message);
-  
   
   const handleFileDownload = (fileUrl: string, fileName: string) => {
     const link = document.createElement('a');
@@ -156,8 +172,8 @@ export default function ChatMessage({
           {message.isInventoryItem && message.inventoryItem && (
             <div className="mb-2 p-3 bg-white bg-opacity-20 rounded-lg">
               <div className="flex items-start gap-3">
-                {/* Product Image */}
-                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 relative">
+                {/* Product Image - tăng kích thước */}
+                <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 relative">
                   {message.inventoryItem.image ? (
                     <img 
                       src={message.inventoryItem.image} 
@@ -166,15 +182,7 @@ export default function ChatMessage({
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <Package className="w-6 h-6 text-gray-400" />
-                    </div>
-                  )}
-                  
-                  {/* Tier badge overlay trên ảnh */}
-                  {message.inventoryItem.tier && (
-                    <div className={`absolute top-1 left-1 px-1.5 py-0.5 rounded text-xs font-bold ${getTierColor(message.inventoryItem.tier)}`}>
-                      <Crown className="w-2.5 h-2.5 inline mr-0.5" />
-                      {message.inventoryItem.tier.toUpperCase()}
+                      <Package className="w-8 h-8 text-gray-400" />
                     </div>
                   )}
                 </div>
@@ -236,6 +244,16 @@ export default function ChatMessage({
                   </div>
                 </div>
               </div>
+              
+              {/* Tier badge - di chuyển xuống dưới ảnh */}
+              {message.inventoryItem.tier && (
+                <div className="mt-2 flex justify-center">
+                  <div className={`px-2 py-1 rounded-md text-xs font-bold flex items-center gap-1 ${getTierColor(message.inventoryItem.tier)}`}>
+                    <Crown className="w-3 h-3" />
+                    {message.inventoryItem.tier.toUpperCase()}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
