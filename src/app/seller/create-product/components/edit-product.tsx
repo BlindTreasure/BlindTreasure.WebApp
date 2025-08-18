@@ -21,7 +21,7 @@ export default function EditProductSeller({ productData, onUpdateSuccess }: Edit
         description: rest.description,
         categoryId: rest.categoryId,
         price: rest.price,
-        stock: rest.stock,
+        stock: rest.totalStockQuantity,
         status: Status.Active,
         height: rest.height,
         material: rest.material,

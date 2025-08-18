@@ -27,7 +27,9 @@ export type AllProduct = {
   description: string;
   categoryId: string;
   price: number;
-  stock: number;
+  totalStockQuantity: number;
+  reservedInBlindBox: number;
+  availableToSell: number;
   productStockStatus: StockStatus;
   height: number;
   material: string;

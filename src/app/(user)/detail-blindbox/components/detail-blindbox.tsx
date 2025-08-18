@@ -172,7 +172,36 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
     };
 
     const handleIncrease = () => {
-        setQuantity(quantity + 1);
+        const maxQuantity = blindbox?.totalQuantity || 999;
+        if (quantity < maxQuantity) {
+            setQuantity(quantity + 1);
+        }
+    };
+
+    const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+
+        if (value === '') {
+            setQuantity(0);
+            return;
+        }
+
+        const numericValue = parseInt(value);
+        if (isNaN(numericValue)) return;
+
+        const maxQuantity = blindbox?.totalQuantity || 999;
+
+        if (numericValue >= 1 && numericValue <= maxQuantity) {
+            setQuantity(numericValue);
+        } else if (numericValue > maxQuantity) {
+            setQuantity(maxQuantity);
+        }
+    };
+
+    const handleQuantityBlur = () => {
+        if (quantity === 0) {
+            setQuantity(1);
+        }
     };
 
     const handleAddToCart = async () => {
@@ -261,7 +290,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                         <div className='flex gap-8'>
                             <p className='text-xl'>Thương hiệu: <span className='text-[#00579D] uppercase'>{blindbox?.brand}</span></p>
                             <div className="w-px h-5 bg-gray-300" />
-                            <p className='text-xl'>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[blindbox?.blindBoxStockStatus as StockStatus]}</span></p>
+                            <p className='text-xl'>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[blindbox?.blindBoxStockStatus as StockStatus]} ({blindbox?.totalQuantity})</span></p>
                             <div className="w-px h-5 bg-gray-300" />
                         </div>
                         {blindbox?.hasSecretItem && (
@@ -295,14 +324,18 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                                     −
                                 </button>
                                 <input
-                                    type="text"
-                                    value={quantity}
-                                    readOnly
-                                    className="w-12 h-10 text-center border-t border-b border-gray-400"
+                                    type="number"
+                                    value={quantity === 0 ? '' : quantity}
+                                    onChange={handleQuantityChange}
+                                    onBlur={handleQuantityBlur}
+                                    min="1"
+                                    max={blindbox?.totalQuantity || 999}
+                                    className="w-12 h-10 text-center border-t border-b border-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                                 <button
                                     onClick={handleIncrease}
-                                    className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center hover:bg-gray-700 transition-colors"
+                                    disabled={quantity >= (blindbox?.totalQuantity || 999)}
+                                    className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center hover:bg-gray-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                                 >
                                     +
                                 </button>
