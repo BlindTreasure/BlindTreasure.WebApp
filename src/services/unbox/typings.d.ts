@@ -36,3 +36,13 @@ export type ResponseUnboxLogsList = {
   totalPages: number;
   result: ResponseUnboxLogs[];
 };
+
+export type ExportUnboxLogsParams = {
+  userId?: string;
+  productId?: string;
+  FromDate?: string;
+  ToDate?: string;
+  PageIndex?: number;
+  PageSize?: number;
+  Desc?: boolean;
+};

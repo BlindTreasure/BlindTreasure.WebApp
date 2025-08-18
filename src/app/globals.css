@@ -42,6 +42,21 @@ body {
   .scrollbar-hide::-webkit-scrollbar {
     display: none; /* Safari and Chrome */
   }
+
+   .date-icon-black::-webkit-calendar-picker-indicator {
+    filter: invert(0); /* giữ nguyên = đen */
+  }
+  .date-icon-white::-webkit-calendar-picker-indicator {
+    filter: invert(1); /* đảo màu = trắng */
+  }
+
+  /* Firefox */
+  .date-icon-black::-moz-calendar-picker-indicator {
+    filter: invert(0);
+  }
+  .date-icon-white::-moz-calendar-picker-indicator {
+    filter: invert(1);
+  }
 }
 
 @layer base {
