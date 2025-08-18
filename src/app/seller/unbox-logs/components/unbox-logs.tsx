@@ -7,14 +7,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Skeleton } from "@/components/ui/skeleton";
 import { BsEye } from "react-icons/bs";
 import moment from "moment";
-import { ResponseUnboxLogs, ResponseUnboxLogsList } from "@/services/unbox/typings";
+import { ExportUnboxLogsParams, ResponseUnboxLogs, ResponseUnboxLogsList } from "@/services/unbox/typings";
 import useGetUnboxLogs from "../hooks/useGetUnboxLogs";
 import useGetProductByIdWeb from "@/app/(user)/detail/hooks/useGetProductByIdWeb";
 import { AllProduct } from "@/services/product/typings";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CiSearch } from "react-icons/ci";
 import { Rarity, RarityColorClass, RarityText } from "@/const/products";
 import ReactMarkdown from 'react-markdown'
 import { PaginationFooter } from "@/components/pagination-footer";
+import useExportLogs from "../hooks/useExportLogs";
 
 export default function UnboxLogs() {
     const { isPending, getUnboxLogsApi } = useGetUnboxLogs();
@@ -25,6 +30,9 @@ export default function UnboxLogs() {
     const [paginationData, setPaginationData] = useState<ResponseUnboxLogsList | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
+    const { isPending: isExporting, exportLogsApi } = useExportLogs();
+    const [fromDate, setFromDate] = useState<string>("");
+    const [toDate, setToDate] = useState<string>("");
 
     useEffect(() => {
         const fetchLogs = async () => {
@@ -39,6 +47,38 @@ export default function UnboxLogs() {
         };
         fetchLogs();
     }, [currentPage, pageSize]);
+
+    const formatDateToISO = (dateString: string): string => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        date.setHours(0, 0, 0, 0);
+        return date.toISOString();
+    };
+
+    const formatEndDateToISO = (dateString: string): string => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        date.setHours(23, 59, 59, 999);
+        return date.toISOString();
+    };
+
+    const handleExportLogs = async () => {
+        const exportParams: ExportUnboxLogsParams = {
+            FromDate: fromDate ? formatDateToISO(fromDate) : undefined,
+            ToDate: toDate ? formatEndDateToISO(toDate) : undefined,
+        };
+
+        const res = await exportLogsApi(exportParams);
+        if (res) {
+            const url = window.URL.createObjectURL(res);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "unbox-logs.xlsx";
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    };
+
 
     useEffect(() => {
         const fetchProductDetail = async () => {
@@ -57,7 +97,42 @@ export default function UnboxLogs() {
         <div>
             <Card className="mt-6 shadow-lg rounded-lg border border-gray-200">
                 <CardContent className="space-y-6 py-6">
-                    <h2 className="text-lg font-semibold">Danh sách khách trúng thưởng blindbox</h2>
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-lg font-semibold">Danh sách khách trúng thưởng blindbox</h2>
+                        <Button onClick={handleExportLogs} disabled={isExporting} className="bg-green-500 hover:bg-opacity-80">
+                            {isExporting ? "Đang xuất..." : "Xuất file Excel"}
+                        </Button>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border">
+                        <h3 className="text-md font-medium mb-4">Lọc theo ngày để xuất file</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="fromDate" className="text-sm font-medium">
+                                    Từ ngày
+                                </Label>
+                                <Input
+                                    id="fromDate"
+                                    type="date"
+                                    value={fromDate}
+                                    onChange={(e) => setFromDate(e.target.value)}
+                                    className="w-1/2 date-icon-black dark:date-icon-white"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="toDate" className="text-sm font-medium">
+                                    Đến ngày
+                                </Label>
+                                <Input
+                                    id="toDate"
+                                    type="date"
+                                    value={toDate}
+                                    onChange={(e) => setToDate(e.target.value)}
+                                    className="w-1/2 date-icon-black dark:date-icon-white"
+                                />
+                            </div>
+                        </div>
+                    </div>
 
                     <Table className="table-fixed w-full">
                         <TableHeader>
