@@ -112,7 +112,7 @@ export const refreshToken = async (body: API.TAuthRefreshToken) => {
 };
 
 export const loginGoogle = async (body: API.TAuthLoginGoogle) => {
-  const response = await request<API.TAuthResponse>(
+  const response = await request<TResponseData<API.TAuthResponse>>(
     API_ENDPOINTS.LOGIN_GOOGLE,
     {
       method: "POST",
