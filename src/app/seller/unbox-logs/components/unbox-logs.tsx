@@ -226,7 +226,7 @@ export default function UnboxLogs() {
                                         <div className="text-sm text-gray-700"> <strong>Sản phẩm thuộc: </strong>{selectedLog.blindBoxName}</div>
 
                                         <div className="text-sm">
-                                            <strong className="text-gray-700">Giá:</strong> <span className="text-[#d02a2a]">{productDetail.price?.toLocaleString()}₫</span>
+                                            <strong className="text-gray-700">Giá:</strong> <span className="text-[#d02a2a]">{productDetail.realSellingPrice?.toLocaleString()}₫</span>
                                         </div>
 
                                         <div className="text-sm text-gray-600">
