@@ -232,7 +232,7 @@ export default function ProductTable() {
                                             )}
                                         </TableCell>
                                         <TableCell className="truncate whitespace-nowrap" title={product.name}>{product.name}</TableCell>
-                                        <TableCell>{product.price.toLocaleString()}₫</TableCell>
+                                        <TableCell>{product.realSellingPrice.toLocaleString()}₫</TableCell>
                                         <TableCell>{product.totalStockQuantity}</TableCell>
                                         <TableCell className="max-w-[120px]">
                                             <span

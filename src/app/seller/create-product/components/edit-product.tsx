@@ -20,17 +20,18 @@ export default function EditProductSeller({ productData, onUpdateSuccess }: Edit
         name: rest.name,
         description: rest.description,
         categoryId: rest.categoryId,
-        price: rest.price,
-        stock: rest.totalStockQuantity,
+        realSellingPrice: rest.realSellingPrice,
+        listedPrice: rest.listedPrice,
+        totalStockQuantity: rest.totalStockQuantity,
         status: Status.Active,
         height: rest.height,
         material: rest.material,
         productType: rest.productType as ProductType,
-        brand: rest.brand,
+        // brand: rest.brand,
         images: [],
     };
 
-    const { onSubmit: onUpdateInfo, isPending: isUpdatingInfo } = useUpdateProductForm(id);
+    const { onSubmit: onUpdateInfo, isPending: isUpdatingInfo } = useUpdateProductForm(id, createFormData);
     const { form: imageForm, onSubmit: onUpdateImages, isPending: isUpdatingImages } = useUpdateImageProductForm(id, {
         images: [],
     });

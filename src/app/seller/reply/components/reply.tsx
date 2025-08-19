@@ -234,7 +234,7 @@ function Reply() {
                         ) : reviews.length === 0 ? (
                             <div className="text-center py-8">
                                 <img
-                                    src="/images/Empty-items.jpg"
+                                    src="https://cdni.iconscout.com/illustration/premium/thumb/empty-review-12057781-9824451.png"
                                     alt="Chưa có đánh giá"
                                     className="w-32 h-32 mx-auto mb-4 opacity-60"
                                 />

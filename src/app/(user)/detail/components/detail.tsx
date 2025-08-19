@@ -260,7 +260,7 @@ export default function Detail({ detailId }: DetailProps) {
                         <div className="w-px h-5 bg-gray-300" />
                         <p className='text-xl'>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[products?.productStockStatus as StockStatus]} ({products?.totalStockQuantity})</span></p>
                     </div>
-                    <p className="text-4xl font-semibold mt-2 text-[#EF1104]">{products?.price.toLocaleString("vi-VN")}₫</p>
+                    <p className="text-4xl font-semibold mt-2 text-[#EF1104]">{products?.realSellingPrice.toLocaleString("vi-VN")}₫</p>
                     <p className='text-xl'>Ngày phát hành: <span className='text-gray-600 text-xl'> {products?.createdAt
                         ? new Date(products.createdAt).toLocaleDateString("vi-VN")
                         : ""}</span></p>

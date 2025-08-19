@@ -27,13 +27,14 @@ export default function useUpdateProductForm(
       name: "",
       description: "",
       categoryId: "",
-      price: 0,
-      stock: 0,
+      realSellingPrice: undefined,
+      listedPrice: null,
+      totalStockQuantity: undefined,
       status: Status.Active,
-      height: 0,
+      height: undefined,
       material: "",
       productType: null,
-      brand: "",
+      // brand: "",
       images: [],
     },
   });
@@ -50,7 +51,6 @@ export default function useUpdateProductForm(
         { ...data, productId },
         {
           onSuccess: () => {
-            reset();
             clearImages();
             if (onSuccessCallback) onSuccessCallback();
           },

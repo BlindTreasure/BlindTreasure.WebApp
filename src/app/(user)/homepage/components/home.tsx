@@ -54,7 +54,7 @@ const MarqueeNotification = () => {
   useEffect(() => {
     if (latestNotification) {
       setIsVisible(true);
-      
+
       // Ẩn thông báo sau 12 giây
       const hideTimer = setTimeout(() => {
         setIsVisible(false);
@@ -70,7 +70,7 @@ const MarqueeNotification = () => {
   // Hàm lấy màu theo rarity
   const getRarityColors = (rarity: string): string => {
     const rarityLower = rarity.toLowerCase();
-    
+
     if (rarityLower.includes('legendary') || rarityLower.includes('huyền thoại') || rarityLower.includes('ssr')) {
       return 'from-yellow-500/70 via-orange-500/70 to-red-600/70'; // Vàng đỏ
     }
@@ -91,7 +91,7 @@ const MarqueeNotification = () => {
   return (
     <div className="w-full mb-6">
       <div className={`bg-gradient-to-r ${getRarityColors(latestNotification.rarity)} text-white py-4 overflow-hidden shadow-lg backdrop-blur-sm`}>
-        <div 
+        <div
           className="whitespace-nowrap text-sm md:text-base font-medium flex items-center gap-2"
           style={{
             animation: 'marquee 12s linear infinite'
@@ -293,6 +293,10 @@ export default function HomePage() {
     (box) => box.items && box.items.length > 0
   ) ?? [];
 
+  const saleProducts = products?.result.filter(
+    (product) => product.listedPrice != null && product.listedPrice > 0 && product.productType !== "BlindBoxOnly"
+  ) ?? [];
+
   const handleAddBlindboxToCart = async (blindBoxId: string, quantity: number = 1) => {
     await addBlindboxToCartApi({ blindBoxId, quantity });
   };
@@ -479,6 +483,7 @@ export default function HomePage() {
                         initialIsInWishlist={wishlistStatus.isInWishlist}
                         initialWishlistId={wishlistStatus.wishlistId}
                         onWishlistChange={refreshWishlistStatus}
+                        context="new"
                       />
                     </CarouselItem>
                   );
@@ -550,10 +555,52 @@ export default function HomePage() {
           <Button
             variant="outline"
             className="border-2 border-[#d02a2a] rounded-full px-8 py-6 text-lg font-semibold text-[#d02a2a] hover:border-[#ACACAC] hover:bg-[#d02a2a] hover:text-white transition-colors duration-300"
+            onClick={() => handleNavigateWithLoading("/all-sale-products")}
           >
             Xem thêm
           </Button>
         </motion.div>
+
+        {saleProducts.length > 0 && (
+          <motion.div
+            variants={fadeIn("up", 0.3)}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.7 }}
+            className="flex justify-center pb-8"
+          >
+            <Carousel opts={{ align: "start" }} className="w-96 sm:w-full max-w-[1400px]">
+              <CarouselContent>
+                {saleProducts.slice(0, 8).map((product) => {
+                  const ribbonTypes = getRibbonTypes(product);
+                  const wishlistStatus = getItemWishlistStatus(product.id);
+
+                  return (
+                    <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4 relative">
+                      <ProductCard
+                        product={product}
+                        ribbonTypes={ribbonTypes}
+                        onViewDetail={handleViewDetail}
+                        onAddToCart={handleAddProductToCart}
+                        initialIsInWishlist={wishlistStatus.isInWishlist}
+                        initialWishlistId={wishlistStatus.wishlistId}
+                        onWishlistChange={refreshWishlistStatus}
+                        context="sale"
+                      />
+                    </CarouselItem>
+                  );
+                })}
+              </CarouselContent>
+
+              {saleProducts.length > 4 && (
+                <>
+                  <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+                  <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white bg-gray-800 p-2 rounded-full hover:bg-gray-700" />
+                </>
+              )}
+            </Carousel>
+          </motion.div>
+        )}
 
         <motion.h1
           id="4"

@@ -35,8 +35,13 @@ const ProductDetailDialog: React.FC<ProductDetailDialogProps> = ({ product, isOp
                                 <strong>Mô tả:</strong> {product.description}
                             </div>
                             <div>
-                                <strong>Giá:</strong> {product.price.toLocaleString()} VND
+                                <strong>Giá bán:</strong> {product.realSellingPrice.toLocaleString()} VND
                             </div>
+                            {product.listedPrice != null && (
+                                <div>
+                                    <strong>Giá niêm yết:</strong> {product.listedPrice.toLocaleString()} VND
+                                </div>
+                            )}
                             <div>
                                 <strong>Tồn kho:</strong> {product.totalStockQuantity}
                             </div>

@@ -7,6 +7,7 @@ import Detail from '@/components/tabs-seller/Detail';
 import { Button } from '@/components/ui/button';
 import { Backdrop } from '@/components/backdrop';
 import { CreateProductForm } from '@/services/product-seller/typings';
+import { CreateProductBodyType } from '@/utils/schema-validations/create-product.schema';
 import useGetCategory from '@/app/staff/category-management/hooks/useGetCategory';
 import useCreateProductForm from '@/app/seller/create-product/hooks/useCreateProduct';
 
@@ -32,9 +33,14 @@ export default function ProductForm({ defaultValues, onSubmit, isPending, showIm
     watch,
   } = useCreateProductForm(defaultValues);
 
+  const [isInitialized, setIsInitialized] = useState(false);
+
   useEffect(() => {
-    if (defaultValues) reset(defaultValues);
-  }, [defaultValues, reset]);
+    if (defaultValues && !isInitialized) {
+      reset(defaultValues);
+      setIsInitialized(true);
+    }
+  }, [defaultValues, reset, isInitialized]);
 
   const [currentTab, setCurrentTab] = useState(TABS[0]);
   const [categories, setCategories] = useState<API.ResponseDataCategory>();
@@ -69,11 +75,11 @@ export default function ProductForm({ defaultValues, onSubmit, isPending, showIm
     setClearSignal(prev => prev + 1);
   };
 
-   const handleSubmitForm = (data: CreateProductForm) => {
+  const handleSubmitForm = (data: CreateProductBodyType) => {
     if (onSubmit) {
-      onSubmit(data, clearImages);
+      onSubmit(data as CreateProductForm, clearImages);
     } else {
-      onSubmitHook(data, clearImages);
+      onSubmitHook(data as CreateProductForm, clearImages);
     }
   };
 

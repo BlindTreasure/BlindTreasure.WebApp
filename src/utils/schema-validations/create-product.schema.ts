@@ -6,8 +6,13 @@ export const CreateProductBody = z
     name: z.string().min(1, { message: "Tên sản phẩm là bắt buộc" }),
     description: z.string().min(1, { message: "Mô tả là bắt buộc" }),
     categoryId: z.string().uuid({ message: "CategoryId không hợp lệ" }),
-    price: z.number().min(1, { message: "Giá phải lớn hơn 0" }),
-    stock: z
+    realSellingPrice: z.number().min(1, { message: "Giá phải lớn hơn 0" }),
+    listedPrice: z
+      .number()
+      .min(1, { message: "Giá phải lớn hơn 0" })
+      .nullable()
+      .optional(),
+    totalStockQuantity: z
       .number()
       .min(0, { message: "Số lượng phải là số nguyên lớn hơn hoặc bằng 0" }),
     status: z.nativeEnum(Status, {
@@ -16,7 +21,7 @@ export const CreateProductBody = z
     height: z.number().optional(),
     material: z.string().optional(),
     productType: z.nativeEnum(ProductType).nullable().optional(),
-    brand: z.string().optional(),
+    // brand: z.string().optional(),
     images: z
       .array(
         z.union([

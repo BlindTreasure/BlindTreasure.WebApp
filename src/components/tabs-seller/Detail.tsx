@@ -50,7 +50,7 @@ export default function Detail({ register, setValue, errors, watch, categories, 
                 <SelectItem
                     key={cat.id}
                     value={cat.id}
-                    disabled={!isLeaf} 
+                    disabled={!isLeaf}
                     className={level === 0 ? 'font-semibold' : 'font-normal'}
                 >
                     {indent}{label}
@@ -134,43 +134,56 @@ export default function Detail({ register, setValue, errors, watch, categories, 
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="price">
-                        Giá sản phẩm (VNĐ) <span className="text-red-600">*</span>
+                    <Label htmlFor="realSellingPrice">
+                        Giá bán thực tế (VNĐ) <span className="text-red-600">*</span>
                     </Label>
 
                     <Controller
-                        name="price"
+                        name="realSellingPrice"
                         control={control}
                         defaultValue={undefined}
                         render={({ field }) => {
-                            const formatCurrency = (value: number | undefined) => {
-                                if (!value) return "";
+                            const formatCurrency = (value: number | null | undefined) => {
+                                if (value === undefined || value === null) return "";
                                 return new Intl.NumberFormat("vi-VN").format(value);
                             };
 
                             const parseCurrency = (value: string) => {
-                                return Number(value.replace(/[^0-9]/g, ""));
+                                const cleanValue = value.replace(/[^0-9]/g, "");
+                                return cleanValue === "" ? null : Number(cleanValue);
                             };
 
                             return (
                                 <div className="relative">
                                     <Input
-                                        id="price"
+                                        id="realSellingPrice"
                                         type="text"
                                         inputMode="numeric"
                                         onWheel={(e) => e.currentTarget.blur()}
                                         className="pr-14"
-                                        value={field.value === undefined ? "" : formatCurrency(field.value)}
+                                        value={formatCurrency(field.value)}
                                         onChange={(e) => {
-                                            const numberValue = parseCurrency(e.target.value);
-                                            field.onChange(numberValue);
+                                            const inputValue = e.target.value;
+                                            if (inputValue === "") {
+                                                field.onChange(null);
+                                            } else {
+                                                const numberValue = parseCurrency(inputValue);
+                                                field.onChange(numberValue);
+                                            }
                                         }}
                                         onFocus={(e) => {
                                             e.target.value = field.value?.toString() || "";
                                         }}
                                         onBlur={(e) => {
-                                            const numberValue = parseCurrency(e.target.value);
-                                            e.target.value = formatCurrency(numberValue);
+                                            const inputValue = e.target.value;
+                                            if (inputValue === "") {
+                                                field.onChange(null);
+                                                e.target.value = "";
+                                            } else {
+                                                const numberValue = parseCurrency(inputValue);
+                                                field.onChange(numberValue);
+                                                e.target.value = formatCurrency(numberValue);
+                                            }
                                         }}
                                     />
                                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
@@ -181,21 +194,86 @@ export default function Detail({ register, setValue, errors, watch, categories, 
                         }}
                     />
 
-                    {errors.price && (
-                        <p className="text-red-500 text-sm">{errors.price.message}</p>
+                    {errors.realSellingPrice && (
+                        <p className="text-red-500 text-sm">{errors.realSellingPrice.message}</p>
                     )}
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="stock">
+                    <Label htmlFor="listedPrice">
+                        Giá niêm yết (VNĐ)
+                    </Label>
+
+                    <Controller
+                        name="listedPrice"
+                        control={control}
+                        defaultValue={undefined}
+                        render={({ field }) => {
+                            const formatCurrency = (value: number | null | undefined) => {
+                                if (value === undefined || value === null) return "";
+                                return new Intl.NumberFormat("vi-VN").format(value);
+                            };
+
+                            const parseCurrency = (value: string) => {
+                                const cleanValue = value.replace(/[^0-9]/g, "");
+                                return cleanValue === "" ? null : Number(cleanValue);
+                            };
+
+                            return (
+                                <div className="relative">
+                                    <Input
+                                        id="listedPrice"
+                                        type="text"
+                                        inputMode="numeric"
+                                        onWheel={(e) => e.currentTarget.blur()}
+                                        className="pr-14"
+                                        value={formatCurrency(field.value)}
+                                        onChange={(e) => {
+                                            const inputValue = e.target.value;
+                                            if (inputValue === "") {
+                                                field.onChange(null);
+                                            } else {
+                                                const numberValue = parseCurrency(inputValue);
+                                                field.onChange(numberValue);
+                                            }
+                                        }}
+                                        onFocus={(e) => {
+                                            e.target.value = field.value?.toString() || "";
+                                        }}
+                                        onBlur={(e) => {
+                                            const inputValue = e.target.value;
+                                            if (inputValue === "") {
+                                                field.onChange(null);
+                                                e.target.value = "";
+                                            } else {
+                                                const numberValue = parseCurrency(inputValue);
+                                                field.onChange(numberValue);
+                                                e.target.value = formatCurrency(numberValue);
+                                            }
+                                        }}
+                                    />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
+                                        VNĐ
+                                    </span>
+                                </div>
+                            );
+                        }}
+                    />
+
+                    {errors.listedPrice && (
+                        <p className="text-red-500 text-sm">{errors.listedPrice.message}</p>
+                    )}
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="totalStockQuantity">
                         Số lượng kho <span className="text-red-600">*</span>
                     </Label>
                     <Input
-                        id="stock"
+                        id="totalStockQuantity"
                         type="number"
                         inputMode="numeric"
-                        {...register("stock", {
-                            required: "Vui lòng nhập số lượng kho",
+                        {...register("totalStockQuantity", {
                             setValueAs: (v) => {
                                 const n = parseInt(v);
                                 return isNaN(n) ? undefined : n;
@@ -204,8 +282,8 @@ export default function Detail({ register, setValue, errors, watch, categories, 
                         onWheel={(e) => e.currentTarget.blur()}
                         onFocus={(e) => e.target.select()}
                     />
-                    {errors.stock && (
-                        <p className="text-sm text-red-500">{errors.stock.message}</p>
+                    {errors.totalStockQuantity && (
+                        <p className="text-sm text-red-500">{errors.totalStockQuantity.message}</p>
                     )}
                 </div>
 

@@ -21,8 +21,9 @@ export type Product = {
   name: string;
   description: string;
   categoryId: string;
-  price: number;
-  // stock: number;
+  // price: number;
+  realSellingPrice: number;
+  listedPrice: number;
   totalStockQuantity: number;
   reservedInBlindBox: number;
   availableToSell: number;
@@ -51,13 +52,16 @@ export type CreateProductForm = {
   name: string;
   description: string;
   categoryId: string;
-  price: number;
-  stock: number;
+  // price: number;
+  realSellingPrice: number;
+  listedPrice: number | null;
+  // stock: number;
+  totalStockQuantity: number;
   status: Status;
   height?: number;
   material?: string;
   productType?: ProductType | null;
-  brand?: string;
+  // brand?: string;
   images?: (File | string)[];
 };
 
@@ -65,10 +69,12 @@ export type UpdateInfor = {
   name: string;
   description: string;
   categoryId: string;
-  price: number;
-  stock: number;
+  realSellingPrice: number;
+  listedPrice: number | null;
+  totalStockQuantity: number;
+  status: Status;
   height?: number;
   material?: string;
   productType?: ProductType | null;
-  brand?: string;
+  // brand?: string;
 };

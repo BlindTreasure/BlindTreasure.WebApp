@@ -30,6 +30,7 @@ interface ProductCardProps {
   initialIsInWishlist?: boolean;
   initialWishlistId?: string;
   onWishlistChange?: () => void;
+  context?: "new" | "sale" | "default"; 
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -39,10 +40,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
   ribbonTypes = [],
   initialIsInWishlist = false,
   initialWishlistId,
-  onWishlistChange
+  onWishlistChange,
+  context = "default"
 }) => {
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+
+  const finalRibbonTypes: ("new" | "sale" | "blindbox")[] = (() => {
+    if (context === "new") {
+      return ribbonTypes.includes("new") ? ribbonTypes : [...ribbonTypes, "new" as const];
+    } else if (context === "sale") {
+      return product.listedPrice != null && product.listedPrice > 0
+        ? [...ribbonTypes.filter(type => type !== "new"), "sale" as const]
+        : ribbonTypes;
+    } else {
+      return product.listedPrice != null && product.listedPrice > 0
+        ? [...ribbonTypes.filter(type => type !== "new"), "sale" as const]
+        : ribbonTypes;
+    }
+  })();
 
   const {
     isInWishlist,
@@ -70,7 +86,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleAddToCart = async (quantityToAdd: number = 1) => {
     if (!onAddToCart || isAddingToCart) return;
-    
+
     setIsAddingToCart(true);
     try {
       await onAddToCart(product.id, quantityToAdd);
@@ -111,7 +127,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
 
     <div className="relative p-2 mt-6 transition-all duration-300 transform hover:scale-105">
-      <Ribbon createdAt={product.createdAt} types={ribbonTypes} />
+      <Ribbon createdAt={product.createdAt} types={finalRibbonTypes} />
       <Card className="relative w-full rounded-xl overflow-hidden p-4 shadow-lg bg-white">
         <div className="w-full h-48 overflow-hidden rounded-md relative group">
           <img
@@ -185,9 +201,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         <div className="w-px h-5 bg-gray-300" />
                         <p>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[product?.productStockStatus as StockStatus]}</span></p>
                       </div>
-                      <p className="text-red-600 font-bold text-3xl">
-                        {product.price.toLocaleString("vi-VN")}₫
-                      </p>
+                      <div className="flex flex-col gap-2">
+                        {product.listedPrice != null && product.listedPrice > 0 && (
+                          <p className="text-gray-500 text-xl line-through">
+                            {product.listedPrice.toLocaleString("vi-VN")}₫
+                          </p>
+                        )}
+                        <p className="text-red-600 font-bold text-3xl">
+                          {product.realSellingPrice.toLocaleString("vi-VN")}₫
+                        </p>
+                      </div>
                       <p>Mô tả: <span className='text-gray-600 text-sm line-clamp-2'>{product.description}</span></p>
 
                       <div className="flex items-center gap-4 mt-6">
@@ -212,7 +235,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                           </button>
                         </div>
 
-                        <Button 
+                        <Button
                           className="py-5"
                           onClick={() => handleAddToCart(quantity)}
                           disabled={isAddingToCart}
@@ -236,13 +259,20 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         <div className="mt-4 text-sm">
           <p className="truncate font-semibold text-gray-800">{product.name}</p>
-          <p className="text-red-600 font-bold text-lg">
-            {product.price.toLocaleString("vi-VN")}₫
-          </p>
+          <div className="flex justify-between items-center gap-1">
+            {product.listedPrice != null && product.listedPrice > 0 && (
+              <p className="text-gray-500 text-sm line-through">
+                {product.listedPrice.toLocaleString("vi-VN")}₫
+              </p>
+            )}
+            <p className="text-red-600 font-bold text-lg">
+              {product.realSellingPrice.toLocaleString("vi-VN")}₫
+            </p>
+          </div>
         </div>
 
         <div className="mt-4 flex justify-between items-center">
-          <Button 
+          <Button
             className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105"
             onClick={() => handleAddToCart(1)}
             disabled={isAddingToCart}
