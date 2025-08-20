@@ -80,7 +80,7 @@ export default function MobileInventoryModal({
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm truncate">{item.product.name}</h4>
                     <p className="text-xs text-gray-500 mt-1">
-                      {item.product.price.toLocaleString('vi-VN')}đ
+                      {item.product.realSellingPrice.toLocaleString('vi-VN')}đ
                     </p>
                     <p className="text-xs text-green-600 mt-1">
                       Số lượng: {item.quantity}

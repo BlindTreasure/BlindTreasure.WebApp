@@ -203,7 +203,7 @@ export default function InventoryDeliveryCard({ item }: InventoryDeliveryCardPro
           </div>
           <div className="text-right">
             <div className="text-red-500 font-semibold">
-              {item.product?.price?.toLocaleString() || "0"}₫
+              {item.product?.realSellingPrice?.toLocaleString() || "0"}₫
             </div>
           </div>
         </div>
