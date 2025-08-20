@@ -67,8 +67,9 @@ export type Product = {
   name: string;
   description: string;
   categoryId: string;
-  price: number;
-  stock: number;
+  realSellingPrice: number;
+  listedPrice: number;
+  totalStockQuantity: number;
   productStockStatus: StockStatus;
   height: number;
   material: string;

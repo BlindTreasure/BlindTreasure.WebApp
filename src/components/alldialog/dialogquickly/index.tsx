@@ -109,7 +109,10 @@ export default function QuickViewDialog(props: QuickViewDialogProps) {
                         <h2 className="text-2xl font-semibold">{data.name}</h2>
                         <p className="text-muted-foreground">{data.description}</p>
                         <p className="text-red-600 font-bold text-3xl">
-                            {data.price.toLocaleString('vi-VN')}₫
+                            {isProduct
+                                ? (data as Product).realSellingPrice.toLocaleString('vi-VN')
+                                : (data as BlindBox).price.toLocaleString('vi-VN')
+                            }₫
                         </p>
 
                         {!isProduct && (

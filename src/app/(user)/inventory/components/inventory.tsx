@@ -709,7 +709,7 @@ export default function Inventory() {
                                         />
                                         <div className="flex-1">
                                             <p className="font-medium text-sm">{item.title}</p>
-                                            <p className="text-xs text-muted-foreground">Giá: {item.product?.price?.toLocaleString('vi-VN')}₫</p>
+                                            <p className="text-xs text-muted-foreground">Giá: {item.product?.realSellingPrice?.toLocaleString('vi-VN')}₫</p>
                                         </div>
                                     </div>
                                 ) : null
@@ -808,8 +808,8 @@ export default function Inventory() {
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-semibold">Giá trị:</span>
                                                         <span className="text-green-600">
-                                                            {wonItem.product?.price ?
-                                                                `${wonItem.product.price.toLocaleString('vi-VN')}đ` :
+                                                            {wonItem.product?.realSellingPrice ?
+                                                                `${wonItem.product.realSellingPrice.toLocaleString('vi-VN')}đ` :
                                                                 'Chưa có giá'
                                                             }
                                                         </span>
