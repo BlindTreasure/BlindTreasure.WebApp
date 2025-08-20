@@ -31,7 +31,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} ${poppins.className} ${roboto.variable}`}>
         <Toaster
-          position="top-left"
+          position="top-center"
           richColors
           expand={false}
           style={{ marginRight: 28 }}

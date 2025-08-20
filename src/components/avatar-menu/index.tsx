@@ -16,7 +16,7 @@ import { FiUser } from "react-icons/fi";
 import { BsRobot } from "react-icons/bs";
 import { LiaUserEditSolid } from "react-icons/lia";
 import { CiLocationOn } from "react-icons/ci";
-
+import { MdOutlinePhoneInTalk } from "react-icons/md";
 interface AvatarMenuProps {
   onCloseTooltip: () => void;
 }
@@ -65,6 +65,11 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
       }
       case 6: {
         router.push("/inventory");
+        onCloseTooltip();
+        break;
+      }
+      case 7: {
+        router.push("/contact");
         onCloseTooltip();
         break;
       }
@@ -152,6 +157,10 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
                   <li onClick={() => handleNavigate(1)} className="cursor-pointer px-3 py-1 rounded hover:bg-gray-100 hover:text-[#d02a2a] text-gray-700 flex items-center gap-1">
                     <LiaUserEditSolid className="text-lg" />
                     Hồ sơ
+                  </li>
+                  <li onClick={() => handleNavigate(7)} className="cursor-pointer px-3 py-1 rounded hover:bg-gray-100 hover:text-[#d02a2a] text-gray-700 flex items-center gap-1">
+                    <MdOutlinePhoneInTalk className="text-lg" />
+                    Liên hệ
                   </li>
                 </ul>
               )}

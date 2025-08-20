@@ -133,9 +133,8 @@ export default function OrderCard({
         );
     };
 
-    const handleCancelOrder = (orderId: string, checkoutGroupId?: string) => {
+    const handleCancelOrder = (checkoutGroupId: string) => {
         const data: REQUEST.CancelPayment = {
-            orderId: orderId,
             checkoutGroupId: checkoutGroupId
         };
 
@@ -287,47 +286,7 @@ export default function OrderCard({
                                     </span>
                                 );
                             })()}
-                            {payment?.status === PaymentInfoStatus.Paid && (
-                                (() => {
-                                    const canReview = reviewStatuses[detail.id];
-                                    const isLoading = loadingReviewStatuses[detail.id];
 
-                                    if (isLoading) {
-                                        return (
-                                            <button
-                                                className="text-xs bg-gray-400 text-white px-2 py-1 rounded cursor-not-allowed"
-                                                disabled
-                                            >
-                                                Đang kiểm tra...
-                                            </button>
-                                        );
-                                    }
-
-                                    if (canReview === false) {
-                                        return (
-                                            <button
-                                                className="text-xs bg-gray-400 text-white px-2 py-1 rounded cursor-not-allowed"
-                                                disabled
-                                            >
-                                                Đã đánh giá
-                                            </button>
-                                        );
-                                    }
-
-                                    return (
-                                        <button
-                                            className="text-xs bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600 transition-colors"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSelectedProductForReview(detail);
-                                                setShowWriteReview(true);
-                                            }}
-                                        >
-                                            Đánh giá
-                                        </button>
-                                    );
-                                })()
-                            )}
                         </div>
                     </div>
                     <div className="text-right">
@@ -361,7 +320,7 @@ export default function OrderCard({
                                     className="bg-[#d02a2a] text-white border border-gray-300 px-4 py-1 rounded hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        handleCancelOrder(orderId, checkoutGroupId);
+                                        handleCancelOrder(checkoutGroupId);
                                     }}
                                     disabled={isCancellingOrder || isCancelled}
                                 >
@@ -369,6 +328,48 @@ export default function OrderCard({
                                 </button>
                             </>
                         )}
+                    {payment?.status === PaymentInfoStatus.Paid && details.map((detail) => {
+                        const canReview = reviewStatuses[detail.id];
+                        const isLoading = loadingReviewStatuses[detail.id];
+
+                        if (isLoading) {
+                            return (
+                                <button
+                                    key={`loading-${detail.id}`}
+                                    className="bg-gray-400 text-white px-4 py-1 rounded cursor-not-allowed"
+                                    disabled
+                                >
+                                    Đang kiểm tra...
+                                </button>
+                            );
+                        }
+
+                        if (canReview === false) {
+                            return (
+                                <button
+                                    key={`reviewed-${detail.id}`}
+                                    className="bg-gray-400 text-white px-4 py-1 rounded cursor-not-allowed"
+                                    disabled
+                                >
+                                    Đã đánh giá
+                                </button>
+                            );
+                        }
+
+                        return (
+                            <button
+                                key={`review-${detail.id}`}
+                                className="bg-orange-500 text-white px-4 py-1 rounded hover:bg-orange-600 transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedProductForReview(detail);
+                                    setShowWriteReview(true);
+                                }}
+                            >
+                                Đánh giá
+                            </button>
+                        );
+                    })}
                     <Dialog>
                         <DialogTrigger asChild>
                             <button className="border border-gray-300 px-4 py-1 rounded hover:bg-gray-100" onClick={(e) => e.stopPropagation()}>
@@ -426,15 +427,15 @@ export default function OrderCard({
                                     </div>
                                     <div className="border-t pt-3 mt-3 space-y-2">
                                         {(() => {
-                                            const subtotal = total; 
+                                            const subtotal = total;
                                             const totalShipFee = details.reduce((sum, detail) => {
                                                 const shipmentFees = detail.shipments?.reduce((shipSum, shipment) =>
                                                     shipSum + (shipment.totalFee || 0), 0) || 0;
                                                 return sum + shipmentFees;
                                             }, 0);
                                             const totalDiscount = details.reduce((sum, detail) =>
-                                                sum + (detail.detailDiscountPromotion || 0), 0); 
-                                            const finalTotal = subtotal + totalShipFee - totalDiscount; 
+                                                sum + (detail.detailDiscountPromotion || 0), 0);
+                                            const finalTotal = subtotal + totalShipFee - totalDiscount;
 
                                             return (
                                                 <>
