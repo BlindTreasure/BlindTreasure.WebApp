@@ -184,7 +184,6 @@ export default function AllProduct() {
     router.push(`/detail-blindbox/${id}`);
   };
 
-  // Handler for adding product to cart
   const handleAddProductToCart = async (productId: string, quantity: number = 1) => {
     await addProductToCartApi({ productId, quantity });
   };

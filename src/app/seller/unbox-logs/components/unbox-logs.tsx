@@ -99,13 +99,15 @@ export default function UnboxLogs() {
                 <CardContent className="space-y-6 py-6">
                     <div className="flex justify-between items-center">
                         <h2 className="text-lg font-semibold">Danh sách khách trúng thưởng blindbox</h2>
-                        <Button onClick={handleExportLogs} disabled={isExporting} className="bg-green-500 hover:bg-opacity-80">
-                            {isExporting ? "Đang xuất..." : "Xuất file Excel"}
-                        </Button>
                     </div>
 
                     <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border">
-                        <h3 className="text-md font-medium mb-4">Lọc theo ngày để xuất file</h3>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-md font-medium">Lọc theo ngày để xuất file</h3>
+                            <Button onClick={handleExportLogs} disabled={isExporting} className="bg-green-500 hover:bg-opacity-80">
+                                {isExporting ? "Đang xuất..." : "Xuất file Excel"}
+                            </Button>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="fromDate" className="text-sm font-medium">

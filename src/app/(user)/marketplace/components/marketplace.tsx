@@ -6,6 +6,7 @@ import ProductMarketplaceDetail from '@/components/marketplace/martketplace-deta
 import MyListingDetail from '@/components/marketplace/marketplace-detail-owner';
 import MyTradeRequestDetail from '@/components/marketplace/marketplace-my-trade-request';
 import MarketplaceGuideDialog from '@/components/marketplace/marketplace-guide-dialog';
+import CustomerSellerChat from '@/components/chat-widget';
 import useGetAllListing from '../hooks/useGetAllListing';
 import useGetListingById from '../hooks/useGetListingById';
 import useGetAllTradeRequestByListingId from "../hooks/useGetAllTradeRequestByListingId"
@@ -31,20 +32,6 @@ type ViewTradingHistory = {
   desc?: boolean;
 }
 
-type TradingHistory = {
-  id: string;
-  listingId: string;
-  listingItemName: string;
-  listingItemImage: string;
-  requesterId: string;
-  requesterName: string;
-  offeredItemName: string;
-  offeredItemImage: string;
-  finalStatus: string;
-  completedAt: string;
-  createdAt: string;
-}
-
 const mapApiDataToProduct = (apiItem: APILISTING.ListingItem): APILISTING.ListingItem => {
   return {
     id: apiItem.id,
@@ -55,12 +42,13 @@ const mapApiDataToProduct = (apiItem: APILISTING.ListingItem): APILISTING.Listin
     description: apiItem.description,
     status: apiItem.status,
     listedAt: apiItem.listedAt,
+    ownerId: apiItem.ownerId,
     ownerName: apiItem.ownerName
   };
 };
 
 // Map TradeRequest to ListingItem format for display in marketplace UI
-const mapTradeRequestToProduct = (tradeRequest: TradingHistory): APILISTING.ListingItem => {
+const mapTradeRequestToProduct = (tradeRequest: API.TradingHistory): APILISTING.ListingItem => {
   const getStatusText = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'pending':
@@ -90,11 +78,11 @@ const mapTradeRequestToProduct = (tradeRequest: TradingHistory): APILISTING.List
     listedAt: tradeRequest.createdAt,
     ownerName: tradeRequest.requesterName,
     _originalTradeRequest: tradeRequest
-  } as APILISTING.ListingItem & { _originalTradeRequest: TradingHistory };
+  } as APILISTING.ListingItem & { _originalTradeRequest: API.TradingHistory };
 };
 
 // Map history item to ListingItem format for display
-const mapHistoryToProduct = (historyItem: TradingHistory): APILISTING.ListingItem => {
+const mapHistoryToProduct = (historyItem: API.TradingHistory): APILISTING.ListingItem => {
   const getStatusText = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'completed':
@@ -121,11 +109,11 @@ const mapHistoryToProduct = (historyItem: TradingHistory): APILISTING.ListingIte
     listedAt: historyItem.completedAt || historyItem.createdAt,
     ownerName: historyItem.requesterName,
     _originalHistoryItem: historyItem
-  } as APILISTING.ListingItem & { _originalHistoryItem: TradingHistory };
+  } as APILISTING.ListingItem & { _originalHistoryItem: API.TradingHistory };
 };
 
 // Map ongoing trades with slightly different description
-const mapOngoingTradeToProduct = (tradeRequest: TradingHistory): APILISTING.ListingItem => {
+const mapOngoingTradeToProduct = (tradeRequest: API.TradingHistory): APILISTING.ListingItem => {
   return {
     id: tradeRequest.listingId,
     inventoryId: tradeRequest.id,
@@ -137,7 +125,7 @@ const mapOngoingTradeToProduct = (tradeRequest: TradingHistory): APILISTING.List
     listedAt: tradeRequest.createdAt,
     ownerName: tradeRequest.requesterName,
     _originalTradeRequest: tradeRequest
-  } as APILISTING.ListingItem & { _originalTradeRequest: TradingHistory };
+  } as APILISTING.ListingItem & { _originalTradeRequest: API.TradingHistory };
 };
 
 const mapToMyListingItem = (apiItem: APILISTING.ListingItem, tradeRequests: API.TradeRequest[] = []): any => {
@@ -194,16 +182,18 @@ const Marketplace: React.FC<MarketplaceProps> = ({
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<APILISTING.ListingItem | null>(null);
   const [selectedProductDetail, setSelectedProductDetail] = useState<APILISTING.ListingItem | null>(null);
-  const [selectedTradeRequest, setSelectedTradeRequest] = useState<TradingHistory | null>(null);
-  const [selectedHistoryItem, setSelectedHistoryItem] = useState<TradingHistory | null>(null);
+  const [selectedTradeRequest, setSelectedTradeRequest] = useState<API.TradingHistory | null>(null);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<API.TradingHistory | null>(null);
   const [tradeRequests, setTradeRequests] = useState<API.TradeRequest[]>([]);
-  const [myTradeRequests, setMyTradeRequests] = useState<TradingHistory[]>([]);
-  const [ongoingTrades, setOngoingTrades] = useState<TradingHistory[]>([]);
-  const [tradingHistory, setTradingHistory] = useState<TradingHistory[]>([]);
+  const [myTradeRequests, setMyTradeRequests] = useState<API.TradingHistory[]>([]);
+  const [ongoingTrades, setOngoingTrades] = useState<API.TradingHistory[]>([]);
+  const [tradingHistory, setTradingHistory] = useState<API.TradingHistory[]>([]);
   const [products, setProducts] = useState<APILISTING.ListingItem[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false); // State for dialog visibility
+  const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [chatTargetUserId, setChatTargetUserId] = useState<string>('');
 
   const { mutate: createTradeRequestMutation, isPending: isCreatingTradeRequest } = useServiceCreateTradeRequest(
     selectedProduct?.id || ''
@@ -215,12 +205,12 @@ const Marketplace: React.FC<MarketplaceProps> = ({
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Helper function to check if product has original trade request data
-  const hasOriginalTradeRequest = (product: APILISTING.ListingItem): product is APILISTING.ListingItem & { _originalTradeRequest: TradingHistory } => {
+  const hasOriginalTradeRequest = (product: APILISTING.ListingItem): product is APILISTING.ListingItem & { _originalTradeRequest: API.TradingHistory } => {
     return '_originalTradeRequest' in product;
   };
 
   // Helper function to check if product has original history data
-  const hasOriginalHistoryItem = (product: APILISTING.ListingItem): product is APILISTING.ListingItem & { _originalHistoryItem: TradingHistory } => {
+  const hasOriginalHistoryItem = (product: APILISTING.ListingItem): product is APILISTING.ListingItem & { _originalHistoryItem: API.TradingHistory } => {
     return '_originalHistoryItem' in product;
   };
 
@@ -292,7 +282,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({
         let filteredRequests = response.value.data.result || response.value.data || [];
         
         if (searchValue?.trim()) {
-          filteredRequests = filteredRequests.filter((request: TradingHistory) => 
+          filteredRequests = filteredRequests.filter((request: API.TradingHistory) => 
             request.listingItemName.toLowerCase().includes(searchValue.toLowerCase()) ||
             request.requesterName.toLowerCase().includes(searchValue.toLowerCase())
           );
@@ -330,7 +320,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({
         let ongoingTradesData = response.value.data.result || response.value.data || [];
         
         if (searchValue?.trim()) {
-          ongoingTradesData = ongoingTradesData.filter((request: TradingHistory) => 
+          ongoingTradesData = ongoingTradesData.filter((request: API.TradingHistory) => 
             request.listingItemName.toLowerCase().includes(searchValue.toLowerCase()) ||
             request.requesterName.toLowerCase().includes(searchValue.toLowerCase())
           );
@@ -368,7 +358,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({
         let historyData = response.value.data.result || response.value.data || [];
         
         if (searchValue?.trim()) {
-          historyData = historyData.filter((item: TradingHistory) => 
+          historyData = historyData.filter((item: API.TradingHistory) => 
             item.listingItemName.toLowerCase().includes(searchValue.toLowerCase()) ||
             item.requesterName.toLowerCase().includes(searchValue.toLowerCase()) ||
             item.offeredItemName.toLowerCase().includes(searchValue.toLowerCase())
@@ -680,6 +670,11 @@ const Marketplace: React.FC<MarketplaceProps> = ({
     setIsGuideDialogOpen(true);
   }, []);
 
+  const handleOpenChat = useCallback((targetUserId: string) => {
+  setChatTargetUserId(targetUserId);
+  setShowChat(true);
+}, []);
+
   // Determine which section we're in
   const isSellingSection = activeSection === 'selling';
   const isBuyingSection = activeSection === 'buying';
@@ -724,13 +719,14 @@ const Marketplace: React.FC<MarketplaceProps> = ({
       {/* Regular product detail */}
       {selectedProduct && !isSellingSection && !isBuyingSection && !isTradingSection && !isHistorySection && (
         <ProductMarketplaceDetail
-          product={selectedProductDetail || selectedProduct}
+          product={selectedProduct}
           onClose={handleCloseDetail}
           isLiked={likedItems.has(selectedProduct.inventoryId)}
           onToggleLike={() => toggleLike(selectedProduct.inventoryId)}
           isLoading={isDetailLoading}
           onCreateTradeRequest={handleCreateTradeRequest}
           isCreatingTradeRequest={isCreatingTradeRequest}
+          onOpenChat={handleOpenChat}
         />
       )}
 
@@ -847,6 +843,14 @@ const Marketplace: React.FC<MarketplaceProps> = ({
           onClose={handleCloseDetail}
           isLoading={isHistoryLoading}
           isHistoryView={true}
+        />
+      )}
+      {/* Chat Component - quản lý bởi Marketplace */}
+      {showChat && (
+        <CustomerSellerChat 
+          isOpen={showChat}
+          onClose={() => setShowChat(false)}
+          targetUserId={chatTargetUserId}
         />
       )}
     </>

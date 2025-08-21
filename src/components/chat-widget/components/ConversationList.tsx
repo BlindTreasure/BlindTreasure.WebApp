@@ -1,4 +1,4 @@
-import { Search, X, Loader2 } from "lucide-react";
+import { Search, X, Loader2, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,9 +8,10 @@ type ChatConversation = {
   otherUserName: string;
   otherUserAvatar: string;
   lastMessage: string;
-  lastMessageTime: string;
+  lastMessageTime: string | null;
   unreadCount: number;
   isOnline: boolean;
+  isSeller: boolean;
 }
 
 interface ConversationListProps {
@@ -122,9 +123,14 @@ export default function ConversationList({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-sm truncate text-gray-900">
-                      {conversation.otherUserName || 'Unknown User'}
-                    </h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-medium text-sm truncate text-gray-900">
+                        {conversation.otherUserName || 'Unknown User'}
+                      </h4>
+                      {conversation.isSeller && (
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      )}
+                    </div>
                     <span className="text-xs text-gray-500 flex-shrink-0">
                       {conversation.lastMessageTime || ''}
                     </span>

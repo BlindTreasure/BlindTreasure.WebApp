@@ -28,9 +28,10 @@ declare namespace API {
     otherUserName: string;
     otherUserAvatar: string;
     lastMessage: string;
-    lastMessageTime: string;
+    lastMessageTime: string | null;
     unreadCount: number;
     isOnline: boolean;
+    isSeller: boolean;
   }
 
   type ChatHistoryDetail = {

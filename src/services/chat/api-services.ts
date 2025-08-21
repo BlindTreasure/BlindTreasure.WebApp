@@ -99,3 +99,13 @@ export const sendInventoryItem = async (
   );
   return response.data;
 };
+
+export const getNewConversation = async (receiverId: string): Promise<TResponseData<API.ChatConversation>> => {
+  const response = await request<TResponseData<API.ChatConversation>>(
+    API_ENDPOINTS.CHAT_NEW_CONVERSATIONS(receiverId),
+    {
+      method: "GET",
+    }
+  );
+  return response.data;
+};
