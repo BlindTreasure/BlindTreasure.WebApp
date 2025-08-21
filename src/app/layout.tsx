@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Poppins, Roboto} from "next/font/google";
+import { Inter, Poppins, Roboto } from "next/font/google";
 import "./globals.css";
 import Provider from "@/provider";
 import { Toaster } from "sonner";
@@ -29,7 +29,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} ${poppins.className} ${roboto.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link href="https://fonts.googleapis.com/css2?family=Anton&family=Pacifico&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
+      </head>
+      <body className={roboto.className}>
         <Toaster
           position="top-center"
           richColors

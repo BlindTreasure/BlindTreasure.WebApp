@@ -212,38 +212,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         </p>
                       </div>
                       <p>Mô tả: <span className='text-gray-600 text-sm line-clamp-2'>{product.description}</span></p>
-
-                      <div className="flex items-center gap-4 mt-6">
-                        <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
-                          <button
-                            onClick={handleDecrease}
-                            className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center"
-                          >
-                            −
-                          </button>
-                          <input
-                            type="text"
-                            value={quantity}
-                            readOnly
-                            className="w-12 h-9 text-center"
-                          />
-                          <button
-                            onClick={handleIncrease}
-                            className="w-10 h-10 bg-[#252424] text-white text-xl flex items-center justify-center"
-                          >
-                            +
-                          </button>
-                        </div>
-
-                        <Button
-                          className="py-5"
-                          onClick={() => handleAddToCart(quantity)}
-                          disabled={isAddingToCart}
-                        >
-                          {isAddingToCart ? "Đang thêm..." : "Mua ngay"}
-                        </Button>
-                      </div>
-
                     </div>
                   </div>
                 </div>
