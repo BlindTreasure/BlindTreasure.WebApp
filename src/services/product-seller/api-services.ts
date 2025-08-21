@@ -1,6 +1,6 @@
 import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/product-seller/api-path";
-import { GetProduct, Product, TProductResponse, UpdateInfor } from "./typings";
+import { GetOrderParams, GetProduct, OrderResponse, Product, TProductResponse, UpdateInfor } from "./typings";
 
 export const getAllProductSeller = async ({
   search,
@@ -78,6 +78,17 @@ export const updateImageProduct = async (productId: string, body: FormData) => {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+    }
+  );
+  return response.data;
+};
+
+export const getOrderBySeller = async (params?: GetOrderParams) => {
+  const response = await request<TResponseData<OrderResponse>>(
+    API_ENDPOINTS.ORDER_SELLER,
+    {
+      method: "GET",
+      params,
     }
   );
   return response.data;

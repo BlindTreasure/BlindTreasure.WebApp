@@ -76,7 +76,7 @@ const sidebarItems = [
   {
     label: "Đơn hàng",
     icon: ListOrdered,
-    href: "/seller/orders",
+    href: "/seller/order-history",
   },
 ];
 
