@@ -29,7 +29,7 @@ interface MyTradeRequestDetailProps {
   tradeRequest: API.TradeRequest | HistoryItem;
   onClose: () => void;
   isLoading?: boolean;
-  isHistoryView?: boolean; // New prop to indicate if this is a history view
+  isHistoryView?: boolean;
 }
 
 

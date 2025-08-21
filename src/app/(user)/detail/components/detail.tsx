@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Thumbs, Navigation } from 'swiper/modules';
 import 'swiper/css';
@@ -20,6 +20,7 @@ import "photoswipe/style.css";
 import { BlindboxStatus, StockStatus, stockStatusMap } from '@/const/products';
 import useGetAllProductWeb from '../../allproduct/hooks/useGetAllProductWeb';
 import ProductCard from '@/components/product-card';
+import CustomerSellerChat from '@/components/chat-widget';
 import { getRibbonTypes } from '@/utils/getRibbonTypes';
 import { useRouter } from 'next/navigation';
 import useGetSellerById from "../hooks/useGetSellerById";
@@ -44,6 +45,8 @@ export default function Detail({ detailId }: DetailProps) {
     const [sellerInfo, setSellerInfo] = useState<API.SellerById | null>(null);
     const [sellerProducts, setSellerProducts] = useState<AllProduct[]>([]);
     const [sellerBlindboxes, setSellerBlindboxes] = useState<BlindBox[]>([]);
+    const [showChat, setShowChat] = useState(false);
+    const [chatTargetUserId, setChatTargetUserId] = useState<string>('');
     const router = useRouter();
     const { addProductToCartApi, isPending: isAddingToCart } = useAddProductToCart();
     const { getAllProductWebApi, isPending: isProduct } = useGetAllProductWeb();
@@ -138,8 +141,6 @@ export default function Detail({ detailId }: DetailProps) {
         fetchRelatedProducts();
     }, [products]);
 
-
-
     const handleDecrease = () => {
         if (quantity > 1) setQuantity(quantity - 1);
     };
@@ -198,6 +199,11 @@ export default function Detail({ detailId }: DetailProps) {
             // Hiển thị thông báo lỗi
         }
     };
+
+    const handleOpenChat = useCallback((targetUserId: string) => {
+      setChatTargetUserId(targetUserId);
+      setShowChat(true);
+    }, []);
 
     const images = products?.imageUrls?.length ? products.imageUrls : [];
 
@@ -348,7 +354,10 @@ export default function Detail({ detailId }: DetailProps) {
                                 {sellerInfo?.companyName || sellerInfo?.fullName || "Cửa hàng"}
                             </p>
                             <div className="flex flex-row gap-2">
-                                <button className="flex items-center gap-2 bg-red-500 text-white px-2 md:px-4 py-2 rounded hover:bg-red-600 transition text-sm">
+                                <button
+                                    onClick={() => handleOpenChat(sellerInfo?.userId || '')}
+                                    className="flex items-center gap-2 bg-red-500 text-white px-2 md:px-4 py-2 rounded hover:bg-red-600 transition text-sm"
+                                >
                                     <TbMessageDots className="text-xl" />
                                     Chat ngay
                                 </button>
@@ -440,6 +449,14 @@ export default function Detail({ detailId }: DetailProps) {
                 </div>
             )}
             <Backdrop open={isPending || isAddingToCart || loadingPage} />
+            {/* Chat Component */}
+            {showChat && (
+                <CustomerSellerChat 
+                    isOpen={showChat}
+                    onClose={() => setShowChat(false)}
+                    targetUserId={chatTargetUserId}
+                />
+            )}
         </div>
     );
 }

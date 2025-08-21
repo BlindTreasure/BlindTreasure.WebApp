@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Basic from '@/components/tabs-seller/Basic';
-import { TabWrapper } from '@/components/tabs-seller/TabWrapper';
 import Detail from '@/components/tabs-seller/Detail';
 import { Button } from '@/components/ui/button';
 import { Backdrop } from '@/components/backdrop';
@@ -18,8 +17,6 @@ interface ProductFormProps {
   isPending: boolean;
   showImageField?: boolean;
 }
-
-const TABS = ['Thông tin cơ bản', 'Thông tin chi tiết'];
 
 export default function ProductForm({ defaultValues, onSubmit, isPending, showImageField = true }: ProductFormProps) {
   const {
@@ -42,17 +39,9 @@ export default function ProductForm({ defaultValues, onSubmit, isPending, showIm
     }
   }, [defaultValues, reset, isInitialized]);
 
-  const [currentTab, setCurrentTab] = useState(TABS[0]);
   const [categories, setCategories] = useState<API.ResponseDataCategory>();
   const { getCategoryApi } = useGetCategory();
   const [clearSignal, setClearSignal] = useState(0);
-
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>(
-    TABS.reduce((acc, tab) => {
-      acc[tab] = null;
-      return acc;
-    }, {} as Record<string, HTMLElement | null>)
-  );
 
   useEffect(() => {
     (async () => {
@@ -62,14 +51,6 @@ export default function ProductForm({ defaultValues, onSubmit, isPending, showIm
       }
     })();
   }, []);
-
-  const handleClickTab = (tab: string) => {
-    setCurrentTab(tab);
-    const section = sectionRefs.current[tab];
-    if (section) {
-      section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  };
 
   const clearImages = () => {
     setClearSignal(prev => prev + 1);
@@ -85,18 +66,10 @@ export default function ProductForm({ defaultValues, onSubmit, isPending, showIm
 
   return (
     <div className="p-6 space-y-8">
-      <div className="sticky top-0 bg-white z-50 border-b border-gray-200">
-        <TabWrapper tabs={TABS} currentTab={currentTab} onClickTab={handleClickTab} />
-      </div>
       <form onSubmit={handleSubmit(handleSubmitForm)}>
         <div className="space-y-8">
-          <section
-            ref={(el) => {
-              sectionRefs.current['Thông tin cơ bản'] = el;
-            }}
-            id="Thông tin cơ bản"
-            className="bg-white rounded-lg shadow-md p-6 dark:bg-gray-900"
-          >
+          {/* Thông tin cơ bản */}
+          <section className="bg-white rounded-lg shadow-md p-6 dark:bg-gray-900">
             <h2 className="text-xl font-semibold mb-4">Thông tin cơ bản</h2>
             <Basic
               register={register}
@@ -109,13 +82,8 @@ export default function ProductForm({ defaultValues, onSubmit, isPending, showIm
             />
           </section>
 
-          <section
-            ref={(el) => {
-              sectionRefs.current['Thông tin chi tiết'] = el;
-            }}
-            id="Thông tin chi tiết"
-            className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6"
-          >
+          {/* Thông tin chi tiết */}
+          <section className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold mb-4">Thông tin chi tiết</h2>
             <Detail
               categories={categories}

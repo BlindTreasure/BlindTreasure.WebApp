@@ -9,6 +9,7 @@ import Pagination from "@/components/pagination";
 import { useWishlistContext } from "@/contexts/WishlistContext";
 import ProductFilterSidebar from "@/components/product-filter-sidebar";
 import useGetCategory from "@/app/staff/category-management/hooks/useGetCategory";
+import useAddBlindboxToCart from '@/app/(user)/detail-blindbox/hooks/useAddBlindboxToCart'
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import {
   setCategoryId,
@@ -47,6 +48,7 @@ export default function AllBlindBoxes() {
   const [categories, setCategories] = useState<API.ResponseDataCategory>();
   const { getAllBlindBoxesApi, isPending: isPendingBlindbox } = useGetAllBlindBoxes();
   const { getCategoryApi } = useGetCategory();
+  const { isPending: isPendingBlindboxCart, addBlindboxToCartApi } = useAddBlindboxToCart();
   const router = useRouter();
 
   const [blindBoxParams, setBlindBoxParams] = useState<GetBlindBoxes>({
@@ -170,6 +172,10 @@ export default function AllBlindBoxes() {
     setBlindBoxParams(prev => ({ ...prev, pageIndex: 1 }));
   };
 
+  const handleAddBlindboxToCart = async (blindBoxId: string, quantity: number = 1) => {
+    await addBlindboxToCartApi({ blindBoxId, quantity });
+  };
+
   // Filter blindboxes that have items
   const filteredBlindboxes = blindboxes?.result.filter((b) => b.items && b.items.length > 0) ?? [];
 
@@ -243,6 +249,7 @@ export default function AllBlindBoxes() {
                   blindbox={box}
                   ribbonTypes={["blindbox"]}
                   onViewDetail={(id) => router.push(`/detail-blindbox/${id}`)}
+                  onAddToCart={handleAddBlindboxToCart}
                   initialIsInWishlist={wishlistStatus.isInWishlist}
                   initialWishlistId={wishlistStatus.wishlistId}
                   onWishlistChange={refreshWishlistStatus}

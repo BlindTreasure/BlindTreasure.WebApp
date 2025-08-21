@@ -12,6 +12,8 @@ import { BlindboxStatus, ProductSortBy } from "@/const/products";
 import Pagination from "@/components/pagination";
 import { getRibbonTypes } from "@/utils/getRibbonTypes";
 import { useWishlistContext } from "@/contexts/WishlistContext";
+import useAddProductToCart from '@/app/(user)/detail/hooks/useAddProductToCart'
+import useAddBlindboxToCart from '@/app/(user)/detail-blindbox/hooks/useAddBlindboxToCart'
 
 export default function AllNewProducts() {
     const [products, setProducts] = useState<TAllProductResponse>();
@@ -20,6 +22,8 @@ export default function AllNewProducts() {
     const { getAllBlindBoxesApi, isPending: isPendingBlindbox } = useGetAllBlindBoxes();
     const [loadingPage, setLoadingPage] = useState(false);
     const { getItemWishlistStatus, refreshWishlistStatus } = useWishlistContext();
+    const { isPending: isPendingProductCart, addProductToCartApi } = useAddProductToCart();
+    const { isPending: isPendingBlindboxCart, addBlindboxToCartApi } = useAddBlindboxToCart();
     const [params] = useState<GetAllProducts>({
         pageIndex: 1,
         pageSize: 40,
@@ -104,6 +108,15 @@ export default function AllNewProducts() {
         router.push(`/detail/${id}`);
     };
 
+    const handleAddProductToCart = async (productId: string, quantity: number = 1) => {
+        await addProductToCartApi({ productId, quantity });
+    };
+
+    // Handler for adding blindbox to cart
+    const handleAddBlindboxToCart = async (blindBoxId: string, quantity: number = 1) => {
+        await addBlindboxToCartApi({ blindBoxId, quantity });
+    };
+
     return (
         <div className="container mx-auto py-10">
             <h1 className="text-3xl font-bold mb-6 text-center mt-40">
@@ -122,6 +135,7 @@ export default function AllNewProducts() {
                             product={item}
                             ribbonTypes={ribbonTypes}
                             onViewDetail={handleViewDetail}
+                            onAddToCart={handleAddProductToCart}
                             initialIsInWishlist={wishlistStatus.isInWishlist}
                             initialWishlistId={wishlistStatus.wishlistId}
                             onWishlistChange={refreshWishlistStatus}
@@ -132,6 +146,7 @@ export default function AllNewProducts() {
                             blindbox={item}
                             ribbonTypes={ribbonTypes}
                             onViewDetail={handleViewBlindboxDetail}
+                            onAddToCart={handleAddBlindboxToCart}
                             initialIsInWishlist={wishlistStatus.isInWishlist}
                             initialWishlistId={wishlistStatus.wishlistId}
                             onWishlistChange={refreshWishlistStatus}

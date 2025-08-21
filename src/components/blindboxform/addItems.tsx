@@ -7,21 +7,26 @@ import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { BlindBox, BlindBoxItemRequest } from "@/services/blindboxes/typings";
-
-import { AlertCircleIcon, CheckCircle2Icon, PopcornIcon } from "lucide-react"
-
+import { AlertCircleIcon, CheckCircle2Icon, PopcornIcon, X, Check } from "lucide-react"
 import {
     Alert,
     AlertDescription,
     AlertTitle,
 } from "@/components/ui/alert"
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { Product } from "@/services/product-seller/typings";
 
 type BlindboxOption = Pick<BlindBox, "id" | "name" | "hasSecretItem" | "secretProbability" | "categoryId">;
 
-type ProductOption = Pick<Product, "id" | "name" | "productType" | "categoryId">;
+type ProductOption = Pick<Product, "id" | "name" | "productType" | "categoryId" | "imageUrls">;
 
 type Props = {
     mode?: "create" | "edit";
@@ -50,6 +55,170 @@ type Props = {
     selectKey: number;
 };
 
+// Product Selection Modal Component
+const ProductSelectionModal = ({ 
+    products, 
+    selectedProductId, 
+    onSelectProduct, 
+    isOpen, 
+    onOpenChange 
+}: {
+    products: ProductOption[];
+    selectedProductId?: string;
+    onSelectProduct: (productId: string) => void;
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+}) => {
+    const [searchTerm, setSearchTerm] = useState("");
+    
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const handleSelectProduct = (productId: string) => {
+        onSelectProduct(productId);
+        onOpenChange(false);
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                <DialogHeader>
+                    <DialogTitle>Chọn sản phẩm</DialogTitle>
+                </DialogHeader>
+                
+                <div className="mb-4">
+                    <Input
+                        placeholder="Tìm kiếm sản phẩm..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full"
+                    />
+                </div>
+
+                <div className="flex-1 overflow-y-auto">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {filteredProducts.map((product) => (
+                            <div
+                                key={product.id}
+                                className={`relative border p-3 cursor-pointer transition-all hover:shadow-md ${
+                                    selectedProductId === product.id
+                                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                                        : 'border-gray-200 hover:border-gray-300'
+                                }`}
+                                onClick={() => handleSelectProduct(product.id)}
+                            >
+                                {selectedProductId === product.id && (
+                                    <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
+                                        <Check className="w-3 h-3" />
+                                    </div>
+                                )}
+                                
+                                <div className="aspect-square mb-2 overflow-hidden bg-gray-100">
+                                    {product.imageUrls && product.imageUrls.length > 0 ? (
+                                        <img
+                                            src={product.imageUrls[0]}
+                                            alt={product.name}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.currentTarget.src = '/placeholder-product.jpg';
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                            <PopcornIcon className="w-8 h-8" />
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div>
+                                    <h4 className="font-medium text-sm line-clamp-2">
+                                        {product.name}
+                                    </h4>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {filteredProducts.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                            <PopcornIcon className="w-12 h-12 mb-4" />
+                            <p>Không tìm thấy sản phẩm nào</p>
+                        </div>
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+// Selected Product Display Component
+const SelectedProductDisplay = ({ 
+    product, 
+    onClear, 
+    onClick 
+}: { 
+    product?: ProductOption; 
+    onClear: () => void;
+    onClick: () => void;
+}) => {
+    if (!product) {
+        return (
+            <div 
+                className="border-2 border-dashed border-gray-300 p-4 cursor-pointer hover:border-gray-400 transition-colors"
+                onClick={onClick}
+            >
+                <div className="flex flex-col items-center justify-center text-gray-500">
+                    <PopcornIcon className="w-8 h-8 mb-2" />
+                    <span className="text-sm">Chọn sản phẩm</span>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div 
+            className="relative border border-gray-200 p-3 cursor-pointer hover:shadow-md transition-all group"
+            onClick={onClick}
+        >
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onClear();
+                }}
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            >
+                <X className="w-3 h-3" />
+            </button>
+            
+            <div className="flex items-center justify-center gap-3">
+                <div className="w-16 h-16 overflow-hidden bg-gray-100 flex-shrink-0">
+                    {product.imageUrls && product.imageUrls.length > 0 ? (
+                        <img
+                            src={product.imageUrls[0]}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                e.currentTarget.src = '/placeholder-product.jpg';
+                            }}
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <PopcornIcon className="w-4 h-4" />
+                        </div>
+                    )}
+                </div>
+                
+                <div className="flex-1 min-w-0 text-center">
+                    <h4 className="font-medium text-sm line-clamp-2">
+                        {product.name}
+                    </h4>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export const AddItemToBlindboxForm = ({
     blindboxes,
@@ -78,6 +247,7 @@ export const AddItemToBlindboxForm = ({
 }: Props) => {
 
     const [filteredProducts, setFilteredProducts] = useState<ProductOption[]>([]);
+    const [productModalStates, setProductModalStates] = useState<Record<number, boolean>>({});
 
     const handleBlindboxChange = (boxId: string) => {
         setSelectedBoxId(boxId);
@@ -95,6 +265,25 @@ export const AddItemToBlindboxForm = ({
         );
 
         setFilteredProducts(matchingProducts ?? []);
+    };
+
+    const handleProductModalToggle = (index: number, isOpen: boolean) => {
+        setProductModalStates(prev => ({
+            ...prev,
+            [index]: isOpen
+        }));
+    };
+
+    const handleProductSelect = (index: number, productId: string) => {
+        handleItemChange(index, "productId", productId);
+    };
+
+    const handleProductClear = (index: number) => {
+        handleItemChange(index, "productId", "");
+    };
+
+    const getSelectedProduct = (productId: string): ProductOption | undefined => {
+        return filteredProducts.find(p => p.id === productId);
     };
 
     return (
@@ -131,7 +320,6 @@ export const AddItemToBlindboxForm = ({
                         onTotalItemsChange(numberValue);
                     }}
                 >
-
                     <SelectTrigger className="w-40">
                         <SelectValue placeholder="Chọn số lượng" />
                     </SelectTrigger>
@@ -206,7 +394,6 @@ export const AddItemToBlindboxForm = ({
                     );
                 })}
 
-
                 {/* Total percentage validation */}
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                     <div className="flex justify-between items-center">
@@ -256,40 +443,31 @@ export const AddItemToBlindboxForm = ({
             {items.map((item, index) => (
                 <div
                     key={index}
-                    className="grid grid-cols-6 gap-4 items-end mb-4 border-b pb-4"
+                    className="grid grid-cols-6 gap-4 items-center mb-4 border-b pb-4"
                 >
                     <div>
-                        <Label>Chọn sản phẩm</Label>
-                        <Select
-                            value={item.productId}
-                            onValueChange={(value) => handleItemChange(index, "productId", value)}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Chọn sản phẩm" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {filteredProducts.map(product => (
-                                    <SelectItem key={product.id} value={product.id}>
-                                        {product.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <Label className="mb-2 block text-center">Chọn sản phẩm</Label>
+                        <SelectedProductDisplay
+                            product={getSelectedProduct(item.productId)}
+                            onClear={() => handleProductClear(index)}
+                            onClick={() => handleProductModalToggle(index, true)}
+                        />
                     </div>
 
                     <div>
-                        <Label>Số lượng</Label>
+                        <Label className="mb-2 block text-center">Số lượng</Label>
                         <Input
                             type="text"
                             inputMode="numeric"
                             value={item.quantity?.toString() ?? ""}
                             onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
                             onWheel={(e) => e.currentTarget.blur()}
+                            className="w-full text-center"
                         />
                     </div>
 
                     <div>
-                        <Label>Độ hiếm</Label>
+                        <Label className="mb-2 block text-center">Độ hiếm</Label>
                         <Select
                             value={item.rarity}
                             onValueChange={(value) => handleRarityChange(index, value as Rarity)}
@@ -322,7 +500,7 @@ export const AddItemToBlindboxForm = ({
                     </div>
 
                     <div>
-                        <Label>Trọng số</Label>
+                        <Label className="mb-2 block text-center">Trọng số</Label>
                         <Input
                             type="number"
                             min={1}
@@ -334,11 +512,11 @@ export const AddItemToBlindboxForm = ({
                             }}
                             onWheel={(e) => e.currentTarget.blur()}
                             placeholder="Nhập trọng số"
-                            className="w-full"
+                            className="w-full text-center"
                         />
                     </div>
 
-                    <div>
+                    <div className="flex items-center justify-center">
                         <Button
                             type="button"
                             variant="outline"
@@ -391,7 +569,7 @@ export const AddItemToBlindboxForm = ({
                     Thêm sản phẩm vào túi
                 </Button>
             </div>
-            {error && (
+            {error && ( 
                 <Alert variant="destructive" className="mb-4">
                     <ExclamationTriangleIcon className="h-4 w-4" />
                     <AlertTitle>Lỗi</AlertTitle>

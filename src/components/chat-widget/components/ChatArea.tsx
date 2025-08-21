@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef } from "react";
 import ChatMessage from "./ChatMessage";
@@ -12,11 +12,12 @@ interface ChatAreaProps {
     otherUserName?: string;
     otherUserAvatar?: string;
     lastMessage?: string;
-    lastMessageTime?: string;
+    lastMessageTime?: string | null;
     unreadCount?: number;
     isOnline?: boolean;
     isTyping?: boolean;
     lastSeen?: string;
+    isSeller: boolean
   };
   messages: API.ChatHistoryDetail[];
   messageInput: string;
@@ -143,6 +144,9 @@ export default function ChatArea({
     return 'text-gray-500';
   };
 
+  // Check if this is a new conversation (no previous messages)
+  const isNewConversation = selectedConversationInfo?.lastMessageTime === null && (!messages || messages.length === 0);
+
   return (
     <div className={`flex-1 flex flex-col ${!selectedConversation ? 'hidden md:flex' : ''}`}>
       {/* Header */}
@@ -166,8 +170,11 @@ export default function ChatArea({
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
               )}
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h4 className="font-medium">{displayName}</h4>
+              {selectedConversationInfo?.isSeller && (
+                <CheckCircle className="w-4 h-4 text-green-500" />
+              )}
               {statusText && (
                 <p className={`text-xs ${getStatusColor()}`}>
                   {statusText}
@@ -292,8 +299,17 @@ export default function ChatArea({
         {!chatHistoryLoading && (!messages || messages.length === 0) && (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center text-gray-500">
-              <p className="text-sm">Chưa có tin nhắn nào</p>
-              <p className="text-xs mt-1">Gửi tin nhắn đầu tiên để bắt đầu cuộc trò chuyện</p>
+              {isNewConversation ? (
+                <>
+                  <p className="text-sm">Hãy bắt đầu cuộc trò chuyện</p>
+                  <p className="text-xs mt-1">Gửi tin nhắn đầu tiên để bắt đầu trò chuyện với {displayName}</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm">Chưa có tin nhắn nào</p>
+                  <p className="text-xs mt-1">Gửi tin nhắn đầu tiên để bắt đầu cuộc trò chuyện</p>
+                </>
+              )}
             </div>
           </div>
         )}

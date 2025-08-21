@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Heart, Star, MessageCircle, ChevronLeft, ChevronRight, Gift, RefreshCw, Clock, Shield, Loader2, ArrowRightLeft } from 'lucide-react';
 import { API } from "@/services/listing/typings";
 import TradeRequestModal from '@/components/trading/trading-modal';
+import CustomerSellerChat from '@/components/chat-widget';
 import useGetAllAvailableItem from '@/app/(user)/marketplace/create/hooks/useGetAllAvailableItem';
 
 interface ProductDetailProps {
@@ -13,6 +14,7 @@ interface ProductDetailProps {
   isLoading?: boolean;
   onCreateTradeRequest?: (offeredInventoryIds: string[]) => Promise<void>;
   isCreatingTradeRequest?: boolean;
+  onOpenChat: (targetUserId: string) => void;
 }
 
 const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({ 
@@ -22,8 +24,10 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
   onToggleLike,
   isLoading = false,
   onCreateTradeRequest,
-  isCreatingTradeRequest = false
+  isCreatingTradeRequest = false,
+  onOpenChat
 }) => {
+  // Remove local showChat state - not needed anymore
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showTradeModal, setShowTradeModal] = useState(false);
   const [userItems, setUserItems] = useState<API.AvailableItem[]>([]);
@@ -31,6 +35,34 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
     
   // Sử dụng hook để lấy available items
   const { isPending: isLoadingUserItems, getAllAvailableItemApi } = useGetAllAvailableItem();
+
+  // Ngăn scroll body khi detail mở
+  useEffect(() => {
+    // Lưu overflow style hiện tại
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    
+    // Disable scroll trên body
+    document.body.style.overflow = 'hidden';
+    
+    // Cleanup khi unmount
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
+  // Handle ESC key để đóng detail
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [onClose]);
   
   // Fetch user items khi component mount hoặc khi mở trade modal
   useEffect(() => {
@@ -172,6 +204,14 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
     }
   };
 
+  // Handle chat button click - Mở chat và đóng detail
+  const handleChatClick = () => {
+    if (onOpenChat && product.ownerId) {
+      onOpenChat(product.ownerId);
+      onClose();
+    }
+  };
+
   // Determine if any request is in progress
   const isAnyRequestInProgress = isSubmittingFreeRequest || isCreatingTradeRequest;
 
@@ -203,9 +243,21 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex">
+      {/* Backdrop với click outside handler */}
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 z-50 flex"
+        onClick={(e) => {
+          // Chỉ đóng khi click vào backdrop, không phải sidebar
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
+      >
         {/* Sidebar chi tiết sản phẩm */}
-        <div className="w-full max-w-md bg-white ml-auto h-full overflow-y-auto">
+        <div 
+          className="w-full max-w-md bg-white ml-auto h-full overflow-y-auto"
+          onClick={(e) => e.stopPropagation()} // Ngăn event bubbling
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
             <h2 className="text-lg font-semibold text-gray-900">Chi tiết sản phẩm</h2>
@@ -396,6 +448,7 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
               {/* Action Buttons */}
               <div className="space-y-2">
                 <button 
+                  onClick={handleChatClick}
                   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isAnyRequestInProgress}
                 >

@@ -7,7 +7,7 @@ interface ChatMessageProps {
     otherUserName?: string;
     otherUserAvatar?: string;
     lastMessage?: string;
-    lastMessageTime?: string;
+    lastMessageTime?: string | null;
     unreadCount?: number;
     isOnline?: boolean;
     isTyping?: boolean;

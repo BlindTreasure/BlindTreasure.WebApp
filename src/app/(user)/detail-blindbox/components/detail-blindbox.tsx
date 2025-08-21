@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Thumbs, Navigation } from 'swiper/modules';
 import 'swiper/css';
@@ -21,6 +21,7 @@ import LightboxGallery from '@/components/lightbox-gallery';
 import useGetAllBlindBoxes from '@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes';
 import { useRouter } from 'next/navigation';
 import BlindboxCard from '@/components/blindbox-card';
+import CustomerSellerChat from '@/components/chat-widget';
 import { getRibbonTypes } from '@/utils/getRibbonTypes';
 import useGetSellerById from '@/app/(user)/detail/hooks/useGetSellerById';
 import useGetProductByIdWeb from '@/app/(user)/detail/hooks/useGetProductByIdWeb';
@@ -42,6 +43,8 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
     const [sellerInfo, setSellerInfo] = useState<API.SellerById | null>(null);
     const [sellerId, setSellerId] = useState<string | null>(null);
     const [totalProducts, setTotalProducts] = useState<number>(0);
+    const [showChat, setShowChat] = useState(false);
+    const [chatTargetUserId, setChatTargetUserId] = useState<string>('');
     const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(false);
     const { getBlindboxByIdWebApi, isPending } = useGetBlindboxByIdWeb();
     const { getAllBlindBoxesApi } = useGetAllBlindBoxes()
@@ -236,6 +239,10 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
         return release <= today;
     })();
 
+    const handleOpenChat = useCallback((targetUserId: string) => {
+          setChatTargetUserId(targetUserId);
+          setShowChat(true);
+        }, []);
 
     return (
         <div className="p-6 mt-32 sm:px-16">
@@ -397,7 +404,9 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                                 </p>
                             </div>
                             <div className='flex flex-row gap-2'>
-                                <button className="flex items-center gap-2 bg-red-500 text-white px-2 md:px-4 py-2 rounded hover:bg-red-600 transition text-sm">
+                                <button
+                                onClick={() => handleOpenChat(sellerInfo?.userId || '')}
+                                className="flex items-center gap-2 bg-red-500 text-white px-2 md:px-4 py-2 rounded hover:bg-red-600 transition text-sm">
                                     <TbMessageDots className='text-xl' />
                                     Chat ngay
                                 </button>
@@ -525,6 +534,14 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
             )}
 
             <Backdrop open={isPending || isAddingToCart || loadingPage} />
+            {/* Chat Component */}
+            {showChat && (
+            <CustomerSellerChat 
+                isOpen={showChat}
+                onClose={() => setShowChat(false)}
+                targetUserId={chatTargetUserId}
+            />
+            )}
         </div>
     );
 }

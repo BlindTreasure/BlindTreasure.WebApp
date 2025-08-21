@@ -31,6 +31,7 @@ export namespace API {
     description: string;
     status: ListingStatus | string;
     listedAt: string;
+    ownerId: string;
     ownerName: string;
   }
 
