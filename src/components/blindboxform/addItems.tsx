@@ -7,7 +7,7 @@ import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { BlindBox, BlindBoxItemRequest } from "@/services/blindboxes/typings";
-import { AlertCircleIcon, CheckCircle2Icon, PopcornIcon, X, Check } from "lucide-react"
+import { AlertCircleIcon, CheckCircle2Icon, GiftIcon, X, Check } from "lucide-react"
 import {
     Alert,
     AlertDescription,
@@ -126,7 +126,7 @@ const ProductSelectionModal = ({
                                         />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                            <PopcornIcon className="w-8 h-8" />
+                                            <GiftIcon className="w-8 h-8" />
                                         </div>
                                     )}
                                 </div>
@@ -142,7 +142,7 @@ const ProductSelectionModal = ({
                     
                     {filteredProducts.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                            <PopcornIcon className="w-12 h-12 mb-4" />
+                            <GiftIcon className="w-12 h-12 mb-4" />
                             <p>Không tìm thấy sản phẩm nào</p>
                         </div>
                     )}
@@ -169,7 +169,7 @@ const SelectedProductDisplay = ({
                 onClick={onClick}
             >
                 <div className="flex flex-col items-center justify-center text-gray-500">
-                    <PopcornIcon className="w-8 h-8 mb-2" />
+                    <GiftIcon className="w-8 h-8 mb-2" />
                     <span className="text-sm">Chọn sản phẩm</span>
                 </div>
             </div>
@@ -205,7 +205,7 @@ const SelectedProductDisplay = ({
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            <PopcornIcon className="w-4 h-4" />
+                            <GiftIcon className="w-4 h-4" />
                         </div>
                     )}
                 </div>
