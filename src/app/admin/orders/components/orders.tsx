@@ -11,9 +11,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import useGetOrderByAdmin from "../hooks/useGetOrderByAdmin";
 import { GetOrderParams, Order, OrderResponse } from "@/services/admin/typings";
 import { Button } from "@/components/ui/button";
+import useAdminCompleteShipment from "../hooks/useAdminCompleteShipment";
 import { StatusSeller, StatusSellerText } from "@/const/seller";
 
 export default function Orders() {
+    const completeShipmentMutation = useAdminCompleteShipment();
     const [openCustomerDialog, setOpenCustomerDialog] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
     const [openAmountDialog, setOpenAmountDialog] = useState(false);
@@ -39,27 +41,27 @@ export default function Orders() {
         return isEnd ? new Date(d + 'T23:59:59').toISOString() : new Date(d + 'T00:00:00').toISOString();
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const params: GetOrderParams = {
-                pageIndex: paging.pageIndex,
-                pageSize: paging.pageSize,
-                status: status !== "all" ? (status as PaymentStatus) : undefined,
-                placedFrom: toISODate(dateFrom),
-                placedTo: toISODate(dateTo, true),
-                SellerId: sellerId !== "all" ? sellerId : undefined,
-            };
-            const res = await getOrderByAdminApi(params);
-            if (res) {
-                const data: OrderResponse = res.value.data;
-                setOrders(data.result);
-                setPaging((prev) => ({
-                    ...prev,
-                    totalPages: data.totalPages,
-                    totalItems: data.count,
-                }));
-            }
+    const fetchData = async () => {
+        const params: GetOrderParams = {
+            pageIndex: paging.pageIndex,
+            pageSize: paging.pageSize,
+            status: status !== "all" ? (status as PaymentStatus) : undefined,
+            placedFrom: toISODate(dateFrom),
+            placedTo: toISODate(dateTo, true),
+            SellerId: sellerId !== "all" ? sellerId : undefined,
         };
+        const res = await getOrderByAdminApi(params);
+        if (res) {
+            const data: OrderResponse = res.value.data;
+            setOrders(data.result);
+            setPaging((prev) => ({
+                ...prev,
+                totalPages: data.totalPages,
+                totalItems: data.count,
+            }));
+        }
+    };
+    useEffect(() => {
         fetchData();
     }, [paging.pageIndex, paging.pageSize, status, dateFrom, dateTo, sellerId]);
 
@@ -124,6 +126,7 @@ export default function Orders() {
                                     <th className="p-3 border w-40">Người bán</th>
                                     <th className="p-3 border w-32">Tổng tiền</th>
                                     <th className="p-3 border w-32">Ngày đặt</th>
+                                    <th className="p-3 border w-32">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -220,6 +223,24 @@ export default function Orders() {
                                             <td className="p-3 border">
                                                 {new Date(order.placedAt).toLocaleDateString("vi-VN")}
                                             </td>
+                                            <td className="p-3 border">
+                                                {order.details?.map((detail: any) =>
+                                                    detail.status === "DELIVERING" && detail.shipments?.map((shipment: any) => (
+                                                        <Button
+                                                            key={shipment.id}
+                                                            size="sm"
+                                                            variant="outline"
+                                                            disabled={completeShipmentMutation.isPending}
+                                                            onClick={() => completeShipmentMutation.mutate(
+                                                                { shipmentId: shipment.id },
+                                                                { onSuccess: fetchData }
+                                                            )}
+                                                        >
+                                                            Hoàn thành
+                                                        </Button>
+                                                    ))
+                                                )}
+                                            </td>
                                         </tr>
                                     ))
                                 )}
@@ -249,7 +270,7 @@ export default function Orders() {
                             <div><b>Công ty:</b> {selectedSeller.companyName || "-"}</div>
                             <div><b>Số điện thoại:</b> {selectedSeller.phoneNumber || "-"}</div>
                             <div>
-                                <b>Trạng thái:</b>{" "}
+                                <b>Trạng thái:</b>
                                 {selectedSeller.sellerStatus
                                     ? StatusSellerText[selectedSeller.sellerStatus as StatusSeller]
                                     : "-"}
