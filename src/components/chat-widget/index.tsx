@@ -17,6 +17,7 @@ import {
 } from '@/stores/chat-slice';
 import { useSignalRMessages, useChatData, useChatActions } from '@/hooks/chat/useChat';
 import { useChat } from '@/hooks/chat/use-send-message-user';
+import useToast from '@/hooks/use-toast';
 
 export interface CustomerSellerChatProps {
   isOpen?: boolean;
@@ -31,9 +32,31 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [hasShownSelfChatWarning, setHasShownSelfChatWarning] = useState(false);
+  const { addToast } = useToast();
   
-  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const currentUserId = useAppSelector(state => state.userSlice?.user?.userId);
   
+  // Kiểm tra self-chat và ngăn mở chat nếu cần
+  const isSelfChat = useMemo(() => {
+    return targetUserId && currentUserId && targetUserId === currentUserId;
+  }, [targetUserId, currentUserId]);
+  
+  // Reset warning flag khi targetUserId thay đổi hoặc không còn self-chat
+  useEffect(() => {
+    if (!isSelfChat) {
+      setHasShownSelfChatWarning(false);
+    }
+  }, [isSelfChat]);
+  
+  // Logic xử lý isOpen với kiểm tra self-chat
+  const isOpen = useMemo(() => {
+    if (isSelfChat) {
+      return false;
+    }
+    return externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  }, [externalIsOpen, internalIsOpen, isSelfChat]);
+
   const {
     conversations,
     messages,
@@ -48,31 +71,65 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
     loading
   } = useAppSelector(state => state.chatSlide);
 
-  const currentUserId = useAppSelector(state => state.userSlice?.user?.userId);
-
   const { 
     isConnected, 
     userStatuses,
     typingUsers,
     isUserOnline,
-    checkUserOnlineStatus 
+    checkUserOnlineStatus,
+    startTyping,
+    stopTyping,
+    clearTypingForUser
   } = useChat();
 
   useSignalRMessages();
   useChatData(isOpen);
   const chatActions = useChatActions();
 
+  // Effect để check online status khi select conversation
   useEffect(() => {
-    if (!targetUserId || !isOpen || selectedConversation === targetUserId) return;
+    if (!targetUserId || !isOpen || selectedConversation === targetUserId || isSelfChat) return;
 
     const targetConversation = conversations.find(conv => conv.otherUserId === targetUserId);
     
     if (targetConversation) {
       dispatch(setSelectedConversation(targetUserId));
+      // Check online status khi chọn conversation
+      checkUserOnlineStatus(targetUserId);
     } else if (conversations.length > 0) {
       chatActions.handleSelectConversation(targetUserId);
+      // Check online status cho conversation mới
+      checkUserOnlineStatus(targetUserId);
     }
-  }, [targetUserId, isOpen, conversations, selectedConversation, dispatch]);
+  }, [targetUserId, isOpen, conversations, selectedConversation, checkUserOnlineStatus, dispatch, chatActions, isSelfChat]);
+
+  // Effect để check online status cho tất cả conversations khi mở chat
+  useEffect(() => {
+    if (isOpen && conversations.length > 0 && !isSelfChat) {
+      conversations.forEach(conv => {
+        checkUserOnlineStatus(conv.otherUserId);
+      });
+    }
+  }, [isOpen, conversations, checkUserOnlineStatus, isSelfChat]);
+
+  // Effect để check online status khi chọn conversation mới
+  useEffect(() => {
+    if (selectedConversation && isConnected && !isSelfChat) {
+      checkUserOnlineStatus(selectedConversation);
+    }
+  }, [selectedConversation, isConnected, checkUserOnlineStatus, isSelfChat]);
+
+  // Effect để hiện thông báo khi phát hiện self-chat (chỉ hiện 1 lần)
+  useEffect(() => {
+    if (isSelfChat && !hasShownSelfChatWarning && (externalIsOpen || targetUserId)) {
+      addToast({ 
+        description: "Bạn không thể tự nhắn tin cho chính mình được!", 
+        type: "error",
+        duration: 4000 
+      });
+      setHasShownSelfChatWarning(true);
+    }
+  }, [isSelfChat, externalIsOpen, targetUserId, hasShownSelfChatWarning, addToast]);
 
   // Ổn định isUserOnline bằng useCallback
   const stableIsUserOnline = useCallback((userId: string) => {
@@ -80,7 +137,7 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
   }, [userStatuses]);
 
   const selectedConversationInfo = useMemo(() => {
-    if (!selectedConversation) return undefined;
+    if (!selectedConversation || isSelfChat) return undefined;
     
     const baseInfo = conversations.find(conv => conv.otherUserId === selectedConversation);
     if (!baseInfo) return undefined;
@@ -95,13 +152,17 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
     conversations, 
     userStatuses, 
     typingUsers, 
-    stableIsUserOnline
+    stableIsUserOnline,
+    isSelfChat
   ]);
 
   const filteredConversations = useMemo(() => 
     conversations.filter(conv =>
       conv.otherUserName.toLowerCase().includes(searchQuery.toLowerCase())
-    ), [conversations, searchQuery]
+    ).map(conv => ({
+      ...conv,
+      isOnline: stableIsUserOnline(conv.otherUserId)
+    })), [conversations, searchQuery, stableIsUserOnline]
   );
 
   const displayUnreadCount = useMemo(() => {
@@ -109,7 +170,59 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
     return totalUnreadCount > 0 ? totalUnreadCount : conversationUnreadTotal;
   }, [totalUnreadCount, conversations]);
 
-  const handleOpenChat = () => setInternalIsOpen(true);
+  // Enhanced conversation selection handler
+  const handleSelectConversation = useCallback((userId: string) => {
+    if (userId === currentUserId) {
+      addToast({ 
+        description: "Bạn không thể tự nhắn tin cho chính mình được!", 
+        type: "error" 
+      });
+      return;
+    }
+    
+    chatActions.handleSelectConversation(userId);
+    // Check online status khi chọn conversation
+    if (isConnected) {
+      checkUserOnlineStatus(userId);
+    }
+  }, [chatActions, checkUserOnlineStatus, isConnected, currentUserId, addToast]);
+
+  // Typing handlers
+  const handleStartTyping = useCallback(() => {
+    if (selectedConversation && isConnected && !isSelfChat) {
+      startTyping(selectedConversation);
+    }
+  }, [selectedConversation, isConnected, startTyping, isSelfChat]);
+
+  const handleStopTyping = useCallback(() => {
+    if (selectedConversation && isConnected && !isSelfChat) {
+      stopTyping(selectedConversation);
+    }
+  }, [selectedConversation, isConnected, stopTyping, isSelfChat]);
+
+  // Enhanced send message handler
+  const handleSendMessage = useCallback(() => {
+    if (selectedConversation && !isSelfChat) {
+      // Clear typing before sending
+      clearTypingForUser(selectedConversation);
+    }
+    chatActions.handleSendMessage();
+  }, [selectedConversation, clearTypingForUser, chatActions, isSelfChat]);
+
+  const handleOpenChat = () => {
+    if (isSelfChat) {
+      if (!hasShownSelfChatWarning) {
+        addToast({ 
+          description: "Bạn không thể tự nhắn tin cho chính mình được!", 
+          type: "error",
+          duration: 4000 
+        });
+        setHasShownSelfChatWarning(true);
+      }
+      return;
+    }
+    setInternalIsOpen(true);
+  };
   
   const handleCloseChat = () => {
     if (externalOnClose) {
@@ -127,6 +240,11 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
   const handleToggleInventory = () => {
     dispatch(setShowInventory(!showInventory));
   };
+
+  // Không render gì cả nếu là self-chat và đang cố gắng mở
+  if (isSelfChat) {
+    return null;
+  }
 
   if (!isOpen) {
     return (
@@ -160,7 +278,7 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
             searchQuery={searchQuery}
             totalUnread={displayUnreadCount}
             loading={loading.conversations}
-            onSelectConversation={chatActions.handleSelectConversation}
+            onSelectConversation={handleSelectConversation}
             onSearchChange={(query) => dispatch(setSearchQuery(query))}
             onClose={handleCloseChat}
           />
@@ -179,11 +297,13 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
             onBackToList={handleBackToList}
             onClose={handleCloseChat}
             onMessageChange={chatActions.handleInputChange}
-            onSendMessage={chatActions.handleSendMessage}
+            onSendMessage={handleSendMessage}
             onImageSelect={chatActions.handleImageSelect}
             onSendImage={() => selectedImage && chatActions.handleSendImage(selectedImage)}
             onClearImage={chatActions.handleClearImage}
             onToggleInventory={handleToggleInventory}
+            onStartTyping={handleStartTyping}
+            onStopTyping={handleStopTyping}
           />
           {showInventory && (
             <InventoryPanel

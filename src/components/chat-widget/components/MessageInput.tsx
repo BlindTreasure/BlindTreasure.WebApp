@@ -2,7 +2,7 @@ import { Image, Package, Send, Loader2, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 
 interface MessageInputProps {
   messageInput: string;
@@ -10,6 +10,7 @@ interface MessageInputProps {
   showInventory: boolean;
   isSendingImage?: boolean;
   isConnected?: boolean;
+  isChatWithSeller?: boolean;
   onMessageChange: (message: string) => void;
   onKeyPress?: (event: React.KeyboardEvent) => void;
   onSendMessage: () => void;
@@ -27,6 +28,7 @@ export default function MessageInput({
   showInventory,
   isSendingImage = false,
   isConnected = true,
+  isChatWithSeller = false,
   onMessageChange,
   onKeyPress,
   onSendMessage,
@@ -37,26 +39,89 @@ export default function MessageInput({
   onStartTyping,
   onStopTyping
 }: MessageInputProps) {
+  
+  // Typing state management
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const isCurrentlyTyping = useRef(false);
+  const lastTypingTime = useRef<number>(0);
 
-  const handleSend = () => {
+  // Cleanup typing on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      if (isCurrentlyTyping.current && onStopTyping) {
+        onStopTyping();
+      }
+    };
+  }, [onStopTyping]);
+
+  const handleSend = useCallback(() => {
     if (!isConnected) return;
+    
+    // Stop typing when sending message
+    if (isCurrentlyTyping.current && onStopTyping) {
+      onStopTyping();
+      isCurrentlyTyping.current = false;
+    }
+    
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
     
     if (imagePreview) {
       onSendImage();
     } else {
       onSendMessage();
     }
-  };
+  }, [isConnected, imagePreview, onSendImage, onSendMessage, onStopTyping]);
 
-  // Đơn giản hóa - chỉ gọi onMessageChange từ parent, để parent handle typing logic
+  const handleStartTypingDebounced = useCallback(() => {
+    if (!isConnected || !onStartTyping || !onStopTyping) return;
+
+    const now = Date.now();
+    lastTypingTime.current = now;
+
+    // Only start typing if not already typing
+    if (!isCurrentlyTyping.current) {
+      onStartTyping();
+      isCurrentlyTyping.current = true;
+    }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      if (isCurrentlyTyping.current && onStopTyping) {
+        onStopTyping();
+        isCurrentlyTyping.current = false;
+      }
+    }, 2000);
+  }, [isConnected, onStartTyping, onStopTyping]);
+
   const handleInputChange = useCallback((value: string) => {
-    
-    // Chỉ gọi onMessageChange, để parent component handle typing logic
+    // Update message first
     onMessageChange(value);
-  }, [onMessageChange]);
-
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     
+    // Handle typing indicators
+    if (value.trim() && isConnected) {
+      // User is typing
+      handleStartTypingDebounced();
+    } else if (!value.trim() && isCurrentlyTyping.current && onStopTyping) {
+      // User cleared input, stop typing immediately
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      onStopTyping();
+      isCurrentlyTyping.current = false;
+    }
+  }, [onMessageChange, isConnected, handleStartTypingDebounced, onStopTyping]);
+
+  const handleKeyPress = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
     // Call parent handler first if provided
     if (onKeyPress) {
       onKeyPress(event);
@@ -67,7 +132,23 @@ export default function MessageInput({
       event.preventDefault();
       handleSend();
     }
-  };
+    
+    // Handle other keys for typing detection
+    if (event.key !== 'Enter' && event.key !== 'Tab' && isConnected) {
+      handleStartTypingDebounced();
+    }
+  }, [onKeyPress, isSendingImage, isConnected, handleSend, handleStartTypingDebounced]);
+
+  const handleInputBlur = useCallback(() => {
+    // Stop typing when input loses focus
+    if (isCurrentlyTyping.current && onStopTyping) {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      onStopTyping();
+      isCurrentlyTyping.current = false;
+    }
+  }, [onStopTyping]);
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]; 
@@ -178,33 +259,34 @@ export default function MessageInput({
           </TooltipContent>
         </Tooltip>
 
-        {/* Inventory/Product button */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2"
-              disabled={isDisabled}
-              onClick={onToggleInventory}
-            >
-              <Package className={`w-4 h-4 ${isDisabled ? 'text-gray-300' : 'text-gray-500'} ${showInventory ? 'text-blue-500' : ''}`} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            <p>{isConnected ? 'Gửi sản phẩm' : 'Không thể gửi sản phẩm - Mất kết nối'}</p>
-          </TooltipContent>
-        </Tooltip>
+        {/* Inventory/Product button - Ẩn nếu chat với seller */}
+        {!isChatWithSeller && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2"
+                disabled={isDisabled}
+                onClick={onToggleInventory}
+              >
+                <Package className={`w-4 h-4 ${isDisabled ? 'text-gray-300' : 'text-gray-500'} ${showInventory ? 'text-blue-500' : ''}`} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>{isConnected ? 'Gửi sản phẩm' : 'Không thể gửi sản phẩm - Mất kết nối'}</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
         
         {/* Message input */}
         <div className="flex-1 relative">
           <Input
             placeholder={isConnected ? "Nhập nội dung tin nhắn" : "Mất kết nối..."}
             value={messageInput}
-            onChange={(e) => {
-              handleInputChange(e.target.value);
-            }}
+            onChange={(e) => handleInputChange(e.target.value)}
             onKeyDown={handleKeyPress}
+            onBlur={handleInputBlur}
             disabled={isDisabled}
             className="border-orange-200 focus:border-orange-400 focus:ring-orange-200 pr-10 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50"
           />

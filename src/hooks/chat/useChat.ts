@@ -1,5 +1,4 @@
-// hooks/useChatHooks.ts
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/stores/store';
 import { useChat } from '@/hooks/chat/use-send-message-user';
 import { useServiceMarkMessageAsRead } from '@/services/chat/services';
@@ -25,7 +24,8 @@ import {
   setLoading,
   setChatHistoryFetched,
   setInventoryItems,
-  markAsRead
+  markAsRead,
+  clearMessages
 } from '@/stores/chat-slice';
 
 import { 
@@ -51,10 +51,12 @@ export interface ChatActions {
   handleSendImage: (selectedImage: File) => Promise<void>;
   handleSendProduct: (item: InventoryItem) => Promise<void>;
   handleClearImage: () => void;
+  refreshChatHistory: (conversationId: string) => Promise<void>; // NEW
 }
+
 export const useSignalRMessages = (): SignalRMessageHandlers => {
   const dispatch = useAppDispatch();
-  const { selectedConversation } = useAppSelector(state => state.chatSlide);
+  const selectedConversation = useAppSelector(state => state.chatSlide.selectedConversation);
   const currentUserId = useAppSelector(state => state.userSlice?.user?.userId);
   
   const { 
@@ -130,19 +132,21 @@ export const useSignalRMessages = (): SignalRMessageHandlers => {
 };
 
 /**
- * Hook to handle data fetching operations
+ * Hook to handle data fetching operations - FIXED VERSION
  */
 export const useChatData = (isOpen: boolean) => {
   const dispatch = useAppDispatch();
   const { 
     selectedConversation, 
     showInventory, 
-    fetched,
-    conversations
+    fetched
   } = useAppSelector(state => state.chatSlide);
   
+  // Memoize conversations to prevent unnecessary re-renders
+  const conversations = useAppSelector(state => state.chatSlide.conversations);
+  
   const currentUserId = useAppSelector(state => state.userSlice?.user?.userId);
-  const { userStatuses, isUserOnline, isConnected } = useChat();
+  const { userStatuses, isUserOnline, isConnected, checkUserOnlineStatus } = useChat();
   
   const fetchingRefs = useRef({
     conversations: false,
@@ -150,6 +154,10 @@ export const useChatData = (isOpen: boolean) => {
     inventory: false
   });
 
+  // Track previous selected conversation to detect changes
+  const prevSelectedConversation = useRef<string>('');
+
+  // Memoize API hooks to prevent recreation on every render
   const { getChatConversationApi } = useGetChatConversation();
   const { getUnreadCountApi } = useGetUnreadCount();
   const { getChatHistoryDetailApi } = useGetChatHistoryDetail();
@@ -191,32 +199,50 @@ export const useChatData = (isOpen: boolean) => {
     fetchConversations();
   }, [isOpen, fetched.conversations, dispatch, getChatConversationApi, getUnreadCountApi]);
 
+  // Memoize conversation IDs to prevent unnecessary updates
+  const conversationIds = useMemo(() => 
+    conversations.map(conv => conv.otherUserId).join(','), 
+    [conversations]
+  );
+
   // Update conversation online status when user statuses change
   useEffect(() => {
     if (conversations.length > 0 && isConnected) {
       conversations.forEach(conv => {
         const isOnline = isUserOnline(conv.otherUserId);
-        dispatch(updateConversationOnlineStatus({
-          userId: conv.otherUserId,
-          isOnline
-        }));
+        // Only update if the status actually changed
+        if (conv.isOnline !== isOnline) {
+          dispatch(updateConversationOnlineStatus({
+            userId: conv.otherUserId,
+            isOnline
+          }));
+        }
       });
     }
-  }, [userStatuses, isUserOnline, isConnected, conversations, dispatch]);
+  }, [isUserOnline, isConnected, conversationIds, dispatch]);
 
-  // Fetch chat history
+  // FIXED: Enhanced chat history fetching
   useEffect(() => {
-    const fetchChatHistory = async () => {
-      if (!selectedConversation || 
-          fetchingRefs.current.chatHistory[selectedConversation] ||
-          fetched.chatHistory[selectedConversation]) return;
+    const fetchChatHistory = async (conversationId: string, forceRefresh = false) => {
+      const isCurrentlyFetching = fetchingRefs.current.chatHistory[conversationId];
+      const alreadyFetched = fetched.chatHistory[conversationId];
+      
+      // Skip if already fetching, or already fetched and not forcing refresh
+      if (isCurrentlyFetching || (alreadyFetched && !forceRefresh)) {
+        return;
+      }
 
-      fetchingRefs.current.chatHistory[selectedConversation] = true;
+      fetchingRefs.current.chatHistory[conversationId] = true;
       dispatch(setLoading({ type: 'messages', loading: true }));
 
       try {
+        // Clear messages first if this is a conversation switch
+        if (prevSelectedConversation.current !== conversationId) {
+          dispatch(clearMessages());
+        }
+
         const response = await getChatHistoryDetailApi({
-          receiverId: selectedConversation,
+          receiverId: conversationId,
           pageIndex: 1,
           pageSize: CHAT_CONSTANTS.DEFAULT_PAGE_SIZE,
         });
@@ -231,20 +257,37 @@ export const useChatData = (isOpen: boolean) => {
           }));
 
           dispatch(setMessages(transformedMessages));
-          dispatch(setChatHistoryFetched({ conversationId: selectedConversation, fetched: true }));
+          dispatch(setChatHistoryFetched({ conversationId, fetched: true }));
+          
+          // Check online status after loading messages
+          if (isConnected) {
+            await checkUserOnlineStatus(conversationId);
+          }
         }
       } catch (error) {
         console.error('Error fetching chat history:', error);
+        // Reset fetched status on error so user can retry
+        dispatch(setChatHistoryFetched({ conversationId, fetched: false }));
       } finally {
         dispatch(setLoading({ type: 'messages', loading: false }));
-        fetchingRefs.current.chatHistory[selectedConversation] = false;
+        fetchingRefs.current.chatHistory[conversationId] = false;
       }
     };
 
     if (selectedConversation && isOpen) {
-      fetchChatHistory();
+      // Detect conversation change
+      const isConversationChange = prevSelectedConversation.current !== selectedConversation;
+      
+      if (isConversationChange) {
+        // Always fetch when conversation changes
+        fetchChatHistory(selectedConversation, true);
+        prevSelectedConversation.current = selectedConversation;
+      } else if (!fetched.chatHistory[selectedConversation]) {
+        // Fetch if not yet fetched for current conversation
+        fetchChatHistory(selectedConversation, false);
+      }
     }
-  }, [selectedConversation, isOpen, fetched.chatHistory, dispatch, getChatHistoryDetailApi, currentUserId]);
+  }, [selectedConversation, isOpen, fetched.chatHistory, dispatch, getChatHistoryDetailApi, currentUserId, isConnected, checkUserOnlineStatus]);
 
   // Fetch inventory
   useEffect(() => {
@@ -281,11 +324,25 @@ export const useChatData = (isOpen: boolean) => {
     fetchInventory();
   }, [showInventory, fetched.inventory, dispatch, getAllItemInventoryApi]);
 
+  // Memoize interval ref to prevent recreation
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
   // Periodic unread count refresh
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
+    }
 
-    const interval = setInterval(async () => {
+    // Clear existing interval before creating new one
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    intervalRef.current = setInterval(async () => {
       try {
         const response = await getUnreadCountApi();
         if (response?.isSuccess && typeof response.value === 'number') {
@@ -296,16 +353,23 @@ export const useChatData = (isOpen: boolean) => {
       }
     }, CHAT_CONSTANTS.UNREAD_REFRESH_INTERVAL);
 
-    return () => clearInterval(interval);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
   }, [isOpen, getUnreadCountApi, dispatch]);
 };
 
 /**
- * Hook to handle chat actions and interactions
+ * Hook to handle chat actions and interactions - ENHANCED VERSION
  */
 export const useChatActions = (): ChatActions => {
   const dispatch = useAppDispatch();
-  const { conversations, selectedConversation, messageInput } = useAppSelector(state => state.chatSlide);
+  const { selectedConversation, messageInput } = useAppSelector(state => state.chatSlide);
+  const conversations = useAppSelector(state => state.chatSlide.conversations);
+  
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const { 
@@ -314,12 +378,20 @@ export const useChatActions = (): ChatActions => {
     startTyping, 
     stopTyping, 
     clearTypingForUser,
-    isUserOnline 
+    isUserOnline,
+    checkUserOnlineStatus
   } = useChat();
 
-  const markAsReadMutation = useServiceMarkMessageAsRead((fromUserId: string) => {
+  // API hooks
+  const { getChatHistoryDetailApi } = useGetChatHistoryDetail();
+  const currentUserId = useAppSelector(state => state.userSlice?.user?.userId);
+
+  // Memoize the mark as read callback to prevent recreation
+  const handleMarkAsRead = useCallback((fromUserId: string) => {
     dispatch(markAsRead(fromUserId));
-  });
+  }, [dispatch]);
+
+  const markAsReadMutation = useServiceMarkMessageAsRead(handleMarkAsRead);
 
   const { useSendImageUserApi } = useSendImageUser();
   const { useSendInventoryItemUserApi } = useSendInventoryItemUser();
@@ -334,9 +406,43 @@ export const useChatActions = (): ChatActions => {
     };
   }, []);
 
+  // NEW: Refresh chat history function
+  const refreshChatHistory = useCallback(async (conversationId: string) => {
+    if (!conversationId) return;
+    
+    dispatch(setLoading({ type: 'messages', loading: true }));
+    dispatch(clearMessages());
+    
+    try {
+      const response = await getChatHistoryDetailApi({
+        receiverId: conversationId,
+        pageIndex: 1,
+        pageSize: CHAT_CONSTANTS.DEFAULT_PAGE_SIZE,
+      });
+
+      if (response?.isSuccess && response.value) {
+        const transformedMessages = response.value.data.result.map((msg: API.ChatHistoryDetail) => ({
+          ...msg,
+          id: msg.id || `history-${Date.now()}-${Math.random()}`,
+          isCurrentUserSender: currentUserId ? msg.senderId === currentUserId : msg.isCurrentUserSender,
+          isImage: Boolean(msg.isImage),
+          isInventoryItem: Boolean(msg.isInventoryItem)
+        }));
+
+        dispatch(setMessages(transformedMessages));
+        dispatch(setChatHistoryFetched({ conversationId, fetched: true }));
+      }
+    } catch (error) {
+      console.error('Error refreshing chat history:', error);
+    } finally {
+      dispatch(setLoading({ type: 'messages', loading: false }));
+    }
+  }, [dispatch, getChatHistoryDetailApi, currentUserId]);
+
   const handleSelectConversation = useCallback(async (conversationId: string) => {
     const existingConversation = conversations.find(conv => conv.otherUserId === conversationId);
 
+    // Handle new conversation creation
     if (!existingConversation) {
       try {
         const response = await getNewChatConversationApi(conversationId);
@@ -359,13 +465,20 @@ export const useChatActions = (): ChatActions => {
       }
     }
 
+    // Set selected conversation - this will trigger chat history fetch in useChatData
     dispatch(setSelectedConversation(conversationId));
+    
+    // Check online status
+    if (isConnected) {
+      await checkUserOnlineStatus(conversationId);
+    }
 
+    // Mark as read if needed
     const selectedConv = conversations.find(conv => conv.otherUserId === conversationId);
     if (selectedConv && selectedConv?.unreadCount > 0) {
       markAsReadMutation.mutate({ fromUserId: conversationId });
     }
-  }, [conversations, dispatch, getNewChatConversationApi, isUserOnline, markAsReadMutation]);
+  }, [conversations, dispatch, getNewChatConversationApi, isUserOnline, markAsReadMutation, isConnected, checkUserOnlineStatus]);
 
   const handleSendMessage = useCallback(async () => {
     if (!messageInput.trim() || !selectedConversation || !isConnected) return;
@@ -471,5 +584,6 @@ export const useChatActions = (): ChatActions => {
     handleSendImage,
     handleSendProduct,
     handleClearImage,
+    refreshChatHistory,
   };
 };

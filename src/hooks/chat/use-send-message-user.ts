@@ -1,6 +1,5 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { signalRService } from '@/services/signalr/signalr-service';
-import { MessageType } from '@/const/chat'
 
 // User status interfaces
 export interface UserStatus {
