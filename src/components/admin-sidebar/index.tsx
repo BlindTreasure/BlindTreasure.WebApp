@@ -6,6 +6,8 @@ import { useAppSelector, useAppDispatch } from "@/stores/store";
 import { closeSidebar, openSidebar } from "@/stores/difference-slice";
 import { CiAlignLeft } from "react-icons/ci";
 import { BsThreeDots } from "react-icons/bs";
+import { BsCardChecklist } from "react-icons/bs";
+
 export default function AdminSidebar() {
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const [isMobile, setIsMobile] = useState(false);
@@ -113,12 +115,12 @@ export default function AdminSidebar() {
                         </li>
 
                         <li>
-                            <Link href="/admin/transaction" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
+                            <Link href="/admin/orders" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
                                 <div className="flex items-center justify-center w-8 h-8">
-                                    <Building size={20} />
+                                    <BsCardChecklist size={20} />
                                 </div>
                                 <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
-                                    Thống kê giao dịch
+                                    Đơn hàng
                                 </span>
                             </Link>
                         </li>

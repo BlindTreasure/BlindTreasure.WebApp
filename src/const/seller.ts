@@ -23,3 +23,17 @@ export const StatisticRangeText: Record<StatisticRange, string> = {
   [StatisticRange.YEAR]: "Năm",
   [StatisticRange.CUSTOM]: "Tùy chỉnh",
 };
+
+export enum StatusSeller {
+  InfoEmpty = "InfoEmpty",
+  WaitingReview = "WaitingReview",
+  Approved = "Approved",
+  Rejected = "Rejected",
+}
+
+export const StatusSellerText: Record<StatusSeller, string> = {
+  [StatusSeller.InfoEmpty]: "Chưa có thông tin",
+  [StatusSeller.WaitingReview]: "Chờ duyệt",
+  [StatusSeller.Approved]: "Đã duyệt",
+  [StatusSeller.Rejected]: "Bị từ chối",
+};
