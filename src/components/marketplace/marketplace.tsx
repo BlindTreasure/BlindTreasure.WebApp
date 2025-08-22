@@ -1,6 +1,6 @@
 import React from 'react';
-import { Heart, Clock, Gift, RefreshCw, Loader2, ChevronLeft, ChevronRight, CheckCircle, XCircle, Package, History } from 'lucide-react';
-import MarketplaceSidebar from '../marketplace/marketplace-sidebar'; // Import sidebar component
+import { Clock, Gift, RefreshCw, Loader2, ChevronLeft, ChevronRight, CheckCircle, XCircle, Package, History } from 'lucide-react';
+import MarketplaceSidebar from '../marketplace/marketplace-sidebar';
 import {API} from "@/services/listing/typings"
 import { ListingStatus } from "@/const/listing"
 
@@ -13,7 +13,6 @@ interface MarketplaceUIProps {
   onProductClick: (product: API.ListingItem) => void;
   title?: string;
   searchPlaceholder?: string;
-  // New props for compatibility with parent component
   isLoading?: boolean;
   totalItems?: number;
   currentPage?: number;
@@ -223,20 +222,6 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
                   </div>
                 </div>
               </div>
-              
-              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Heart className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Yêu thích</p>
-                    <p className="text-lg font-semibold text-gray-900">
-                      {likedItems.size}
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
@@ -338,25 +323,6 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
                           {statusDisplay.text}
                         </div>
                       </div>
-
-                      {/* Heart button - Hide in transaction history */}
-                      {activeSection !== 'transaction-history' && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleLike(product.inventoryId);
-                          }}
-                          className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-all"
-                        >
-                          <Heart
-                            className={`w-4 h-4 ${
-                              likedItems.has(product.inventoryId)
-                                ? 'text-red-500 fill-red-500'
-                                : 'text-gray-400'
-                            }`}
-                          />
-                        </button>
-                      )}
             
                       {/* Transaction History specific info */}
                       {activeSection === 'transaction-history' && (

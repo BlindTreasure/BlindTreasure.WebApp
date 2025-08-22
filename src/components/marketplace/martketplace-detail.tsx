@@ -1,10 +1,11 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { X, Heart, Star, MessageCircle, ChevronLeft, ChevronRight, Gift, RefreshCw, Clock, Shield, Loader2, ArrowRightLeft } from 'lucide-react';
+import { X, Star, MessageCircle, ChevronLeft, ChevronRight, Gift, RefreshCw, Clock, Shield, Loader2, ArrowRightLeft } from 'lucide-react';
 import { API } from "@/services/listing/typings";
 import TradeRequestModal from '@/components/trading/trading-modal';
 import CustomerSellerChat from '@/components/chat-widget';
 import useGetAllAvailableItem from '@/app/(user)/marketplace/create/hooks/useGetAllAvailableItem';
+import { useAppSelector } from '@/stores/store';
 
 interface ProductDetailProps {
   product: API.ListingItem;
@@ -32,9 +33,14 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
   const [showTradeModal, setShowTradeModal] = useState(false);
   const [userItems, setUserItems] = useState<API.AvailableItem[]>([]);
   const [isSubmittingFreeRequest, setIsSubmittingFreeRequest] = useState(false);
+  
+  const currentUserId = useAppSelector(state => state.userSlice?.user?.userId);
     
   // Sử dụng hook để lấy available items
   const { isPending: isLoadingUserItems, getAllAvailableItemApi } = useGetAllAvailableItem();
+
+  // Kiểm tra xem có phải sản phẩm của chính mình không
+  const isOwnProduct = currentUserId && product.ownerId && currentUserId === product.ownerId;
 
   // Ngăn scroll body khi detail mở
   useEffect(() => {
@@ -326,6 +332,16 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
                       </div>
                     )}
                   </div>
+
+                  {/* Own product indicator */}
+                  {isOwnProduct && (
+                    <div className="absolute top-3 right-3">
+                      <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-lg">
+                        <Star className="w-3 h-3" />
+                        Sản phẩm của bạn
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Thumbnail images */}
@@ -367,17 +383,6 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
             {/* Action buttons và trạng thái */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex gap-1">
-                <button
-                  onClick={onToggleLike}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  disabled={isAnyRequestInProgress}
-                >
-                  <Heart
-                    className={`w-5 h-5 ${
-                      isLiked ? 'text-red-500 fill-red-500' : 'text-gray-400'
-                    }`}
-                  />
-                </button>
               </div>
               
               {/* Trạng thái */}
@@ -436,6 +441,7 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-gray-900">
                       {product.ownerName || 'Người dùng'}
+                      {isOwnProduct && <span className="text-purple-600 text-sm"> (Bạn)</span>}
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 flex items-center gap-1">
@@ -449,24 +455,38 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
               <div className="space-y-2">
                 <button 
                   onClick={handleChatClick}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isAnyRequestInProgress}
+                  disabled={isOwnProduct || isAnyRequestInProgress}
+                  className={`w-full py-3 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 ${
+                    isOwnProduct 
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                  }`}
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Gửi tin nhắn cho {product.ownerName || 'người bán'}
+                  {isOwnProduct 
+                    ? 'Đây là sản phẩm của bạn' 
+                    : `Gửi tin nhắn cho ${product.ownerName || 'người bán'}`
+                  }
                 </button>
                 
                 {/* Trade Request Button */}
                 <button 
                   onClick={handleTradeRequest}
-                  disabled={isAnyRequestInProgress || (isLoadingUserItems && !product.isFree)}
-                  className={`w-full py-3 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                    product.isFree 
-                      ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white'
-                      : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+                  disabled={isOwnProduct || isAnyRequestInProgress || (isLoadingUserItems && !product.isFree)}
+                  className={`w-full py-3 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 ${
+                    isOwnProduct 
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : product.isFree 
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white disabled:opacity-50 disabled:cursor-not-allowed'
                   }`}
                 >
-                  {isAnyRequestInProgress ? (
+                  {isOwnProduct ? (
+                    <>
+                      <Shield className="w-4 h-4" />
+                      Sản phẩm của bạn
+                    </>
+                  ) : isAnyRequestInProgress ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
                       {product.isFree ? 'Đang gửi yêu cầu...' : 'Đang xử lý...'}
@@ -526,6 +546,14 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
                     })}
                   </span>
                 </div>
+                {isOwnProduct && (
+                  <div className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
+                    <span className="text-gray-600">Quyền sở hữu:</span>
+                    <span className="font-medium text-purple-600">
+                      Sản phẩm của bạn
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -533,7 +561,7 @@ const ProductMarketplaceDetail: React.FC<ProductDetailProps> = ({
       </div>
 
       {/* Trade Request Modal */}
-      {showTradeModal && !product.isFree && (
+      {showTradeModal && !product.isFree && !isOwnProduct && (
         <TradeRequestModal
           isOpen={showTradeModal}
           onClose={() => setShowTradeModal(false)}

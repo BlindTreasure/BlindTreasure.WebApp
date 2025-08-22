@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Star, ChevronLeft, ChevronRight, Gift, RefreshCw, Clock, Shield, Loader2, User, MessageCircle, CheckCircle, XCircle, AlertTriangle, Handshake, Eye, Package, Lock, Unlock, History, Calendar } from 'lucide-react';
+import { X, Star,Clock, Shield, Loader2, CheckCircle, XCircle, Handshake, Eye, Package, Lock, History, Calendar } from 'lucide-react';
 import { Progress } from "@/components/ui/progress"
 
 // History item type

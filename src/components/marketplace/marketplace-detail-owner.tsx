@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { X, Star, ChevronLeft, ChevronRight, Gift, RefreshCw, Clock, Shield, Loader2, Trash2, User, MessageCircle, CheckCircle, XCircle, AlertTriangle, Handshake } from 'lucide-react';
+import { X, Star, ChevronLeft, ChevronRight, Gift, RefreshCw, Clock, Shield, Loader2, Trash2, User, MessageCircle, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
 interface MyListingItem {
   id: string;

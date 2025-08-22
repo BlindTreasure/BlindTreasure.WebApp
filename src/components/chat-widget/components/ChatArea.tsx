@@ -64,7 +64,7 @@ export default function ChatArea({
   onStopTyping
 }: ChatAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);  
 
   // Function to scroll to bottom smoothly
   const scrollToBottom = () => {
@@ -73,7 +73,6 @@ export default function ChatArea({
     }
   };
 
-  // Auto scroll when messages change or when typing indicator appears/disappears
   useEffect(() => {
     scrollToBottom();
   }, [messages, selectedConversationInfo?.isTyping, isSendingImage, isSendingProduct, isSendingInventoryItem]);
@@ -325,6 +324,7 @@ export default function ChatArea({
         showInventory={showInventory}
         isSendingImage={isSendingImage}
         isConnected={isConnected}
+        isChatWithSeller={selectedConversationInfo?.isSeller}
         onMessageChange={onMessageChange}
         onSendMessage={onSendMessage}
         onImageSelect={onImageSelect}
