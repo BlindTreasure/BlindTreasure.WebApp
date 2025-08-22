@@ -195,6 +195,8 @@ export default function ProductTable() {
                                 <TableHead className="h-4 w-32">Tên</TableHead>
                                 <TableHead className="h-4 w-20">Giá</TableHead>
                                 <TableHead className="h-4 w-16">Kho</TableHead>
+                                <TableHead className="h-4 w-20">Bán trực tiếp</TableHead>
+                                <TableHead className="h-4 w-24">Trong blindbox</TableHead>
                                 <TableHead className="h-4 w-20">Loại hàng</TableHead>
                                 <TableHead className="h-4 w-20">Trạng thái</TableHead>
                                 <TableHead className="h-4 w-24">Ngày tạo</TableHead>
@@ -208,6 +210,8 @@ export default function ProductTable() {
                                         <TableCell><Skeleton className="w-14 h-14 rounded" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-10" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-10" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-10" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-16" /></TableCell>
@@ -234,6 +238,8 @@ export default function ProductTable() {
                                         <TableCell className="truncate whitespace-nowrap" title={product.name}>{product.name}</TableCell>
                                         <TableCell>{product.realSellingPrice.toLocaleString()}₫</TableCell>
                                         <TableCell>{product.totalStockQuantity}</TableCell>
+                                        <TableCell className="text-center">{product.availableToSell}</TableCell>
+                                        <TableCell className="text-center">{product.reservedInBlindBox}</TableCell>
                                         <TableCell className="max-w-[120px]">
                                             <span
                                                 className={cn(
