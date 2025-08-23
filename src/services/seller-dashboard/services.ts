@@ -54,11 +54,11 @@ export const useServiceGetSellerStatisticsOverview = () => {
       return await getSellerStatisticsOverview(data);
     },
     onSuccess: (data) => {
-      addToast({
-        type: "success",
-        description: data.value.message,
-        duration: 5000,
-      });
+      // addToast({
+      //   type: "success",
+      //   description: data.value.message,
+      //   duration: 5000,
+      // });
     },
   });
 };

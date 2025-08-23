@@ -35,7 +35,8 @@ declare namespace API {
     taxId?: string;
     companyAddress?: string;
     sellerStatus: string;
-    sellerId?: string
+    sellerId?: string;
+    stripeAccountId?: string;
   };
 
   type SellerById = {

@@ -194,7 +194,7 @@ export default function ProductTable() {
                                 <TableHead className="h-4 w-24">Ảnh</TableHead>
                                 <TableHead className="h-4 w-32">Tên</TableHead>
                                 <TableHead className="h-4 w-20">Giá</TableHead>
-                                <TableHead className="h-4 w-16">Kho</TableHead>
+                                <TableHead className="h-4 w-24">Tổng số lượng</TableHead>
                                 <TableHead className="h-4 w-20">Bán trực tiếp</TableHead>
                                 <TableHead className="h-4 w-24">Trong blindbox</TableHead>
                                 <TableHead className="h-4 w-20">Loại hàng</TableHead>
@@ -237,7 +237,7 @@ export default function ProductTable() {
                                         </TableCell>
                                         <TableCell className="truncate whitespace-nowrap" title={product.name}>{product.name}</TableCell>
                                         <TableCell>{product.realSellingPrice.toLocaleString()}₫</TableCell>
-                                        <TableCell>{product.totalStockQuantity}</TableCell>
+                                        <TableCell className="text-center">{product.totalStockQuantity}</TableCell>
                                         <TableCell className="text-center">{product.availableToSell}</TableCell>
                                         <TableCell className="text-center">{product.reservedInBlindBox}</TableCell>
                                         <TableCell className="max-w-[120px]">
