@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Badge from "../ui/badge/Badge";
 import { ArrowDownIcon, ArrowUpIcon, BoxIconLine, GroupIcon } from "@/icons/index";
-import { DollarSign, TrendingUp } from "lucide-react";
+import { DollarSign, TrendingUp, HandCoins } from "lucide-react";
 import { getSellerStatisticsOverview } from "@/services/seller-dashboard/api-services";
 import { StatisticRange } from "@/const/seller";
 import { SellerStatisticsOverview } from "@/services/seller-dashboard/typings";
@@ -60,17 +60,38 @@ export const EcommerceMetrics = () => {
         <div className="flex items-end justify-between mt-5">
           <div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Tổng doanh thu
+              Doanh thu thực tế
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90 text-2xl">
-              {isLoading ? "..." : overviewData ? `${formatNumber(overviewData.totalRevenue)} ₫` : "0 ₫"}
+              {isLoading ? "..." : overviewData ? `${formatNumber(overviewData.actualRevenue)} ₫` : "0 ₫"}
             </h4>
           </div>
-
           {overviewData && (
-            <Badge color={overviewData.revenueGrowthPercent >= 0 ? "success" : "error"}>
-              {overviewData.revenueGrowthPercent >= 0 ? <ArrowUpIcon /> : <ArrowDownIcon />}
-              {formatGrowthPercent(overviewData.revenueGrowthPercent)}%
+            <Badge color={overviewData.actualRevenueGrowthPercent >= 0 ? "success" : "error"}>
+              {overviewData.actualRevenueGrowthPercent >= 0 ? <ArrowUpIcon /> : <ArrowDownIcon />}
+              {formatGrowthPercent(overviewData.actualRevenueGrowthPercent)}%
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-900 dark:bg-gray-900 md:p-6">
+        <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
+          <HandCoins className="text-gray-800 size-6 dark:text-white/90" />
+        </div>
+        <div className="flex items-end justify-between mt-5">
+          <div>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Doanh thu ước tính
+            </span>
+            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90 text-2xl">
+              {isLoading ? "..." : overviewData ? `${formatNumber(overviewData.estimatedRevenue)} ₫` : "0 ₫"}
+            </h4>
+          </div>
+          {overviewData && (
+            <Badge color={overviewData.estimatedRevenueGrowthPercent >= 0 ? "success" : "error"}>
+              {overviewData.estimatedRevenueGrowthPercent >= 0 ? <ArrowUpIcon /> : <ArrowDownIcon />}
+              {formatGrowthPercent(overviewData.estimatedRevenueGrowthPercent)}%
             </Badge>
           )}
         </div>
@@ -78,7 +99,7 @@ export const EcommerceMetrics = () => {
 
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900 md:p-6">
         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-         <TbShoppingCartCheck className="text-gray-800 size-6 dark:text-white/90" />
+          <TbShoppingCartCheck className="text-gray-800 size-6 dark:text-white/90" />
         </div>
         <div className="flex items-end justify-between mt-5">
           <div>

@@ -41,15 +41,24 @@ const StatisticsChart = () => {
     }
   };
 
+  const [startDate, setStartDate] = useState<string | undefined>(undefined);
+  const [endDate, setEndDate] = useState<string | undefined>(undefined);
+
+  const toISODate = (dateStr?: string) => {
+    if (!dateStr) return undefined;
+    if (dateStr.includes('T')) return dateStr;
+    return new Date(dateStr + 'T00:00:00.000Z').toISOString();
+  };
+
   useEffect(() => {
     const fetchStatistics = async () => {
       setIsLoading(true);
       try {
-
         const response = await getSellerStatisticsTimeSeries({
           range: getStatisticRange(range),
+          startDate: toISODate(startDate),
+          endDate: toISODate(endDate),
         });
-
         if (response.value?.data) {
           setStatisticsData(response.value.data);
         } else if (response.value) {
@@ -63,23 +72,62 @@ const StatisticsChart = () => {
         setIsLoading(false);
       }
     };
-
     fetchStatistics();
-  }, [range]);
+  }, [range, startDate, endDate]);
+
+
+  function groupByMonth(data: { categories: string[], sales: number[], actualRevenue: number[] }) {
+    const result = {
+      categories: [] as string[],
+      sales: [] as number[],
+      actualRevenue: [] as number[],
+    };
+    const monthMap: { [month: string]: { sales: number, actualRevenue: number } } = {};
+    const now = new Date();
+    const year = now.getFullYear();
+    data.categories.forEach((date, idx) => {
+      // date: "dd/MM" => MM/YYYY
+      if (!date) return;
+      const [d, m] = date.split("/");
+      if (!m) return;
+      const month = m.padStart(2, '0') + '/' + year;
+      if (!monthMap[month]) monthMap[month] = { sales: 0, actualRevenue: 0 };
+      const saleVal = Number(data.sales[idx]);
+      const revVal = Number(data.actualRevenue[idx]);
+      if (!isNaN(saleVal)) monthMap[month].sales += saleVal;
+      if (!isNaN(revVal)) monthMap[month].actualRevenue += revVal;
+    });
+    const sortedMonths = Object.keys(monthMap).sort((a, b) => {
+      const [ma, ya] = a.split('/').map(Number);
+      const [mb, yb] = b.split('/').map(Number);
+      return ya !== yb ? ya - yb : ma - mb;
+    });
+    sortedMonths.forEach((month) => {
+      result.categories.push(month);
+      result.sales.push(monthMap[month].sales);
+      result.actualRevenue.push(monthMap[month].actualRevenue);
+    });
+    return result;
+  }
 
   const getChartData = () => {
     if (statisticsData) {
       return {
         categories: statisticsData.categories || [],
         sales: statisticsData.sales || [],
-        revenue: statisticsData.revenue || [],
+        actualRevenue: statisticsData.actualRevenue || [],
       };
     }
-
-    return { categories: [], sales: [], revenue: [] };
+    return { categories: [], sales: [], actualRevenue: [] };
   };
 
-  const { categories, sales, revenue } = getChartData();
+  const { categories, sales, actualRevenue } = (() => {
+    let raw = getChartData();
+    if (range === "year" || range === "quarter") {
+      return groupByMonth(raw);
+    }
+    return raw;
+  })();
 
   const options: ApexOptions = {
     chart: {
@@ -118,8 +166,15 @@ const StatisticsChart = () => {
       axisTicks: { show: false },
       tooltip: { enabled: false },
       labels: {
+        rotate: -45,
+        trim: true,
+        maxHeight: 60,
         style: {
           colors: theme === "dark" ? "#9CA3AF" : "#6B7280",
+        },
+        formatter: (val: string) => {
+          if (range === "year" || range === "quarter") return val;
+          return val;
         },
       },
     },
@@ -141,8 +196,8 @@ const StatisticsChart = () => {
   };
 
   const series = [
-    { name: "Sales", data: sales },
-    { name: "Revenue", data: revenue },
+    { name: "Bán", data: sales },
+    { name: "Doanh thu", data: actualRevenue },
   ];
 
   const tabs: { label: string; value: typeof range }[] = [
@@ -155,25 +210,44 @@ const StatisticsChart = () => {
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 px-5 pb-5 pt-5 sm:px-6 sm:pt-6">
+
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Thống kê</h3>
           <p className="text-gray-500 dark:text-gray-400 text-sm">Doanh thu theo từng giai đoạn</p>
         </div>
 
-        <Select value={range} onValueChange={(value) => setRange(value as typeof range)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Chọn khoảng thời gian" />
-          </SelectTrigger>
-          <SelectContent>
-            {tabs.map((tab) => (
-              <SelectItem key={tab.value} value={tab.value}>
-                {tab.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
+        <div className="flex flex-col sm:flex-row gap-2 items-center">
+          <Select value={range} onValueChange={(value) => setRange(value as typeof range)}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Chọn khoảng thời gian" />
+            </SelectTrigger>
+            <SelectContent>
+              {tabs.map((tab) => (
+                <SelectItem key={tab.value} value={tab.value}>
+                  {tab.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <input
+            type="date"
+            className="border rounded px-2 py-1 text-sm"
+            value={startDate ? startDate.slice(0, 10) : ''}
+            onChange={e => setStartDate(e.target.value ? e.target.value : undefined)}
+            placeholder="Từ ngày"
+            style={{ minWidth: 120 }}
+          />
+          <span className="mx-1">-</span>
+          <input
+            type="date"
+            className="border rounded px-2 py-1 text-sm"
+            value={endDate ? endDate.slice(0, 10) : ''}
+            onChange={e => setEndDate(e.target.value ? e.target.value : undefined)}
+            placeholder="Đến ngày"
+            style={{ minWidth: 120 }}
+          />
+        </div>
       </div>
 
       <div className="max-w-full overflow-x-auto">

@@ -29,16 +29,19 @@ export default function MonthlyTarget() {
       try {
         const [monthlyResponse, todayResponse] = await Promise.all([
           getSellerStatistics({ range: StatisticRange.MONTH }),
-          getSellerStatistics({ range: StatisticRange.DAY })
+          getSellerStatistics({ range: StatisticRange.DAY }),
         ]);
 
         setMonthlyData(monthlyResponse);
         setTodayData(todayResponse);
 
         const overview = monthlyResponse?.overview;
-        if (overview?.totalRevenue !== undefined) {
-          const currentRevenue = overview.totalRevenue;
-          const percentage = Math.min((currentRevenue / monthlyTarget) * 100, 100);
+        if (overview?.actualRevenue !== undefined) {
+          const currentRevenue = overview.actualRevenue;
+          const percentage = Math.min(
+            (currentRevenue / monthlyTarget) * 100,
+            100
+          );
           setTargetPercentage(Math.round(percentage * 100) / 100);
         }
       } catch (error) {
@@ -111,14 +114,13 @@ export default function MonthlyTarget() {
     setIsOpen(false);
   }
 
-
   const formatCurrency = (amount: number) => {
     if (amount >= 1000000) {
       return `${(amount / 1000000).toFixed(1)}M ₫`;
     } else if (amount >= 1000) {
       return `${(amount / 1000).toFixed(1)}K ₫`;
     }
-    return `${amount.toLocaleString('vi-VN')} ₫`;
+    return `${amount.toLocaleString("vi-VN")} ₫`;
   };
 
   return (
@@ -181,15 +183,19 @@ export default function MonthlyTarget() {
         <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
           {(() => {
             const overview = monthlyData?.overview;
-            if (overview?.totalRevenue !== undefined) {
+            if (overview?.actualRevenue !== undefined) {
               return (
                 <>
                   Bạn đã đạt được {targetPercentage}% mục tiêu tháng này
-                  {overview.revenueGrowthPercent !== undefined &&
-                    (overview.revenueGrowthPercent > 0
-                      ? `, tăng ${overview.revenueGrowthPercent.toFixed(1)}% so với tháng trước!`
-                      : overview.revenueGrowthPercent < 0
-                        ? `, giảm ${Math.abs(overview.revenueGrowthPercent).toFixed(1)}% so với tháng trước.`
+                  {overview.actualRevenueGrowthPercent !== undefined &&
+                    (overview.actualRevenueGrowthPercent > 0
+                      ? `, tăng ${overview.actualRevenueGrowthPercent.toFixed(
+                        1
+                      )}% so với tháng trước!`
+                      : overview.actualRevenueGrowthPercent < 0
+                        ? `, giảm ${Math.abs(
+                          overview.actualRevenueGrowthPercent
+                        ).toFixed(1)}% so với tháng trước.`
                         : `, không thay đổi so với tháng trước.`)}
                 </>
               );
@@ -202,19 +208,23 @@ export default function MonthlyTarget() {
 
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Mục tiêu tháng</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Mục tiêu tháng
+            </p>
             <p className="text-lg font-semibold text-gray-900 dark:text-white">
               {formatCurrency(monthlyTarget)}
             </p>
           </div>
 
           <div className="text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Doanh thu tháng</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Doanh thu thực tế tháng
+            </p>
             <p className="text-lg font-semibold text-gray-900 dark:text-white">
               {(() => {
                 const overview = (monthlyData as any)?.overview;
-                if (overview && overview.totalRevenue !== undefined) {
-                  return formatCurrency(overview.totalRevenue);
+                if (overview && overview.actualRevenue !== undefined) {
+                  return formatCurrency(overview.actualRevenue);
                 }
                 return "0 ₫";
               })()}
@@ -222,12 +232,14 @@ export default function MonthlyTarget() {
           </div>
 
           <div className="text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Doanh thu hôm nay</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Doanh thu hôm nay
+            </p>
             <p className="text-lg font-semibold text-gray-900 dark:text-white">
               {(() => {
                 const todayOverview = (todayData as any)?.overview;
-                if (todayOverview && todayOverview.totalRevenue !== undefined) {
-                  return formatCurrency(todayOverview.totalRevenue);
+                if (todayOverview && todayOverview.actualRevenue !== undefined) {
+                  return formatCurrency(todayOverview.actualRevenue);
                 }
                 return "0 ₫";
               })()}

@@ -11,19 +11,27 @@ export type SellerStatisticsTimeSeries = {
   range: SellerStatisticsParams["range"];
   categories: string[];
   sales: number[];
-  revenue: number[];
+  actualRevenue: number[];
+  estimatedRevenue: number[];
 };
 
 export type SellerStatisticsOverview = {
-  totalRevenue: number;
-  totalRevenueLastPeriod: number;
-  revenueGrowthPercent: number;
+  estimatedRevenue: number;
+  estimatedRevenueLastPeriod: number;
+  estimatedRevenueGrowthPercent: number;
+
+  actualRevenue: number;
+  actualRevenueLastPeriod: number;
+  actualRevenueGrowthPercent: number;
+
   totalOrders: number;
   totalOrdersLastPeriod: number;
   ordersGrowthPercent: number;
+
   totalProductsSold: number;
   totalProductsSoldLastPeriod: number;
   productsSoldGrowthPercent: number;
+
   averageOrderValue: number;
   averageOrderValueLastPeriod: number;
   averageOrderValueGrowthPercent: number;
@@ -46,7 +54,7 @@ export type SellerStatisticsTopBlindboxes = {
   quantitySold: number;
   revenue: number;
   price: number;
-}
+};
 
 export type SellerStatisticsOrderStatus = {
   status: OrderStatus;
@@ -58,7 +66,7 @@ export type SellerStatisticsOrderStatus = {
 export type SellerStatisticsResponse = {
   overview: SellerStatisticsOverview;
   topProducts: SellerStatisticsTopProduct[];
-  topBlindBoxes: SellerStatisticsTopBlindboxes[]; 
+  topBlindBoxes: SellerStatisticsTopBlindboxes[];
   orderStatusStats: SellerStatisticsOrderStatus[];
   lastUpdated: string;
 };
