@@ -6,6 +6,7 @@ import { useAppSelector, useAppDispatch } from "@/stores/store";
 import { closeSidebar, openSidebar } from "@/stores/difference-slice";
 import { CiAlignLeft } from "react-icons/ci";
 import { BsThreeDots } from "react-icons/bs";
+import { FaMoneyBillTransfer } from "react-icons/fa6";
 export default function StaffSidebar() {
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const [isMobile, setIsMobile] = useState(false);
@@ -134,6 +135,17 @@ export default function StaffSidebar() {
                                 </div>
                                 <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
                                     Quản lí promotion
+                                </span>
+                            </Link>
+                        </li>
+
+                        <li>
+                            <Link href="/staff/payouts" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
+                                <div className="flex items-center justify-center w-8 h-8">
+                                    <FaMoneyBillTransfer size={20} />
+                                </div>
+                                <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
+                                    Duyệt yêu cầu rút tiền
                                 </span>
                             </Link>
                         </li>

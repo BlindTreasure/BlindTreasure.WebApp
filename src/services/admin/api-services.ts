@@ -18,6 +18,7 @@ export const getPayoutSummary = async (params?: PayoutHistoryParams) => {
     API_ENDPOINTS.PAYOUTS,
     {
       method: "GET",
+      params,
     }
   );
   return response.data;
