@@ -68,4 +68,11 @@ declare namespace SIGNALR {
     unboxAt: string;
     blindBoxName: string;
   }
+
+  type ReceiveMessageByAi = {
+    senderId: string;
+    receiverId: string;
+    content: string;
+    timestamp: string;
+  }
 }
