@@ -11,6 +11,7 @@ import {
 } from "@/const/products";
 
 import { StatusSeller } from "@/const/seller";
+import { PayoutStatus } from "@/const/payout";
 
 export type GetOrderParams = {
   SellerId?: string;
@@ -135,4 +136,40 @@ export type Seller = {
   isVerified: boolean;
   rejectReason: string | null;
   stripeAccountId: string | null;
+};
+
+export type PayoutHistoryParams = {
+  status?: PayoutStatus;
+  SellerId?: string;
+  PeriodStart?: string;
+  PeriodEnd?: string;
+  PageIndex?: number; 
+  PageSize?: number;
+};
+
+export type PayoutHistoryResponse = {
+  result: PayoutHistoryItem[];
+  count: number;
+  pageSize: number;
+  currentPage: number;
+  totalPages: number;
+};
+
+export type PayoutHistoryItem = {
+  id: string;
+  sellerId: string;
+  sellerName: string;
+  periodStart: string;
+  periodEnd: string;
+  periodType: "WEEKLY" | "MONTHLY";
+  grossAmount: number;
+  netAmount: number;
+  platformFeeAmount: number;
+  status: PayoutStatus;
+  createdAt: string;
+  processedAt: string | null;
+  completedAt: string | null;
+  stripeTransferId: string | null;
+  failureReason: string | null;
+  retryCount: number;
 };
