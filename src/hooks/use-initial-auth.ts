@@ -57,6 +57,10 @@ import { refreshToken } from "@/services/auth/api-services";
 import { useAppDispatch } from "@/stores/store";
 import { getAccountProfile } from "@/services/account/api-services";
 import { setUser } from "@/stores/user-slice";
+import { clearUser } from "@/stores/user-slice";
+import { resetProfile } from "@/stores/account-slice";
+import { clearCart } from "@/stores/cart-slice";
+import { persistor } from "@/stores/store-client";
 
 export default function useInitialAuth({ redirectIfUnauthenticated = true } = {}) {
   const router = useRouter();
@@ -70,6 +74,12 @@ export default function useInitialAuth({ redirectIfUnauthenticated = true } = {}
 
       if (!refresh) {
         if (redirectIfUnauthenticated) {
+          dispatch(clearUser());
+          dispatch(resetProfile()); 
+          dispatch(clearCart());
+          persistor.pause();
+          await persistor.flush();
+          await persistor.purge();
           router.replace("/login");
         }
         setLoading(false);
@@ -93,6 +103,12 @@ export default function useInitialAuth({ redirectIfUnauthenticated = true } = {}
       } catch (err) {
         removeStorageItem("accessToken");
         removeStorageItem("refreshToken");
+        dispatch(clearUser());
+        dispatch(resetProfile());
+        dispatch(clearCart());
+        persistor.pause();
+        await persistor.flush();
+        await persistor.purge();
         router.replace("/login");
       }
     };
