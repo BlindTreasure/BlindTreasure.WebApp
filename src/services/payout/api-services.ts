@@ -47,3 +47,4 @@ export const exportHistory = async (): Promise<Blob> => {
 
   return response.data;
 };
+

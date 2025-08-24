@@ -13,9 +13,11 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAdminSellerList } from "@/app/admin/orders/hooks/useAdminSellerList";
+import { useServiceProcessPayout } from "@/services/payout/services";
 
 export default function Payouts() {
   const { isPending, getPayoutsApi } = useGetPayouts();
+  const { mutate: approvePayout, isPending: isApproving } = useServiceProcessPayout();
   const [data, setData] = useState<PayoutHistoryItem[]>([]);
 
   const [paging, setPaging] = useState({
@@ -125,6 +127,7 @@ export default function Payouts() {
                   <th className="p-3 border w-32">Phí</th>
                   <th className="p-3 border w-32">Trạng thái</th>
                   <th className="p-3 border w-40">Ngày tạo</th>
+                  <th className="p-3 border w-32">Hành động</th>
                 </tr>
               </thead>
               <tbody>
@@ -159,6 +162,21 @@ export default function Payouts() {
                       </td>
                       <td className="p-3 border">
                         {new Date(item.createdAt).toLocaleDateString("vi-VN")}
+                      </td>
+                      <td className="p-3 border text-center">
+                        {item.status === PayoutStatus.REQUESTED ? (
+                          <Button
+                            size="sm"
+                            onClick={() => approvePayout(item.sellerId, {
+                              onSuccess: () => fetchData(),
+                            })}
+                            disabled={isApproving}
+                          >
+                            {isApproving ? "Đang duyệt..." : "Duyệt"}
+                          </Button>
+                        ) : (
+                          <span className="text-gray-400 text-sm">—</span>
+                        )}
                       </td>
                     </tr>
                   ))
