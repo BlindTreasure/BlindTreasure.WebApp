@@ -4,7 +4,7 @@ import { exportHistory } from "@/services/payout/api-services";
 export default function useExportHistory() {
   const [isPending, setPending] = useState(false);
 
-  const exportHistoryApi = async () => {
+  const exportApi = async () => {
     setPending(true);
     try {
       const blob = await exportHistory();
@@ -16,5 +16,5 @@ export default function useExportHistory() {
     }
   };
 
-  return { isPending, exportHistoryApi };
+  return { isPending, exportApi };
 }

@@ -132,9 +132,22 @@ export default function Payouts() {
               </thead>
               <tbody>
                 {isPending ? (
-                  <tr><td colSpan={7} className="text-center p-4">Đang tải...</td></tr>
+                  <tr>
+                    <td colSpan={8} className="text-center p-4">
+                      Đang tải...
+                    </td>
+                  </tr>
                 ) : data.length === 0 ? (
-                  <tr><td colSpan={7} className="text-center p-4">Không có dữ liệu</td></tr>
+                  <tr>
+                    <td colSpan={8} className="text-center p-4">
+                      <img
+                        src="https://static.vecteezy.com/system/resources/previews/009/007/126/non_2x/document-file-not-found-search-no-result-concept-illustration-flat-design-eps10-modern-graphic-element-for-landing-page-empty-state-ui-infographic-icon-vector.jpg"
+                        alt="Lịch sử trống"
+                        className="mx-auto mb-2 w-24 h-24"
+                      />
+                      <div>Không có yêu cầu nào</div>
+                    </td>
+                  </tr>
                 ) : (
                   data.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-opacity-80 dark:hover:text-black">

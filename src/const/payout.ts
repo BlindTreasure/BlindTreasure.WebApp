@@ -15,3 +15,13 @@ export const PayoutStatusText: Record<PayoutStatus, string> = {
   [PayoutStatus.FAILED]: "Thất bại",
   [PayoutStatus.CANCELLED]: "Hủy",
 };
+
+export enum PeriodType {
+  WEEKLY = "WEEKLY",
+  MONTH = "MONTH",
+}
+
+export const PeriodTypeText: Record<PeriodType, string> = {
+  [PeriodType.WEEKLY]: "Hàng tuần",
+  [PeriodType.MONTH]: "Hàng tháng",
+};

@@ -1,6 +1,6 @@
 import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/payout/api-path";
-import { SellerPayoutSummary } from "./typings";
+import { PayoutHistoryParams, PayoutHistoryResponse, SellerPayoutSummary } from "./typings";
 
 export const requestPayout = async (): Promise<TResponseData<boolean>> => {
   const response = await request<TResponseData<boolean>>(
@@ -48,3 +48,13 @@ export const exportHistory = async (): Promise<Blob> => {
   return response.data;
 };
 
+export const getPayoutSeller = async (params?: PayoutHistoryParams) => {
+  const response = await request<TResponseData<PayoutHistoryResponse>>(
+    API_ENDPOINTS.MY_PAYOUT,
+    {
+      method: "GET",
+      params,
+    }
+  );
+  return response.data;
+};
