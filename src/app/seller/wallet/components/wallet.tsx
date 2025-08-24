@@ -293,7 +293,13 @@ export default function Wallet() {
                                 ? "bg-red-500"
                                 : item.status === PayoutStatus.CANCELLED
                                   ? "bg-gray-400"
-                                  : "bg-yellow-500"
+                                  : item.status === PayoutStatus.PENDING
+                                    ? "bg-yellow-500"
+                                    : item.status === PayoutStatus.REQUESTED
+                                      ? "bg-blue-500"
+                                      : item.status === PayoutStatus.PROCESSING
+                                        ? "bg-purple-500"
+                                        : "bg-gray-200"
                           }
                         >
                           {PayoutStatusText[item.status as PayoutStatus] ?? item.status}
