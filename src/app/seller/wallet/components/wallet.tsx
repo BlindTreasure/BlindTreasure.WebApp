@@ -266,9 +266,9 @@ export default function Wallet() {
 
                 <div className="flex gap-2 items-center">
                   <span className="text-gray-500 text-sm">Từ</span>
-                  <Input type="date" value={periodStart} onChange={e => setPeriodStart(e.target.value)} className="w-36" />
+                  <Input type="date" value={periodStart} onChange={e => setPeriodStart(e.target.value)} className="w-1/2 date-icon-black dark:date-icon-white" />
                   <span className="text-gray-500 text-sm">Đến</span>
-                  <Input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} className="w-36" />
+                  <Input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} className="w-1/2 date-icon-black dark:date-icon-white" />
                 </div>
               </div>
             </div>
@@ -277,7 +277,7 @@ export default function Wallet() {
           <div className="overflow-x-auto">
             <table className="w-full border text-sm">
               <thead>
-                <tr className="bg-gray-100">
+                <tr className="bg-gray-100 dark:bg-gray-800">
                   <th className="p-2 border">Người bán</th>
                   <th className="p-2 border">Kỳ hạn</th>
                   <th className="p-2 border">Tổng</th>
@@ -442,7 +442,7 @@ export default function Wallet() {
             <div>Đang tải chi tiết...</div>
           ) : payoutDetail ? (
             <div className="space-y-6 text-sm mt-2">
-              <div className="border rounded p-3 bg-white">
+              <div className="border rounded p-3 bg-white dark:bg-gray-900">
                 <div className="font-semibold mb-4">📝 Thông tin</div>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                   <div>
@@ -521,11 +521,11 @@ export default function Wallet() {
               </div>
 
               {payoutDetail.payoutDetails && payoutDetail.payoutDetails.length > 0 && (
-                <div className="border rounded p-3 bg-white">
+                <div className="border rounded p-3 bg-white dark:bg-gray-900">
                   <div className="font-semibold mb-2">💰 Chi tiết đơn hàng</div>
                   <table className="w-full text-sm border-t border-gray-200">
                     <thead>
-                      <tr className="text-left border-b bg-gray-100">
+                      <tr className="text-left border-b bg-gray-100 dark:bg-gray-800">
                         <th className="p-2">Mã đơn</th>
                         <th className="p-2 text-center">SL</th>
                         <th className="p-2 text-right">Giá gốc</th>
@@ -555,11 +555,11 @@ export default function Wallet() {
               )}
 
               {payoutDetail.payoutLogs && payoutDetail.payoutLogs.length > 0 && (
-                <div className="border rounded p-3 bg-white">
+                <div className="border rounded p-3 bg-white dark:bg-gray-900">
                   <div className="font-semibold mb-2">📝 Lịch sử trạng thái rút tiền</div>
                   <table className="w-full text-sm border-t border-gray-200">
                     <thead>
-                      <tr className="text-left border-b bg-gray-100">
+                      <tr className="text-left border-b bg-gray-100 dark:bg-gray-800">
                         <th
                           className="p-2 max-w-[80px] overflow-hidden text-ellipsis whitespace-nowrap"
                           title="Thời gian"

@@ -381,7 +381,7 @@ const PromotionCrud: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-lg shadow-md">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h1 className="text-2xl font-bold text-gray-800">Quản lý Promotion</h1>
+              <h1 className="text-2xl font-bold text-gray-800">Quản lý mã</h1>
             </div>
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -394,12 +394,12 @@ const PromotionCrud: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 dark:bg-gray-800">
       <div className="max-wrapper-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md">
+        <div className="bg-white rounded-lg shadow-md dark:bg-gray-900">
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Quản lý Promotion</h1>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Quản lý mã</h1>
             </div>
             <div className="flex items-center gap-3">
               <button
@@ -423,7 +423,7 @@ const PromotionCrud: React.FC = () => {
                 <Plus size={20} />
                 {isCreatingPromotion 
                   ? 'Đang tạo...' 
-                  : (currentUserRole === 'Staff' ? 'Tạo Promotion' : 'Thêm Promotion')
+                  : (currentUserRole === 'Staff' ? 'Tạo mã' : 'Thêm mã')
                 }
               </button>
             </div>

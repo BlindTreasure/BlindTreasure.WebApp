@@ -110,45 +110,45 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
     <div className="w-full">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-max">
-            <thead className="bg-gray-50">
+          <table className="w-full min-w-max dark:bg-gray-900">
+            <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px] dark:text-white">
                   Code
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px] dark:text-white">
                   Mô tả
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[90px]">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[90px] dark:text-white">
                   Loại
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] dark:text-white">
                   Giá trị
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px] dark:text-white">
                   Bắt đầu
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px] dark:text-white">
                   Kết thúc
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px] dark:text-white">
                   Giới hạn
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] dark:text-white">
                   Giới hạn/User
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px] dark:text-white">
                   Trạng thái
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] dark:text-white">
                   Tạo bởi
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px] dark:text-white">
                   Thao tác
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
               {isLoading ? (
                 <tr>
                   <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
@@ -183,17 +183,17 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
                   return (
                     <tr 
                       key={promotion.id} 
-                      className={`hover:bg-gray-50 transition-colors duration-150 ${
+                      className={`hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150 ${
                         isStaff && isSellerPromotion && isPending ? 'bg-yellow-25 border-l-4 border-l-yellow-400' : ''
                       }`}
                     >
-                      <td className="px-3 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900 truncate max-w-[90px]" title={promotion.code}>
+                      <td className="px-3 py-4 whitespace-nowrap ">
+                        <div className="text-sm font-medium text-gray-900 truncate max-w-[90px] dark:text-white" title={promotion.code}>
                           {promotion.code}
                         </div>
                       </td>
                       <td className="px-3 py-4">
-                        <div className="text-sm text-gray-900 truncate max-w-[140px]" title={promotion.description}>
+                        <div className="text-sm text-gray-900 truncate max-w-[140px] dark:text-white" title={promotion.description}>
                           {promotion.description}
                         </div>
                       </td>
@@ -203,20 +203,20 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
                         </span>
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
                           {formatDiscountValue(promotion.discountValue, promotion.discountType)}
                         </div>
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">
                         {formatDate(promotion.startDate)}
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">
                         {formatDate(promotion.endDate)}
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 font-medium dark:text-white">
                         {promotion.usageLimit?.toString() || '∞'}
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 font-medium dark:text-white">
                         {promotion.maxUsagePerUser?.toString() || '1'}
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap">

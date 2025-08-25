@@ -103,7 +103,7 @@ export default function UnboxLogs() {
 
                     <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-md font-medium">Lọc theo ngày để xuất file</h3>
+                            <h3 className="text-md font-medium">Chọn ngày để xuất file</h3>
                             <Button onClick={handleExportLogs} disabled={isExporting} className="bg-green-500 hover:bg-opacity-80">
                                 {isExporting ? "Đang xuất..." : "Xuất file Excel"}
                             </Button>

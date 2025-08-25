@@ -56,7 +56,7 @@ export default function AdminSidebar() {
             >
                 <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-700">
                     <div className="rounded-full w-16 h-16 flex items-center justify-center font-bold text-xs">
-                        <img src="/images/darkmode_footer.png" alt="Logo" width={32} height={32} />
+                        <img src="/images/Logo_DB.png" alt="Logo" width={100} height={100} />
                     </div>
 
                     {(staffState.openSidebar) && (

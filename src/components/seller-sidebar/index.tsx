@@ -138,10 +138,10 @@ export default function SellerSidebar() {
         <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-700 dark:border-gray-600">
           <div className="rounded-full w-16 h-16 flex items-center justify-center font-bold text-xs">
             <img
-              src="/images/darkmode_footer.png"
+              src="/images/Logo_DB.png"
               alt="Logo"
-              width={32}
-              height={32}
+              width={100}
+              height={100}
             />
           </div>
           {staffState.openSidebar && (

@@ -156,7 +156,7 @@ export default function Payouts() {
                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-opacity-80 dark:hover:text-black">
                       <td
                         className="p-3 border text-center max-w-[10px] truncate"
-                        title={item.sellerName} 
+                        title={item.sellerName}
                       >
                         {item.sellerName}
                       </td>
@@ -202,34 +202,35 @@ export default function Payouts() {
 
                       <td className="p-3 border text-center">
                         <div className="flex flex-col items-center gap-2">
-                          {item.proofImageUrls && item.proofImageUrls.length > 0 ? (
+                          {![PayoutStatus.PENDING, PayoutStatus.REQUESTED].includes(item.status) && (
                             <>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <img
-                                    src={item.proofImageUrls[0]}
-                                    alt="Proof"
-                                    className="rounded-md cursor-pointer object-cover w-16 h-16"
-                                  />
-                                </DialogTrigger>
+                              {item.proofImageUrls && item.proofImageUrls.length > 0 ? (
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <img
+                                      src={item.proofImageUrls[0]}
+                                      alt="Proof"
+                                      className="rounded-md cursor-pointer object-cover w-16 h-16"
+                                    />
+                                  </DialogTrigger>
 
-                                <DialogContent
-                                  className="max-w-4xl"
-                                  onInteractOutside={(e) => e.preventDefault()}
-                                >
+                                  <DialogContent
+                                    className="max-w-4xl"
+                                    onInteractOutside={(e) => e.preventDefault()}
+                                  >
+                                    <DialogHeader>
+                                      <DialogTitle>Ảnh minh chứng thanh toán</DialogTitle>
+                                    </DialogHeader>
+                                    <ProofImageGrid images={item.proofImageUrls} />
+                                  </DialogContent>
+                                </Dialog>
+                              ) : (
+                                <span className="text-gray-400 text-sm">Chưa có ảnh</span>
+                              )}
 
-                                  <DialogHeader>
-                                    <DialogTitle>Ảnh minh chứng thanh toán</DialogTitle>
-                                  </DialogHeader>
-                                  <ProofImageGrid images={item.proofImageUrls} />
-                                </DialogContent>
-                              </Dialog>
+                              <UploadProofDialog payoutId={item.id} onUploaded={fetchData} />
                             </>
-                          ) : (
-                            <span className="text-gray-400 text-sm">Chưa có ảnh</span>
                           )}
-
-                          <UploadProofDialog payoutId={item.id} onUploaded={fetchData} />
                         </div>
                       </td>
 
