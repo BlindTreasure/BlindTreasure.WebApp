@@ -143,7 +143,7 @@ export type PayoutHistoryParams = {
   SellerId?: string;
   PeriodStart?: string;
   PeriodEnd?: string;
-  PageIndex?: number; 
+  PageIndex?: number;
   PageSize?: number;
 };
 
@@ -159,17 +159,52 @@ export type PayoutHistoryItem = {
   id: string;
   sellerId: string;
   sellerName: string;
-  periodStart: string;
-  periodEnd: string;
+  sellerEmail: string;
+  platformFeeRate: number;
+  stripeDestinationAccount: string;
+  notes: string | null;
+  nextRetryAt: string | null;
+  payoutDetails: PayoutDetail[];
+  payoutLogs: PayoutLog[];
+  periodStart: string; 
+  periodEnd: string; 
   periodType: "WEEKLY" | "MONTHLY";
   grossAmount: number;
   netAmount: number;
   platformFeeAmount: number;
   status: PayoutStatus;
-  createdAt: string;
-  processedAt: string | null;
-  completedAt: string | null;
-  stripeTransferId: string | null;
+  createdAt: string; 
+  processedAt: string; 
+  completedAt: string;
+  stripeTransferId: string;
   failureReason: string | null;
   retryCount: number;
+  proofImageUrls: string[];
+};
+
+export type PayoutDetail = {
+  orderDetailId: string;
+  orderId: string;
+  quantity: number;
+  originalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  refundAmount: number;
+  contributedAmount: number;
+  orderCompletedAt: string; 
+};
+
+export type PayoutLog = {
+  id: string;
+  fromStatus: PayoutStatus;
+  toStatus: PayoutStatus;
+  action: string;
+  details: string;
+  errorMessage: string | null;
+  triggeredByUserName: string;
+  loggedAt: string; 
+};
+
+export type ConfirmPayoutRequest = {
+  files: File[];
 };

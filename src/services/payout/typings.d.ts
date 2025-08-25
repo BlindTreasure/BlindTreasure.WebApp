@@ -67,6 +67,7 @@ export type PayoutHistoryItem = {
   nextRetryAt: string;
   payoutDetails: PayoutDetail[];
   payoutLogs: PayoutLog[];
+  proofImageUrls: string[];
 };
 
 export type PayoutDetail = {
