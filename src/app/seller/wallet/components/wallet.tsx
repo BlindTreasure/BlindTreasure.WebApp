@@ -16,8 +16,9 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Input } from '@/components/ui/input';
 import useGetPayoutId from '../hooks/useGetPayoutId';
 import { Clipboard, Eye } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogTrigger } from "@/components/ui/dialog";
 import { BsEye } from 'react-icons/bs';
+import ProofImageGrid from '@/app/admin/payouts/components/ProofImageGrid';
 
 export default function Wallet() {
   const { data: payoutData, isLoading: isPayoutLoading, isError } = useServiceCalculateUpcoming();
@@ -284,19 +285,20 @@ export default function Wallet() {
                   <th className="p-2 border">Thực nhận</th>
                   <th className="p-2 border">Trạng thái</th>
                   <th className="p-2 border">Hành động</th>
+                  <th className="p-2 border">Xem ảnh giao dịch</th>
                   <th className="p-2 border">Xem chi tiết</th>
                 </tr>
               </thead>
               <tbody>
                 {isHistoryLoading ? (
                   <tr>
-                    <td colSpan={10} className="text-center p-4">
+                    <td colSpan={9} className="text-center p-4">
                       Đang tải...
                     </td>
                   </tr>
                 ) : !history || history.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="text-center p-4">
+                    <td colSpan={9} className="text-center p-4">
                       <img
                         src="https://static.vecteezy.com/system/resources/previews/009/007/135/non_2x/desert-landscape-404-error-page-concept-illustration-flat-design-eps10-modern-graphic-element-for-landing-page-empty-state-ui-infographic-icon-vector.jpg"
                         alt="Lịch sử trống"
@@ -361,6 +363,38 @@ export default function Wallet() {
                           </Button>
                         )}
                       </td>
+
+                      <td className="p-3 border text-center">
+                        <div className="flex flex-col items-center gap-2">
+                          {item.proofImageUrls && item.proofImageUrls.length > 0 ? (
+                            <>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <img
+                                    src={item.proofImageUrls[0]}
+                                    alt="Proof"
+                                    className="rounded-md cursor-pointer object-cover w-16 h-16"
+                                  />
+                                </DialogTrigger>
+
+                                <DialogContent
+                                  className="max-w-4xl"
+                                  onInteractOutside={(e) => e.preventDefault()}
+                                >
+
+                                  <DialogHeader>
+                                    <DialogTitle>Ảnh minh chứng thanh toán</DialogTitle>
+                                  </DialogHeader>
+                                  <ProofImageGrid images={item.proofImageUrls} />
+                                </DialogContent>
+                              </Dialog>
+                            </>
+                          ) : (
+                            <span className="text-gray-400 text-sm">_</span>
+                          )}
+                        </div>
+                      </td>
+
                       <td className="p-3 border text-center">
                         <Button variant="outline" size="icon" onClick={() => {
                           setSelectedPayoutId(item.id);

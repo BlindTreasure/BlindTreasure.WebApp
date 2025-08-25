@@ -14,7 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAdminSellerList } from "@/app/admin/orders/hooks/useAdminSellerList";
 import { useServiceProcessPayout } from "@/services/payout/services";
-
+import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import UploadProofDialog from "./UploadProofDialog";
+import ProofImageGrid from "./ProofImageGrid";
 export default function Payouts() {
   const { isPending, getPayoutsApi } = useGetPayouts();
   const { mutate: approvePayout, isPending: isApproving } = useServiceProcessPayout();
@@ -119,27 +121,28 @@ export default function Payouts() {
           <div className="overflow-x-auto">
             <table className="min-w-full dark:bg-gray-900 table-fixed border border-gray-200 text-sm bg-white rounded-lg">
               <thead>
-                <tr className="bg-gray-100 text-left dark:bg-gray-800">
+                <tr className="bg-gray-100 text-center dark:bg-gray-800">
                   <th className="p-3 border w-40">Người bán</th>
-                  <th className="p-3 border w-48">Giai đoạn</th>
+                  <th className="p-3 border w-56">Giai đoạn</th>
                   <th className="p-3 border w-32">Tổng</th>
                   <th className="p-3 border w-32">Thực nhận</th>
                   <th className="p-3 border w-32">Phí</th>
-                  <th className="p-3 border w-32">Trạng thái</th>
-                  <th className="p-3 border w-40">Ngày tạo</th>
+                  <th className="p-3 border w-24">Trạng thái</th>
+                  <th className="p-3 border w-24">Ngày tạo</th>
+                  <th className="p-3 border w-40">Ảnh minh chứng</th>
                   <th className="p-3 border w-32">Hành động</th>
                 </tr>
               </thead>
               <tbody>
                 {isPending ? (
                   <tr>
-                    <td colSpan={8} className="text-center p-4">
+                    <td colSpan={9} className="text-center p-4">
                       Đang tải...
                     </td>
                   </tr>
                 ) : data.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="text-center p-4">
+                    <td colSpan={9} className="text-center p-4">
                       <img
                         src="https://static.vecteezy.com/system/resources/previews/009/007/126/non_2x/document-file-not-found-search-no-result-concept-illustration-flat-design-eps10-modern-graphic-element-for-landing-page-empty-state-ui-infographic-icon-vector.jpg"
                         alt="Lịch sử trống"
@@ -151,14 +154,19 @@ export default function Payouts() {
                 ) : (
                   data.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-opacity-80 dark:hover:text-black">
-                      <td className="p-3 border">{item.sellerName}</td>
-                      <td className="p-3 border">
+                      <td
+                        className="p-3 border text-center max-w-[10px] truncate"
+                        title={item.sellerName} 
+                      >
+                        {item.sellerName}
+                      </td>
+                      <td className="p-3 border text-center">
                         {new Date(item.periodStart).toLocaleDateString('vi-VN')} → {new Date(item.periodEnd).toLocaleDateString('vi-VN')}
                       </td>
-                      <td className="p-3 border">{item.grossAmount.toLocaleString('vi-VN')}₫</td>
-                      <td className="p-3 border">{item.netAmount.toLocaleString('vi-VN')}₫</td>
-                      <td className="p-3 border">{item.platformFeeAmount.toLocaleString('vi-VN')}₫</td>
-                      <td className="p-3 border">
+                      <td className="p-3 border text-center">{item.grossAmount.toLocaleString('vi-VN')}₫</td>
+                      <td className="p-3 border text-center">{item.netAmount.toLocaleString('vi-VN')}₫</td>
+                      <td className="p-3 border text-center">{item.platformFeeAmount.toLocaleString('vi-VN')}₫</td>
+                      <td className="p-3 border text-center">
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium
       ${item.status === PayoutStatus.COMPLETED
@@ -188,9 +196,43 @@ export default function Payouts() {
                           {PayoutStatusText[item.status as PayoutStatus] ?? item.status}
                         </span>
                       </td>
-                      <td className="p-3 border">
+                      <td className="p-3 border text-center">
                         {new Date(item.createdAt).toLocaleDateString("vi-VN")}
                       </td>
+
+                      <td className="p-3 border text-center">
+                        <div className="flex flex-col items-center gap-2">
+                          {item.proofImageUrls && item.proofImageUrls.length > 0 ? (
+                            <>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <img
+                                    src={item.proofImageUrls[0]}
+                                    alt="Proof"
+                                    className="rounded-md cursor-pointer object-cover w-16 h-16"
+                                  />
+                                </DialogTrigger>
+
+                                <DialogContent
+                                  className="max-w-4xl"
+                                  onInteractOutside={(e) => e.preventDefault()}
+                                >
+
+                                  <DialogHeader>
+                                    <DialogTitle>Ảnh minh chứng thanh toán</DialogTitle>
+                                  </DialogHeader>
+                                  <ProofImageGrid images={item.proofImageUrls} />
+                                </DialogContent>
+                              </Dialog>
+                            </>
+                          ) : (
+                            <span className="text-gray-400 text-sm">Chưa có ảnh</span>
+                          )}
+
+                          <UploadProofDialog payoutId={item.id} onUploaded={fetchData} />
+                        </div>
+                      </td>
+
                       <td className="p-3 border text-center">
                         {item.status === PayoutStatus.REQUESTED ? (
                           <Button
