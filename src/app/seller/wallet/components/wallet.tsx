@@ -325,18 +325,18 @@ export default function Wallet() {
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium
       ${item.status === PayoutStatus.COMPLETED
-                              ? "bg-green-500 text-white"
+                              ? "bg-green-100 text-green-700"
                               : item.status === PayoutStatus.FAILED
-                                ? "bg-red-500 text-white"
+                                ? "bg-red-100 text-red-700"
                                 : item.status === PayoutStatus.CANCELLED
-                                  ? "bg-gray-400 text-white"
+                                  ? "bg-gray-100 text-gray-700"
                                   : item.status === PayoutStatus.PENDING
-                                    ? "bg-yellow-500 text-white"
+                                    ? "bg-yellow-100 text-yellow-700"
                                     : item.status === PayoutStatus.REQUESTED
-                                      ? "bg-blue-500 text-white"
+                                      ? "bg-blue-100 text-blue-700"
                                       : item.status === PayoutStatus.PROCESSING
-                                        ? "bg-purple-500 text-white"
-                                        : "bg-gray-200 text-black"}
+                                        ? "bg-purple-100 text-purple-700"
+                                        : "bg-gray-200 text-gray-600"}
     `}
                           style={{
                             maxWidth: "120px",
@@ -352,7 +352,7 @@ export default function Wallet() {
                         </span>
                       </td>
                       <td className="p-2 border text-center">
-                        {item.status === PayoutStatus.PROCESSING && (
+                        {item.status !== PayoutStatus.PENDING && item.status !== PayoutStatus.REQUESTED && (
                           <Button
                             className='bg-green-500 hover:bg-opacity-80'
                             size="sm"
@@ -481,19 +481,19 @@ export default function Wallet() {
                       <span className='font-semibold'>Trạng thái:</span>
                       <span
                         className={`px-2 py-1 rounded text-xs font-medium
-      ${payoutDetail.status === PayoutStatus.COMPLETED
-                            ? "bg-green-500 text-white"
+       ${payoutDetail.status === PayoutStatus.COMPLETED
+                            ? "bg-green-100 text-green-700"
                             : payoutDetail.status === PayoutStatus.FAILED
-                              ? "bg-red-500 text-white"
+                              ? "bg-red-100 text-red-700"
                               : payoutDetail.status === PayoutStatus.CANCELLED
-                                ? "bg-gray-400 text-white"
+                                ? "bg-gray-100 text-gray-700"
                                 : payoutDetail.status === PayoutStatus.PENDING
-                                  ? "bg-yellow-500 text-white"
+                                  ? "bg-yellow-100 text-yellow-700"
                                   : payoutDetail.status === PayoutStatus.REQUESTED
-                                    ? "bg-blue-500 text-white"
+                                    ? "bg-blue-100 text-blue-700"
                                     : payoutDetail.status === PayoutStatus.PROCESSING
-                                      ? "bg-purple-500 text-white"
-                                      : "bg-gray-200 text-black"}
+                                      ? "bg-purple-100 text-purple-700"
+                                      : "bg-gray-200 text-gray-600"}
     `}
                         style={{
                           maxWidth: "100px",
