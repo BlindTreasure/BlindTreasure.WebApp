@@ -161,14 +161,29 @@ export default function Payouts() {
                       <td className="p-3 border">
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium
-                                                  ${item.status === PayoutStatus.COMPLETED
+      ${item.status === PayoutStatus.COMPLETED
                               ? "bg-green-100 text-green-700"
-                              : item.status === PayoutStatus.PENDING
-                                ? "bg-yellow-100 text-yellow-700"
-                                : item.status === PayoutStatus.PROCESSING
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-red-100 text-red-700"}
-                                              `}
+                              : item.status === PayoutStatus.FAILED
+                                ? "bg-red-100 text-red-700"
+                                : item.status === PayoutStatus.CANCELLED
+                                  ? "bg-gray-100 text-gray-700"
+                                  : item.status === PayoutStatus.PENDING
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : item.status === PayoutStatus.REQUESTED
+                                      ? "bg-blue-100 text-blue-700"
+                                      : item.status === PayoutStatus.PROCESSING
+                                        ? "bg-purple-100 text-purple-700"
+                                        : "bg-gray-200 text-gray-600"}
+    `}
+                          style={{
+                            maxWidth: '100px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            display: 'inline-block',
+                            cursor: 'default',
+                          }}
+                          title={PayoutStatusText[item.status as PayoutStatus] ?? item.status}
                         >
                           {PayoutStatusText[item.status as PayoutStatus] ?? item.status}
                         </span>
@@ -184,6 +199,7 @@ export default function Payouts() {
                               onSuccess: () => fetchData(),
                             })}
                             disabled={isApproving}
+                            className="bg-green-500 hover:bg-opacity-80"
                           >
                             {isApproving ? "Đang duyệt..." : "Duyệt"}
                           </Button>

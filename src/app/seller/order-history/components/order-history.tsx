@@ -276,7 +276,7 @@ export default function OrderHistory() {
                                                     <td className="p-2">
                                                         <img src={img} alt="product" className="w-12 h-12 object-cover rounded border" />
                                                     </td>
-                                                    <td className="p-2">{item.blindBoxId && item.blindBoxName ? item.blindBoxName : item.productName}</td>
+                                                    <td className="p-2 max-w-[80px] truncate">{item.blindBoxId && item.blindBoxName ? item.blindBoxName : item.productName}</td>
                                                     <td className="p-2 text-center">{item.quantity}</td>
                                                     <td className="p-2 text-right">{item.unitPrice?.toLocaleString("vi-VN")}₫</td>
                                                     <td className="p-2 text-right">{shipFee > 0 ? shipFee.toLocaleString("vi-VN") : 0}₫</td>

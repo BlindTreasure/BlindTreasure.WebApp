@@ -14,6 +14,11 @@ import { PayoutStatus, PayoutStatusText, PeriodType, PeriodTypeText } from '@/co
 import { PaginationFooter } from '@/components/pagination-footer';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Input } from '@/components/ui/input';
+import useGetPayoutId from '../hooks/useGetPayoutId';
+import { Clipboard, Eye } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { BsEye } from 'react-icons/bs';
+
 export default function Wallet() {
   const { data: payoutData, isLoading: isPayoutLoading, isError } = useServiceCalculateUpcoming();
   const requestPayoutMutation = useServiceRequestPayout();
@@ -31,6 +36,11 @@ export default function Wallet() {
   const [history, setHistory] = useState<PayoutHistoryItem[]>([]);
 
   const { exportApi, isPending: isExporting } = useExportHistory();
+
+  const [payoutDetail, setPayoutDetail] = useState<PayoutHistoryItem | null>(null);
+  const { isPending, getPayoutIdApi } = useGetPayoutId();
+  const [openDetailDialog, setOpenDetailDialog] = useState(false);
+  const [selectedPayoutId, setSelectedPayoutId] = useState<string | null>(null);
 
   const [status, setStatus] = useState<PayoutStatus | string>("all");
   const [periodStart, setPeriodStart] = useState<string>("");
@@ -75,6 +85,28 @@ export default function Wallet() {
   useEffect(() => {
     fetchHistory();
   }, [status, periodStart, periodEnd, paging.pageIndex, paging.pageSize]);
+
+  // useEffect(() => {
+  //   if (!payoutId) return;
+
+  //   (async () => {
+  //     const res = await getPayoutIdApi(payoutId);
+  //     if (res?.value?.data) setData(res.value.data);
+  //   })();
+  // }, [payoutId]);
+
+  useEffect(() => {
+    if (!selectedPayoutId) return;
+    const fetchDetail = async () => {
+      const res = await getPayoutIdApi(selectedPayoutId);
+      if (res && res.value && res.value.data) {
+        setPayoutDetail(res.value.data);
+      } else {
+        setPayoutDetail(null);
+      }
+    };
+    fetchDetail();
+  }, [selectedPayoutId]);
 
   const isVerified = verifyMutation.data?.value?.data === true;
 
@@ -169,9 +201,13 @@ export default function Wallet() {
             <div className="flex items-center gap-2">
               <span>Trạng thái tài khoản Stripe:</span>
               {isVerified ? (
-                <Badge className="bg-green-500 hover:bg-opacity-80">Đã xác minh</Badge>
+                <span className="px-2 py-1 rounded text-xs font-medium bg-green-500 text-white">
+                  Đã xác minh
+                </span>
               ) : (
-                <Badge variant="destructive">Chưa xác minh</Badge>
+                <span className="px-2 py-1 rounded text-xs font-medium bg-red-500 text-white">
+                  Chưa xác minh
+                </span>
               )}
             </div>
 
@@ -230,7 +266,7 @@ export default function Wallet() {
                 <div className="flex gap-2 items-center">
                   <span className="text-gray-500 text-sm">Từ</span>
                   <Input type="date" value={periodStart} onChange={e => setPeriodStart(e.target.value)} className="w-36" />
-                  <span className="text-gray-500 text-sm">đến</span>
+                  <span className="text-gray-500 text-sm">Đến</span>
                   <Input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} className="w-36" />
                 </div>
               </div>
@@ -247,21 +283,20 @@ export default function Wallet() {
                   <th className="p-2 border">Phí nền tảng</th>
                   <th className="p-2 border">Thực nhận</th>
                   <th className="p-2 border">Trạng thái</th>
-                  <th className="p-2 border">Ngày tạo</th>
-                  <th className="p-2 border">Ngày xử lý</th>
                   <th className="p-2 border">Hành động</th>
+                  <th className="p-2 border">Xem chi tiết</th>
                 </tr>
               </thead>
               <tbody>
                 {isHistoryLoading ? (
                   <tr>
-                    <td colSpan={9} className="text-center p-4">
+                    <td colSpan={10} className="text-center p-4">
                       Đang tải...
                     </td>
                   </tr>
                 ) : !history || history.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="text-center p-4">
+                    <td colSpan={10} className="text-center p-4">
                       <img
                         src="https://static.vecteezy.com/system/resources/previews/009/007/135/non_2x/desert-landscape-404-error-page-concept-illustration-flat-design-eps10-modern-graphic-element-for-landing-page-empty-state-ui-infographic-icon-vector.jpg"
                         alt="Lịch sử trống"
@@ -285,36 +320,39 @@ export default function Wallet() {
                         {item.netAmount.toLocaleString()} đ
                       </td>
                       <td className="p-2 border text-center">
-                        <Badge
-                          className={
-                            item.status === PayoutStatus.COMPLETED
-                              ? "bg-green-500"
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium
+      ${item.status === PayoutStatus.COMPLETED
+                              ? "bg-green-500 text-white"
                               : item.status === PayoutStatus.FAILED
-                                ? "bg-red-500"
+                                ? "bg-red-500 text-white"
                                 : item.status === PayoutStatus.CANCELLED
-                                  ? "bg-gray-400"
+                                  ? "bg-gray-400 text-white"
                                   : item.status === PayoutStatus.PENDING
-                                    ? "bg-yellow-500"
+                                    ? "bg-yellow-500 text-white"
                                     : item.status === PayoutStatus.REQUESTED
-                                      ? "bg-blue-500"
+                                      ? "bg-blue-500 text-white"
                                       : item.status === PayoutStatus.PROCESSING
-                                        ? "bg-purple-500"
-                                        : "bg-gray-200"
-                          }
+                                        ? "bg-purple-500 text-white"
+                                        : "bg-gray-200 text-black"}
+    `}
+                          style={{
+                            maxWidth: "120px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            display: "inline-block",
+                            cursor: "default",
+                          }}
+                          title={PayoutStatusText[item.status as PayoutStatus] ?? item.status}
                         >
                           {PayoutStatusText[item.status as PayoutStatus] ?? item.status}
-                        </Badge>
-                      </td>
-                      <td className="p-2 border text-center">
-                        {new Date(item.createdAt).toLocaleDateString("vi-VN")}
-                      </td>
-                      <td className="p-2 border text-center">
-                        {item.processedAt ? new Date(item.processedAt).toLocaleDateString("vi-VN") : "-"}
+                        </span>
                       </td>
                       <td className="p-2 border text-center">
                         {item.status === PayoutStatus.PROCESSING && (
                           <Button
-                            className='bg-green-500'
+                            className='bg-green-500 hover:bg-opacity-80'
                             size="sm"
                             onClick={handleExport}
                             disabled={isExporting}
@@ -322,6 +360,14 @@ export default function Wallet() {
                             {isExporting ? "Đang xuất..." : "Xuất file"}
                           </Button>
                         )}
+                      </td>
+                      <td className="p-3 border text-center">
+                        <Button variant="outline" size="icon" onClick={() => {
+                          setSelectedPayoutId(item.id);
+                          setOpenDetailDialog(true);
+                        }}>
+                          <BsEye className="w-4 h-4" />
+                        </Button>
                       </td>
                     </tr>
                   ))
@@ -342,6 +388,291 @@ export default function Wallet() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog
+        open={openDetailDialog}
+        onOpenChange={(open) => {
+          setOpenDetailDialog(open);
+          if (!open) {
+            setSelectedPayoutId(null);
+            setPayoutDetail(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Chi tiết</DialogTitle>
+          </DialogHeader>
+
+          {isPending ? (
+            <div>Đang tải chi tiết...</div>
+          ) : payoutDetail ? (
+            <div className="space-y-6 text-sm mt-2">
+              <div className="border rounded p-3 bg-white">
+                <div className="font-semibold mb-4">📝 Thông tin</div>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                  <div>
+                    <div className="flex gap-2">
+                      <span className='font-semibold'>Người bán:</span>
+                      <span>{payoutDetail.sellerName}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className='font-semibold'>Email:</span>
+                      <span>{payoutDetail.sellerEmail}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className='font-semibold'>Kỳ hạn:</span>
+                      <span>
+                        {new Date(payoutDetail.periodStart).toLocaleDateString("vi-VN")} -{" "}
+                        {new Date(payoutDetail.periodEnd).toLocaleDateString("vi-VN")} (
+                        {PeriodTypeText[payoutDetail.periodType as PeriodType] ?? payoutDetail.periodType})
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className='font-semibold'>Tổng:</span>
+                      <span>{payoutDetail.grossAmount.toLocaleString()} đ</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex gap-2">
+                      <span className='font-semibold'>Phí nền tảng:</span>
+                      <span>{payoutDetail.platformFeeAmount.toLocaleString()} đ</span>
+                    </div>
+                    <div className="flex gap-2 font-semibold text-green-600">
+                      <span className='font-semibold'>Thực nhận:</span>
+                      <span>{payoutDetail.netAmount.toLocaleString()} đ</span>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <span className='font-semibold'>Trạng thái:</span>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium
+      ${payoutDetail.status === PayoutStatus.COMPLETED
+                            ? "bg-green-500 text-white"
+                            : payoutDetail.status === PayoutStatus.FAILED
+                              ? "bg-red-500 text-white"
+                              : payoutDetail.status === PayoutStatus.CANCELLED
+                                ? "bg-gray-400 text-white"
+                                : payoutDetail.status === PayoutStatus.PENDING
+                                  ? "bg-yellow-500 text-white"
+                                  : payoutDetail.status === PayoutStatus.REQUESTED
+                                    ? "bg-blue-500 text-white"
+                                    : payoutDetail.status === PayoutStatus.PROCESSING
+                                      ? "bg-purple-500 text-white"
+                                      : "bg-gray-200 text-black"}
+    `}
+                        style={{
+                          maxWidth: "100px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          display: "inline-block",
+                          cursor: "default",
+                        }}
+                        title={PayoutStatusText[payoutDetail.status as PayoutStatus] ?? payoutDetail.status}
+                      >
+                        {PayoutStatusText[payoutDetail.status as PayoutStatus] ?? payoutDetail.status}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className='font-semibold'>Ngày tạo:</span>
+                      <span>{new Date(payoutDetail.createdAt).toLocaleDateString("vi-VN")}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className='font-semibold'>Ngày xử lý:</span>
+                      <span>{payoutDetail.processedAt ? new Date(payoutDetail.processedAt).toLocaleDateString("vi-VN") : "-"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {payoutDetail.payoutDetails && payoutDetail.payoutDetails.length > 0 && (
+                <div className="border rounded p-3 bg-white">
+                  <div className="font-semibold mb-2">💰 Chi tiết đơn hàng</div>
+                  <table className="w-full text-sm border-t border-gray-200">
+                    <thead>
+                      <tr className="text-left border-b bg-gray-100">
+                        <th className="p-2">Mã đơn</th>
+                        <th className="p-2 text-center">SL</th>
+                        <th className="p-2 text-right">Giá gốc</th>
+                        <th className="p-2 text-right">Giảm giá</th>
+                        <th className="p-2 text-right">Thành tiền</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payoutDetail.payoutDetails.map((d) => (
+                        <tr key={d.orderDetailId} className="border-b">
+                          <td className="p-3"><div
+                            className="flex items-center gap-2 cursor-pointer group"
+                            onClick={() => navigator.clipboard.writeText(payoutDetail.id)}
+                          >
+                            <span>#{payoutDetail.id.substring(0, 8).toUpperCase()}...</span>
+                            <Clipboard size={14} className="text-gray-400 group-hover:text-gray-600 dark:hover:text-black" />
+                          </div></td>
+                          <td className="p-2 text-center">{d.quantity}</td>
+                          <td className="p-2 text-right">{d.originalAmount.toLocaleString()} đ</td>
+                          <td className="p-2 text-right">{d.discountAmount.toLocaleString()} đ</td>
+                          <td className="p-2 text-right">{d.finalAmount.toLocaleString()} đ</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {payoutDetail.payoutLogs && payoutDetail.payoutLogs.length > 0 && (
+                <div className="border rounded p-3 bg-white">
+                  <div className="font-semibold mb-2">📝 Lịch sử trạng thái rút tiền</div>
+                  <table className="w-full text-sm border-t border-gray-200">
+                    <thead>
+                      <tr className="text-left border-b bg-gray-100">
+                        <th
+                          className="p-2 max-w-[80px] overflow-hidden text-ellipsis whitespace-nowrap"
+                          title="Thời gian"
+                        >
+                          Thời gian
+                        </th>
+                        <th
+                          className="p-2 max-w-[80px] overflow-hidden text-ellipsis whitespace-nowrap"
+                          title="Từ trạng thái"
+                        >
+                          Từ trạng thái
+                        </th>
+                        <th
+                          className="p-2 max-w-[80px] overflow-hidden text-ellipsis whitespace-nowrap"
+                          title="Đến trạng thái"
+                        >
+                          Đến trạng thái
+                        </th>
+                        <th
+                          className="p-2 max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap"
+                          title="Hành động"
+                        >
+                          Hành động
+                        </th>
+                        <th
+                          className="p-2 max-w-[80px] overflow-hidden text-ellipsis whitespace-nowrap"
+                          title="Người thực hiện"
+                        >
+                          Người thực hiện
+                        </th>
+                        <th
+                          className="p-2 max-w-[80px] overflow-hidden text-ellipsis whitespace-nowrap"
+                          title="Chi tiết"
+                        >
+                          Chi tiết
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payoutDetail.payoutLogs.map((log) => (
+                        <tr key={log.id} className="border-b">
+                          <td
+                            className="p-2 max-w-[80px] truncate"
+                            title={new Date(log.loggedAt).toLocaleString("vi-VN")}
+                          >
+                            {new Date(log.loggedAt).toLocaleString("vi-VN")}
+                          </td>
+
+                          <td className="p-2">
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-medium
+            ${log.fromStatus === PayoutStatus.COMPLETED
+                                  ? "bg-green-500 text-white"
+                                  : log.fromStatus === PayoutStatus.FAILED
+                                    ? "bg-red-500 text-white"
+                                    : log.fromStatus === PayoutStatus.CANCELLED
+                                      ? "bg-gray-400 text-white"
+                                      : log.fromStatus === PayoutStatus.PENDING
+                                        ? "bg-yellow-500 text-white"
+                                        : log.fromStatus === PayoutStatus.REQUESTED
+                                          ? "bg-blue-500 text-white"
+                                          : log.fromStatus === PayoutStatus.PROCESSING
+                                            ? "bg-purple-500 text-white"
+                                            : "bg-gray-200 text-black"}`}
+                              style={{
+                                maxWidth: '100px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                display: 'inline-block',
+                                cursor: 'default',
+                              }}
+                              title={PayoutStatusText[log.fromStatus as PayoutStatus] ?? log.fromStatus}
+
+                            >
+                              {PayoutStatusText[log.fromStatus as PayoutStatus] ?? log.fromStatus}
+                            </span>
+                          </td>
+
+                          <td className="p-2">
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-medium
+            ${log.toStatus === PayoutStatus.COMPLETED
+                                  ? "bg-green-500 text-white"
+                                  : log.toStatus === PayoutStatus.FAILED
+                                    ? "bg-red-500 text-white"
+                                    : log.toStatus === PayoutStatus.CANCELLED
+                                      ? "bg-gray-400 text-white"
+                                      : log.toStatus === PayoutStatus.PENDING
+                                        ? "bg-yellow-500 text-white"
+                                        : log.toStatus === PayoutStatus.REQUESTED
+                                          ? "bg-blue-500 text-white"
+                                          : log.toStatus === PayoutStatus.PROCESSING
+                                            ? "bg-purple-500 text-white"
+                                            : "bg-gray-200 text-black"}`}
+                              title={PayoutStatusText[log.toStatus as PayoutStatus] ?? log.toStatus}
+                              style={{
+                                maxWidth: '100px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                display: 'inline-block',
+                                cursor: 'default',
+                              }}
+                            >
+                              {PayoutStatusText[log.toStatus as PayoutStatus] ?? log.toStatus}
+                            </span>
+                          </td>
+
+                          <td
+                            className="p-2 max-w-[80px] truncate"
+                            title={log.action}
+                          >
+                            {log.action}
+                          </td>
+
+                          <td
+                            className="p-2 max-w-[80px] truncate"
+                            title={log.triggeredByUserName || "-"}
+                          >
+                            {log.triggeredByUserName || "-"}
+                          </td>
+
+                          <td
+                            className="p-2 max-w-[80px] truncate"
+                            title={log.details || log.errorMessage || "-"}
+                          >
+                            {log.details || log.errorMessage || "-"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+
+                  </table>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div>Không có thông tin chi tiết.</div>
+          )}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button>Đóng</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

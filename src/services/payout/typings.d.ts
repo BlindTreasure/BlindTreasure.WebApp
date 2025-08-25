@@ -6,14 +6,14 @@ export type SellerPayoutSummary = {
   sellerName: string;
   sellerEmail: string;
   stripeAccountId: string;
-  grossAmount: number; 
-  platformFeeRate: number; 
-  platformFeeAmount: number; 
+  grossAmount: number;
+  platformFeeRate: number;
+  platformFeeAmount: number;
   netAmount: number;
-  totalOrderDetails: number; 
-  totalOrders: number; 
-  canPayout: boolean; 
-  payoutBlockReason: string | null; 
+  totalOrderDetails: number;
+  totalOrders: number;
+  canPayout: boolean;
+  payoutBlockReason: string | null;
   orderDetailSummaries: OrderDetailSummary[];
 };
 
@@ -34,7 +34,7 @@ export type PayoutHistoryParams = {
   SellerId?: string;
   PeriodStart?: string;
   PeriodEnd?: string;
-  PageIndex?: number; 
+  PageIndex?: number;
   PageSize?: number;
 };
 
@@ -50,6 +50,7 @@ export type PayoutHistoryItem = {
   id: string;
   sellerId: string;
   sellerName: string;
+  sellerEmail: string;
   periodStart: string;
   periodEnd: string;
   periodType: PeriodType;
@@ -63,4 +64,30 @@ export type PayoutHistoryItem = {
   stripeTransferId: string | null;
   failureReason: string | null;
   retryCount: number;
+  nextRetryAt: string;
+  payoutDetails: PayoutDetail[];
+  payoutLogs: PayoutLog[];
+};
+
+export type PayoutDetail = {
+  orderDetailId: string;
+  orderId: string;
+  quantity: number;
+  originalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  refundAmount: number;
+  contributedAmount: number;
+  orderCompletedAt: string;
+};
+
+export type PayoutLog = {
+  id: string;
+  fromStatus: PayoutStatus;
+  toStatus: PayoutStatus;
+  action: string;
+  details: string;
+  errorMessage: string | null;
+  triggeredByUserName: string;
+  loggedAt: string;
 };

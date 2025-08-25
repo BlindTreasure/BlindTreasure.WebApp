@@ -138,17 +138,6 @@ export default function StaffSidebar() {
                                 </span>
                             </Link>
                         </li>
-
-                        <li>
-                            <Link href="/staff/payouts" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
-                                <div className="flex items-center justify-center w-8 h-8">
-                                    <FaMoneyBillTransfer size={20} />
-                                </div>
-                                <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
-                                    Duyệt yêu cầu rút tiền
-                                </span>
-                            </Link>
-                        </li>
                     </ul>
                 </div>
             </aside>

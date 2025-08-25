@@ -7,6 +7,7 @@ import { closeSidebar, openSidebar } from "@/stores/difference-slice";
 import { CiAlignLeft } from "react-icons/ci";
 import { BsThreeDots } from "react-icons/bs";
 import { BsCardChecklist } from "react-icons/bs";
+import { FaMoneyBillTransfer } from "react-icons/fa6";
 
 export default function AdminSidebar() {
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -125,6 +126,16 @@ export default function AdminSidebar() {
                             </Link>
                         </li>
 
+                        <li>
+                            <Link href="/admin/payouts" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
+                                <div className="flex items-center justify-center w-8 h-8">
+                                    <FaMoneyBillTransfer size={20} />
+                                </div>
+                                <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
+                                    Duyệt yêu cầu rút tiền
+                                </span>
+                            </Link>
+                        </li>
                     </ul>
                 </div>
             </aside>
