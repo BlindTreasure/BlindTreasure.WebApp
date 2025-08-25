@@ -131,9 +131,22 @@ export default function Orders() {
                             </thead>
                             <tbody>
                                 {isPending ? (
-                                    <tr><td colSpan={5} className="text-center p-4">Đang tải...</td></tr>
+                                    <tr>
+                                        <td colSpan={7} className="text-center p-4">
+                                            Đang tải...
+                                        </td>
+                                    </tr>
                                 ) : orders.length === 0 ? (
-                                    <tr><td colSpan={5} className="text-center p-4">Không có đơn hàng nào</td></tr>
+                                    <tr>
+                                        <td colSpan={7} className="text-center p-4">
+                                            <img
+                                                src="https://static.thenounproject.com/png/empty-box-icon-7507343-512.png"
+                                                alt="Lịch sử trống"
+                                                className="mx-auto mb-2 w-24 h-24"
+                                            />
+                                            <div>Không có đơn hàng nào</div>
+                                        </td>
+                                    </tr>
                                 ) : (
                                     orders.map((order: Order) => (
                                         <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-opacity-80 dark:hover:text-black">

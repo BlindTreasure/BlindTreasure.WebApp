@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRef, useCallback, useEffect } from "react";
+import { useAppSelector } from '@/stores/store';
 
 interface MessageInputProps {
   messageInput: string;
@@ -44,6 +45,9 @@ export default function MessageInput({
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const isCurrentlyTyping = useRef(false);
   const lastTypingTime = useRef<number>(0);
+
+  const currentUserRole = useAppSelector(state => state.userSlice?.user?.roleName);
+  const isSeller = currentUserRole == "Seller"
 
   // Cleanup typing on unmount
   useEffect(() => {
@@ -260,7 +264,7 @@ export default function MessageInput({
         </Tooltip>
 
         {/* Inventory/Product button - Ẩn nếu chat với seller */}
-        {!isChatWithSeller && (
+        {(!isChatWithSeller && !isSeller) && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

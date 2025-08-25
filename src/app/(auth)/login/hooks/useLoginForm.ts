@@ -49,6 +49,7 @@ export function useLoginForm() {
             if (userInfo) {
               dispatch(
                 setUser({
+                  userId: userInfo.userId,
                   email: userInfo.email,
                   avatarUrl: userInfo.avatarUrl,
                   fullName: userInfo.fullName,

@@ -31,6 +31,9 @@ declare namespace REQUEST {
     orderId?: string;
     checkoutGroupId?: string;
   };
+  type VerifySellerAccount = {
+    sellerStripeAccountId: string;
+  };
 }
 
 declare namespace API {

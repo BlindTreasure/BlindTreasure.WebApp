@@ -8,6 +8,7 @@ import SellerHeader from "@/components/seller-header";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { setUser } from "@/stores/user-slice";
 import { getAccountProfile } from "@/services/account/api-services";
+import CustomerSellerChat from "@/components/chat-widget";
 
 export default function SellerLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -102,6 +103,9 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
           )}
         </main>
       </div>
+        {userState.user && userState.user?.roleName === "Seller" && (
+          <CustomerSellerChat />
+        )}
     </div>
   );
 }

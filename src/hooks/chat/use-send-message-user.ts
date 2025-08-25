@@ -25,7 +25,7 @@ interface UseChatReturn {
   stopTyping: (receiverId: string) => Promise<void>;
   clearMessages: () => void;
   clearTypingForUser: (receiverId: string) => Promise<void>;
-  checkUserOnlineStatus: (userId: string) => Promise<void>; // NEW
+  checkUserOnlineStatus: (userId: string) => Promise<void>;
   
   // Helpers
   isUserOnline: (userId: string) => boolean;
@@ -151,7 +151,7 @@ export const useChat = (): UseChatReturn => {
     };
   }, []);
 
-  // NEW: Listen for user online status response (from CheckUserOnlineStatus)
+  // Listen for user online status response (from CheckUserOnlineStatus)
   useEffect(() => {
     const unsubscribeStatusResponse = signalRService.onUserOnlineStatusResponse((data: { userId: string; isOnline: boolean; timestamp: string }) => {
       
@@ -322,7 +322,7 @@ export const useChat = (): UseChatReturn => {
     await stopTyping(receiverId);
   }, [stopTyping]);
 
-  // NEW: Check user online status function
+  // Check user online status function
   const checkUserOnlineStatus = useCallback(async (userId: string): Promise<void> => {
     if (!userId || !isConnected) {
       console.warn('[useChat] Cannot check user status - invalid userId or not connected');
@@ -363,10 +363,10 @@ export const useChat = (): UseChatReturn => {
     stopTyping,
     clearMessages,
     clearTypingForUser,
-    checkUserOnlineStatus, // NEW
+    checkUserOnlineStatus,
     
     // Helpers
-    isUserOnline
+    isUserOnline,
   };
 };
 

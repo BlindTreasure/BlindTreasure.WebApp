@@ -6,6 +6,7 @@ import { useAppSelector, useAppDispatch } from "@/stores/store";
 import { closeSidebar, openSidebar } from "@/stores/difference-slice";
 import { CiAlignLeft } from "react-icons/ci";
 import { BsThreeDots } from "react-icons/bs";
+import { FaMoneyBillTransfer } from "react-icons/fa6";
 export default function StaffSidebar() {
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const [isMobile, setIsMobile] = useState(false);
