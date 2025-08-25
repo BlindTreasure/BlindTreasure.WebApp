@@ -21,7 +21,6 @@ interface UseChatReturn {
   
   // Actions
   sendMessage: (receiverId: string, content: string) => Promise<void>;
-  sendMessageToAi: (prompt: string) => Promise<void>; // NEW: Send message to AI
   startTyping: (receiverId: string) => Promise<void>;
   stopTyping: (receiverId: string) => Promise<void>;
   clearMessages: () => void;
@@ -30,7 +29,6 @@ interface UseChatReturn {
   
   // Helpers
   isUserOnline: (userId: string) => boolean;
-  isAiMessage: (message: SIGNALR.ReceiveMessage) => boolean; // NEW: Check if message is from AI
 }
 
 export const useChat = (): UseChatReturn => {
@@ -259,24 +257,6 @@ export const useChat = (): UseChatReturn => {
     }
   }, [isConnected]);
 
-  // NEW: Send message to AI function
-  const sendMessageToAi = useCallback(async (prompt: string): Promise<void> => {
-    if (!prompt.trim()) {
-      throw new Error('Nội dung tin nhắn không được để trống');
-    }
-
-    if (!isConnected) {
-      throw new Error('Chưa kết nối SignalR');
-    }
-
-    try {
-      await signalRService.sendMessageToAi(prompt.trim());
-    } catch (err: any) {
-      console.error('[useChat] Send message to AI error:', err);
-      throw new Error(err.message || 'Không thể gửi tin nhắn tới AI');
-    }
-  }, [isConnected]);
-
   // Improved startTyping với debounce
   const startTyping = useCallback(async (receiverId: string): Promise<void> => {
     if (!receiverId || !isConnected) return;
@@ -368,11 +348,6 @@ export const useChat = (): UseChatReturn => {
     return userStatuses[userId]?.isOnline ?? false;
   }, [userStatuses]);
 
-  // NEW: Helper function to check if message is from AI
-  const isAiMessage = useCallback((message: SIGNALR.ReceiveMessage): boolean => {
-    return message.senderId === "AI" || message.senderId?.toLowerCase() === "ai";
-  }, []);
-
   return {
     // State
     isConnected,
@@ -384,7 +359,6 @@ export const useChat = (): UseChatReturn => {
     
     // Actions
     sendMessage,
-    sendMessageToAi, // NEW
     startTyping,
     stopTyping,
     clearMessages,
@@ -393,7 +367,6 @@ export const useChat = (): UseChatReturn => {
     
     // Helpers
     isUserOnline,
-    isAiMessage // NEW
   };
 };
 
