@@ -78,7 +78,6 @@ const errorHandler = async (error: AxiosError) => {
       status: 404,
       title: "Not found",
     };
-    location.href = "/404";
     return Promise.reject(result);
   }
 
