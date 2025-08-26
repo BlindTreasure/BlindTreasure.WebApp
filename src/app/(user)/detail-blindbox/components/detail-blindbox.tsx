@@ -398,12 +398,12 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                                         sellerInfo?.avatarUrl ||
                                         `https://api.dicebear.com/7.x/initials/svg?seed=${sellerId}&size=64&backgroundColor=ffffff&textColor=00579D`
                                     }
-                                    alt={sellerInfo?.companyName}
+                                    alt={sellerInfo?.fullName}
                                     className="w-10 h-10 sm:w-16 sm:h-16 object-cover rounded-full"
                                 />
                             </div>
-                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-sm shadow-sm whitespace-nowrap text-center">
-                                {sellerInfo?.companyName}
+                            <div title={sellerInfo?.fullName || "Cửa hàng"} className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-sm shadow-sm whitespace-nowrap text-center max-w-[120px] truncate">
+                                {sellerInfo?.fullName}
                             </div>
                         </div>
 

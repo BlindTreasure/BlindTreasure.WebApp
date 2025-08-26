@@ -552,7 +552,7 @@ export default function OrderDetail() {
                 Nếu bạn gặp sự cố với đơn hàng, vui lòng liên hệ chúng tôi qua hotline hoặc gửi yêu cầu hỗ trợ trong mục Liên hệ.
               </TabsContent>
               <TabsContent value="shipping">
-                Đơn hàng của bạn sẽ được giao trong vòng 3–5 ngày làm việc. Vui lòng kiểm tra tình trạng giao hàng trong phần Theo dõi đơn hàng.
+                Đơn hàng của bạn sẽ được giao trong vòng 3–5 ngày làm việc. Vui lòng kiểm tra tình trạng giao hàng trong phần "Đơn mua".
               </TabsContent>
 
             </div>

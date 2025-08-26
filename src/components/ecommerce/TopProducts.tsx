@@ -60,7 +60,7 @@ export default function TopProducts() {
           </div>
         ) : topProducts.length === 0 ? (
           <div className="py-8 text-center">
-            <div className="text-gray-500 dark:text-gray-400">Không có dữ liệu</div>
+            <div className="text-gray-500 dark:text-gray-400">Chưa có sản phẩm bán chạy</div>
           </div>
         ) : (
           topProducts.slice(0, 5).map((product, index) => (

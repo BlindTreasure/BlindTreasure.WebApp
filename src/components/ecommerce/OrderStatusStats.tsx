@@ -84,7 +84,7 @@ export default function OrderStatusStats() {
           </div>
         ) : orderStats.length === 0 ? (
           <div className="py-8 text-center">
-            <div className="text-gray-500 dark:text-gray-400">Không có dữ liệu</div>
+            <div className="text-gray-500 dark:text-gray-400">Chưa có đơn hàng</div>
           </div>
         ) : (
           <div className="space-y-4">
