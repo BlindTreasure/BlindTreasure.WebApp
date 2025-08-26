@@ -435,7 +435,11 @@ export default function Detail({ detailId }: DetailProps) {
                             </div>
                             <div className="flex justify-between sm:justify-start sm:gap-4">
                                 <p>Sản Phẩm</p>
-                                <p className="text-red-600 font-semibold">{isSellerOverviewPending ? "..." : seller?.productCount}</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending ? "..." : seller?.productInSellingCount}</p>
+                            </div>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Blindbox</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending ? "..." : seller?.blindBoxCount}</p>
                             </div>
                             <div className="flex justify-between sm:justify-start sm:gap-4">
                                 <p>Công Ty</p>

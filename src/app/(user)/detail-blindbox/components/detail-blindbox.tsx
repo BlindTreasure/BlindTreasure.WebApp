@@ -495,7 +495,11 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                             </div>
                             <div className="flex justify-between sm:justify-start sm:gap-4">
                                 <p>Sản Phẩm</p>
-                                <p className="text-red-600 font-semibold">{isSellerOverviewPending || isLoadingProducts ? "..." : seller?.productCount}</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending || isLoadingProducts ? "..." : seller?.productInSellingCount}</p>
+                            </div>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Blindbox</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending || isLoadingProducts ? "..." : seller?.blindBoxCount}</p>
                             </div>
                             <div className="flex justify-between sm:justify-start sm:gap-4">
                                 <p>Công Ty</p>

@@ -72,5 +72,8 @@ declare namespace API {
     productCount: number;
     companyName: string;
     companyArea: string;
+    productInSellingCount: number;
+    productInBlindBoxCount: number;
+    blindBoxCount: number;
   };
 }
