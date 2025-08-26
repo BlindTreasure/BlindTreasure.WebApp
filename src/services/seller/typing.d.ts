@@ -53,8 +53,8 @@ declare namespace API {
     avatarUrl: string;
     taxId?: string;
     companyAddress?: string;
-    sellerStatus: string
-  }
+    sellerStatus: string;
+  };
 
   type ResponseDataSeller = {
     result: Seller[];
@@ -62,5 +62,15 @@ declare namespace API {
     pageSize: number;
     currentPage: number;
     totalPages: number;
+  };
+
+  type SellerInfo = {
+    sellerId: string;
+    averageRating: number;
+    joinedAt: string; 
+    joinedAtToText: string;
+    productCount: number;
+    companyName: string;
+    companyArea: string;
   };
 }

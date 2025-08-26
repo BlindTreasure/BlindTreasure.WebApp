@@ -29,6 +29,9 @@ import useGetAllProductWeb from '@/app/(user)/allproduct/hooks/useGetAllProductW
 import { TbMessageDots } from 'react-icons/tb';
 import { BsShop } from 'react-icons/bs';
 import { useWishlistContext } from "@/contexts/WishlistContext";
+import useGetOverviewSeller from '../../shop/hooks/useOverviewSeller';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 
 interface BlindboxProps {
@@ -50,6 +53,8 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
     const { getAllBlindBoxesApi } = useGetAllBlindBoxes()
     const { addBlindboxToCartApi, isPending: isAddingToCart } = useAddBlindboxToCart();
     const { getPSellerByIdApi, isPending: isSellerPending } = useGetSellerById();
+    const { getOverViewSellerApi, isPending: isSellerOverviewPending } = useGetOverviewSeller();
+    const [seller, setSeller] = useState<API.SellerInfo | null>(null);
     const { getProductByIdWebApi } = useGetProductByIdWeb();
     const { getAllProductWebApi } = useGetAllProductWeb();
     const { getItemWishlistStatus, refreshWishlistStatus } = useWishlistContext();
@@ -80,9 +85,14 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                         const sellerIdFromProduct = productRes.value.data.sellerId;
                         setSellerId(sellerIdFromProduct);
 
-                        const sellerRes = await getPSellerByIdApi(sellerIdFromProduct);
+                        const sellerRes = await getOverViewSellerApi(sellerIdFromProduct);
                         if (sellerRes) {
-                            setSellerInfo(sellerRes.value.data);
+                            setSeller(sellerRes.value.data);
+                        }
+
+                        const sellerInfoRes = await getPSellerByIdApi(sellerIdFromProduct);
+                        if (sellerInfoRes) {
+                            setSellerInfo(sellerInfoRes.value.data);
                         }
 
                         // Fetch total products count (products + blindboxes)
@@ -240,9 +250,9 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
     })();
 
     const handleOpenChat = useCallback((targetUserId: string) => {
-          setChatTargetUserId(targetUserId);
-          setShowChat(true);
-        }, []);
+        setChatTargetUserId(targetUserId);
+        setShowChat(true);
+    }, []);
 
     return (
         <div className="p-6 mt-32 sm:px-16">
@@ -405,8 +415,8 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                             </div>
                             <div className='flex flex-row gap-2'>
                                 <button
-                                onClick={() => handleOpenChat(sellerInfo?.userId || '')}
-                                className="flex items-center gap-2 bg-red-500 text-white px-2 md:px-4 py-2 rounded hover:bg-red-600 transition text-sm">
+                                    onClick={() => handleOpenChat(sellerInfo?.userId || '')}
+                                    className="flex items-center gap-2 bg-red-500 text-white px-2 md:px-4 py-2 rounded hover:bg-red-600 transition text-sm">
                                     <TbMessageDots className='text-xl' />
                                     Chat ngay
                                 </button>
@@ -427,7 +437,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                         </div>
                     </div>
                     <div className="w-full xl:w-px h-px xl:h-20 bg-gray-300" />
-                    <div className="flex-1">
+                    {/* <div className="flex-1">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3 text-sm text-gray-600">
                             <div className='flex justify-between sm:justify-start sm:gap-4'>
                                 <p>Đánh Giá</p>
@@ -464,6 +474,36 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                                 <p className="text-red-600 font-semibold">
                                     {isSellerPending ? "..." : "2,1k"}
                                 </p>
+                            </div>
+                        </div>
+                    </div> */}
+                    <div className="flex-1">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm sm:text-base text-gray-600">
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Đánh Giá</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending ? "..." : seller?.averageRating}</p>
+                            </div>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Tham Gia</p>
+                                <p className="text-red-600 font-semibold">
+                                    {isSellerOverviewPending
+                                        ? "..."
+                                        : seller?.joinedAt
+                                            ? format(new Date(seller.joinedAt), "dd-MM-yyyy", { locale: vi })
+                                            : "Chưa rõ"}
+                                </p>
+                            </div>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Sản Phẩm</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending || isLoadingProducts ? "..." : seller?.productCount}</p>
+                            </div>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Công Ty</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending ? "..." : seller?.companyName}</p>
+                            </div>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Khu Vực</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending ? "..." : seller?.companyArea}</p>
                             </div>
                         </div>
                     </div>
@@ -536,11 +576,11 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
             <Backdrop open={isPending || isAddingToCart || loadingPage} />
             {/* Chat Component */}
             {showChat && (
-            <CustomerSellerChat 
-                isOpen={showChat}
-                onClose={() => setShowChat(false)}
-                targetUserId={chatTargetUserId}
-            />
+                <CustomerSellerChat
+                    isOpen={showChat}
+                    onClose={() => setShowChat(false)}
+                    targetUserId={chatTargetUserId}
+                />
             )}
         </div>
     );

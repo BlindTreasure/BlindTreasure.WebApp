@@ -72,3 +72,15 @@ export const getSellerById = async (
   );
   return response.data;
 };
+
+export const getSellerOverview = async (
+  sellerId: string
+): Promise<TResponseData<API.SellerInfo>> => {
+  const response = await request<TResponseData<API.SellerInfo>>(
+    API_ENDPOINTS.OVERVIEW(sellerId),
+    {
+      method: "GET",
+    }
+  );
+  return response.data;
+};

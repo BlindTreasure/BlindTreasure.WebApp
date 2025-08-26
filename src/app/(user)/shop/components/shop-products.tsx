@@ -17,6 +17,9 @@ import Pagination from "@/components/pagination";
 import { TbMessageDots } from "react-icons/tb";
 import useGetSellerById from "../../detail/hooks/useGetSellerById";
 import { useWishlistContext } from "@/contexts/WishlistContext";
+import useGetOverviewSeller from "../hooks/useOverviewSeller";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 interface ShopProductsProps {
     sellerId: string;
@@ -31,7 +34,8 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [sellerInfo, setSellerInfo] = useState<API.SellerById | null>(null);
-
+    const { getOverViewSellerApi, isPending: isSellerOverviewPending } = useGetOverviewSeller();
+    const [seller, setSeller] = useState<API.SellerInfo | null>(null);
     const router = useRouter();
     const { getAllProductWebApi, isPending } = useGetAllProductWeb();
     const { getAllBlindBoxesApi, isPending: isBlindboxPending } = useGetAllBlindBoxes();
@@ -125,6 +129,24 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
         }
     }, [sellerId]);
 
+    useEffect(() => {
+        const fetchSeller = async () => {
+            const res = await getOverViewSellerApi(sellerId);
+            if (res) {
+                setSeller(res.value.data);
+            }
+        };
+        fetchSeller();
+    }, [sellerId]);
+
+    if (isSellerOverviewPending) {
+        return <p>Đang tải...</p>;
+    }
+
+    if (!seller) {
+        return <p>Không tìm thấy thông tin shop</p>;
+    }
+
     const handlePageChange = (page: number) => {
         fetchData(page);
     };
@@ -180,7 +202,7 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
 
                         <div className="w-full xl:w-px h-px xl:h-20 bg-gray-300" />
 
-                        <div className="flex-1">
+                        {/* <div className="flex-1">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3 text-sm sm:text-base text-gray-600">
                                 <div className='flex justify-between sm:justify-start sm:gap-4'>
                                     <p>Đánh Giá</p>
@@ -205,6 +227,34 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                                 <div className='flex justify-between sm:justify-start sm:gap-4'>
                                     <p>Người Theo Dõi</p>
                                     <p className="text-red-600 font-semibold">228,6k</p>
+                                </div>
+                            </div>
+                        </div> */}
+                        <div className="flex-1">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm sm:text-base text-gray-600">
+                                <div className="flex justify-between sm:justify-start sm:gap-4">
+                                    <p>Đánh Giá</p>
+                                    <p className="text-red-600 font-semibold">{seller.averageRating}</p>
+                                </div>
+                                <div className="flex justify-between sm:justify-start sm:gap-4">
+                                    <p>Tham Gia</p>
+                                    <p className="text-red-600 font-semibold">
+                                        {seller.joinedAt
+                                            ? `${format(new Date(seller.joinedAt), "dd-MM-yyyy", { locale: vi })}`
+                                            : "Chưa rõ"}
+                                    </p>
+                                </div>
+                                <div className="flex justify-between sm:justify-start sm:gap-4">
+                                    <p>Sản Phẩm</p>
+                                    <p className="text-red-600 font-semibold">{seller.productCount}</p>
+                                </div>
+                                <div className="flex justify-between sm:justify-start sm:gap-4">
+                                    <p>Công Ty</p>
+                                    <p className="text-red-600 font-semibold">{seller.companyName}</p>
+                                </div>
+                                <div className="flex justify-between sm:justify-start sm:gap-4">
+                                    <p>Khu Vực</p>
+                                    <p className="text-red-600 font-semibold">{seller.companyArea}</p>
                                 </div>
                             </div>
                         </div>
