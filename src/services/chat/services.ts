@@ -1,12 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { markAsRead } from "@/services/chat/api-services";
-import useToast from "@/hooks/use-toast";
 import { handleError } from "@/hooks/error";
 
 export const useServiceMarkMessageAsRead = (
   onSuccessCallback?: (fromUserId: string) => void
 ) => {
-  const { addToast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation<TResponseData, TMeta, { fromUserId: string }>({

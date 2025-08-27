@@ -396,7 +396,8 @@ export const useChatActions = (): ChatActions => {
   const { useSendImageUserApi } = useSendImageUser();
   const { useSendInventoryItemUserApi } = useSendInventoryItemUser();
   const { getNewChatConversationApi } = useGetNewChatConversation();
-
+  const { getChatConversationApi } = useGetChatConversation();
+  
   // Cleanup typing timeout on unmount
   useEffect(() => {
     return () => {
@@ -478,7 +479,7 @@ export const useChatActions = (): ChatActions => {
     if (selectedConv && selectedConv?.unreadCount > 0) {
       markAsReadMutation.mutate({ fromUserId: conversationId });
     }
-  }, [conversations, dispatch, getNewChatConversationApi, isUserOnline, markAsReadMutation, isConnected, checkUserOnlineStatus]);
+  }, [conversations, dispatch, getNewChatConversationApi, isUserOnline, markAsReadMutation, isConnected]);
 
   const handleSendMessage = useCallback(async () => {
     if (!messageInput.trim() || !selectedConversation || !isConnected) return;
@@ -493,11 +494,37 @@ export const useChatActions = (): ChatActions => {
 
     try {
       await sendMessage(selectedConversation, messageContent);
+
+      // Sau khi gửi thành công -> gọi lại API để refresh conversation list
+      try {
+        const response = await getNewChatConversationApi(selectedConversation);
+        if (response?.value?.data) {
+          dispatch(updateConversation({
+            otherUserId: selectedConversation,
+            lastMessage: messageContent,
+            lastMessageTime: formatConversationDate(new Date().toISOString()),
+            unreadCount: 0
+          }));
+        } else {
+          // fallback: gọi full conversation list nếu không có dữ liệu mới
+          const convRes = await getChatConversationApi({ pageIndex: 1, pageSize: CHAT_CONSTANTS.CONVERSATION_PAGE_SIZE });
+          if (convRes?.value?.data) {
+            const transformed = convRes.value.data.result.map((conv: API.ChatConversation) => ({
+              ...conv,
+              lastMessageTime: formatConversationDate(conv.lastMessageTime),
+            }));
+            dispatch(setConversations(transformed));
+          }
+        }
+      } catch (refreshErr) {
+        console.error("Error refreshing conversations after send:", refreshErr);
+      }
+
     } catch (error) {
       console.error('Failed to send message:', error);
       dispatch(setMessageInput(messageContent));
     }
-  }, [messageInput, selectedConversation, isConnected, dispatch, sendMessage]);
+  }, [messageInput, selectedConversation, isConnected, dispatch, sendMessage, getNewChatConversationApi, getChatConversationApi])
 
   const handleInputChange = useCallback(async (value: string) => {
     dispatch(setMessageInput(value));

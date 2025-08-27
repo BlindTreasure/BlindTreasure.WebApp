@@ -47,7 +47,6 @@ export const useServiceCreateProduct = () => {
       });
     },
     onError: (error) => {
-      console.error("Create product error:", error);
       handleError(error);
     },
   });

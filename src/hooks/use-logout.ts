@@ -32,17 +32,20 @@ export default function useLogout() {
         const message =
           error?.response?.data?.error?.message ||
           error?.response?.data?.message ||
+          error?.detail ||
           "Lỗi không xác định";
 
         if (status === 404) {
           addToast({
             type: "error",
             description: "Không tìm thấy phiên đăng nhập.",
+            duration: 5000,
           });
         } else {
           addToast({
             type: "error",
             description: message,
+            duration: 5000,
           });
         }
 
