@@ -48,7 +48,7 @@ export function handleError(error: any) {
     case 500:
       addToast({
         type: "error",
-        description: data.error?.message || "Lỗi hệ thống.",
+        description: "Lỗi hệ thống.",
         duration: 5000,
       });
       break;

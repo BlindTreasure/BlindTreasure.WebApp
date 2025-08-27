@@ -7,7 +7,7 @@ import {
   PlusSquare,
   ListOrdered,
   ChevronDown,
-  BarChart,
+  MessageCircle ,
   Users,
   FileBox,
   Trophy
@@ -78,6 +78,11 @@ const sidebarItems = [
     icon: ListOrdered,
     href: "/seller/order-history",
   },
+  {
+    label: "Nhắn tin",
+    icon: MessageCircle,
+    href: "/seller/chat-with-user"
+  }
 ];
 
 export default function SellerSidebar() {

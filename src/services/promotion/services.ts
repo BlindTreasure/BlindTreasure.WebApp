@@ -6,22 +6,17 @@ import { handleError } from "@/hooks/error";
 export const useServiceCreatePromotion = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<API.Promotion>, TMeta, REQUEST.PromotionForm>({
+  return useMutation<TResponseData<API.Promotion>, Error, REQUEST.PromotionForm>({
     mutationFn: createPromotion,
     onSuccess: (data) => {
       addToast({
         type: "success",
-        description: data.value.message || "Tạo khuyến mãi thành công!",
+        description: data.value.message,
         duration: 5000,
       });
     },
     onError: (error) => {
       handleError(error);
-      addToast({
-        type: "error",
-        description: "Tạo khuyến mãi thất bại. Vui lòng thử lại!",
-        duration: 5000,
-      });
     },
   });
 };
@@ -29,22 +24,17 @@ export const useServiceCreatePromotion = () => {
 export const useServiceReviewPromotion = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<API.Promotion>, TMeta, REQUEST.ReviewPromotion>({
+  return useMutation<TResponseData<API.Promotion>, Error, REQUEST.ReviewPromotion>({
     mutationFn: reviewPromotion,
     onSuccess: (data) => {
       addToast({
         type: "success",
-        description: data.value.message || "Xét duyệt khuyến mãi thành công",
+        description: data.value.message,
         duration: 5000,
       });
     },
     onError: (error) => {
       handleError(error);
-      addToast({
-        type: "error",
-        description: "Xét duyệt khuyến mãi thất bại. Vui lòng thử lại!",
-        duration: 5000,
-      });
     },
   });
 };
@@ -52,22 +42,17 @@ export const useServiceReviewPromotion = () => {
 export const useServiceUpdatePromotion = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<API.Promotion>, TMeta, REQUEST.PromotionForm & { promotionId : string }>({
+  return useMutation<TResponseData<API.Promotion>, Error, REQUEST.PromotionForm & { promotionId : string }>({
     mutationFn: updatePromotion,
     onSuccess: (data) => {
       addToast({
         type: "success",
-        description: data.value.message || "Chỉnh sửa khuyến mãi thành công",
+        description: data.value.message,
         duration: 5000,
       });
     },
     onError: (error) => {
       handleError(error);
-      addToast({
-        type: "error",
-        description: "Chỉnh sửa khuyến mãi thất bại. Vui lòng thử lại!",
-        duration: 5000,
-      });
     },
   });
 };
@@ -75,22 +60,17 @@ export const useServiceUpdatePromotion = () => {
 export const useServiceDeletePromotion = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<API.Promotion>, TMeta,{ promotionId : string }>({
+  return useMutation<TResponseData<API.Promotion>, Error,{ promotionId : string }>({
     mutationFn: ({promotionId}) =>deletePromotion(promotionId),
     onSuccess: (data) => {
       addToast({
         type: "success",
-        description: data.value.message || "Xóa khuyến mãi thành công",
+        description: data.value.message,
         duration: 5000,
       });
     },
     onError: (error) => {
       handleError(error);
-      addToast({
-        type: "error",
-        description: "Xóa khuyến mãi thất bại. Vui lòng thử lại!",
-        duration: 5000,
-      });
     },
   });
 };
@@ -98,12 +78,12 @@ export const useServiceDeletePromotion = () => {
 export const useServiceParticipantPromotion = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<API.ParticipantPromotion>, TMeta,{ promotionId : string }>({
+  return useMutation<TResponseData<API.ParticipantPromotion>, Error,{ promotionId : string }>({
     mutationFn: ({promotionId}) =>participantPromotion(promotionId),
     onSuccess: (data) => {
       addToast({
         type: "success",
-        description: data.value.message || "Tham gia chiến dịch khuyến mãi thành công",
+        description: data.value.message,
         duration: 5000,
       });
     },
@@ -116,12 +96,12 @@ export const useServiceParticipantPromotion = () => {
 export const useServiceWithdrawPromotion = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<API.ParticipantPromotion>, TMeta, REQUEST.withdrawPromotion>({
+  return useMutation<TResponseData<API.ParticipantPromotion>, Error, REQUEST.withdrawPromotion>({
     mutationFn: withdrawPromotion,
     onSuccess: (data) => {
       addToast({
         type: "success",
-        description: data.value.message || "Rút khỏi chiến dịch khuyến mãi thành công!",
+        description: data.value.message,
         duration: 5000,
       });
     },

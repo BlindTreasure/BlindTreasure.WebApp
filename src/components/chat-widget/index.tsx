@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAppSelector, useAppDispatch } from '@/stores/store';
@@ -33,6 +33,7 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
   const dispatch = useAppDispatch();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [hasShownSelfChatWarning, setHasShownSelfChatWarning] = useState(false);
+  const hasSelectedRef = useRef(false);
   const { addToast } = useToast();
   
   const currentUserId = useAppSelector(state => state.userSlice?.user?.userId);
@@ -88,20 +89,19 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
 
   // Effect để check online status khi select conversation
   useEffect(() => {
-    if (!targetUserId || !isOpen || selectedConversation === targetUserId || isSelfChat) return;
-
-    const targetConversation = conversations.find(conv => conv.otherUserId === targetUserId);
+    if (!targetUserId || !isOpen || isSelfChat || hasSelectedRef.current) return;
     
+    const targetConversation = conversations.find(conv => conv.otherUserId === targetUserId);
     if (targetConversation) {
       dispatch(setSelectedConversation(targetUserId));
-      // Check online status khi chọn conversation
       checkUserOnlineStatus(targetUserId);
-    } else if (conversations.length > 0) {
+      hasSelectedRef.current = true;
+    } else if (conversations.length === 0) {
       chatActions.handleSelectConversation(targetUserId);
-      // Check online status cho conversation mới
       checkUserOnlineStatus(targetUserId);
+      hasSelectedRef.current = true;
     }
-  }, [targetUserId, isOpen, conversations, selectedConversation, checkUserOnlineStatus, dispatch, chatActions, isSelfChat]);
+  }, [targetUserId, isOpen, conversations, isSelfChat]);
 
   // Effect để check online status cho tất cả conversations khi mở chat
   useEffect(() => {

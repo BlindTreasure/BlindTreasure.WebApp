@@ -24,6 +24,12 @@ export type GetOrderParams = {
   pageSize?: number;
 };
 
+export type GetInventoryOnHoldParams = {
+  pageIndex?: number;
+  pageSize?: number;
+  userId?: string;
+}
+
 export type OrderResponse = {
   result: Order[];
   count: number;
@@ -208,3 +214,32 @@ export type PayoutLog = {
 export type ConfirmPayoutRequest = {
   files: File[];
 };
+
+export type InventoryOnHold = {
+  id: string;
+  product: Product;
+  status: string;
+  holdInfo: HoldInfo;
+}
+
+type Product = {
+  id: string;
+  name: string;
+  description: string;
+  brand: string;
+}
+
+type HoldInfo = {
+  isOnHold: boolean;
+  holdUntil: string;
+  remainingDays: number;
+  lastTradeId: string | null;
+}
+
+export type InventoryOnHoldResponse = {
+  result: InventoryOnHold[];
+  count: number;
+  pageSize: number;
+  currentPage: number;
+  totalPages: number;
+}

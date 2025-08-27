@@ -4,9 +4,7 @@ import { isTResponseData } from "@/utils/compare";
 import { useRef, useState } from "react";
 
 export default function useGetStatusSeller() {
-  const { addToast } = useToast();
   const [isPending, setPending] = useState(false);
-  const hasFetchedData = useRef(false);
 
   const getStatusSellersApi = async (params: REQUEST.GetSellers) => {
     setPending(true);

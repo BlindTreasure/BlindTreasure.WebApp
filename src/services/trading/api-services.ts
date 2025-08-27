@@ -13,6 +13,18 @@ export const viewTradeRequestByListingId = async (
   return response.data;
 };
 
+export const viewAllTradeRequest = async (params?: REQUEST.ParamsGetAllTradeRequest)
+: Promise<TResponseData<API.ResponseDataTradeRequest>> => {
+  const response = await request<TResponseData<API.ResponseDataTradeRequest>>(
+    API_ENDPOINTS.GET_ALL_TRADE_REQUEST,
+    {
+      method: "GET",
+      params,
+    }
+  );
+  return response.data;
+};
+
 export const respondTradeRequest = async (
   {tradeRequestId, isAccepted} : REQUEST.AcceptTradeRequest
 ): Promise<TResponseData<API.TradeRequest>> => {

@@ -1,6 +1,7 @@
 import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/admin/api-path";
-import { ConfirmPayoutRequest, GetOrderParams, OrderResponse, PayoutHistoryItem, PayoutHistoryParams, PayoutHistoryResponse } from "./typings";
+import { ConfirmPayoutRequest, GetOrderParams, OrderResponse, PayoutHistoryItem, PayoutHistoryParams, PayoutHistoryResponse, GetInventoryOnHoldParams, InventoryOnHoldResponse } from "./typings";
+import { InventoryItem } from "@/services/inventory-item/typings"
 
 export const getOrderByAdmin = async (params?: GetOrderParams) => {
   const response = await request<TResponseData<OrderResponse>>(
@@ -46,5 +47,38 @@ export const confirmPayout = async (
     }
   );
 
+  return response.data;
+};
+
+export const forceReleaseHold = async (inventoryItemId: string): Promise<TResponseData<InventoryItem>> => {
+  const response = await request<TResponseData<InventoryItem>>(
+    API_ENDPOINTS.FORCE_RELEASE_HOLD(inventoryItemId),
+    {
+      method: "POST", 
+    }
+  );
+
+  return response.data;
+};
+
+export const forceTimeout = async (tradeRequestId: string): Promise<TResponseData<API.TradeRequest>> => {
+  const response = await request<TResponseData<API.TradeRequest>>(
+    API_ENDPOINTS.FORCE_TIMEOUT(tradeRequestId),
+    {
+      method: "POST", 
+    }
+  );
+
+  return response.data;
+};
+
+export const getInventoryOnHold = async (params?: GetInventoryOnHoldParams) => {
+  const response = await request<TResponseData<InventoryOnHoldResponse>>(
+    API_ENDPOINTS.INVENTORY_ONHOLD,
+    {
+      method: "GET",
+      params,
+    }
+  );
   return response.data;
 };

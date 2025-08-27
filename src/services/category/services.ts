@@ -6,22 +6,17 @@ import { handleError } from "@/hooks/error";
 export const useServiceCreateCategory = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<any>, TMeta, REQUEST.CategoryForm>({
+  return useMutation<TResponseData<API.ResponseDataCategory>, Error, REQUEST.CategoryForm>({
     mutationFn: createCategory,
     onSuccess: (data) => {
       addToast({
         type: "success",
-        description: data.value.message || "Tạo danh mục thành công!",
+        description: data.value.message,
         duration: 5000,
       });
     },
     onError: (error) => {
       handleError(error);
-      addToast({
-        type: "error",
-        description: "Tạo danh mục thất bại. Vui lòng thử lại!",
-        duration: 5000,
-      });
     },
   });
 };
@@ -31,24 +26,19 @@ export const useServiceDeleteCategory = () => {
 
   return useMutation<
     TResponseData<any>,
-    TMeta,
+    Error,
     { categoryId: string }
   >({
     mutationFn: ({ categoryId }) => deleteCategory(categoryId),
     onSuccess: (data) => {
       addToast({
         type: "success",
-        description: data?.value?.message || "Xóa danh mục thành công!",
+        description: data?.value?.message,
         duration: 5000,
       });
     },
     onError: (error) => {
       handleError(error);
-      addToast({
-        type: "error",
-        description: "Xóa danh mục thất bại. Vui lòng thử lại!",
-        duration: 5000,
-      });
     },
   });
 };
@@ -58,24 +48,19 @@ export const useServiceUpdateCategory = () => {
 
   return useMutation<
     TResponseData<any>, 
-    TMeta, 
+    Error, 
     REQUEST.CategoryForm & { categoryId: string }
   >({
     mutationFn: updateCategory,
     onSuccess: (data) => {
       addToast({
         type: "success",
-        description: data.value.message || "Cập nhật danh mục thành công!",
+        description: data.value.message,
         duration: 5000,
       });
     },
     onError: (error) => {
       handleError(error);
-      addToast({
-        type: "error",
-        description: "Cập nhật danh mục thất bại. Vui lòng thử lại!",
-        duration: 5000,
-      });
     },
   });
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from "react"; 
+import { useState, useEffect, useRef, useCallback } from "react"; 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { fadeIn } from "@/utils/variants";
@@ -20,6 +20,9 @@ import useGetOverviewSeller from "../hooks/useOverviewSeller";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import ShopSidebar from "./shop-sidebar";
+import useAddProductToCart from '@/app/(user)/detail/hooks/useAddProductToCart'
+import useAddBlindboxToCart from '@/app/(user)/detail-blindbox/hooks/useAddBlindboxToCart'
+import CustomerSellerChat from '@/components/chat-widget';
 
 interface ShopProductsProps {
     sellerId: string;
@@ -33,8 +36,10 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
     >([]);
     const [loading, setLoading] = useState(true);
     const [loadingPage, setLoadingPage] = useState(false);
+    const [showChat, setShowChat] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [filterType, setFilterType] = useState<'all' | 'product' | 'blindbox'>('all');
+    const [chatTargetUserId, setChatTargetUserId] = useState<string>('');
 
     const [sellerInfo, setSellerInfo] = useState<API.SellerById | null>(null);
     const { getOverViewSellerApi, isPending: isSellerOverviewPending } = useGetOverviewSeller();
@@ -43,6 +48,8 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
     const router = useRouter();
     const { getAllProductWebApi, isPending } = useGetAllProductWeb();
     const { getAllBlindBoxesApi, isPending: isBlindboxPending } = useGetAllBlindBoxes();
+    const { isPending: isPendingProductCart, addProductToCartApi } = useAddProductToCart();
+    const { isPending: isPendingBlindboxCart, addBlindboxToCartApi } = useAddBlindboxToCart();
     const { getPSellerByIdApi } = useGetSellerById();
     const { getItemWishlistStatus, refreshWishlistStatus } = useWishlistContext();
     const [minPrice, setMinPrice] = useState<number | null>(null);
@@ -133,6 +140,11 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
         }
     };
 
+    const handleOpenChat = useCallback((targetUserId: string) => {
+        setChatTargetUserId(targetUserId);
+        setShowChat(true);
+      }, []);
+
     useEffect(() => {
         if (sellerId) {
             fetchData();
@@ -177,6 +189,14 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
         setCurrentPage(page);
     };
 
+    const handleAddBlindboxToCart = async (blindBoxId: string, quantity: number = 1) => {
+        await addBlindboxToCartApi({ blindBoxId, quantity });
+    };
+
+    const handleAddProductToCart = async (productId: string, quantity: number = 1) => {
+        await addProductToCartApi({ productId, quantity });
+    };
+
     return (
         <div className="container mx-auto px-3 sm:px-6 lg:px-8 pt-6 sm:pt-8 py-12 sm:py-16 mt-36 sm:mt-40 max-w-7xl">
             {sellerInfo && (
@@ -213,7 +233,9 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                                     {sellerInfo?.companyName || sellerInfo?.fullName || "Cửa hàng"}
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-2">
-                                    <button className="flex items-center justify-center gap-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition text-sm sm:text-base">
+                                    <button
+                                    onClick={() => handleOpenChat(sellerInfo?.userId || '')}
+                                    className="flex items-center justify-center gap-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition text-sm sm:text-base">
                                         <TbMessageDots className="text-lg sm:text-xl" />
                                         Chat ngay
                                     </button>
@@ -296,6 +318,7 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                                                 key={`product-${item.data.id}-${index}`}
                                                 product={item.data as AllProduct}
                                                 onViewDetail={handleViewDetail}
+                                                onAddToCart={handleAddProductToCart}
                                                 ribbonTypes={["product"]}
                                                 initialIsInWishlist={wishlistStatus.isInWishlist}
                                                 initialWishlistId={wishlistStatus.wishlistId}
@@ -306,6 +329,7 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                                                 key={`blindbox-${item.data.id}-${index}`}
                                                 blindbox={item.data as BlindBox}
                                                 onViewDetail={handleViewBlindboxDetail}
+                                                onAddToCart={handleAddBlindboxToCart}
                                                 ribbonTypes={['blindbox']}
                                                 initialIsInWishlist={wishlistStatus.isInWishlist}
                                                 initialWishlistId={wishlistStatus.wishlistId}
@@ -340,6 +364,14 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
             </div>
 
             <Backdrop open={isPending || isBlindboxPending || loadingPage} />
+            {/* Chat Component */}
+            {showChat && (
+                <CustomerSellerChat
+                    isOpen={showChat}
+                    onClose={() => setShowChat(false)}
+                    targetUserId={chatTargetUserId}
+                />
+            )}
         </div>
     );
 }
