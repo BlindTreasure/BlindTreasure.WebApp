@@ -232,7 +232,7 @@ const StatisticsChart = () => {
           </Select>
           <input
             type="date"
-            className="border rounded px-2 py-1 text-sm"
+            className="border rounded px-2 py-1 text-sm dark:bg-gray-900 date-icon-black dark:date-icon-white"
             value={startDate ? startDate.slice(0, 10) : ''}
             onChange={e => setStartDate(e.target.value ? e.target.value : undefined)}
             placeholder="Từ ngày"
@@ -241,12 +241,13 @@ const StatisticsChart = () => {
           <span className="mx-1">-</span>
           <input
             type="date"
-            className="border rounded px-2 py-1 text-sm"
+            className="border rounded px-2 py-1 text-sm dark:bg-gray-900 date-icon-black dark:date-icon-white"
             value={endDate ? endDate.slice(0, 10) : ''}
             onChange={e => setEndDate(e.target.value ? e.target.value : undefined)}
             placeholder="Đến ngày"
             style={{ minWidth: 120 }}
           />
+
         </div>
       </div>
 

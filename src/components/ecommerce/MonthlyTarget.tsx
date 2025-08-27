@@ -114,13 +114,22 @@ export default function MonthlyTarget() {
     setIsOpen(false);
   }
 
+  // const formatCurrency = (amount: number) => {
+  //   if (amount >= 1000000) {
+  //     return `${(amount / 1000000).toFixed(1)}M ₫`;
+  //   } else if (amount >= 1000) {
+  //     return `${(amount / 1000).toFixed(1)}K ₫`;
+  //   }
+  //   return `${amount.toLocaleString("vi-VN")} ₫`;
+  // };
+
   const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `${(amount / 1000000).toFixed(1)}M ₫`;
-    } else if (amount >= 1000) {
-      return `${(amount / 1000).toFixed(1)}K ₫`;
-    }
-    return `${amount.toLocaleString("vi-VN")} ₫`;
+    if (amount == null || isNaN(amount)) return "0 ₫";
+
+    return new Intl.NumberFormat("vi-VN", {
+      notation: "compact", // rút gọn: 3,55 Tr, 2,5 N, 1,2 T
+      maximumFractionDigits: 2,
+    }).format(amount) + " ₫";
   };
 
   return (

@@ -36,38 +36,59 @@ export function ProductTabs({ description }: ProductTabsProps) {
                             <p className="whitespace-pre-line">{description}</p>
                         </>
                     )}
+
                     <p className="font-semibold">→ THÔNG TIN CHI TIẾT :</p>
                     <ol className="list-decimal list-inside space-y-1">
                         <li>
-                            Hộp đơn : Đối với box lẻ (đây là blindbox – hộp mù) ngẫu nhiên người
-                            mua sẽ không xác định được bên trong là gì nhưng khi mua nhiều sản
-                            phẩm trên cùng 1 đơn hàng thì sẽ không bị trùng mẫu, có tỷ lệ mở ra
-                            SECRET
+                            Hộp đơn: Đây là <strong>blindbox (hộp mù)</strong>, bên trong hoàn toàn ngẫu nhiên –
+                            người mua sẽ không biết trước mẫu nào.
                         </li>
                         <li>
-                            Toàn bộ hộp: Đối với nguyên set (không trùng), có tỷ lệ mở ra SECRET
-                            <br />
-                            <em>
-                                SECRET là mẫu hiếm (mẫu ẩn được làm mờ hoặc tô đen trên hộp)
-                            </em>
+                            Khi mua nhiều sản phẩm trên cùng 1 đơn hàng, hệ thống sẽ hạn chế tối đa việc trùng mẫu.
+                        </li>
+                        <li>
+                            Mỗi đơn hàng đều có <strong>tỷ lệ mở ra SECRET</strong> – là mẫu hiếm được thể hiện mờ hoặc
+                            tô đen trên bao bì.
                         </li>
                     </ol>
+
                     <p className="font-semibold">→ DỊCH VỤ KHÁCH HÀNG :</p>
                     <ul className="list-disc list-inside space-y-1">
                         <li>
-                            Do các phương pháp đo khác nhau, kết quả đo sẽ có sai số từ 1-3cm,
-                            thuộc phạm vi bình thường
+                            Do phương pháp đo thủ công khác nhau, kết quả có thể sai số 1–3cm (trong phạm vi bình thường).
                         </li>
                         <li>
-                            Do ảnh hưởng của ánh sáng, màn hình hiển thị, máy ảnh và các yếu tố
-                            khác, hình ảnh sẽ hơi khác so với vật thật. Kích thước hình ảnh chỉ
-                            mang tính chất tham khảo
+                            Hình ảnh sản phẩm có thể khác nhẹ so với thực tế do ánh sáng, màn hình hiển thị và góc chụp.
+                        </li>
+                        <li>
+                            Kích thước và màu sắc chỉ mang tính tham khảo, vui lòng cân nhắc trước khi mua.
                         </li>
                     </ul>
                 </TabsContent>
 
-                <TabsContent value="warranty">
-                    <p className="italic">Hello</p>
+                <TabsContent value="warranty" className="text-sm text-gray-700 leading-relaxed space-y-4">
+                    <div>
+                        <h3 className="font-semibold text-red-600 mb-2">🛍️ Sản phẩm thường</h3>
+                        <ul className="list-disc list-inside space-y-1">
+                            <li>Bảo hành kỹ thuật trong vòng <strong>3 ngày</strong> kể từ ngày nhận hàng.</li>
+                            <li>Đổi sản phẩm mới cùng loại nếu phát sinh lỗi do nhà sản xuất (không hoàn tiền).</li>
+                            <li>Không áp dụng bảo hành khi: sản phẩm hư hỏng do rơi vỡ, va chạm, nước, hóa chất, hoặc tự ý sửa chữa.</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 className="font-semibold text-red-600 mb-2">🎁 Blindbox</h3>
+                        <ul className="list-disc list-inside space-y-1">
+                            <li>Không áp dụng đổi trả nếu không hài lòng với nhân vật/mẫu ngẫu nhiên nhận được.</li>
+                            <li>Chỉ hỗ trợ đổi trong trường hợp sản phẩm lỗi do sản xuất hoặc hư hỏng trong quá trình vận chuyển.</li>
+                            <li>Hộp blindbox có thể móp nhẹ trong vận chuyển nhưng sản phẩm bên trong không ảnh hưởng thì không áp dụng đổi.</li>
+                            <li>Nếu lỗi nặng, khách hàng được đổi 1 blindbox khác cùng series (ngẫu nhiên, không chọn mẫu).</li>
+                        </ul>
+                    </div>
+
+                    <p className="italic text-gray-500">
+                        Lưu ý: Shop không áp dụng hoàn tiền dưới bất kỳ hình thức nào.
+                    </p>
                 </TabsContent>
             </div>
         </Tabs>

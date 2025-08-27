@@ -38,19 +38,28 @@ export default function OrderStatusStats() {
     }).format(amount);
   };
 
-  const getStatusColor = (status: OrderStatus): 'success' | 'warning' | 'error' | 'info' => {
+  const getStatusColor = (status: OrderStatus): string => {
     switch (status) {
-      case OrderStatus.DELIVERED:
-        return 'success';
       case OrderStatus.PENDING:
-        return 'warning';
-      case OrderStatus.CANCELLED:
-        return 'error';
+        return "bg-yellow-100 text-yellow-700";
+      case OrderStatus.IN_INVENTORY:
+        return "bg-blue-100 text-blue-700";
+      case OrderStatus.SHIPPING_REQUESTED:
+        return "bg-indigo-100 text-indigo-700";
+      case OrderStatus.PARTIALLY_SHIPPING_REQUESTED:
+        return "bg-purple-100 text-purple-700";
       case OrderStatus.DELIVEREDING:
+        return "bg-orange-100 text-orange-700";
       case OrderStatus.PARTIALLY_DELIVERING:
-        return 'info';
+        return "bg-pink-100 text-pink-700";
+      case OrderStatus.DELIVERED:
+        return "bg-green-100 text-green-700";
+      case OrderStatus.PARTIALLY_DELIVERED:
+        return "bg-teal-100 text-teal-700";
+      case OrderStatus.CANCELLED:
+        return "bg-red-100 text-red-700";
       default:
-        return 'info';
+        return "bg-gray-100 text-gray-700";
     }
   };
 
@@ -75,7 +84,7 @@ export default function OrderStatusStats() {
           </div>
         ) : orderStats.length === 0 ? (
           <div className="py-8 text-center">
-            <div className="text-gray-500 dark:text-gray-400">Không có dữ liệu</div>
+            <div className="text-gray-500 dark:text-gray-400">Chưa có đơn hàng</div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -88,12 +97,13 @@ export default function OrderStatusStats() {
                   {stat.count}
                 </div>
                 <div className="flex justify-start text-xs">
-                  <Badge
-                    size="sm"
-                    color={getStatusColor(stat.status)}
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
+                      stat.status
+                    )}`}
                   >
                     {OrderStatusText[stat.status]}
-                  </Badge>
+                  </span>
                 </div>
               </div>
             ))}

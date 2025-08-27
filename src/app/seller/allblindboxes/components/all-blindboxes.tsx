@@ -429,7 +429,7 @@ export default function BlindboxTable() {
 
                                             {isExpanded &&
                                                 blindbox.items.map((item) => (
-                                                    <TableRow key={item.productId} className="bg-gray-50">
+                                                    <TableRow key={item.productId} className="bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800">
                                                         <TableCell className="pl-10 w-24">
                                                             {item.imageUrl ? (
                                                                 <img

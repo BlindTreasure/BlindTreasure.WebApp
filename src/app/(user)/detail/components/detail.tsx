@@ -29,6 +29,9 @@ import useGetAllBlindBoxes from '@/app/seller/allblindboxes/hooks/useGetAllBlind
 import { BlindBox, GetBlindBoxes } from '@/services/blindboxes/typings';
 import { useWishlistContext } from "@/contexts/WishlistContext";
 import { BsShop } from "react-icons/bs";
+import useGetOverviewSeller from '../../shop/hooks/useOverviewSeller';
+import { vi } from 'date-fns/locale';
+import { format } from 'date-fns';
 
 interface DetailProps {
     detailId: string;
@@ -53,6 +56,8 @@ export default function Detail({ detailId }: DetailProps) {
     const { getPSellerByIdApi, isPending: isSellerPending } = useGetSellerById();
     const { getAllBlindBoxesApi, isPending: isBlindboxPending } = useGetAllBlindBoxes();
     const { getItemWishlistStatus, refreshWishlistStatus } = useWishlistContext();
+    const { getOverViewSellerApi, isPending: isSellerOverviewPending } = useGetOverviewSeller();
+    const [seller, setSeller] = useState<API.SellerInfo | null>(null);
 
     const handleViewDetail = (id: string) => {
         setLoadingPage(true);
@@ -93,6 +98,11 @@ export default function Detail({ detailId }: DetailProps) {
                     const sellerRes = await getPSellerByIdApi(res.value.data.sellerId);
                     if (sellerRes) {
                         setSellerInfo(sellerRes.value.data);
+                    }
+
+                    const sellerOverviewRes = await getOverViewSellerApi(res.value.data.sellerId);
+                    if (sellerOverviewRes) {
+                        setSeller(sellerOverviewRes.value.data);
                     }
 
                     // Fetch all products from this seller
@@ -201,8 +211,8 @@ export default function Detail({ detailId }: DetailProps) {
     };
 
     const handleOpenChat = useCallback((targetUserId: string) => {
-      setChatTargetUserId(targetUserId);
-      setShowChat(true);
+        setChatTargetUserId(targetUserId);
+        setShowChat(true);
     }, []);
 
     const images = products?.imageUrls?.length ? products.imageUrls : [];
@@ -340,12 +350,12 @@ export default function Detail({ detailId }: DetailProps) {
                                         sellerInfo?.avatarUrl ||
                                         `https://api.dicebear.com/7.x/initials/svg?seed=${products?.sellerId}&size=64&backgroundColor=ffffff&textColor=00579D`
                                     }
-                                    alt={sellerInfo?.companyName}
+                                    alt={sellerInfo?.fullName}
                                     className="w-10 h-10 sm:w-16 sm:h-16 object-cover rounded-full"
                                 />
                             </div>
-                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-sm shadow-sm whitespace-nowrap text-center">
-                                {sellerInfo?.companyName}
+                            <div title={sellerInfo?.fullName || "Cửa hàng"} className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-sm shadow-sm whitespace-nowrap text-center max-w-[120px] truncate">
+                                {sellerInfo?.fullName}
                             </div>
                         </div>
 
@@ -377,7 +387,7 @@ export default function Detail({ detailId }: DetailProps) {
 
                     <div className="w-full xl:w-px h-px xl:h-20 bg-gray-300" />
 
-                    <div className="flex-1">
+                    {/* <div className="flex-1">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3 text-sm text-gray-600">
                             <div className="flex justify-between sm:justify-start sm:gap-4">
                                 <p>Đánh Giá</p>
@@ -404,6 +414,40 @@ export default function Detail({ detailId }: DetailProps) {
                             <div className="flex justify-between sm:justify-start sm:gap-4">
                                 <p>Người Theo Dõi</p>
                                 <p className="text-red-600 font-semibold">228,6k</p>
+                            </div>
+                        </div>
+                    </div> */}
+                    <div className="flex-1">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm sm:text-base text-gray-600">
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Đánh Giá</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending ? "..." : seller?.averageRating}</p>
+                            </div>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Tham Gia</p>
+                                <p className="text-red-600 font-semibold">
+                                    {isSellerOverviewPending
+                                        ? "..."
+                                        : seller?.joinedAt
+                                            ? format(new Date(seller.joinedAt), "dd-MM-yyyy", { locale: vi })
+                                            : "Chưa rõ"}
+                                </p>
+                            </div>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Sản Phẩm</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending ? "..." : seller?.productInSellingCount}</p>
+                            </div>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Blindbox</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending ? "..." : seller?.blindBoxCount}</p>
+                            </div>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Công Ty</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending ? "..." : seller?.companyName}</p>
+                            </div>
+                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                <p>Khu Vực</p>
+                                <p className="text-red-600 font-semibold">{isSellerOverviewPending ? "..." : seller?.companyArea}</p>
                             </div>
                         </div>
                     </div>
@@ -451,7 +495,7 @@ export default function Detail({ detailId }: DetailProps) {
             <Backdrop open={isPending || isAddingToCart || loadingPage} />
             {/* Chat Component */}
             {showChat && (
-                <CustomerSellerChat 
+                <CustomerSellerChat
                     isOpen={showChat}
                     onClose={() => setShowChat(false)}
                     targetUserId={chatTargetUserId}

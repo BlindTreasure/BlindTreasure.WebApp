@@ -390,7 +390,7 @@ const PromotionCrud: React.FC = () => {
                 <Plus size={20} />
                 {isCreatingPromotion 
                   ? 'Đang tạo...' 
-                  : (currentUserRole === 'Staff' ? 'Tạo Promotion' : 'Thêm Promotion')
+                  : (currentUserRole === 'Staff' ? 'Tạo mã' : 'Thêm mã')
                 }
               </button>
             </div>

@@ -209,7 +209,7 @@ export default function OrderHistory() {
                         <div>Đang tải chi tiết...</div>
                     ) : orderDetail ? (
                         <div className="space-y-6 text-sm mt-2">
-                            <div className="border rounded p-3 bg-white">
+                            <div className="border rounded p-3 bg-white dark:bg-gray-900">
                                 <div className="font-semibold mb-2">📝 Thông tin đơn</div>
                                 <div>Trạng thái: <span
                                     className={`px-2 py-1 rounded text-xs font-medium
@@ -243,7 +243,7 @@ export default function OrderHistory() {
 
                             </div>
                             
-                            <div className="border rounded p-3 bg-white">
+                            <div className="border rounded p-3 bg-white dark:bg-gray-900">
                                 <div className="font-semibold mb-2">👤 Khách hàng</div>
                                 {orderDetail.shippingAddress ? (
                                     <>
@@ -254,11 +254,11 @@ export default function OrderHistory() {
                                 ) : <div>Không có thông tin</div>}
                             </div>
 
-                            <div className="border rounded p-3 bg-white">
+                            <div className="border rounded p-3 bg-white dark:bg-gray-900">
                                 <div className="font-semibold mb-2">🛒 Sản phẩm đã mua</div>
                                 <table className="w-full text-sm border-t border-gray-200">
                                     <thead>
-                                        <tr className="text-left border-b bg-gray-100">
+                                        <tr className="text-left border-b bg-gray-100 dark:bg-gray-800">
                                             <th className="p-2">Sản phẩm</th>
                                             <th className="p-2">Tên sản phẩm</th>
                                             <th className="p-2 text-center">SL</th>

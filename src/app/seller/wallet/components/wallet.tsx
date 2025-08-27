@@ -16,8 +16,9 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Input } from '@/components/ui/input';
 import useGetPayoutId from '../hooks/useGetPayoutId';
 import { Clipboard, Eye } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogTrigger } from "@/components/ui/dialog";
 import { BsEye } from 'react-icons/bs';
+import ProofImageGrid from '@/app/admin/payouts/components/ProofImageGrid';
 
 export default function Wallet() {
   const { data: payoutData, isLoading: isPayoutLoading, isError } = useServiceCalculateUpcoming();
@@ -265,9 +266,9 @@ export default function Wallet() {
 
                 <div className="flex gap-2 items-center">
                   <span className="text-gray-500 text-sm">Từ</span>
-                  <Input type="date" value={periodStart} onChange={e => setPeriodStart(e.target.value)} className="w-36" />
+                  <Input type="date" value={periodStart} onChange={e => setPeriodStart(e.target.value)} className="w-1/2 date-icon-black dark:date-icon-white" />
                   <span className="text-gray-500 text-sm">Đến</span>
-                  <Input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} className="w-36" />
+                  <Input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} className="w-1/2 date-icon-black dark:date-icon-white" />
                 </div>
               </div>
             </div>
@@ -276,7 +277,7 @@ export default function Wallet() {
           <div className="overflow-x-auto">
             <table className="w-full border text-sm">
               <thead>
-                <tr className="bg-gray-100">
+                <tr className="bg-gray-100 dark:bg-gray-800">
                   <th className="p-2 border">Người bán</th>
                   <th className="p-2 border">Kỳ hạn</th>
                   <th className="p-2 border">Tổng</th>
@@ -284,19 +285,20 @@ export default function Wallet() {
                   <th className="p-2 border">Thực nhận</th>
                   <th className="p-2 border">Trạng thái</th>
                   <th className="p-2 border">Hành động</th>
+                  <th className="p-2 border">Xem ảnh giao dịch</th>
                   <th className="p-2 border">Xem chi tiết</th>
                 </tr>
               </thead>
               <tbody>
                 {isHistoryLoading ? (
                   <tr>
-                    <td colSpan={10} className="text-center p-4">
+                    <td colSpan={9} className="text-center p-4">
                       Đang tải...
                     </td>
                   </tr>
                 ) : !history || history.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="text-center p-4">
+                    <td colSpan={9} className="text-center p-4">
                       <img
                         src="https://static.vecteezy.com/system/resources/previews/009/007/135/non_2x/desert-landscape-404-error-page-concept-illustration-flat-design-eps10-modern-graphic-element-for-landing-page-empty-state-ui-infographic-icon-vector.jpg"
                         alt="Lịch sử trống"
@@ -323,18 +325,18 @@ export default function Wallet() {
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium
       ${item.status === PayoutStatus.COMPLETED
-                              ? "bg-green-500 text-white"
+                              ? "bg-green-100 text-green-700"
                               : item.status === PayoutStatus.FAILED
-                                ? "bg-red-500 text-white"
+                                ? "bg-red-100 text-red-700"
                                 : item.status === PayoutStatus.CANCELLED
-                                  ? "bg-gray-400 text-white"
+                                  ? "bg-gray-100 text-gray-700"
                                   : item.status === PayoutStatus.PENDING
-                                    ? "bg-yellow-500 text-white"
+                                    ? "bg-yellow-100 text-yellow-700"
                                     : item.status === PayoutStatus.REQUESTED
-                                      ? "bg-blue-500 text-white"
+                                      ? "bg-blue-100 text-blue-700"
                                       : item.status === PayoutStatus.PROCESSING
-                                        ? "bg-purple-500 text-white"
-                                        : "bg-gray-200 text-black"}
+                                        ? "bg-purple-100 text-purple-700"
+                                        : "bg-gray-200 text-gray-600"}
     `}
                           style={{
                             maxWidth: "120px",
@@ -350,7 +352,7 @@ export default function Wallet() {
                         </span>
                       </td>
                       <td className="p-2 border text-center">
-                        {item.status === PayoutStatus.PROCESSING && (
+                        {item.status !== PayoutStatus.PENDING && item.status !== PayoutStatus.REQUESTED && (
                           <Button
                             className='bg-green-500 hover:bg-opacity-80'
                             size="sm"
@@ -361,6 +363,38 @@ export default function Wallet() {
                           </Button>
                         )}
                       </td>
+
+                      <td className="p-3 border text-center">
+                        <div className="flex flex-col items-center gap-2">
+                          {item.proofImageUrls && item.proofImageUrls.length > 0 ? (
+                            <>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <img
+                                    src={item.proofImageUrls[0]}
+                                    alt="Proof"
+                                    className="rounded-md cursor-pointer object-cover w-16 h-16"
+                                  />
+                                </DialogTrigger>
+
+                                <DialogContent
+                                  className="max-w-4xl"
+                                  onInteractOutside={(e) => e.preventDefault()}
+                                >
+
+                                  <DialogHeader>
+                                    <DialogTitle>Ảnh minh chứng thanh toán</DialogTitle>
+                                  </DialogHeader>
+                                  <ProofImageGrid images={item.proofImageUrls} />
+                                </DialogContent>
+                              </Dialog>
+                            </>
+                          ) : (
+                            <span className="text-gray-400 text-sm">_</span>
+                          )}
+                        </div>
+                      </td>
+
                       <td className="p-3 border text-center">
                         <Button variant="outline" size="icon" onClick={() => {
                           setSelectedPayoutId(item.id);
@@ -408,7 +442,7 @@ export default function Wallet() {
             <div>Đang tải chi tiết...</div>
           ) : payoutDetail ? (
             <div className="space-y-6 text-sm mt-2">
-              <div className="border rounded p-3 bg-white">
+              <div className="border rounded p-3 bg-white dark:bg-gray-900">
                 <div className="font-semibold mb-4">📝 Thông tin</div>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                   <div>
@@ -447,19 +481,19 @@ export default function Wallet() {
                       <span className='font-semibold'>Trạng thái:</span>
                       <span
                         className={`px-2 py-1 rounded text-xs font-medium
-      ${payoutDetail.status === PayoutStatus.COMPLETED
-                            ? "bg-green-500 text-white"
+       ${payoutDetail.status === PayoutStatus.COMPLETED
+                            ? "bg-green-100 text-green-700"
                             : payoutDetail.status === PayoutStatus.FAILED
-                              ? "bg-red-500 text-white"
+                              ? "bg-red-100 text-red-700"
                               : payoutDetail.status === PayoutStatus.CANCELLED
-                                ? "bg-gray-400 text-white"
+                                ? "bg-gray-100 text-gray-700"
                                 : payoutDetail.status === PayoutStatus.PENDING
-                                  ? "bg-yellow-500 text-white"
+                                  ? "bg-yellow-100 text-yellow-700"
                                   : payoutDetail.status === PayoutStatus.REQUESTED
-                                    ? "bg-blue-500 text-white"
+                                    ? "bg-blue-100 text-blue-700"
                                     : payoutDetail.status === PayoutStatus.PROCESSING
-                                      ? "bg-purple-500 text-white"
-                                      : "bg-gray-200 text-black"}
+                                      ? "bg-purple-100 text-purple-700"
+                                      : "bg-gray-200 text-gray-600"}
     `}
                         style={{
                           maxWidth: "100px",
@@ -487,11 +521,11 @@ export default function Wallet() {
               </div>
 
               {payoutDetail.payoutDetails && payoutDetail.payoutDetails.length > 0 && (
-                <div className="border rounded p-3 bg-white">
+                <div className="border rounded p-3 bg-white dark:bg-gray-900">
                   <div className="font-semibold mb-2">💰 Chi tiết đơn hàng</div>
                   <table className="w-full text-sm border-t border-gray-200">
                     <thead>
-                      <tr className="text-left border-b bg-gray-100">
+                      <tr className="text-left border-b bg-gray-100 dark:bg-gray-800">
                         <th className="p-2">Mã đơn</th>
                         <th className="p-2 text-center">SL</th>
                         <th className="p-2 text-right">Giá gốc</th>
@@ -521,11 +555,11 @@ export default function Wallet() {
               )}
 
               {payoutDetail.payoutLogs && payoutDetail.payoutLogs.length > 0 && (
-                <div className="border rounded p-3 bg-white">
+                <div className="border rounded p-3 bg-white dark:bg-gray-900">
                   <div className="font-semibold mb-2">📝 Lịch sử trạng thái rút tiền</div>
                   <table className="w-full text-sm border-t border-gray-200">
                     <thead>
-                      <tr className="text-left border-b bg-gray-100">
+                      <tr className="text-left border-b bg-gray-100 dark:bg-gray-800">
                         <th
                           className="p-2 max-w-[80px] overflow-hidden text-ellipsis whitespace-nowrap"
                           title="Thời gian"

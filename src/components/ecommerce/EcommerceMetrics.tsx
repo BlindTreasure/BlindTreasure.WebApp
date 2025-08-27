@@ -22,7 +22,7 @@ export const EcommerceMetrics = () => {
 
       try {
         const response = await getSellerStatisticsOverview({
-          range: StatisticRange.QUARTER,
+          range: StatisticRange.MONTH,
         });
 
         if (response.value?.data) {
@@ -38,13 +38,18 @@ export const EcommerceMetrics = () => {
     fetchOverviewData();
   }, []);
 
+  // const formatNumber = (num: number) => {
+  //   if (num >= 1000000) {
+  //     return `${(num / 1000000).toFixed(1)}M`;
+  //   } else if (num >= 1000) {
+  //     return `${(num / 1000).toFixed(1)}K`;
+  //   }
+  //   return num.toLocaleString();
+  // };
+
   const formatNumber = (num: number) => {
-    if (num >= 1000000) {
-      return `${(num / 1000000).toFixed(1)}M`;
-    } else if (num >= 1000) {
-      return `${(num / 1000).toFixed(1)}K`;
-    }
-    return num.toLocaleString();
+    if (num == null || isNaN(num)) return "0";
+    return new Intl.NumberFormat("vi-VN").format(num);
   };
 
   const formatGrowthPercent = (percent: number) => {

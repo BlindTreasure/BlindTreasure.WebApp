@@ -64,7 +64,7 @@ export function useLoginForm() {
                 case "Admin":
                   return router.push("/admin/dashboard");
                 case "Staff":
-                  return router.push("/staff/dashboard");
+                  return router.push("/staff/seller-management");
                 case "Seller":
                   return router.push("/seller");
                 case "Customer":

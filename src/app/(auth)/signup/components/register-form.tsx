@@ -54,19 +54,6 @@ export default function RegisterForm() {
           </div>
           <div className="flex flex-col gap-y-2">
             <div className="flex gap-x-4 items-end">
-              <div className="flex flex-col gap-y-2">
-                <div className="flex justify-between">
-                  <label htmlFor="Code" className="text-gray-600 mt-2">
-                    Mã số
-                  </label>
-                </div>
-                <div
-                  className={`block p-2 border-2 border-gray-300 rounded-md text-center ${errors?.phoneNumber?.message && "border-red-500"
-                    }`}
-                >
-                  +84
-                </div>
-              </div>
               <div className="flex-1 flex flex-col gap-y-2">
                 <InputAuth
                   id="phonenumber"

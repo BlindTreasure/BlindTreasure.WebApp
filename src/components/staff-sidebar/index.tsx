@@ -6,7 +6,10 @@ import { useAppSelector, useAppDispatch } from "@/stores/store";
 import { closeSidebar, openSidebar } from "@/stores/difference-slice";
 import { CiAlignLeft } from "react-icons/ci";
 import { BsThreeDots } from "react-icons/bs";
-import { FaMoneyBillTransfer } from "react-icons/fa6";
+import { AiOutlineFileSearch } from "react-icons/ai";
+import { SiEbox } from "react-icons/si";
+import { PiCodesandboxLogo } from "react-icons/pi";
+import { IoTicketOutline } from "react-icons/io5";
 export default function StaffSidebar() {
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const [isMobile, setIsMobile] = useState(false);
@@ -54,7 +57,7 @@ export default function StaffSidebar() {
             >
                 <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-700">
                     <div className="rounded-full w-16 h-16 flex items-center justify-center font-bold text-xs">
-                        <img src="/images/darkmode_footer.png" alt="Logo" width={32} height={32} />
+                        <img src="/images/Logo_DB.png" alt="Logo" width={100} height={100} />
                     </div>
 
                     {(staffState.openSidebar) && (
@@ -79,7 +82,7 @@ export default function StaffSidebar() {
                             )}
                         </li>
 
-                        <li>
+                        {/* <li>
                             <button
                                 onClick={() => toggleDropdown("dashboard")}
                                 className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded-md"
@@ -93,12 +96,12 @@ export default function StaffSidebar() {
                                     </span>
                                 </Link>
                             </button>
-                        </li>
+                        </li> */}
 
                         <li>
                             <Link href="/staff/seller-management" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
                                 <div className="flex items-center justify-center w-8 h-8">
-                                    <Building size={20} />
+                                    <AiOutlineFileSearch size={20} />
                                 </div>
                                 <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
                                     Duyệt hồ sơ bán hàng
@@ -109,10 +112,10 @@ export default function StaffSidebar() {
                         <li>
                             <Link href="/staff/category-management" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
                                 <div className="flex items-center justify-center w-8 h-8">
-                                    <Building size={20} />
+                                    <SiEbox size={20} />
                                 </div>
                                 <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
-                                    Quản lí Category
+                                    Quản lí loại sản phẩm
                                 </span>
                             </Link>
                         </li>
@@ -120,7 +123,7 @@ export default function StaffSidebar() {
                         <li>
                             <Link href="/staff/blindbox-management" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
                                 <div className="flex items-center justify-center w-8 h-8">
-                                    <Building size={20} />
+                                    <PiCodesandboxLogo size={20} />
                                 </div>
                                 <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
                                     Duyệt Blindbox
@@ -131,10 +134,10 @@ export default function StaffSidebar() {
                         <li>
                             <Link href="/staff/promotion-management" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
                                 <div className="flex items-center justify-center w-8 h-8">
-                                    <Building size={20} />
+                                    <IoTicketOutline size={20} />
                                 </div>
                                 <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
-                                    Quản lí promotion
+                                    Quản lí mã khuyến mãi
                                 </span>
                             </Link>
                         </li>

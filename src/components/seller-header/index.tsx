@@ -6,11 +6,11 @@ import useToast from "@/hooks/use-toast";
 import useLogout from "@/hooks/use-logout";
 import { closeSidebar, openSidebar } from "@/stores/difference-slice";
 import { NotificationBell } from "../notification/notification-bell";
-import UserDropdown from "../right-header-admin/UserDropdown";
 import { ThemeToggleButton } from "../common/ThemeToggleButton";
 import { CiAlignLeft } from "react-icons/ci";
 import { BsThreeDots } from "react-icons/bs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import UserDropdown from "../right-header-seller/UserDropdown";
 
 export default function SellerHeader() {
     const userState = useAppSelector((state) => state.userSlice);
