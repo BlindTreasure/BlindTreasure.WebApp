@@ -296,6 +296,7 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                                                 key={`product-${item.data.id}-${index}`}
                                                 product={item.data as AllProduct}
                                                 onViewDetail={handleViewDetail}
+                                                ribbonTypes={["product"]}
                                                 initialIsInWishlist={wishlistStatus.isInWishlist}
                                                 initialWishlistId={wishlistStatus.wishlistId}
                                                 onWishlistChange={refreshWishlistStatus}
@@ -305,6 +306,7 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                                                 key={`blindbox-${item.data.id}-${index}`}
                                                 blindbox={item.data as BlindBox}
                                                 onViewDetail={handleViewBlindboxDetail}
+                                                ribbonTypes={['blindbox']}
                                                 initialIsInWishlist={wishlistStatus.isInWishlist}
                                                 initialWishlistId={wishlistStatus.wishlistId}
                                                 onWishlistChange={refreshWishlistStatus}
