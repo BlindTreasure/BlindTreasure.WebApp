@@ -25,10 +25,29 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
     };
   }, []);
 
+  // useEffect(() => {
+  //   if (userState.user) {
+  //     return;
+  //   }
+
+  //   const loadUserProfile = async () => {
+  //     try {
+  //       const profileRes = await getAccountProfile();
+  //       const profile = profileRes?.value?.data;
+
+  //       if (profile) {
+  //         dispatch(setUser(profile));
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to load user profile:", error);
+  //     }
+  //   };
+  //   loadUserProfile();
+  // }, [dispatch, userState.user]);
+
   useEffect(() => {
-    if (userState.user) {
-      return;
-    }
+    const token = localStorage.getItem("accessToken");
+    if (!token || userState.user) return; 
 
     const loadUserProfile = async () => {
       try {
@@ -42,6 +61,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
         console.error("Failed to load user profile:", error);
       }
     };
+
     loadUserProfile();
   }, [dispatch, userState.user]);
 

@@ -62,6 +62,7 @@ export type PayoutHistoryItem = {
   processedAt: string | null;
   completedAt: string | null;
   stripeTransferId: string | null;
+  stripeTransferId: string | null;
   failureReason: string | null;
   retryCount: number;
   nextRetryAt: string;
