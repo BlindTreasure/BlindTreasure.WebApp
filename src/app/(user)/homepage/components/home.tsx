@@ -46,7 +46,6 @@ import useAddProductToCart from '@/app/(user)/detail/hooks/useAddProductToCart'
 import useAddBlindboxToCart from '@/app/(user)/detail-blindbox/hooks/useAddBlindboxToCart'
 import { useUnboxingNotification } from '@/hooks/use-signalR-unboxing-notification';
 
-// Component thanh thông báo marquee với real-time data
 const MarqueeNotification = () => {
   const { latestNotification, unreadCount, isConnected } = useUnboxingNotification();
   const [isVisible, setIsVisible] = useState(false);

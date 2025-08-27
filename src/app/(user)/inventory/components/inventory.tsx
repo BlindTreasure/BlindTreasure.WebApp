@@ -27,6 +27,7 @@ import useRequestShipment from '../hooks/useRequestShipment'
 import useGetAllAddress from '../../address-list/hooks/useGetAllAddress'
 import { InventoryItem as WonInventoryItem, ShipmentPreview } from '@/services/inventory-item/typings'
 import { InventoryItemStatus, InventoryItemStatusText } from '@/const/products'
+import MarketplaceListing from '@/app/(user)/marketplace/create/components/createListing'
 
 interface InventoryItem {
     id: string
@@ -240,10 +241,11 @@ export default function Inventory() {
         }
     }
 
-    const handleResellItem = (itemId: string) => {
-        // TODO: Implement resell functionality for blindbox prize items
-        console.log('Resell item:', itemId);
-        // Navigate to resell page or open resell dialog
+    const handleResellItem = (itemId?: string) => {
+        if(itemId && itemId.trim() !== ''){
+            sessionStorage.setItem('preselectedInventoryId', itemId);
+            router.push('/marketplace/create');
+        }
     }
 
     const handleDeliver = async (itemId: string) => {
@@ -321,6 +323,14 @@ export default function Inventory() {
                 setShowShippingDialog(true)
             }
         } catch (error: any) {
+        }
+    }
+
+    const handleExchangeItem = (inventoryId?: string) => {
+        if (inventoryId && inventoryId.trim() !== '') {
+            sessionStorage.setItem('preselectedInventoryId', inventoryId);
+            setShowPrizeDialog(false);
+            router.push('/marketplace/create');
         }
     }
 
@@ -833,10 +843,7 @@ export default function Inventory() {
                                                 <div className="flex gap-3 pt-4">
                                                     <Button
                                                         className="w-1/2 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
-                                                        onClick={() => {
-                                                            // TODO: Implement exchange functionality
-                                                            console.log('Exchange item:', wonItem.productId || wonItem.id);
-                                                        }}
+                                                        onClick={()=>handleExchangeItem(wonItem?.product?.id)}
                                                     >
                                                         Đổi hàng
                                                     </Button>

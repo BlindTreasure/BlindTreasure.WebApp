@@ -25,6 +25,8 @@ interface MarketplaceUIProps {
   activeSection?: string; // 'all' | 'transaction-history' | 'buying' | 'selling'
   onNavigationChange?: (section: string, params?: any) => void;
   onOpenGuideDialog?: () => void;
+  isRefreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
@@ -46,6 +48,8 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
   activeSection = 'all',
   onNavigationChange,
   onOpenGuideDialog,
+  isRefreshing = false,
+  onRefresh,
 }) => {
   const getTimeSincePosted = (listedAt: string): string => {
     const now = new Date();
@@ -176,9 +180,27 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
         <div className="p-8">
           {/* Header */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {getHeaderTitle()}{getFilterDescription()}
-            </h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {getHeaderTitle()}{getFilterDescription()}
+              </h2>
+            
+            {/* NÚT LÀM MỚI */}
+              {onRefresh && (
+                <button
+                  onClick={onRefresh}
+                  disabled={isRefreshing || isLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors shadow-sm"
+                >
+                  <RefreshCw 
+                    size={16} 
+                    className={`${isRefreshing ? 'animate-spin' : ''}`} 
+                  />
+                  <span>{isRefreshing ? 'Đang tải...' : 'Làm mới'}</span>
+                </button>
+              )}
+            </div>
+            
             <div className="flex items-center justify-between">
               <p className="text-gray-500 flex items-center gap-1">
                 <Clock className="w-4 h-4" />
@@ -414,7 +436,7 @@ const MarketplaceUI: React.FC<MarketplaceUIProps> = ({
                 Sau
                 <ChevronRight className="w-4 h-4" />
               </button>
-            </div>
+            </div>  
           )}
         </div>
       </div>

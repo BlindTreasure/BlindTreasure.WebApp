@@ -177,6 +177,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [isFreeFilter, setIsFreeFilter] = useState<boolean | null>(null);
   const [activeSection, setActiveSection] = useState<string>('all');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Data states
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
@@ -665,6 +666,26 @@ const Marketplace: React.FC<MarketplaceProps> = ({
     });
   }, [respondTradeRequestMutation, selectedProduct?.id, fetchTradeRequests, fetchProductDetail]);
 
+    const handleRefresh = useCallback(async () => {
+      setIsRefreshing(true);
+      try {
+        setCurrentPage(1);
+        if (activeSection === 'buying') {
+          await fetchMyTradeRequests(searchTerm, 1);
+        } else if (activeSection === 'trading') {
+          await fetchOngoingTrades(searchTerm, 1);
+        } else if (activeSection === 'transaction-history') {
+          await fetchTradingHistory(searchTerm, 1);
+        } else {
+          await fetchListings(1, searchTerm, isFreeFilter, activeSection);
+        }
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    }, [activeSection, searchTerm, isFreeFilter, fetchListings, fetchMyTradeRequests, fetchOngoingTrades, fetchTradingHistory]);
+
   // Handle opening the guide dialog
   const handleOpenGuideDialog = useCallback(() => {
     setIsGuideDialogOpen(true);
@@ -706,6 +727,8 @@ const Marketplace: React.FC<MarketplaceProps> = ({
           activeSection={activeSection}
           onNavigationChange={handleNavigationChange}
           onOpenGuideDialog={handleOpenGuideDialog}
+          isRefreshing={isRefreshing}
+          onRefresh={handleRefresh}
         />
       </div>
 

@@ -1,35 +1,23 @@
 import { useEffect, useState, useCallback } from 'react';
 import { signalRService } from '@/services/signalr/signalr-service';
 
-// UnboxLog type
-type UnboxLog = {
-  customerBlindBoxId: string;
-  customerName: string;
-  productId: string;
-  productName: string;
-  rarity: string;
-  dropRate: number;
-  unboxAt: string;
-  blindBoxName: string;
-}
-
 // Hook return type
 interface UseUnboxingNotificationReturn {
-  notifications: UnboxLog[];
-  latestNotification: UnboxLog | null;
+  notifications: SIGNALR.UnboxLog[];
+  latestNotification: SIGNALR.UnboxLog | null;
   unreadCount: number;
   isConnected: boolean;
   clearNotifications: () => void;
 }
 
 export const useUnboxingNotification = (): UseUnboxingNotificationReturn => {
-  const [notifications, setNotifications] = useState<UnboxLog[]>([]);
-  const [latestNotification, setLatestNotification] = useState<UnboxLog | null>(null);
+  const [notifications, setNotifications] = useState<SIGNALR.UnboxLog[]>([]);
+  const [latestNotification, setLatestNotification] = useState<SIGNALR.UnboxLog | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   // Handle new unboxing notification
-  const handleUnboxingNotification = useCallback((unboxLog: UnboxLog) => {
+  const handleUnboxingNotification = useCallback((unboxLog: SIGNALR.UnboxLog) => {
     // Add to notifications list
     setNotifications(prev => [unboxLog, ...prev.slice(0, 49)]); // Keep only last 50
     setLatestNotification(unboxLog);

@@ -149,7 +149,7 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
 
         {/* Navigation Menu */}
         <div className="py-3">
-          {/* Lướt xem tất cả */}
+          {/* Tất cả bài đăng */}
           <div className="px-6 py-2">
             <div 
               onClick={() => handleNavigationClick('all')}
@@ -171,7 +171,7 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
               <span className={`text-sm font-semibold ${
                 activeSection === 'all' ? 'text-gray-900' : 'text-gray-700'
               }`}>
-                Lướt xem tất cả
+                Tất cả bài đăng 
               </span>
             </div>
           </div>
@@ -265,7 +265,7 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
                 <span className={`text-sm font-medium ${
                   activeSection === 'selling' ? 'text-gray-900' : 'text-gray-700'
                 }`}>
-                  Đổi hàng
+                  Bài đăng của tôi 
                 </span>
               </div>
               <ChevronRight className={`w-4 h-4 ${

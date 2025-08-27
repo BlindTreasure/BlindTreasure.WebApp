@@ -104,16 +104,10 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                         src={item.image}
                         alt={item.productName || 'Product'}
                         className="w-16 h-16 object-cover rounded-lg"
-                        onLoad={() => console.log('✅ Image loaded successfully for:', item.productName)}
-                        onError={(e) => {
-                          console.error('❌ Image failed to load for:', item.productName, 'URL:', item.image);
-                          console.error('Error details:', e);
-                        }}
                       />
                     ) : (
                       <>
                         <Package className="text-gray-400" size={24} />
-                        {console.log('📦 No image for item:', item.productName, 'Image value:', item.image)}
                       </>
                     )}
                   </div>
@@ -176,17 +170,32 @@ const MarketplaceListing: React.FC = () => {
   // Load available items when component mounts
   useEffect(() => {
     const loadAvailableItems = async () => {
-      const response = await getAllAvailableItemApi();
-      
-      if (response?.value.data) {
-        // Transform API data to match our interfaces - no transformation needed now
-        const transformedItems: API.AvailableItem[] = response.value.data;
-        setAvailableItems(transformedItems);
-      }
+        const response = await getAllAvailableItemApi();
+        
+        if (response?.value.data) {
+            const transformedItems: API.AvailableItem[] = response.value.data;
+            setAvailableItems(transformedItems);
+            
+            // Check sessionStorage for preselected inventory ID
+            const storedId = sessionStorage.getItem('preselectedInventoryId');
+            
+            if (storedId) {
+                // Clean up sessionStorage immediately
+                sessionStorage.removeItem('preselectedInventoryId');
+                
+                // Find the item with matching ID
+                const preselectedItem = transformedItems.find(item => item.id === storedId);
+
+                // Check if item exists and can be selected (not disabled)
+                if (preselectedItem && !preselectedItem.hasActiveListing && !preselectedItem.isOnHold) {
+                    setSelectedItem(preselectedItem);
+                }
+            }
+        }
     };
 
-    loadAvailableItems();
-  }, []);
+      loadAvailableItems();
+  }, [getAllAvailableItemApi]);
 
   const handleSelectItem = (item: API.AvailableItem) => {
     setSelectedItem(item);
@@ -236,7 +245,6 @@ const MarketplaceListing: React.FC = () => {
   };
 
   const handleReset = () => {
-    setSelectedItem(null);
     setDescription('');
     setIsFree(true);
     setDesiredItemName('');
@@ -282,7 +290,9 @@ const MarketplaceListing: React.FC = () => {
                 {!selectedItem ? (
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                     <Package className="mx-auto mb-3 text-gray-400" size={40} />
-                    <p className="text-gray-600 mb-3">Chưa chọn sản phẩm</p>
+                    <p className="text-gray-600 mb-3">
+                      { 'Chưa chọn sản phẩm'}
+                    </p>
                     <button
                       onClick={() => setShowInventoryModal(true)}
                       disabled={isSubmitting}
@@ -300,13 +310,10 @@ const MarketplaceListing: React.FC = () => {
                             src={selectedItem.image}
                             alt={selectedItem.productName}
                             className="w-12 h-12 object-cover rounded"
-                            onLoad={() => console.log('✅ Selected item image loaded')}
-                            onError={() => console.error('❌ Selected item image failed to load:', selectedItem.image)}
                           />
                         ) : (
                           <>
                             <Package className="text-gray-400" size={20} />
-                            {console.log('📦 Selected item has no image:', selectedItem.image)}
                           </>
                         )}
                       </div>
@@ -475,18 +482,10 @@ const MarketplaceListing: React.FC = () => {
                             src={selectedItem.image}
                             alt={selectedItem.productName}
                             className="w-full h-full rounded-lg object-cover"
-                            onLoad={() => console.log('✅ Preview image loaded successfully')}
-                            onError={() => {
-                              console.error('❌ Preview image failed to load');
-                              console.error('Image URL:', selectedItem.image);
-                              console.error('Image type:', typeof selectedItem.image);
-                              console.error('Image length:', selectedItem.image?.length);
-                            }}
                           />
                         ) : (
                           <>
                             <Package className="text-gray-400" size={64} />
-                            {console.log('📦 Preview: No image available for:', selectedItem.productName)}
                           </>
                         )}
                       </div>

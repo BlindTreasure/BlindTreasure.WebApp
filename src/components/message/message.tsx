@@ -7,6 +7,29 @@ import { closeMessageUser } from "@/stores/difference-slice";
 import ReactMarkdown from 'react-markdown';
 import useAiChat from "@/hooks/chat/use-send-message-ai";
 
+// Typing indicator component similar to ChatArea
+const TypingIndicator = () => {
+  return (
+    <div className="py-2 flex gap-x-3 items-start justify-start">
+      <figure className="flex-shrink-0 rounded-full overflow-hidden w-10 h-10 border border-gray-300">
+        <img
+          src="/images/ai-bot.png"
+          width={100}
+          height={100}
+          alt="avatar"
+        />
+      </figure>
+      <div className="w-max flex items-center px-4 py-3 min-h-8 rounded-xl bg-slate-200">
+        <div className="flex space-x-1">
+          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function Message({
   children,
 }: Readonly<{
@@ -16,6 +39,7 @@ export default function Message({
   const userState = useAppSelector((state) => state.userSlice);
   const [textMessage, setTextMessage] = useState<string>("");
   const [messages, setMessages] = useState<{ SenderId: string; Content: string }[]>([]);
+  const [isAiTyping, setIsAiTyping] = useState<boolean>(false);
   const dispatch = useAppDispatch();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -26,69 +50,88 @@ export default function Message({
     dispatch(closeMessageUser());
     setMessages([]);
     setTextMessage("");
+    setIsAiTyping(false);
   };
 
   // Listen for incoming messages from SignalR
   useEffect(() => {
     if (message) {
-      // Add all messages from SignalR to the chat
       if (message.senderId === "AI") {
-        setMessages((prev) => [...prev, { 
-          SenderId: "bot", 
-          Content: message.content 
-        }]);
-      } else {
-        // User message from SignalR
-        setMessages((prev) => [...prev, { 
-          SenderId: "user", 
-          Content: message.content 
-        }]);
+        // Show typing indicator first, then show AI message after delay
+        setIsAiTyping(true);
+        
+        // Simulate typing delay (1-2 seconds based on message length)
+        const typingDelay = Math.min(Math.max(message.content.length * 20, 1000), 2000);
+        
+        setTimeout(() => {
+          setIsAiTyping(false);
+          setMessages((prev) => [...prev, { 
+            SenderId: "bot", 
+            Content: message.content 
+          }]);
+        }, typingDelay);
       }
+      // Remove handling for user messages from SignalR since we add them immediately
     }
   }, [message]);
 
   const handleSendMessageChatBot = async (message: string) => {
     if (!message.trim()) return;
 
+    // Immediately add user message to UI for better UX
+    setMessages((prev) => [...prev, { 
+      SenderId: "user", 
+      Content: message 
+    }]);
+
     // Send to AI via SignalR
-    // Don't add user message here - it will come from SignalR
     try {
       if (!isConnected) {
         throw new Error("Chưa kết nối tới server");
       }
       
-      await sendMessageToAi(message);
+      // Don't await this - let it run in background
+      sendMessageToAi(message).catch((error) => {
+        console.error("Lỗi khi gửi tin nhắn tới AI:", error);
+        setIsAiTyping(false);
+        setMessages((prev) => [
+          ...prev,
+          { SenderId: "bot", Content: "Xin lỗi, tôi không thể trả lời ngay bây giờ. Vui lòng thử lại sau." },
+        ]);
+      });
     } catch (error) {
       console.error("Lỗi khi gửi tin nhắn tới AI:", error);
+      setIsAiTyping(false);
       setMessages((prev) => [
         ...prev,
-        { SenderId: "user", Content: message },
         { SenderId: "bot", Content: "Xin lỗi, tôi không thể trả lời ngay bây giờ. Vui lòng thử lại sau." },
       ]);
     }
   };
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     if (textMessage.trim() === "") {
-      alert("Please enter a message");
-      return;
+      return; // Remove alert for better UX
     }
 
-    await handleSendMessageChatBot(textMessage);
-    setTextMessage("");
+    const messageToSend = textMessage;
+    setTextMessage(""); // Clear input immediately
+    
+    // Send message without awaiting
+    handleSendMessageChatBot(messageToSend);
   };
 
   const messageYourBox = (
-    item: { SenderId: string; Content: string },
+    item: { SenderId: string; Content: string; id?: string },
     isLastInGroup: boolean,
     isFirstInGroup: boolean,
-    index: number
+    key: string | number
   ) => {
     const isCurrentUserMessage = item.SenderId === "user";
 
     return (
       <div
-        key={index}
+        key={key}
         className={`py-2 flex gap-x-3 items-start ${isCurrentUserMessage ? "justify-end" : "justify-start"
           }`}
       >
@@ -141,12 +184,12 @@ export default function Message({
     );
   };
 
-  const renderMessages = (messages: { SenderId: string; Content: string }[]) => {
+  const renderMessages = (messages: { SenderId: string; Content: string; id?: string }[]) => {
     return messages.map((message, index) => {
       const isFirstInGroup =
         index === 0 || messages[index - 1].SenderId !== message.SenderId;
 
-      return messageYourBox(message, false, isFirstInGroup, index);
+      return messageYourBox(message, false, isFirstInGroup, `${message.SenderId}-${index}`);
     });
   };
 
@@ -154,12 +197,12 @@ export default function Message({
     handleSendMessageChatBot(message);
   };
 
-  // Tự động cuộn xuống khi có tin nhắn mới
+  // Auto scroll to bottom when new messages or typing
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages.length, isAiTyping]);
 
   return (
     <div>
@@ -187,6 +230,10 @@ export default function Message({
                   </div>
                 </figure>
                 <h4 className="text-base font-bold ml-2">AI Bot</h4>
+                {/* Show typing status in header */}
+                {isAiTyping && (
+                  <span className="text-xs text-blue-600 ml-2">đang soạn tin...</span>
+                )}
               </div>
               <div>
                 <button
@@ -200,8 +247,16 @@ export default function Message({
                 </button>
               </div>
             </header>
-            <main className="h-[80%] px-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+            <main 
+              className="h-[80%] px-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
+            >
               {renderMessages(messages)}
+              
+              {/* Show typing indicator when AI is typing */}
+              {isAiTyping && (
+                <TypingIndicator />
+              )}
+              
               <div ref={messagesEndRef} />
             </main>
             <footer className="h-[25%] px-2 pt-4 flex flex-col gap-y-2 border">
@@ -222,9 +277,9 @@ export default function Message({
                 <button
                   type="button"
                   onClick={handleSendMessage}
-                  disabled={!isConnected || !textMessage.trim()}
+                  disabled={!isConnected || !textMessage.trim() || isAiTyping}
                   className={`absolute top-1/2 right-2 -translate-y-1/2 rounded-full py-2 px-2 bg-blue-600 ${
-                    textMessage !== "" && isConnected ? "opacity-1" : "opacity-30"
+                    textMessage !== "" && isConnected && !isAiTyping ? "opacity-1" : "opacity-30"
                   } disabled:cursor-not-allowed`}
                 >
                   <span>

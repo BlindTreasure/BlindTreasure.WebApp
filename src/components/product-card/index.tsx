@@ -26,7 +26,7 @@ interface ProductCardProps {
   product: Product;
   onViewDetail: (id: string) => void;
   onAddToCart?: (productId: string, quantity: number) => Promise<void>;
-  ribbonTypes?: ("new" | "sale" | "blindbox")[];
+  ribbonTypes?: ("new" | "sale" | "blindbox" | "product")[];
   initialIsInWishlist?: boolean;
   initialWishlistId?: string;
   onWishlistChange?: () => void;
@@ -46,7 +46,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  const finalRibbonTypes: ("new" | "sale" | "blindbox")[] = (() => {
+  const finalRibbonTypes: ("new" | "sale" | "blindbox" | "product")[] = (() => {
     if (context === "new") {
       return ribbonTypes.includes("new") ? ribbonTypes : [...ribbonTypes, "new" as const];
     } else if (context === "sale") {

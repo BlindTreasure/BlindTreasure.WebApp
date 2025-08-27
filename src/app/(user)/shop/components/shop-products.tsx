@@ -234,7 +234,7 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                                 <ProductCard
                                     key={`product-${item.data.id}-${index}`}
                                     product={item.data as AllProduct}
-                                    // ribbonTypes={getRibbonTypes(item.data as AllProduct)}
+                                    ribbonTypes={["product"]}
                                     onViewDetail={handleViewDetail}
                                     initialIsInWishlist={wishlistStatus.isInWishlist}
                                     initialWishlistId={wishlistStatus.wishlistId}
@@ -244,7 +244,7 @@ export default function ShopProducts({ sellerId }: ShopProductsProps) {
                                 <BlindboxCard
                                     key={`blindbox-${item.data.id}-${index}`}
                                     blindbox={item.data as BlindBox}
-                                    // ribbonTypes={["blindbox"]}
+                                    ribbonTypes={["blindbox"]}
                                     onViewDetail={handleViewBlindboxDetail}
                                     initialIsInWishlist={wishlistStatus.isInWishlist}
                                     initialWishlistId={wishlistStatus.wishlistId}

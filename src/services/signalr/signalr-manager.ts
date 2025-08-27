@@ -1,6 +1,7 @@
 // src/services/signalr/signalr-manager.service.ts
 import { chatSignalRService } from './feature/chat-service-signalr';
 import { notificationSignalRService } from './feature/notification-service-signalr';
+import { unboxingSignalRService } from "./feature/unboxing-service-signalr"
 import { getStorageItem } from '@/utils/local-storage';
 
 class SignalRManager {
@@ -15,7 +16,8 @@ class SignalRManager {
       // Connect both services simultaneously
       await Promise.all([
         chatSignalRService.connect(),
-        notificationSignalRService.connect()
+        notificationSignalRService.connect(),
+        unboxingSignalRService.connect()
       ]);
     } catch (error) {
       console.error('[SignalR Manager] Failed to establish connections:', error);
@@ -27,7 +29,8 @@ class SignalRManager {
     try {
       await Promise.all([
         chatSignalRService.disconnect(),
-        notificationSignalRService.disconnect()
+        notificationSignalRService.disconnect(),
+        unboxingSignalRService.disconnect()
       ]);
       
       console.log('[SignalR Manager] All connections disconnected');
@@ -38,7 +41,7 @@ class SignalRManager {
   }
 
   isConnected(): boolean {
-    return chatSignalRService.isConnected() && notificationSignalRService.isConnected();
+    return chatSignalRService.isConnected() && notificationSignalRService.isConnected() && unboxingSignalRService.isConnected();
   }
 
   getConnectionState(): string {
@@ -118,10 +121,6 @@ class SignalRManager {
     return notificationSignalRService.onNotificationReceived(callback);
   }
 
-  onUnboxingNotificationReceived(callback: (unboxLog: SIGNALR.UnboxLog) => void): () => void {
-    return chatSignalRService.onUnboxingNotificationReceived(callback);
-  }
-
   onTradeRequestLocked(callback: (data: any) => void): () => void {
     return notificationSignalRService.onTradeRequestLocked(callback);
   }
@@ -136,6 +135,10 @@ class SignalRManager {
 
   onUserStoppedTyping(callback: (senderId: string) => void): () => void {
     return chatSignalRService.onUserStoppedTyping(callback);
+  }
+
+  onUnboxingNotificationReceived(callback: (unboxLog: SIGNALR.UnboxLog) => void): () => void {
+    return unboxingSignalRService.onUnboxingReceived(callback);
   }
 }
 

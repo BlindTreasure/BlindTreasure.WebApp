@@ -381,7 +381,7 @@ const PromotionCrud: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-lg shadow-md">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h1 className="text-2xl font-bold text-gray-800">Quản lý Promotion</h1>
+              <h1 className="text-2xl font-bold text-gray-800">Quản lý mã khuyến mãi</h1>
             </div>
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -399,7 +399,7 @@ const PromotionCrud: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md">
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Quản lý Promotion</h1>
+              <h1 className="text-2xl font-bold text-gray-800">Quản lý mã khuyến mãi</h1>
             </div>
             <div className="flex items-center gap-3">
               <button

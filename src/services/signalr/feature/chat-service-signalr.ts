@@ -177,10 +177,6 @@ export class ChatSignalRService extends BaseSignalRService {
     return this.addEventListener('online-status-error', callback);
   }
 
-  onUnboxingNotificationReceived(callback: (unboxLog: SIGNALR.UnboxLog) => void): () => void {
-    return this.addEventListener('receive-unboxing-notification', callback);
-  }
-
   onUnreadCountUpdated(callback: (data: any) => void): () => void {
     return this.addEventListener('unread-count-updated', callback);
   }
