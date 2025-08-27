@@ -446,6 +446,25 @@ export default function Wallet() {
                 <div className="font-semibold mb-4">📝 Thông tin</div>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                   <div>
+                    <div className="flex gap-2 items-center">
+                      <span className="font-semibold">Mã giao dịch Stripe:</span>
+                      {payoutDetail.stripeTransferId ? (
+                        <div
+                          className="flex items-center gap-2 cursor-pointer group"
+                          onClick={() => navigator.clipboard.writeText(payoutDetail.stripeTransferId!)}
+                        >
+                          <span title={payoutDetail.stripeTransferId}>
+                            {payoutDetail.stripeTransferId.substring(0, 8)}...
+                          </span>
+                          <Clipboard
+                            size={14}
+                            className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-black"
+                          />
+                        </div>
+                      ) : (
+                        <span>—</span>
+                      )}
+                    </div>
                     <div className="flex gap-2">
                       <span className='font-semibold'>Người bán:</span>
                       <span>{payoutDetail.sellerName}</span>
