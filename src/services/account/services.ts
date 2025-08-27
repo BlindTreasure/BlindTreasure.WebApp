@@ -36,7 +36,7 @@ export const useServiceUpdateAvatarProfile = () => {
   const { addToast } = useToast();
   return useMutation<
     TResponseData<API.TUpdateAvatar>,
-    TMeta,
+    Error,
     REQUEST.TUpdateAvatar
   >({
     mutationFn: async (data: REQUEST.TUpdateAvatar) => {
@@ -56,12 +56,8 @@ export const useServiceUpdateAvatarProfile = () => {
         duration: 5000,
       });
     },
-    onError: () => {
-      addToast({
-        type: "error",
-        description: "Please try again!",
-        duration: 5000,
-      });
+    onError: (error) => {
+      handleError(error)
     },
   });
 };
@@ -101,13 +97,8 @@ export const useServiceGetSellerProfile = (options?: { enabled?: boolean }) => {
     staleTime: Infinity,
     cacheTime: 0,
     
-    onError: (error: TMeta) => {
+    onError: (error: Error) => {
       handleError(error);
-      addToast({
-        type: "error",
-        description: "Không thể lấy thông tin người bán.",
-        duration: 5000,
-      });
     },
   } as UseQueryOptions<TResponseData<API.Seller>, TMeta>);
 };
@@ -118,7 +109,7 @@ export const useServiceUpdateSellerProfile = () => {
 
   return useMutation<
     TResponseData<API.Seller>,
-    TMeta,
+    Error,
     REQUEST.UpdateSellerInfo
   >({
     mutationFn: updateSellerProfile,
@@ -131,11 +122,6 @@ export const useServiceUpdateSellerProfile = () => {
     },
     onError: (error) => {
       handleError(error);
-      addToast({
-        type: "error",
-        description: "Cập nhật thất bại. Vui lòng thử lại.",
-        duration: 5000,
-      });
     },
   });
 };
@@ -228,7 +214,7 @@ export const useServiceUpdateProfileSeller = () => {
 
   return useMutation<
     TResponseData<API.TUpdateSellerProfile>,
-    TMeta,
+    Error,
     REQUEST.UpdateSellerInfo
   >({
     mutationFn: updateProfileSeller,
@@ -248,7 +234,7 @@ export const useServiceUpdateProfileSeller = () => {
 export const useServiceUpdateAvatarSeller = () => {
   const dispatch = useAppDispatch();
   const { addToast } = useToast();
-  return useMutation<TResponseData<string>, TMeta, REQUEST.UpdateSellerAvatar>({
+  return useMutation<TResponseData<string>, Error, REQUEST.UpdateSellerAvatar>({
     mutationFn: async (data: REQUEST.UpdateSellerAvatar) => {
       const formData = new FormData();
       formData.append("File", data.file);
@@ -267,12 +253,8 @@ export const useServiceUpdateAvatarSeller = () => {
         duration: 5000,
       });
     },
-    onError: () => {
-      addToast({
-        type: "error",
-        description: "Please try again!",
-        duration: 5000,
-      });
+    onError: (error) => {
+      handleError(error)
     },
   });
 };

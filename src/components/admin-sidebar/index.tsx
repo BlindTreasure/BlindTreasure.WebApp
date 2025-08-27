@@ -136,6 +136,28 @@ export default function AdminSidebar() {
                                 </span>
                             </Link>
                         </li>
+
+                        <li>
+                            <Link href="/admin/force-release-hold" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
+                                <div className="flex items-center justify-center w-8 h-8">
+                                    <FaMoneyBillTransfer size={20} />
+                                </div>
+                                <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
+                                    Test tạo listing sau khi trade 
+                                </span>
+                            </Link>
+                        </li>
+
+                        <li>
+                            <Link href="/admin/force-timeout" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
+                                <div className="flex items-center justify-center w-8 h-8">
+                                    <FaMoneyBillTransfer size={20} />
+                                </div>
+                                <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
+                                    Test exception timeout traderequest
+                                </span>
+                            </Link>
+                        </li>
                     </ul>
                 </div>
             </aside>

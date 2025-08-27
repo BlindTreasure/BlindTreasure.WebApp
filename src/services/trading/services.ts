@@ -6,24 +6,19 @@ import { handleError } from "@/hooks/error";
 export const useServiceCreateTradeRequest = (listingId : string) => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<API.TradeRequest>, TMeta, REQUEST.OfferedInventory>({
+  return useMutation<TResponseData<API.TradeRequest>, Error, REQUEST.OfferedInventory>({
     mutationFn: async ( payload: REQUEST.OfferedInventory) => {
       return await createTradeRequestByListingId(listingId, payload);
     },
     onSuccess: (data) => {
       addToast({
         type: "success",
-        description: data.value.message || "Tạo yêu cầu giao dịch thành công!",
+        description: data.value.message,
         duration: 5000,
       });
     },
     onError: (error) => {
       handleError(error);
-      addToast({
-        type: "error",
-        description: "Tạo yêu cầu giao dịch thất bại. Vui lòng thử lại!",
-        duration: 5000,
-      });
     },
   });
 };
@@ -31,22 +26,17 @@ export const useServiceCreateTradeRequest = (listingId : string) => {
 export const useServiceRespondTradeRequest = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<API.TradeRequest>, TMeta, REQUEST.AcceptTradeRequest>({
+  return useMutation<TResponseData<API.TradeRequest>, Error, REQUEST.AcceptTradeRequest>({
     mutationFn: respondTradeRequest,
     onSuccess: (data) => {
       addToast({
         type: "success",
-        description: data.value.message || "Chấp nhận thành công!",
+        description: data.value.message,
         duration: 5000,
       });
     },
     onError: (error) => {
       handleError(error);
-      addToast({
-        type: "error",
-        description: "Đóng listing thất bại. Vui lòng thử lại!",
-        duration: 5000,
-      });
     },
   });
 };
@@ -54,22 +44,17 @@ export const useServiceRespondTradeRequest = () => {
 export const useServiceLockTradeRequest = () => {
   const { addToast } = useToast();
 
-  return useMutation<TResponseData<API.TradeRequest>, TMeta, string>({
+  return useMutation<TResponseData<API.TradeRequest>, Error, string>({
     mutationFn: lockTradeRequest,
     onSuccess: (data) => {
       addToast({
         type: "success",
-        description: data.value.message || "Khóa thành công!",
+        description: data.value.message,
         duration: 5000,
       }); 
     },
     onError: (error) => {
       handleError(error);
-      addToast({
-        type: "error",
-        description: "Khóa thất bại. Vui lòng thử lại!",
-        duration: 5000,
-      });
     },
   });
 };

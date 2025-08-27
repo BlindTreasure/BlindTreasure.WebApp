@@ -3,6 +3,11 @@ declare namespace REQUEST {
     offeredInventoryIds? : string[]
   }
 
+  type ParamsGetAllTradeRequest = {
+    pageIndex?: number;
+    pageSize?: number
+  }
+
   type AcceptTradeRequest = {
     tradeRequestId: string;
     isAccepted: boolean;
@@ -42,6 +47,7 @@ declare namespace API {
     ownerLocked: boolean;
     requesterLocked: boolean;
   }
+
   type OfferedItem = {
     inventoryItemId: string;
     itemName: string;
@@ -65,6 +71,14 @@ declare namespace API {
 
   type ResponseDataTradeHistory = {
     result: TradingHistory[];
+    count: number;
+    pageSize: number;
+    currentPage: number;
+    totalPages: number;
+  };
+
+  type ResponseDataTradeRequest = {
+    result: TradeRequest[];
     count: number;
     pageSize: number;
     currentPage: number;

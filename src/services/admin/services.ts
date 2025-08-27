@@ -2,7 +2,8 @@ import useToast from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { handleError } from "@/hooks/error";
 import { ConfirmPayoutRequest, PayoutHistoryItem } from "./typings";
-import { confirmPayout } from "./api-services";
+import { InventoryItem } from "@/services/inventory-item/typings"
+import { confirmPayout, forceReleaseHold, forceTimeout } from "./api-services";
 
 export const useServiceConfirmPayout = () => {
   const { addToast } = useToast();
@@ -13,6 +14,42 @@ export const useServiceConfirmPayout = () => {
     { payoutId: string; body: ConfirmPayoutRequest }
   >({
     mutationFn: ({ payoutId, body }) => confirmPayout(payoutId, body),
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
+    },
+  });
+};
+
+export const useServiceForceReleaseHold = () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<InventoryItem>, Error, string>({
+    mutationFn: forceReleaseHold,
+    onSuccess: (data) => {
+      addToast({
+        type: "success",
+        description: data.value.message,
+        duration: 5000,
+      });
+    },
+    onError: (error) => {
+      handleError(error);
+    },
+  });
+};
+
+export const useServiceForceTimeout= () => {
+  const { addToast } = useToast();
+
+  return useMutation<TResponseData<API.TradeRequest>, Error, string>({
+    mutationFn: forceTimeout,
     onSuccess: (data) => {
       addToast({
         type: "success",
