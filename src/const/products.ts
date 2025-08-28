@@ -176,13 +176,21 @@ export const PaymentInfoStatusText: Record<PaymentInfoStatus, string> = {
 export enum ShipmentStatus {
   WAITING_PAYMENT = "WAITING_PAYMENT",
   PROCESSING = "PROCESSING",
+  PICKED_UP = "PICKED_UP",
+  IN_TRANSIT = "IN_TRANSIT",
+  DELIVERED = "DELIVERED",
   COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
 }
 
 export const ShipmentStatusText: Record<ShipmentStatus, string> = {
   [ShipmentStatus.WAITING_PAYMENT]: "Chờ thanh toán",
-  [ShipmentStatus.PROCESSING]: "Đang vận chuyển",
-  [ShipmentStatus.COMPLETED]: "Đã giao hàng",
+  [ShipmentStatus.PROCESSING]: "Đang xử lý",
+  [ShipmentStatus.PICKED_UP]: "Đã lấy hàng",
+  [ShipmentStatus.IN_TRANSIT]: "Đang vận chuyển",
+  [ShipmentStatus.DELIVERED]: "Đã giao hàng",
+  [ShipmentStatus.COMPLETED]: "Hoàn thành",
+  [ShipmentStatus.CANCELLED]: "Đã hủy",
 };
 
 export enum InventoryItemStatus {
