@@ -207,11 +207,14 @@ export default function Message({
   return (
     <div>
       {differenceState.message.openMessageUser && (
-        <div className="fixed bottom-5 right-5 z-50">
-          <div className="w-[30vw] h-[75vh] bg-white rounded-lg shadow-box-shadown flex flex-col overflow-hidden">
-            <header className="h-[10%] px-3 py-5 border-b flex justify-between items-center">
-              <div className="select-none flex items-center px-2 py-1 rounded-lg">
-                <figure className="border w-[40px] h-[40px] bg-white rounded-full flex items-center justify-center p-2">
+        <div
+          className="fixed bottom-0 right-0 md:bottom-5 md:right-5 z-50 w-full md:w-[30vw] h-[90vh] md:h-[75vh] flex items-end justify-end"
+          aria-label="AI Chat Window"
+        >
+          <div className="w-full md:w-[30vw] h-full md:h-[75vh] bg-white rounded-t-lg md:rounded-lg shadow-2xl flex flex-col overflow-hidden border border-gray-200">
+            <header className="h-[10%] px-3 py-4 border-b flex justify-between items-center bg-gradient-to-r from-blue-50 to-white">
+              <div className="select-none flex items-center px-2 py-1 rounded-lg" aria-label="Chat Header">
+                <figure className="border w-[40px] h-[40px] bg-white rounded-full flex items-center justify-center p-2 shadow-sm">
                   <div
                     style={{
                       borderRadius: "50%",
@@ -223,23 +226,26 @@ export default function Message({
                   >
                     <img
                       src={"/images/ai-bot.png"}
-                      width={170}
-                      height={170}
-                      alt="avatar"
+                      width={40}
+                      height={40}
+                      alt="AI Bot avatar"
                     />
                   </div>
                 </figure>
                 <h4 className="text-base font-bold ml-2">AI Bot</h4>
-                {/* Show typing status in header */}
                 {isAiTyping && (
-                  <span className="text-xs text-blue-600 ml-2">đang soạn tin...</span>
+                  <span className="text-xs text-blue-600 ml-2 animate-pulse">đang soạn tin...</span>
+                )}
+                {!isConnected && (
+                  <span className="text-xs text-red-500 ml-2">(Mất kết nối)</span>
                 )}
               </div>
               <div>
                 <button
                   onClick={handleCloseMessage}
                   type="button"
-                  className="py-2 px-2 rounded-sm hover:bg-gray-300"
+                  aria-label="Đóng chat"
+                  className="py-2 px-2 rounded-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 >
                   <span>
                     <X className="w-6 h-6" />
@@ -247,24 +253,27 @@ export default function Message({
                 </button>
               </div>
             </header>
-            <main 
-              className="h-[80%] px-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
+            <main
+              className="flex-1 px-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 bg-gradient-to-b from-white to-blue-50"
+              tabIndex={0}
+              aria-label="Chat messages"
+              style={{ scrollBehavior: "smooth" }}
             >
-              {renderMessages(messages)}
-              
-              {/* Show typing indicator when AI is typing */}
-              {isAiTyping && (
-                <TypingIndicator />
-              )}
-              
-              <div ref={messagesEndRef} />
+              {/* Group messages visually */}
+              <div className="space-y-1">
+                {renderMessages(messages)}
+                {isAiTyping && <TypingIndicator />}
+                <div ref={messagesEndRef} />
+              </div>
             </main>
-            <footer className="h-[25%] px-2 pt-4 flex flex-col gap-y-2 border">
-              <div className="relative">
+            {/* Sticky input area for better UX */}
+            <footer className="sticky bottom-0 px-2 pt-2 pb-3 bg-white border-t flex flex-col gap-y-2 shadow-md">
+              <div className="relative flex items-center">
                 <Input
-                  placeholder="Enter the chat content"
+                  placeholder="Nhập nội dung chat..."
                   type="text"
                   value={textMessage}
+                  aria-label="Nhập tin nhắn"
                   onChange={(e) => setTextMessage(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -272,23 +281,25 @@ export default function Message({
                       handleSendMessage();
                     }
                   }}
-                  className="border border-gray-400 rounded-3xl pr-14 py-6 focus-visible:ring-0 focus-visible:border-gray-700"
+                  className="border border-gray-400 rounded-3xl pr-14 py-4 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:border-blue-700 text-[15px]"
+                  disabled={!isConnected || isAiTyping}
                 />
                 <button
                   type="button"
                   onClick={handleSendMessage}
                   disabled={!isConnected || !textMessage.trim() || isAiTyping}
-                  className={`absolute top-1/2 right-2 -translate-y-1/2 rounded-full py-2 px-2 bg-blue-600 ${
-                    textMessage !== "" && isConnected && !isAiTyping ? "opacity-1" : "opacity-30"
-                  } disabled:cursor-not-allowed`}
+                  aria-label="Gửi tin nhắn"
+                  className={`absolute top-1/2 right-2 -translate-y-1/2 rounded-full py-2 px-2 bg-blue-600 transition-opacity duration-200 shadow-lg ${
+                    textMessage !== "" && isConnected && !isAiTyping ? "opacity-100" : "opacity-30"
+                  } disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-400`}
                 >
                   <span>
                     <SendHorizontal className="text-white" />
                   </span>
                 </button>
               </div>
-              <h3 className="text-center text-[15px]">
-                AI-generated information is for reference only {!isConnected ? "(Disconnected)" : ""}
+              <h3 className="text-center text-[14px] text-gray-500 select-none">
+                Thông tin do AI cung cấp chỉ mang tính tham khảo
               </h3>
             </footer>
           </div>
