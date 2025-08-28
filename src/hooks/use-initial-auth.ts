@@ -60,6 +60,7 @@ import { setUser } from "@/stores/user-slice";
 import { clearUser } from "@/stores/user-slice";
 import { resetProfile } from "@/stores/account-slice";
 import { clearCart } from "@/stores/cart-slice";
+import { resetChatState } from "@/stores/chat-slice"
 import { persistor } from "@/stores/store-client";
 
 export default function useInitialAuth({ redirectIfUnauthenticated = true } = {}) {
@@ -77,6 +78,7 @@ export default function useInitialAuth({ redirectIfUnauthenticated = true } = {}
           dispatch(clearUser());
           dispatch(resetProfile()); 
           dispatch(clearCart());
+          dispatch(resetChatState())
           persistor.pause();
           await persistor.flush();
           await persistor.purge();
@@ -106,6 +108,7 @@ export default function useInitialAuth({ redirectIfUnauthenticated = true } = {}
         dispatch(clearUser());
         dispatch(resetProfile());
         dispatch(clearCart());
+        dispatch(resetChatState())
         persistor.pause();
         await persistor.flush();
         await persistor.purge();
