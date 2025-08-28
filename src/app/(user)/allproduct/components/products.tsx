@@ -432,7 +432,7 @@ export default function AllProduct() {
           )}
 
           {totalPages > 1 && (
-            <div className="mt-8">
+            <div className="mt-8 flex justify-center">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

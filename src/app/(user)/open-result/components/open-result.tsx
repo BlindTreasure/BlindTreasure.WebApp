@@ -703,7 +703,7 @@ export default function MagicBoxOpening() {
           <motion.p
             className={`text-3xl font-extrabold mt-2 text-center ${isSecret
               ? 'bg-gradient-to-r from-yellow-400 via-pink-400 to-yellow-400 bg-clip-text text-transparent'
-              : 'text-yellow-400'
+              : getRarityColor(rarity.toLowerCase())
               }`}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{
