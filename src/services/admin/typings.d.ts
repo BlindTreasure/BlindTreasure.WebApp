@@ -11,7 +11,7 @@ import {
 } from "@/const/products";
 
 import { StatusSeller } from "@/const/seller";
-import { PayoutStatus } from "@/const/payout";
+import { PayoutStatus, PeriodType } from "@/const/payout";
 
 export type GetOrderParams = {
   SellerId?: string;
@@ -253,6 +253,7 @@ export type StripeTransactionResponse = {
 };
 
 export type StripeTransaction = {
+  id: string;
   payoutId: string;
   payout: Payout;
   sellerId: string;
@@ -279,7 +280,7 @@ export type Payout = {
   sellerName: string;
   periodStart: string;
   periodEnd: string;
-  periodType: "WEEKLY" | "MONTHLY";
+  periodType: PeriodType;
   grossAmount: number;
   netAmount: number;
   platformFeeAmount: number;

@@ -6,6 +6,7 @@ const FORCE_RELEASE_HOLD = (inventoryItemId: string) => `${ADMIN}/inventory/${in
 const FORCE_TIMEOUT = (tradeRequestId: string) => `${ADMIN}/trades/${tradeRequestId}/force-timeout`
 const INVENTORY_ONHOLD = ADMIN + "/inventory/onhold"
 const STRIPE_TRANSACTIONS = ADMIN + "/stripe-transactions"
+const DETAIL_TRANSACTIONS = (id: string) => `${ADMIN}/stripe-transactions/${id}`
 
 export default {
   ADMIN,
@@ -16,4 +17,5 @@ export default {
   FORCE_TIMEOUT,
   INVENTORY_ONHOLD,
   STRIPE_TRANSACTIONS,
+  DETAIL_TRANSACTIONS,
 };

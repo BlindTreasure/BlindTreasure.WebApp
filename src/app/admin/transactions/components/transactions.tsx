@@ -1,6 +1,19 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   StripeTransaction,
   StripeTransactionResponse,
@@ -8,7 +21,7 @@ import {
 } from "@/services/admin/typings";
 import useGetTransactionByAdmin from "../hooks/useGetTransactions";
 import { PaginationFooter } from "@/components/pagination-footer";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectTrigger,
@@ -21,10 +34,25 @@ import { Button } from "@/components/ui/button";
 import { useAdminSellerList } from "@/app/admin/orders/hooks/useAdminSellerList";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import useGetTransactionById from "../hooks/useGetTransactionById";
+import { Eye, Info } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import TransactionDetailDialog from "./TransactionDetailDialog";
+import { BsEye } from "react-icons/bs";
+
+
 
 export default function Transactions() {
   const { isPending, getTransactionByAdminApi } = useGetTransactionByAdmin();
   const [data, setData] = useState<StripeTransaction[]>([]);
+  const [openDetailDialog, setOpenDetailDialog] = useState(false);
+  const [selectedTransactionId, setSelecteTransactionId] = useState<string | null>(
+    null
+  );
+  const [transactionDetail, setTransactionDetail] =
+    useState<StripeTransaction | null>(null);
+  const { getTransactionDetailApi, isPending: isDetailPending } =
+    useGetTransactionById();
 
   const [paging, setPaging] = useState({
     pageIndex: 1,
@@ -41,7 +69,7 @@ export default function Transactions() {
   const { data: sellers = [], isLoading: isLoadingSellers } = useAdminSellerList(
     1,
     50
-  ); 
+  );
 
   const toISODate = (d: string, isEnd = false) => {
     if (!d) return undefined;
@@ -91,6 +119,19 @@ export default function Transactions() {
     fetchData();
   }, [filters, paging.pageIndex, paging.pageSize]);
 
+  useEffect(() => {
+    if (!selectedTransactionId) return;
+    const fetchDetail = async () => {
+      const res = await getTransactionDetailApi(selectedTransactionId);
+      if (res && res.value && res.value.data) {
+        setTransactionDetail(res.value.data);
+      } else {
+        setTransactionDetail(null);
+      }
+    };
+    fetchDetail();
+  }, [selectedTransactionId]);
+
   const handleFilterChange = (
     name: keyof TransactionsParams,
     value: any
@@ -109,6 +150,11 @@ export default function Transactions() {
   const handlePageSizeChange = (size: number) => {
     setPaging((prev) => ({ ...prev, pageSize: size, pageIndex: 1 }));
   };
+
+  const handleOpenDialog = (id: string) => {
+    setSelecteTransactionId(id);
+    setOpenDetailDialog(true);
+  }
 
   return (
     <div className="p-4">
@@ -194,24 +240,25 @@ export default function Transactions() {
               <thead>
                 <tr className="bg-gray-100 text-center dark:bg-gray-800">
                   <th className="p-3 border w-32">Người bán</th>
-                  <th className="p-3 border w-40">Mã giao dịch Stripe</th>
-                  <th className="p-3 border w-32">Tài khoản Stripe</th>
-                  <th className="p-3 border w-24">Số tiền</th>
-                  <th className="p-3 border w-24">Trạng thái</th>
+                  <th className="p-3 border w-24">Số tiền chuyển</th>
+                  <th className="p-3 border w-32">Trạng thái</th>
                   <th className="p-3 border w-32">Ngày chuyển</th>
                   <th className="p-3 border w-32">Người khởi tạo</th>
+                  <th className="p-3 border w-24">Xem chi tiết</th>
                 </tr>
               </thead>
               <tbody>
                 {isPending ? (
-                  <tr>
-                    <td colSpan={7} className="text-center p-4">
-                      Đang tải...
-                    </td>
-                  </tr>
+                  [...Array(paging.pageSize)].map((_, i) => (
+                    <tr key={i}>
+                      <td className="p-3 border text-center" colSpan={8}>
+                        <Skeleton className="h-4 w-full" />
+                      </td>
+                    </tr>
+                  ))
                 ) : data.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center p-4">
+                    <td colSpan={8} className="text-center p-4">
                       <img
                         src="/images/no-order.jpg"
                         alt="Không có giao dịch"
@@ -223,7 +270,7 @@ export default function Transactions() {
                 ) : (
                   data.map((item) => (
                     <tr
-                      key={item.stripeTransferId}
+                      key={item.id}
                       className="hover:bg-gray-50 dark:hover:bg-opacity-80"
                     >
                       <td
@@ -232,30 +279,17 @@ export default function Transactions() {
                       >
                         {item.sellerName}
                       </td>
-                      <td
-                        className="p-3 border text-center truncate"
-                        title={item.stripeTransferId}
-                      >
-                        {item.stripeTransferId}
-                      </td>
-                      <td
-                        className="p-3 border text-center truncate"
-                        title={item.stripeDestinationAccount}
-                      >
-                        {item.stripeDestinationAccount}
-                      </td>
-                      <td className="p-3 border text-center">
+                      <td className="p-3 border text-center font-semibold">
                         {item.payout.netAmount.toLocaleString("vi-VN")}₫
                       </td>
                       <td className="p-3 border text-center">
                         <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${
-                            item.status.toLowerCase() === "paid"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
+                          className={`px-2 py-1 rounded text-xs font-medium ${item.status.toLowerCase() === "succeed"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                            }`}
                         >
-                          {item.status}
+                          {item.status.toLowerCase() === "succeed" ? "Thành công" : "Thất bại"}
                         </span>
                       </td>
                       <td className="p-3 border text-center">
@@ -265,6 +299,11 @@ export default function Transactions() {
                       </td>
                       <td className="p-3 border text-center">
                         {item.initiatedByName}
+                      </td>
+                      <td className="p-3 border text-center">
+                        <Button variant="outline" size="icon" onClick={() => handleOpenDialog(item.id)}>
+                          <BsEye className="w-4 h-4" />
+                        </Button>
                       </td>
                     </tr>
                   ))
@@ -282,6 +321,13 @@ export default function Transactions() {
           />
         </CardContent>
       </Card>
+
+      <TransactionDetailDialog
+        open={openDetailDialog}
+        onOpenChange={setOpenDetailDialog}
+        isPending={isDetailPending}
+        transaction={transactionDetail}
+      />
     </div>
   );
 }
