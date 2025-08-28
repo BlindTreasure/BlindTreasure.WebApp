@@ -8,6 +8,7 @@ import { clearUser } from "@/stores/user-slice";
 import { resetProfile } from "@/stores/account-slice";
 import { clearCart } from "@/stores/cart-slice";
 import { persistor } from "@/stores/store-client";
+import { resetChatState } from "@/stores/chat-slice"
 import { store, useAppDispatch } from "@/stores/store";
 
 
@@ -38,6 +39,7 @@ export default function useAutoRefreshToken() {
         dispatch(clearUser());
         dispatch(resetProfile());
         dispatch(clearCart());
+        dispatch(resetChatState())
         persistor.pause();
         await persistor.flush();
         await persistor.purge();
