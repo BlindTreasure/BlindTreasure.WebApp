@@ -28,7 +28,7 @@ export type GetInventoryOnHoldParams = {
   pageIndex?: number;
   pageSize?: number;
   userId?: string;
-}
+};
 
 export type OrderResponse = {
   result: Order[];
@@ -172,15 +172,15 @@ export type PayoutHistoryItem = {
   nextRetryAt: string | null;
   payoutDetails: PayoutDetail[];
   payoutLogs: PayoutLog[];
-  periodStart: string; 
-  periodEnd: string; 
+  periodStart: string;
+  periodEnd: string;
   periodType: "WEEKLY" | "MONTHLY";
   grossAmount: number;
   netAmount: number;
   platformFeeAmount: number;
   status: PayoutStatus;
-  createdAt: string; 
-  processedAt: string; 
+  createdAt: string;
+  processedAt: string;
   completedAt: string;
   stripeTransferId: string;
   failureReason: string | null;
@@ -197,7 +197,7 @@ export type PayoutDetail = {
   finalAmount: number;
   refundAmount: number;
   contributedAmount: number;
-  orderCompletedAt: string; 
+  orderCompletedAt: string;
 };
 
 export type PayoutLog = {
@@ -208,7 +208,7 @@ export type PayoutLog = {
   details: string;
   errorMessage: string | null;
   triggeredByUserName: string;
-  loggedAt: string; 
+  loggedAt: string;
 };
 
 export type ConfirmPayoutRequest = {
@@ -220,21 +220,21 @@ export type InventoryOnHold = {
   product: Product;
   status: string;
   holdInfo: HoldInfo;
-}
+};
 
 type Product = {
   id: string;
   name: string;
   description: string;
   brand: string;
-}
+};
 
 type HoldInfo = {
   isOnHold: boolean;
   holdUntil: string;
   remainingDays: number;
   lastTradeId: string | null;
-}
+};
 
 export type InventoryOnHoldResponse = {
   result: InventoryOnHold[];
@@ -242,4 +242,65 @@ export type InventoryOnHoldResponse = {
   pageSize: number;
   currentPage: number;
   totalPages: number;
-}
+};
+
+export type StripeTransactionResponse = {
+  result: StripeTransaction[];
+  count: number;
+  pageSize: number;
+  currentPage: number;
+  totalPages: number;
+};
+
+export type StripeTransaction = {
+  payoutId: string;
+  payout: Payout;
+  sellerId: string;
+  sellerName: string;
+  stripeTransferId: string;
+  stripeDestinationAccount: string;
+  stripeBalanceTransactionId: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  transferredAt: string;
+  description: string;
+  failureReason: string | null;
+  initiatedBy: string;
+  initiatedByName: string;
+  externalRef: string;
+  batchId: string | null;
+  platformRevenueOfPayoutAmount: number | null;
+};
+
+export type Payout = {
+  id: string;
+  sellerId: string;
+  sellerName: string;
+  periodStart: string;
+  periodEnd: string;
+  periodType: "WEEKLY" | "MONTHLY";
+  grossAmount: number;
+  netAmount: number;
+  platformFeeAmount: number;
+  status: PayoutStatus;
+  createdAt: string;
+  processedAt: string;
+  completedAt: string | null;
+  stripeTransferId: string;
+  failureReason: string | null;
+  retryCount: number;
+  proofImageUrls: string[];
+};
+
+export type TransactionsParams = {
+  sellerId?: string; 
+  transferredFrom?: string;
+  transferredTo?: string; 
+  minAmount?: number;
+  maxAmount?: number;
+  isInitiatedBySystem?: boolean;
+  pageIndex?: number;
+  pageSize?: number;
+  desc?: boolean;
+};

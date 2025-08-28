@@ -5,6 +5,7 @@ const CONFIRM = (payoutId: string) => `${ADMIN}/payouts/${payoutId}/confirm`;
 const FORCE_RELEASE_HOLD = (inventoryItemId: string) => `${ADMIN}/inventory/${inventoryItemId}/force-release-hold`
 const FORCE_TIMEOUT = (tradeRequestId: string) => `${ADMIN}/trades/${tradeRequestId}/force-timeout`
 const INVENTORY_ONHOLD = ADMIN + "/inventory/onhold"
+const STRIPE_TRANSACTIONS = ADMIN + "/stripe-transactions"
 
 export default {
   ADMIN,
@@ -13,5 +14,6 @@ export default {
   CONFIRM,
   FORCE_RELEASE_HOLD,
   FORCE_TIMEOUT,
-  INVENTORY_ONHOLD
+  INVENTORY_ONHOLD,
+  STRIPE_TRANSACTIONS,
 };
