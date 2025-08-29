@@ -237,7 +237,12 @@ export default function OrderCard({
 
             {details.map((detail) => (
                 <div key={detail.id} className="p-4 flex border-b gap-4 cursor-pointer" onClick={() => {
-                    if (checkoutGroupId && details.length > 1) {
+                    // if (checkoutGroupId && details.length > 1) {
+                    //     router.push(`/ordergroup/${checkoutGroupId}`);
+                    // } else {
+                    //     router.push(`/orderdetail/${orderId}`);
+                    // }
+                    if ((currentTab === "pending" || currentTab === "cancelled") && checkoutGroupId) {
                         router.push(`/ordergroup/${checkoutGroupId}`);
                     } else {
                         router.push(`/orderdetail/${orderId}`);
