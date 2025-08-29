@@ -68,6 +68,7 @@ interface ShippingAddress {
 
 interface OrderCardProps {
     orderId: string;
+    userIdOfSeller?: string;
     shopName: string;
     details: OrderDetail[];
     total: number;
@@ -80,6 +81,7 @@ interface OrderCardProps {
     currentTab?: string;
     isGroupDuplicate?: boolean; // Check đơn cùng checkoutGroupId
     onReviewCreated?: (reviewData: any) => void;
+    handleOpenChat: (targetUserId: string) => void;
     onOrderCancelled?: () => void; // Callback để refresh data sau khi hủy đơn
 }
 
@@ -88,6 +90,7 @@ export default function OrderCard({
     shopName,
     details,
     total,
+    userIdOfSeller,
     deliveryDate,
     payment,
     shippingAddress,
@@ -97,6 +100,7 @@ export default function OrderCard({
     currentTab,
     isGroupDuplicate = false,
     onReviewCreated,
+    handleOpenChat,
     onOrderCancelled,
 }: OrderCardProps) {
     const router = useRouter();
@@ -468,7 +472,9 @@ export default function OrderCard({
                         </DialogContent>
                     </Dialog>
 
-                    <button className=" text-black border border-gray-300 px-4 py-1 rounded hover:bg-gray-100">
+                    <button
+                    onClick={() => handleOpenChat(userIdOfSeller || '')}
+                    className=" text-black border border-gray-300 px-4 py-1 rounded hover:bg-gray-100">
                         Liên hệ người bán
                     </button>
                 </div>

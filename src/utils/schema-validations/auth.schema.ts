@@ -65,11 +65,10 @@ const RegisterBase = z
     //   .regex(/^[1-9][0-9]{8}$/, "Số điện thoại không hợp lệ (bỏ số 0 đầu)"),
     phoneNumber: z
       .string()
-      .regex(
-        /^(0[3|5|7|8|9])[0-9]{8}$/,
-        "Số điện thoại không hợp lệ (phải có 10 chữ số và đúng đầu số VN)"
-      ),
-  })
+      .min(10, "Số điện thoại phải có 10 chữ số")
+      .max(10, "Số điện thoại chỉ gồm 10 chữ số")
+      .regex(/^0[0-9]{9}$/, "Số điện thoại không hợp lệ"),
+      })
   .strict();
 
 export const RegisterBody = RegisterBase.superRefine(

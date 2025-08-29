@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useEffect, useState } from 'react';
 import useGetWishlist from '../hooks/useGetWishlist';
@@ -9,6 +8,8 @@ import { useRouter } from 'next/navigation';
 import { Product as ProductCardType } from '@/services/product-seller/typings';
 import { BlindBox as BlindboxCardType } from '@/services/blindboxes/typings';
 import Pagination from '@/components/pagination';
+import useAddProductToCart from '@/app/(user)/detail/hooks/useAddProductToCart'
+import useAddBlindboxToCart from '@/app/(user)/detail-blindbox/hooks/useAddBlindboxToCart'
 
 
 export default function Wishlist() {
@@ -19,6 +20,8 @@ export default function Wishlist() {
     const [totalPages, setTotalPages] = useState(1);
     const [isLoading, setIsLoading] = useState(true);
     const pageSize = 12;
+    const { isPending: isPendingProductCart, addProductToCartApi } = useAddProductToCart();
+    const { isPending: isPendingBlindboxCart, addBlindboxToCartApi } = useAddBlindboxToCart();
 
     const adaptProductForCard = (product: any): ProductCardType => ({
         ...product,
@@ -105,6 +108,14 @@ export default function Wishlist() {
         }
     };
 
+    const handleAddProductToCart = async (productId: string, quantity: number = 1) => {
+        await addProductToCartApi({ productId, quantity });
+    };
+
+    const handleAddBlindboxToCart = async (blindBoxId: string, quantity: number = 1) => {
+        await addBlindboxToCartApi({ blindBoxId, quantity });
+    };
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center min-h-screen">
@@ -138,6 +149,7 @@ export default function Wishlist() {
                                         product={adaptProductForCard(item.product)}
                                         onViewDetail={handleViewProductDetail}
                                         initialIsInWishlist={true}
+                                        onAddToCart={handleAddProductToCart}
                                         initialWishlistId={item.id}
                                         onWishlistChange={handleWishlistChange}
                                     />
@@ -149,6 +161,7 @@ export default function Wishlist() {
                                         blindbox={adaptBlindboxForCard(item.blindBox)}
                                         onViewDetail={handleViewBlindboxDetail}
                                         initialIsInWishlist={true}
+                                        onAddToCart={handleAddBlindboxToCart}
                                         initialWishlistId={item.id}
                                         onWishlistChange={handleWishlistChange}
                                     />

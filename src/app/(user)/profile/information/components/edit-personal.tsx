@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Genders } from "@/const/user";
-import { X } from "lucide-react";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import useUpdateInformation from "@/app/(user)/profile/information/hooks/useUpdateInformation";
 import { UpdateInfoProfileBodyType } from "@/utils/schema-validations/update-infor-profile.schema";
@@ -47,7 +46,6 @@ export default function EditPersonal({
 
   const handleSubmitForm = (data: UpdateInfoProfileBodyType) => {
     try {
-      console.log("Submitted data:", data);
       const form: REQUEST.TUpdateInfoProfile = {
         fullName: data.fullName,
         email: data.email,
