@@ -17,7 +17,15 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'encrypted-tbn0.gstatic.com',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'minio.fpt-devteam.fun',
+      },
+      {
+        protocol: 'https',
+        hostname: 'minio.fpt-devteam.fun',
+      },
     ],
   },
   webpack(config, { dev, isServer }) {
