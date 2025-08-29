@@ -21,7 +21,7 @@ const SellerChatPage: React.FC = () => {
     messageInput,
     totalUnreadCount,
     loading
-  } = useAppSelector(state => state.chatSlide);
+  } = useAppSelector(state => state.chatSlice);
 
   const { userStatuses, typingUsers } = useChat();
   useSignalRMessages();
