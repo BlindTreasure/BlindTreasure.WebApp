@@ -177,7 +177,7 @@ export default function AvatarMenu({ onCloseTooltip }: AvatarMenuProps) {
                   className="p-1 bg-gray-300 text-black rounded-full mr-2"
                   size={30}
                 />
-                <span className="text-black">Chat hỗ trợ</span>
+                <span className="text-black">Blindy AI Chatbot</span>
               </div>
             </div>
           </li>
