@@ -76,6 +76,10 @@ export const chatSlice = createSlice({
       }
     },
 
+    removeConversation: (state, action: PayloadAction<string>) => {
+      state.conversations = state.conversations.filter(conv => conv.otherUserId !== action.payload);
+    },
+
     // Messages
     setMessages: (state, action: PayloadAction<API.ChatHistoryDetail[]>) => {
       state.messages = action.payload;
@@ -179,6 +183,7 @@ export const {
   updateConversation,
   addConversation,
   updateConversationOnlineStatus,
+  removeConversation,
   
   // Messages
   setMessages,

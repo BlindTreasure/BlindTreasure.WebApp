@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { format, addDays } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { OrderResponse } from "@/services/order/typings";
 import { PaymentInfoStatus, PaymentInfoStatusText, OrderStatus, OrderStatusText } from "@/const/products";
 import useGetOrderById from "../../orderhistory/hooks/useGetOrderById";
+import CustomerSellerChat from '@/components/chat-widget';
 
 const getActualStatusFromLogs = (logs: string, currentStatus: OrderStatus): OrderStatus => {
   if (!logs) return currentStatus;
@@ -205,6 +206,8 @@ export default function OrderDetail() {
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [tab, setTab] = useState("order");
   const [error, setError] = useState<string | null>(null);
+  const [showChat, setShowChat] = useState(false);
+  const [chatTargetUserId, setChatTargetUserId] = useState<string | undefined>('');
 
   useEffect(() => {
     if (!orderId) return;
@@ -224,7 +227,10 @@ export default function OrderDetail() {
     fetchData();
   }, [orderId]);
 
-
+  const handleOpenChat = useCallback((targetUserId?: string) => {
+    setChatTargetUserId(targetUserId);
+    setShowChat(true);
+  }, []);
 
   if (isPending) {
     return (
@@ -531,7 +537,9 @@ export default function OrderDetail() {
       </Card>
 
       <div className="flex flex-col sm:flex-row gap-3 justify-end">
-        <Button variant="outline" className="flex-1 sm:flex-none">
+        <Button
+        onClick={() => handleOpenChat(order.seller?.userId)} 
+        variant="outline" className="flex-1 sm:flex-none">
           Liên Hệ Người Bán
         </Button>
       </div>
@@ -559,6 +567,15 @@ export default function OrderDetail() {
           </Tabs>
         </CardContent>
       </Card>
+
+      {showChat && (
+        <CustomerSellerChat
+          isOpen={showChat}
+          onClose={() => setShowChat(false)}
+          targetUserId={chatTargetUserId}
+        />
+      )}
+
     </div>
   );
 }

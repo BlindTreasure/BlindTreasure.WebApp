@@ -44,10 +44,10 @@ const RegisterBase = z
     ),
     phoneNumber: z
       .string()
-      .min(9, "Số điện thoại phải có 9 chữ số")
-      .max(9, "Số điện thoại chỉ gồm 9 chữ số")
-      .regex(/^[1-9][0-9]{8}$/, "Số điện thoại không hợp lệ (bỏ số 0 đầu)"),
-  })
+      .min(10, "Số điện thoại phải có 10 chữ số")
+      .max(10, "Số điện thoại chỉ gồm 10 chữ số")
+      .regex(/^0[0-9]{9}$/, "Số điện thoại không hợp lệ"),
+      })
   .strict();
 
 

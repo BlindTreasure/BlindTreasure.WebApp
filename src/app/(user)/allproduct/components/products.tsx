@@ -188,7 +188,6 @@ export default function AllProduct() {
     await addProductToCartApi({ productId, quantity });
   };
 
-  // Handler for adding blindbox to cart
   const handleAddBlindboxToCart = async (blindBoxId: string, quantity: number = 1) => {
     await addBlindboxToCartApi({ blindBoxId, quantity });
   };

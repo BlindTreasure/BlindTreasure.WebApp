@@ -13,7 +13,8 @@ import {
   setShowInventory, 
   setSelectedConversation, 
   setSearchQuery,
-  clearMessages 
+  clearMessages,
+  removeConversation
 } from '@/stores/chat-slice';
 import { useSignalRMessages, useChatData, useChatActions } from '@/hooks/chat/useChat';
 import { useChat } from '@/hooks/chat/use-send-message-user';
@@ -92,11 +93,15 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
     if (!targetUserId || !isOpen || isSelfChat || hasSelectedRef.current) return;
     
     const targetConversation = conversations.find(conv => conv.otherUserId === targetUserId);
+    const newConversation = conversations.find(conv => conv.lastMessageTime == null);
     if (targetConversation) {
+      if (newConversation && newConversation.otherUserId != targetConversation.otherUserId){
+        dispatch(removeConversation(targetConversation.otherUserId))
+      } 
       dispatch(setSelectedConversation(targetUserId));
       checkUserOnlineStatus(targetUserId);
       hasSelectedRef.current = true;
-    } else if (conversations.length === 0) {
+    }else if (conversations.length === 0) {
       chatActions.handleSelectConversation(targetUserId);
       checkUserOnlineStatus(targetUserId);
       hasSelectedRef.current = true;
