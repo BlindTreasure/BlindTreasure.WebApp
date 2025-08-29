@@ -38,7 +38,6 @@ const CheckoutForm: React.FC = () => {
         const data = JSON.parse(savedData);
         setCheckoutData(data);
       } catch (error) {
-        console.error('Error parsing checkout data:', error);
         router.push('/cart');
       }
     } else {
@@ -149,7 +148,6 @@ const CheckoutForm: React.FC = () => {
         window.location.href = url;
       }
     } catch (error) {
-      console.error('Error creating order:', error);
       addToast({
         type: 'error',
         description: 'Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại.',

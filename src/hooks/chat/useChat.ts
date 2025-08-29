@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/stores/store';
 import { useChat } from '@/hooks/chat/use-send-message-user';
 import { useServiceMarkMessageAsRead } from '@/services/chat/services';
@@ -15,7 +15,6 @@ import {
   updateConversation,
   addConversation,
   updateConversationOnlineStatus,
-  removeConversation,
   setMessages,
   addMessage,
   setMessageInput,
@@ -52,12 +51,12 @@ export interface ChatActions {
   handleSendImage: (selectedImage: File) => Promise<void>;
   handleSendProduct: (item: InventoryItem) => Promise<void>;
   handleClearImage: () => void;
-  refreshChatHistory: (conversationId: string) => Promise<void>; // NEW
+  refreshChatHistory: (conversationId: string) => Promise<void>;
 }
 
 export const useSignalRMessages = (): SignalRMessageHandlers => {
   const dispatch = useAppDispatch();
-  const selectedConversation = useAppSelector(state => state.chatSlide.selectedConversation);
+  const selectedConversation = useAppSelector(state => state.chatSlice.selectedConversation);
   const currentUserId = useAppSelector(state => state.userSlice?.user?.userId);
   
   const { 
@@ -133,7 +132,7 @@ export const useSignalRMessages = (): SignalRMessageHandlers => {
 };
 
 /**
- * Hook to handle data fetching operations - FIXED VERSION
+ * Hook to handle data fetching operations - UPDATED WITH REFRESH TRIGGER
  */
 export const useChatData = (isOpen: boolean) => {
   const dispatch = useAppDispatch();
@@ -141,10 +140,13 @@ export const useChatData = (isOpen: boolean) => {
     selectedConversation, 
     showInventory, 
     fetched
-  } = useAppSelector(state => state.chatSlide);
+  } = useAppSelector(state => state.chatSlice);
+  
+  // State để trigger refresh conversations
+  const [conversationRefreshTrigger, setConversationRefreshTrigger] = useState(0);
   
   // Memoize conversations to prevent unnecessary re-renders
-  const conversations = useAppSelector(state => state.chatSlide.conversations);
+  const conversations = useAppSelector(state => state.chatSlice.conversations);
   
   const currentUserId = useAppSelector(state => state.userSlice?.user?.userId);
   const { userStatuses, isUserOnline, isConnected, checkUserOnlineStatus } = useChat();
@@ -164,10 +166,23 @@ export const useChatData = (isOpen: boolean) => {
   const { getChatHistoryDetailApi } = useGetChatHistoryDetail();
   const { getAllItemInventoryApi } = useGetAllItemInventory();
 
-  // Fetch conversations
+  // Expose function để trigger refresh từ bên ngoài
+  const triggerConversationRefresh = useCallback(() => {
+    setConversationRefreshTrigger(prev => prev + 1);
+  }, []);
+
+  // Attach trigger function to window để có thể gọi từ chat actions
+  useEffect(() => {
+    (window as any).triggerConversationRefresh = triggerConversationRefresh;
+    return () => {
+      delete (window as any).triggerConversationRefresh;
+    };
+  }, [triggerConversationRefresh]);
+
+  // Fetch conversations - UPDATED với conversationRefreshTrigger
   useEffect(() => {
     const fetchConversations = async () => {
-      if (fetchingRefs.current.conversations || fetched.conversations || !isOpen) return;
+      if (fetchingRefs.current.conversations || !isOpen) return;
 
       fetchingRefs.current.conversations = true;
       dispatch(setLoading({ type: 'conversations', loading: true }));
@@ -198,7 +213,7 @@ export const useChatData = (isOpen: boolean) => {
     };
 
     fetchConversations();
-  }, [isOpen, fetched.conversations, dispatch, getChatConversationApi, getUnreadCountApi]);
+  }, [isOpen, conversationRefreshTrigger, dispatch, getChatConversationApi, getUnreadCountApi]); // Thêm conversationRefreshTrigger
 
   // Memoize conversation IDs to prevent unnecessary updates
   const conversationIds = useMemo(() => 
@@ -361,15 +376,17 @@ export const useChatData = (isOpen: boolean) => {
       }
     };
   }, [isOpen, getUnreadCountApi, dispatch]);
+
+  return { triggerConversationRefresh };
 };
 
 /**
- * Hook to handle chat actions and interactions - ENHANCED VERSION
+ * Hook to handle chat actions and interactions - UPDATED WITH REFRESH TRIGGER
  */
 export const useChatActions = (): ChatActions => {
   const dispatch = useAppDispatch();
-  const { selectedConversation, messageInput } = useAppSelector(state => state.chatSlide);
-  const conversations = useAppSelector(state => state.chatSlide.conversations);
+  const { selectedConversation, messageInput } = useAppSelector(state => state.chatSlice);
+  const conversations = useAppSelector(state => state.chatSlice.conversations);
   
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -399,6 +416,13 @@ export const useChatActions = (): ChatActions => {
   const { getNewChatConversationApi } = useGetNewChatConversation();
   const { getChatConversationApi } = useGetChatConversation();
   
+  // Helper function để trigger refresh conversations
+  const triggerRefresh = useCallback(() => {
+    if ((window as any).triggerConversationRefresh) {
+      (window as any).triggerConversationRefresh();
+    }
+  }, []);
+
   // Cleanup typing timeout on unmount
   useEffect(() => {
     return () => {
@@ -408,7 +432,7 @@ export const useChatActions = (): ChatActions => {
     };
   }, []);
 
-  // NEW: Refresh chat history function
+  // Refresh chat history function
   const refreshChatHistory = useCallback(async (conversationId: string) => {
     if (!conversationId) return;
     
@@ -496,36 +520,14 @@ export const useChatActions = (): ChatActions => {
     try {
       await sendMessage(selectedConversation, messageContent);
 
-      // Sau khi gửi thành công -> gọi lại API để refresh conversation list
-      try {
-        const response = await getNewChatConversationApi(selectedConversation);
-        if (response?.value?.data) {
-          dispatch(updateConversation({
-            otherUserId: selectedConversation,
-            lastMessage: messageContent,
-            lastMessageTime: formatConversationDate(new Date().toISOString()),
-            unreadCount: 0
-          }));
-        } else {
-          // fallback: gọi full conversation list nếu không có dữ liệu mới
-          const convRes = await getChatConversationApi({ pageIndex: 1, pageSize: CHAT_CONSTANTS.CONVERSATION_PAGE_SIZE });
-          if (convRes?.value?.data) {
-            const transformed = convRes.value.data.result.map((conv: API.ChatConversation) => ({
-              ...conv,
-              lastMessageTime: formatConversationDate(conv.lastMessageTime),
-            }));
-            dispatch(setConversations(transformed));
-          }
-        }
-      } catch (refreshErr) {
-        console.error("Error refreshing conversations after send:", refreshErr);
-      }
+      // Trigger refresh conversations sau khi gửi tin nhắn thành công
+      triggerRefresh();
 
     } catch (error) {
       console.error('Failed to send message:', error);
       dispatch(setMessageInput(messageContent));
     }
-  }, [messageInput, selectedConversation, isConnected, dispatch, sendMessage, getNewChatConversationApi, getChatConversationApi])
+  }, [messageInput, selectedConversation, isConnected, dispatch, sendMessage, triggerRefresh]);
 
   const handleInputChange = useCallback(async (value: string) => {
     dispatch(setMessageInput(value));
@@ -577,11 +579,14 @@ export const useChatActions = (): ChatActions => {
         dispatch(setSelectedImage({ file: null, preview: null }));
         const fileInput = document.getElementById('image-input') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
+        
+        // Trigger refresh conversations sau khi gửi image thành công
+        triggerRefresh();
       }
     } catch (error) {
       console.error('Failed to send image:', error);
     }
-  }, [selectedConversation, isConnected, clearTypingForUser, dispatch]);
+  }, [selectedConversation, isConnected, clearTypingForUser, dispatch, triggerRefresh]);
 
   const handleSendProduct = useCallback(async (item: InventoryItem) => {
     if (!selectedConversation || !isConnected) return;
@@ -593,10 +598,14 @@ export const useChatActions = (): ChatActions => {
         receiverId: selectedConversation,
         inventoryItemId: item.id,
       });
+      
+      // Trigger refresh conversations sau khi gửi inventory item thành công
+      triggerRefresh();
+      
     } catch (error) {
       console.error('Failed to send product:', error);
     }
-  }, [selectedConversation, isConnected, clearTypingForUser, useSendInventoryItemUserApi]);
+  }, [selectedConversation, isConnected, clearTypingForUser, useSendInventoryItemUserApi, triggerRefresh]);
 
   const handleClearImage = useCallback(() => {
     dispatch(setSelectedImage({ file: null, preview: null }));

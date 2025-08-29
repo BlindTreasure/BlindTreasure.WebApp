@@ -257,7 +257,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
       }
     } catch (error) {
       if (error !== 'AbortError') {
-        console.error('Error fetching listings:', error);
         setProducts([]);
         setTotalItems(0);
       }
@@ -295,7 +294,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
         setTotalItems(response.value.data.count || mappedProducts.length);
       }
     } catch (error) {
-      console.error('Error fetching my trade requests:', error);
       setMyTradeRequests([]);
       setProducts([]);
       setTotalItems(0);
@@ -333,7 +331,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
         setTotalItems(response.value.data.count || mappedProducts.length);
       }
     } catch (error) {
-      console.error('Error fetching ongoing trades:', error);
       setOngoingTrades([]);
       setProducts([]);
       setTotalItems(0);
@@ -372,7 +369,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
         setTotalItems(response.value.data.count || mappedProducts.length);
       }
     } catch (error) {
-      console.error('Error fetching trading history:', error);
       setTradingHistory([]);
       setProducts([]);
       setTotalItems(0);
@@ -387,7 +383,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
         setSelectedProductDetail(response.value.data);
       }
     } catch (error) {
-      console.error('Error fetching product detail:', error);
       setSelectedProductDetail(null);
     }
   }, [getListingByIdApi]);
@@ -402,7 +397,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
         setTradeRequests([]);
       }
     } catch (error) {
-      console.error('Error fetching trade requests:', error);
       setTradeRequests([]);
     }
   }, [getAllTradeRequestByListingId]);
@@ -574,7 +568,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
   // Trade request actions
   const handleCreateTradeRequest = useCallback(async (offeredInventoryIds: string[]) => {
     if (!selectedProduct?.id) {
-      console.error('No selected product for trade request');
       return;
     }
 
@@ -588,7 +581,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
           resolve();
         },
         onError: (error : any) => {
-          console.error('Error creating trade request:', error);
           reject(error);
         }
       });
@@ -612,7 +604,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
           resolve();
         },
         onError: (error: any) => {
-          console.error('Error closing listing:', error);
           reject(error);
         }
       });
@@ -636,7 +627,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
           resolve();
         },
         onError: (error: any) => {
-          console.error('Error accepting trade request:', error);
           reject(error);  
         }
       });
@@ -659,7 +649,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
           resolve();
         },
         onError: (error: any) => {
-          console.error('Error rejecting trade request:', error);
           reject(error);
         }
       });
@@ -680,7 +669,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({
           await fetchListings(1, searchTerm, isFreeFilter, activeSection);
         }
       } catch (error) {
-        console.error('Error refreshing data:', error);
       } finally {
         setIsRefreshing(false);
       }

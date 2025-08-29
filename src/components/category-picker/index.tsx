@@ -74,9 +74,6 @@ useEffect(() => {
   return categories.result.find((c) => c.id === catId)?.name || "Chọn danh mục";
 }, [watch("categoryId"), categories]);
 
-console.log("📦 categoryId:", watch("categoryId"));
-console.log("📦 selectedCategoryName:", selectedCategoryName);
-console.log("📦 categories:", categories?.result);
 
   return (
     <div className="space-y-2">

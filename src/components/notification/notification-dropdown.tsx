@@ -64,7 +64,6 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
   const handleMarkAsRead = async (notificationId: string, sourceUrl?: string) => {
     const response = await markNotificationAsRead(notificationId);
     if (response.isSuccess) {
-      console.log(`[NotificationDropdown] Notification ${notificationId} marked as read`);
       
       // Nếu có sourceUrl thì chuyển hướng đến trang đó
       if (sourceUrl) {
@@ -77,17 +76,11 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
   };
 
   const handleMarkAllAsRead = async () => {
-    const response = await markAllNotificationsAsRead();
-    if (response.isSuccess) {
-      console.log('[NotificationDropdown] All notifications marked as read');
-    }
+    await markAllNotificationsAsRead();
   };
 
   const handleDelete = async (notificationId: string) => {
-    const response = await deleteNotification(notificationId);
-    if (response.isSuccess) {
-      console.log(`[NotificationDropdown] Notification ${notificationId} deleted`);
-    }
+    await deleteNotification(notificationId);
   };
 
   const getNotificationIcon = (type: string) => {

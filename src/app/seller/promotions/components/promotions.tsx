@@ -51,7 +51,6 @@ const PromotionCrud: React.FC = () => {
         pageIndex: currentPage,
         pageSize: pageSize
       };
-      console.log(profile);
       
       const response = await getPromotionApi(params);      
       

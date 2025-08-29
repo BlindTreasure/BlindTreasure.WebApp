@@ -101,14 +101,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
     if (isToggling) return;
 
     try {
-      const result = await toggleWishlist({
+      await toggleWishlist({
         productId: product.id,
         type: "Product"
       });
-
-      if (result?.success) {
-        console.log(`Wishlist ${result.action}:`, product.name);
-      }
     } catch (error) {
       console.error('Error toggling wishlist:', error);
     }

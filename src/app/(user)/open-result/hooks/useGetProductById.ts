@@ -24,7 +24,6 @@ export default function useGetProductById(productId: string) {
           setError("Không thể tải thông tin sản phẩm");
         }
       } catch (err) {
-        console.error("Error fetching product:", err);
         setError("Lỗi khi tải thông tin sản phẩm");
       } finally {
         setIsLoading(false);

@@ -361,7 +361,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                 {/* Code Field */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Code <span className="text-red-500">*</span>
+                    Mã <span className="text-red-500">*</span>
                   </label>
                   <Controller
                     name="code"
@@ -374,7 +374,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                           errors.code ? 'border-red-500' : 'border-gray-300'
                         } ${isFieldDisabled ? 'bg-gray-50 cursor-not-allowed' : ''}`}
-                        placeholder="Nhập mã promotion (VD: SUMMER2025)"
+                        placeholder="Nhập mã khuyến mãi (VD: SUMMER)"
                       />
                     )}
                   />
@@ -386,7 +386,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                 {/* Description Field */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Description <span className="text-red-500">*</span>
+                    Mô tả <span className="text-red-500">*</span>
                   </label>
                   <Controller
                     name="description"
@@ -399,7 +399,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                           errors.description ? 'border-red-500' : 'border-gray-300'
                         } ${isFieldDisabled ? 'bg-gray-50 cursor-not-allowed' : ''}`}
-                        placeholder="Nhập mô tả promotion"
+                        placeholder="Nhập mô tả khuyến mãi "
                       />
                     )}
                   />
@@ -411,7 +411,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                 {/* Discount Type Field */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Discount Type <span className="text-red-500">*</span>
+                    Loại giảm giá <span className="text-red-500">*</span>
                   </label>
                   <Controller
                     name="discountType"
@@ -431,8 +431,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                           isFieldDisabled ? 'bg-gray-50 cursor-not-allowed' : ''
                         }`}
                       >
-                        <option value={PromotionType.Percentage}>Percentage (%)</option>
-                        <option value={PromotionType.Fixed}>Fixed Amount ($)</option>
+                        <option value={PromotionType.Percentage}>Phần trăm (%)</option>
+                        <option value={PromotionType.Fixed}>Cố định ($)</option>
                       </select>
                     )}
                   />
@@ -441,7 +441,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                 {/* Discount Value Field */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Discount Value <span className="text-red-500">*</span>
+                    Giá trị khuyến mãi <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Controller
@@ -450,29 +450,44 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                       render={({ field }) => (
                         <input
                           {...field}
-                          type="number"
+                          type="text"
+                          inputMode="decimal" 
                           disabled={isFieldDisabled}
-                          min="0"
-                          max={discountType === PromotionType.Percentage ? 100 : undefined}
-                          step={discountType === PromotionType.Percentage ? 1 : 0.01}
                           onChange={(e) => {
                             if (isFieldDisabled) return;
-                            const value = parseFloat(e.target.value) || 0;
-                            const processedValue = discountType === PromotionType.Percentage 
-                              ? Math.min(Math.max(value, 0), 100)
-                              : Math.max(value, 0);
+
+                            let value = e.target.value;
+
+                            if (value === "" || value === "0") {
+                              field.onChange("");
+                              return;
+                            }
+
+                            // Ép thành số hợp lệ
+                            let numericValue = parseFloat(value);
+                            if (isNaN(numericValue)) {
+                              field.onChange("");
+                              return;
+                            }
+
+                            const processedValue =
+                              discountType === PromotionType.Percentage
+                                ? Math.min(Math.max(numericValue, 0), 100)
+                                : Math.max(numericValue, 0);
+
                             field.onChange(processedValue);
                           }}
+                          value={field.value === 0 ? "" : field.value} // hiển thị rỗng thay vì 0
                           className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                            errors.discountValue ? 'border-red-500' : 'border-gray-300'
-                          } ${isFieldDisabled ? 'bg-gray-50 cursor-not-allowed' : ''}`}
-                          placeholder={discountType === PromotionType.Fixed ? '0.00' : '0-100'}
+                            errors.discountValue ? "border-red-500" : "border-gray-300"
+                          } ${isFieldDisabled ? "bg-gray-50 cursor-not-allowed" : ""}`}
+                          placeholder={discountType === PromotionType.Fixed ? "0.00" : "0-100"}
                         />
                       )}
                     />
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                       <span className="text-gray-500 text-sm">
-                        {discountType === PromotionType.Percentage ? '%' : '$'}
+                        {discountType === PromotionType.Percentage ? "%" : "$"}
                       </span>
                     </div>
                   </div>
@@ -484,7 +499,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                 {/* Start Date Field */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Start Date <span className="text-red-500">*</span>
+                    Ngày bắt đầu <span className="text-red-500">*</span>
                   </label>
                   <Controller
                     name="startDate"
@@ -508,7 +523,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                 {/* End Date Field */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    End Date <span className="text-red-500">*</span>
+                    Ngày kết thúc <span className="text-red-500">*</span>
                   </label>
                   <Controller
                     name="endDate"
@@ -533,7 +548,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                 {/* Usage Limit Field */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Usage Limit <span className="text-red-500">*</span>
+                    Số lượng <span className="text-red-500">*</span>
                   </label>
                   <Controller
                     name="usageLimit"
@@ -559,17 +574,12 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                   {errors.usageLimit && !isFieldDisabled && (
                     <p className="text-sm text-red-600">{errors.usageLimit?.message}</p>
                   )}
-                  {!isFieldDisabled && (
-                    <p className="text-xs text-gray-500">
-                      Số lần tối đa promotion có thể được sử dụng (0 = không giới hạn)
-                    </p>
-                  )}
                 </div>
 
                 {/* Max Usage Per User Field - NEW */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Max Usage Per User <span className="text-red-500">*</span>
+                    Giới hạn sử dụng cho mỗi người <span className="text-red-500">*</span>
                   </label>
                   <Controller
                     name="maxUsagePerUser"
@@ -594,11 +604,6 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                   />
                   {errors.maxUsagePerUser && !isFieldDisabled && (
                     <p className="text-sm text-red-600">{errors.maxUsagePerUser?.message}</p>
-                  )}
-                  {!isFieldDisabled && (
-                    <p className="text-xs text-gray-500">
-                      Số lần tối đa mỗi user có thể sử dụng promotion này (tối thiểu 1)
-                    </p>
                   )}
                 </div>
               </div>

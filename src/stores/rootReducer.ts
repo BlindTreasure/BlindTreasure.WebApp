@@ -6,7 +6,7 @@ import differenceSlice from "@/stores/difference-slice";
 import cartSlice from "@/stores/cart-slice";
 import filterSlice from "@/stores/filter-product-slice";
 import notificationSlice from "@/stores/notification-slice"
-import chatSlide from "@/stores/chat-slice"
+import chatSlice from "@/stores/chat-slice"
 
 const rootReducer = combineReducers({
   userSlice,
@@ -16,7 +16,7 @@ const rootReducer = combineReducers({
   cartSlice,
   filterSlice,
   notificationSlice,
-  chatSlide
+  chatSlice
 });
 
 export default rootReducer;

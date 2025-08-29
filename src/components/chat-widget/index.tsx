@@ -71,7 +71,7 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
     imagePreview,
     totalUnreadCount,
     loading
-  } = useAppSelector(state => state.chatSlide);
+  } = useAppSelector(state => state.chatSlice);
 
   const { 
     isConnected, 
@@ -94,17 +94,26 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
     
     const targetConversation = conversations.find(conv => conv.otherUserId === targetUserId);
     const newConversation = conversations.find(conv => conv.lastMessageTime == null);
-    if (targetConversation) {
-      if (newConversation && newConversation.otherUserId != targetConversation.otherUserId){
-        dispatch(removeConversation(targetConversation.otherUserId))
-      } 
-      dispatch(setSelectedConversation(targetUserId));
-      checkUserOnlineStatus(targetUserId);
-      hasSelectedRef.current = true;
-    }else if (conversations.length === 0) {
-      chatActions.handleSelectConversation(targetUserId);
-      checkUserOnlineStatus(targetUserId);
-      hasSelectedRef.current = true;
+
+    if (targetConversation || (newConversation && newConversation.otherUserId == targetUserId)) {
+        // Trường hợp 1: User chọn new conversation và new conversation đó là cái trong list hoặc không chọn new conversation 
+        dispatch(setSelectedConversation(targetUserId));
+        checkUserOnlineStatus(targetUserId);  
+        hasSelectedRef.current = true;
+        
+    } else if (!newConversation && !targetConversation) {
+        // Trường hợp 2: User chọn new conversation và trong list không có new conversation 
+        chatActions.handleSelectConversation(targetUserId);
+        checkUserOnlineStatus(targetUserId);
+        hasSelectedRef.current = true;
+        
+    }else {
+        if (newConversation) {
+          dispatch(removeConversation(newConversation.otherUserId))
+        }
+        chatActions.handleSelectConversation(targetUserId);
+        checkUserOnlineStatus(targetUserId);
+        hasSelectedRef.current = true;
     }
   }, [targetUserId, isOpen, conversations, isSelfChat]);
 

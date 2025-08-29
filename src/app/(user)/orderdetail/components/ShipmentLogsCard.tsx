@@ -43,7 +43,6 @@ export default function ShipmentLogsCard({ shipmentId }: ShipmentLogsCardProps) 
     try {
       await navigator.clipboard.writeText(shipmentId)
     } catch (err) {
-      console.error("Không thể sao chép mã:", err)
     }
   }
 

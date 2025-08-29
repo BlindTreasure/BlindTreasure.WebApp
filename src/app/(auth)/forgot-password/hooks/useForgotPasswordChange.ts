@@ -95,7 +95,6 @@ export default function useForgotPasswordChange() {
         },
       });
     } catch (err) {
-      console.log(err);
     }
   };
 

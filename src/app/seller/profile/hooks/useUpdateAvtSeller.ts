@@ -68,7 +68,6 @@ export default function useUpdateAvatarSeller() {
         },
       });
     } catch (err) {
-      console.log(err);
     }
   };
 

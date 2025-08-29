@@ -30,7 +30,6 @@ export default function useUnbox() {
           router.push(`/open-result?${searchParams.toString()}`);
         },
         onError: (error) => {
-          console.error("Unbox failed:", error);
           setIsUnboxing(false);
         },
         onSettled: () => {
@@ -38,7 +37,6 @@ export default function useUnbox() {
         },
       });
     } catch (error) {
-      console.error("Unbox error:", error);
       setIsUnboxing(false);
     }
   };

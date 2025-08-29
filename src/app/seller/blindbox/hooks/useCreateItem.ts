@@ -78,7 +78,6 @@ export default function useCreateBlindboxItemForm(
         }
       );
     } catch (err) {
-      console.log(err);
     }
   };
 

@@ -49,7 +49,6 @@ export default function useAddProductToCart() {
         duration: 5000,
       });
 
-      console.error("Add to cart error:", error);
       return null;
     } finally {
       setPending(false);
