@@ -19,7 +19,12 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { selectTotalItems } from "@/stores/cart-slice";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useWishlistContext } from "@/contexts/WishlistContext";
 import { NotificationBell } from "../notification/notification-bell";
 
@@ -33,13 +38,15 @@ const Header: React.FC = () => {
   const { wishlistStatus } = useWishlistContext();
 
   // Calculate total wishlist items (only for logged in users)
-  const totalWishlistItems = isLoggedIn ? Object.keys(wishlistStatus || {}).length : 0;
+  const totalWishlistItems = isLoggedIn
+    ? Object.keys(wishlistStatus || {}).length
+    : 0;
 
   const navLinks = [
     { href: "/", label: "Trang chủ" },
     { href: "/aboutus", label: "Về chúng tôi" },
     { href: "/allproduct", label: "Sản phẩm" },
-    { href: "/marketplace", label: "Marketplace" }
+    { href: "/marketplace", label: "Marketplace" },
   ];
 
   const handleToggleAvatarTooltip = () => {
@@ -75,10 +82,13 @@ const Header: React.FC = () => {
       <div className="container mx-auto py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <img
+            <Image
               src="/images/logo_header_light.png"
               alt="Logo"
+              width={112}
+              height={80}
               className="h-20 w-28 cursor-pointer"
+              priority
               onClick={handleNavigate}
             />
           </div>
@@ -88,8 +98,9 @@ const Header: React.FC = () => {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-gray-600 hover:text-[#d02a2a] hover:underline transition-colors ${currentPath === link.href ? "text-red-700 font-medium" : ""
-                  }`}
+                className={`text-gray-600 hover:text-[#d02a2a] hover:underline transition-colors ${
+                  currentPath === link.href ? "text-red-700 font-medium" : ""
+                }`}
               >
                 {link.label}
               </Link>
@@ -103,7 +114,10 @@ const Header: React.FC = () => {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="relative">
-                        <Link href="/wishlist" className="text-gray-600 hover:text-[#d02a2a] text-2xl">
+                        <Link
+                          href="/wishlist"
+                          className="text-gray-600 hover:text-[#d02a2a] text-2xl"
+                        >
                           <PiHeartStraightLight />
                         </Link>
                         {totalWishlistItems > 0 && (
@@ -132,7 +146,10 @@ const Header: React.FC = () => {
 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="relative cursor-pointer" onClick={handleClickCart}>
+                    <div
+                      className="relative cursor-pointer"
+                      onClick={handleClickCart}
+                    >
                       <div className="text-gray-600 hover:text-[#d02a2a] text-2xl">
                         <PiShoppingCartLight />
                       </div>
@@ -152,8 +169,9 @@ const Header: React.FC = () => {
             {userState.user === null ? (
               <Link
                 href="/login"
-                className={`text-xl text-gray-600 hover:text-[#d02a2a] hover:underline ${currentPath === "/login" ? "text-teal-400" : ""
-                  }`}
+                className={`text-xl text-gray-600 hover:text-[#d02a2a] hover:underline ${
+                  currentPath === "/login" ? "text-teal-400" : ""
+                }`}
               >
                 Đăng nhập
               </Link>
@@ -176,12 +194,13 @@ const Header: React.FC = () => {
                     onClickOutside={handleCloseAvatarTooltip}
                   >
                     <figure className="rounded-full border border-zinc-300 overflow-hidden w-14 h-14 flex items-center justify-center hover:bg-#d02a2a">
-
                       {userState?.user?.avatarUrl !== "" && (
-                        <img
+                        <Image
                           id="avatarButton"
                           onClick={handleToggleAvatarTooltip}
-                          className="w-12 h-12 rounded-full cursor-pointer"
+                          width={48}
+                          height={48}
+                          className="rounded-full cursor-pointer"
                           src={
                             userState?.user?.avatarUrl ||
                             "images/unknown_avatar.png"
@@ -208,7 +227,10 @@ const Header: React.FC = () => {
               )}
             </div> */}
             {isLoggedIn && (
-              <div className="relative cursor-pointer" onClick={handleClickWishlist}>
+              <div
+                className="relative cursor-pointer"
+                onClick={handleClickWishlist}
+              >
                 <div className="text-gray-600 hover:text-[#d02a2a] text-2xl">
                   <PiHeartStraightLight />
                 </div>
@@ -242,10 +264,12 @@ const Header: React.FC = () => {
                 <SheetContent side="left" className="w-[300px] sm:w-[400px]">
                   <SheetHeader className="flex items-center justify-between px-4 py-2">
                     <SheetTitle className="text-left">
-                      <img
+                      <Image
                         src="/images/logo_header_light.png"
                         alt="Logo"
-                        className="h-20 w-28 cursor-pointer object-contain"
+                        width={112}
+                        height={80}
+                        className="cursor-pointer object-contain"
                         onClick={handleNavigate}
                       />
                     </SheetTitle>
@@ -256,10 +280,11 @@ const Header: React.FC = () => {
                       <Link
                         key={link.href}
                         href={link.href}
-                        className={`px-4 py-2 rounded-lg text-lg ${currentPath === link.href
-                          ? "bg-[#ebeaea] text-[#d02a2a]"
-                          : "text-gray-600 hover:bg-gray-50"
-                          }`}
+                        className={`px-4 py-2 rounded-lg text-lg ${
+                          currentPath === link.href
+                            ? "bg-[#ebeaea] text-[#d02a2a]"
+                            : "text-gray-600 hover:bg-gray-50"
+                        }`}
                       >
                         {link.label}
                       </Link>
@@ -283,19 +308,20 @@ const Header: React.FC = () => {
                             offset={[-5, 2]}
                             visible={avatarTooltip}
                             render={(attrs) => (
-                              <div
-                                {...attrs}
-
-                              >
-                                <AvatarMenu onCloseTooltip={handleCloseAvatarTooltip} />
+                              <div {...attrs}>
+                                <AvatarMenu
+                                  onCloseTooltip={handleCloseAvatarTooltip}
+                                />
                               </div>
                             )}
                             onClickOutside={handleCloseAvatarTooltip}
                           >
                             <figure className="rounded-full border-2 border-gray-200 overflow-hidden w-10 h-10 cursor-pointer hover:border-teal-400 transition-colors">
-                              <img
+                              <Image
                                 onClick={handleToggleAvatarTooltip}
-                                className="w-full h-full object-cover"
+                                width={40}
+                                height={40}
+                                className="object-cover"
                                 src={
                                   userState?.user?.avatarUrl ||
                                   "/images/unknown_avatar.png"
