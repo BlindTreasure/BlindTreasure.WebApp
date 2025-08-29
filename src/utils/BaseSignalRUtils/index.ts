@@ -43,7 +43,6 @@ export abstract class BaseSignalRService {
     });
 
     connection.onreconnecting((error) => {
-      console.log(`[SignalR] Reconnecting ${type}...`);
     });
 
     connection.onreconnected((connectionId) => {

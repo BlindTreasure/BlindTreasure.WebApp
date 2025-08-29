@@ -98,7 +98,6 @@ export default function Purchased() {
                 setTotalPages(1);
             }
         } catch (error) {
-            console.error('Error fetching inventory items:', error);
             setInventoryItems([]);
             setTotalPages(1);
         }

@@ -20,7 +20,6 @@ const TradeRequestsAdminPanel: React.FC = () => {
       const filtered = res.value.data.result.filter(
         (req: API.TradeRequest) => req.timeRemaining && req.timeRemaining !== 0
       );
-      console.log(filtered);
       
       setTradeRequests(filtered);
     } else {

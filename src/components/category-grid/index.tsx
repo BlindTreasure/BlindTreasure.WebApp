@@ -63,8 +63,6 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
   const handleCategoryClick = (category: API.Category) => {
     if (onCategoryClick) {
       onCategoryClick(category);
-    } else {
-      console.log(`Clicked category: ${category.name}`);
     }
   };
 

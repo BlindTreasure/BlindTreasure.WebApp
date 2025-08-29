@@ -405,7 +405,6 @@ export default function Message({
     if (msg === "Kiểm tra tình trạng đơn hàng của tôi") {
       // Push message và set typing state
       setMessages((prev) => [...prev, { SenderId: "user", Content: msg }]);
-      console.log(">>> Gọi API my-orders-status (prod), KHÔNG SignalR");
 
       try {
         setIsAiTyping(true);

@@ -71,7 +71,6 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
     if (sellerStatus !== "WaitingReview") return;
 
     const interval = setInterval(() => {
-      console.log("Auto refetching seller profile...");
       refetch();
     }, 30000);
 

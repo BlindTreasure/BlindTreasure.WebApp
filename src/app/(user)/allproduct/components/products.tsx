@@ -152,7 +152,6 @@ export default function AllProduct() {
         );
         setCurrentPage(1);
       } catch (error) {
-        console.error('Error fetching filtered data:', error);
         setCombinedData([]);
         setTotalItems(0);
       }

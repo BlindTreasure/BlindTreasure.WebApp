@@ -128,7 +128,6 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                             const blindboxCount = blindboxesRes?.value?.data?.count || 0;
                             setTotalProducts(productCount + blindboxCount);
                         } catch (error) {
-                            console.error("Error fetching product counts:", error);
                             setTotalProducts(0);
                         } finally {
                             setIsLoadingProducts(false);
@@ -230,7 +229,6 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
 
             await addBlindboxToCartApi(cartData);
         } catch (error) {
-            console.error('Lỗi khi thêm blindbox vào giỏ hàng:', error);
         }
     };
 

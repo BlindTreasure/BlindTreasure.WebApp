@@ -13,7 +13,6 @@ export default function useDeleteReview() {
         },
       });
     } catch (error) {
-      console.error("Delete review error:", error);
     }
   };
 

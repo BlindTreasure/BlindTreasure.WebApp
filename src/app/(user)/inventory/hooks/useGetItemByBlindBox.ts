@@ -32,7 +32,6 @@ export default function useGetItemByBlindBox(blindBoxId: string) {
           setError("Không thể tải thông tin item từ blindbox");
         }
       } catch (err) {
-        console.error("Error fetching inventory item:", err);
         setError("Lỗi khi tải thông tin item từ blindbox");
       } finally {
         setIsLoading(false);
