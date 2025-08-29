@@ -410,7 +410,7 @@ export default function Message({
       try {
         setIsAiTyping(true);
         const res = await fetch(
-          "http://localhost:5000/api/blindy/my-orders-status",
+          "https://blindtreasureapi.fpt-devteam.fun/api/blindy/my-orders-status",
           {
             headers: {
               accept: "application/json",
