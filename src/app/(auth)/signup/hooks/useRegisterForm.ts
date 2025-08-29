@@ -89,7 +89,6 @@ export function useRegisterForm() {
         },
       });
     } catch (err) {
-      console.log("err: ", err);
     }
   };
 

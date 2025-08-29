@@ -13,8 +13,6 @@ export default function useRedirectIfSellerInfoEmpty() {
     isError,
     error,
   } = useServiceGetSellerProfile();
-
-  console.log(data);
   
   useEffect(() => {
     if (data?.value?.data?.sellerStatus === "InfoEmpty") {

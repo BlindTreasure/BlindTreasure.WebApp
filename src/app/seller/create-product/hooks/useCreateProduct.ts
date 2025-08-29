@@ -51,7 +51,6 @@ export default function useCreateProductForm(
         },
       });
     } catch (err) {
-      console.log(err);
     }
   };
 

@@ -222,7 +222,6 @@ const Cart: React.FC = () => {
         setShowClearConfirm(false);
       }
     } catch (error) {
-      console.error('Error clearing cart:', error);
     }
   }, [clearAllCartItemApi]);
 

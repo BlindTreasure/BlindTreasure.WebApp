@@ -202,10 +202,8 @@ export default function Detail({ detailId }: DetailProps) {
 
             if (result) {
                 // Thành công - có thể hiển thị thông báo
-                console.log('Đã thêm vào giỏ hàng thành công');
             }
         } catch (error) {
-            console.error('Lỗi khi thêm vào giỏ hàng:', error);
             // Hiển thị thông báo lỗi
         }
     };

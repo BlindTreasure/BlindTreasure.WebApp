@@ -51,7 +51,6 @@ export function useRegisterSellerForm() {
         },
       });
     } catch (err) {
-      console.error("err: ", err);
     }
   };
 

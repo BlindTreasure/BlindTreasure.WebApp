@@ -85,7 +85,6 @@ export function useLoginForm() {
         },
       });
     } catch (err) {
-      console.log("err: ", err);
     }
   };
 

@@ -152,7 +152,6 @@ export default function InventoryDeliveryCard({ item }: InventoryDeliveryCardPro
         setDetailedItem(response.value.data);
       }
     } catch (error) {
-      console.error('Error fetching detailed inventory item:', error);
     }
   };
   const getStatusColor = (status: InventoryItemStatus) => {

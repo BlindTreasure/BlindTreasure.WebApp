@@ -74,7 +74,6 @@ const ShippingSection: React.FC<ShippingSectionProps> = ({
         setShippingData(result);
         onShippingChange(true, result);
       } catch (error) {
-        console.error('Error fetching shipping preview:', error);
         setShippingData(null);
         onShippingChange(false);
       }

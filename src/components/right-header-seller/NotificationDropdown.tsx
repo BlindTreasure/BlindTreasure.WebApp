@@ -21,7 +21,6 @@ export default function NotificationDropdown() {
   // Fetch notifications khi mở dropdown
   useEffect(() => {
     if (isOpen) {
-      console.log(`[AdminNotificationDropdown] Fetching notifications for role: ${userRole}`);
       fetchNotifications({ pageIndex: 0, pageSize: 10 });
     }
   }, [isOpen, fetchNotifications, userRole]);
@@ -35,24 +34,15 @@ export default function NotificationDropdown() {
   }
 
   const handleMarkAsRead = async (notificationId: string) => {
-    const response = await markNotificationAsRead(notificationId);
-    if (response.isSuccess) {
-      console.log(`[AdminNotificationDropdown] Notification ${notificationId} marked as read`);
-    }
+    await markNotificationAsRead(notificationId);
   };
 
   const handleMarkAllAsRead = async () => {
-    const response = await markAllNotificationsAsRead();
-    if (response.isSuccess) {
-      console.log('[AdminNotificationDropdown] All notifications marked as read');
-    }
+    await markAllNotificationsAsRead();
   };
 
   const handleDelete = async (notificationId: string) => {
-    const response = await deleteNotification(notificationId);
-    if (response.isSuccess) {
-      console.log(`[AdminNotificationDropdown] Notification ${notificationId} deleted`);
-    }
+    await deleteNotification(notificationId);
   };
 
   const getNotificationIcon = (type: string) => {

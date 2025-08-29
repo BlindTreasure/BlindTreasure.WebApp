@@ -11,7 +11,6 @@ const useGetItemInventoryById = () => {
       const response = await getItemInventoryId(id);
       return { value: { data: response.value.data } };
     } catch (error) {
-      console.error("Error fetching inventory item by ID:", error);
       return null;
     } finally {
       setIsPending(false);

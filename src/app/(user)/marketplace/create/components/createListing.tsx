@@ -239,8 +239,6 @@ const MarketplaceListing: React.FC = () => {
       // Navigation will happen automatically after successful creation due to the success handler
       router.push('/marketplace');
     } catch (error) {
-      // Error handling is already done in the hook
-      console.error('Failed to create listing:', error);
     }
   };
 
@@ -368,7 +366,7 @@ const MarketplaceListing: React.FC = () => {
                     type="text"
                     value={desiredItemName}
                     onChange={(e) => setDesiredItemName(e.target.value)}
-                    placeholder="Ví dụ: iPhone 13, Giày Nike size 42..."
+                    placeholder="Ví dụ: Búp Bê Baby Three V3 Check Card Blindbox Thỏ Màu Hồng"
                     disabled={isSubmitting}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />

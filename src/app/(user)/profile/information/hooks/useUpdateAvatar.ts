@@ -11,7 +11,6 @@ export default function useUpdateAvatar() {
         },
       });
     } catch (err) {
-      console.log(err);
     }
   };
 

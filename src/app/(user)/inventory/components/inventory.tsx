@@ -197,7 +197,6 @@ export default function Inventory() {
                     }
                 }
             } catch (error) {
-                console.error('Error fetching inventory:', error)
                 setInventoryItems([])
             } finally {
                 setIsLoading(false)

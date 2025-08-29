@@ -31,11 +31,8 @@ class SignalRManager {
         chatSignalRService.disconnect(),
         notificationSignalRService.disconnect(),
         unboxingSignalRService.disconnect()
-      ]);
-      
-      console.log('[SignalR Manager] All connections disconnected');
+      ]);   
     } catch (error) {
-      console.error('[SignalR Manager] Error during disconnect:', error);
       throw error;
     }
   }
