@@ -46,10 +46,10 @@ export default function UserLayout({
             {(!userState.user || userState.user?.roleName === "Customer") && !hideChatButtons && (
                 <button
                     onClick={handleOpenChat}
-                    className="fixed bottom-24 right-6 w-14 h-14 bg-[#fb8500] text-white rounded-full flex items-center justify-center shadow-lg hover:opacity-80 transition z-40"
+                    className="fixed bottom-24 right-6 w-14 h-14 bg-white text-white rounded-full flex items-center justify-center shadow-lg hover:opacity-80 transition z-40"
                 >
                     <img
-                        src="https://cdn-icons-png.flaticon.com/512/2040/2040946.png"
+                        src="https://img.freepik.com/free-vector/chatbot-chat-message-vectorart_78370-4104.jpg?semt=ais_hybrid&w=740&q=80"
                         alt="Chatbot"
                         className="w-10 h-10 object-cover"
                     />
