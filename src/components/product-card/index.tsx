@@ -30,7 +30,7 @@ interface ProductCardProps {
   initialIsInWishlist?: boolean;
   initialWishlistId?: string;
   onWishlistChange?: () => void;
-  context?: "new" | "sale" | "default"; 
+  context?: "new" | "sale" | "default";
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -132,6 +132,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
             className="w-full h-full object-cover"
           />
 
+          {product.totalStockQuantity === 0 && (
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <span className="text-black text-lg font-bold uppercase bg-white/80 w-full flex justify-center p-4">
+                Hết hàng
+              </span>
+            </div>
+          )}
+
           <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
@@ -195,7 +203,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                       <div className='flex gap-2'>
                         <p>Thương hiệu: <span className='text-[#00579D] text-sm uppercase'>{product.brand}</span></p>
                         <div className="w-px h-5 bg-gray-300" />
-                        <p>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[product?.productStockStatus as StockStatus]}</span></p>
+                        <p>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[product?.productStockStatus as StockStatus]} ({product?.totalStockQuantity})</span></p>
                       </div>
                       <div className="flex flex-col gap-2">
                         {product.listedPrice != null && product.listedPrice > 0 && (
@@ -236,13 +244,22 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         <div className="mt-4 flex justify-between items-center">
-          <Button
+          {/* <Button
             className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105"
             onClick={() => handleAddToCart(1)}
-            disabled={isAddingToCart}
+            disabled={isAddingToCart || product.totalStockQuantity === 0}
           >
             {isAddingToCart ? "Đang thêm..." : "Thêm vào giỏ hàng"}
-          </Button>
+          </Button> */}
+          <button
+            onClick={() => handleAddToCart(1)}
+            disabled={isAddingToCart || product.totalStockQuantity === 0}
+            className={`text-xs px-3 py-2 rounded-md bg-[#252424] text-white
+    hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105
+    ${isAddingToCart || product.totalStockQuantity === 0 ? "cursor-not-allowed opacity-50 hover:scale-100 hover:bg-opacity-100" : ""}`}
+          >
+            {isAddingToCart ? "Đang thêm..." : "Thêm vào giỏ hàng"}
+          </button>
           {isLoggedIn && (
             <button
               onClick={handleToggleWishlist}

@@ -102,7 +102,7 @@ const OrderTrackingTimeline = ({
     {
       id: 2,
       title: "Đơn Hàng Đã Thanh Toán",
-      time: order.completedAt ? format(new Date(order.completedAt), "HH:mm dd-MM-yyyy") : "Chưa hoàn thành",
+      time: order.placedAt ? format(new Date(order.placedAt), "HH:mm dd-MM-yyyy") : "Chưa hoàn thành",
       status: isStepCompleted(2) ? "completed" : "pending",
       icon: <Receipt className="w-5 h-5" />,
     },
@@ -313,9 +313,14 @@ export default function OrderDetail() {
     return total + detailShippingFee;
   }, 0) || 0;
 
-  const discountAmount = order.payment
-    ? Math.max(0, order.payment.amount - order.payment.netAmount)
-    : 0;
+  // const discountAmount = order.payment
+  //   ? Math.max(0, order.payment.amount - order.payment.netAmount)
+  //   : 0;
+
+  const discountAmount = order.details.reduce(
+    (sum, detail) => sum + (detail.detailDiscountPromotion || 0),
+    0
+  );
 
   const hasShipping = order.details.some(detail => detail.shipments && detail.shipments.length > 0);
 
@@ -349,6 +354,12 @@ export default function OrderDetail() {
 
   const estimatedDeliveryDate = getEstimatedDeliveryDate();
 
+  const uniqueShipments = Array.from(
+    new Map(
+      order.details.flatMap(d => d.shipments || []).map(s => [s.id, s])
+    ).values()
+  );
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 mt-40">
       <div className="text-center space-y-2">
@@ -359,7 +370,7 @@ export default function OrderDetail() {
 
       <OrderTrackingTimeline order={order} estimatedDeliveryDate={estimatedDeliveryDate} />
 
-      {order.details.some(item => item.shipments && item.shipments.length > 0) && (
+      {/* {order.details.some(item => item.shipments && item.shipments.length > 0) && (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Thông tin vận chuyển</h2>
           {order.details.map(item =>
@@ -368,8 +379,15 @@ export default function OrderDetail() {
             ))
           )}
         </div>
+      )} */}
+      {uniqueShipments.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Thông tin vận chuyển</h2>
+          {uniqueShipments.map(shipment => (
+            <ShipmentLogsCard key={shipment.id} shipmentId={shipment.id} />
+          ))}
+        </div>
       )}
-
 
       <Card>
         <CardHeader className="pb-3">
@@ -503,8 +521,8 @@ export default function OrderDetail() {
 
       <div className="flex flex-col sm:flex-row gap-3 justify-end">
         <Button
-        onClick={() => handleOpenChat(order.seller?.userId)} 
-        variant="outline" className="flex-1 sm:flex-none">
+          onClick={() => handleOpenChat(order.seller?.userId)}
+          variant="outline" className="flex-1 sm:flex-none">
           Liên Hệ Người Bán
         </Button>
       </div>
