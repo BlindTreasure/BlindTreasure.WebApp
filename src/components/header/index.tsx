@@ -83,13 +83,20 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Image
-              src="/images/logo_header_light.png"
+              src="https://minio.fpt-devteam.fun/api/v1/buckets/blindtreasure-fe/objects/download?preview=true&prefix=logo_header_light.webp&version_id=null"
               alt="Logo"
               width={112}
               height={80}
-              className="h-20 w-28 cursor-pointer"
-              priority
+              style={{
+                width: '112px',
+                height: '80px',
+                cursor: 'pointer'
+              }}
               onClick={handleNavigate}
+              priority
+              quality={100}
+              loading="eager"
+              unoptimized
             />
           </div>
 
@@ -265,12 +272,15 @@ const Header: React.FC = () => {
                   <SheetHeader className="flex items-center justify-between px-4 py-2">
                     <SheetTitle className="text-left">
                       <Image
-                        src="/images/logo_header_light.png"
+                        src="https://minio.fpt-devteam.fun/api/v1/buckets/blindtreasure-fe/objects/download?preview=true&prefix=logo_header_light.webp&version_id=null"
                         alt="Logo"
                         width={112}
                         height={80}
                         className="cursor-pointer object-contain"
                         onClick={handleNavigate}
+                        priority
+                        quality={100}
+                        unoptimized
                       />
                     </SheetTitle>
                   </SheetHeader>
