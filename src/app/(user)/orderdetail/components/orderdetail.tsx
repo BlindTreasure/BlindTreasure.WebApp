@@ -15,6 +15,7 @@ import { OrderResponse } from "@/services/order/typings";
 import { PaymentInfoStatus, PaymentInfoStatusText, OrderStatus, OrderStatusText } from "@/const/products";
 import useGetOrderById from "../../orderhistory/hooks/useGetOrderById";
 import CustomerSellerChat from '@/components/chat-widget';
+import ShipmentLogsCard from "./ShipmentLogsCard";
 
 const getActualStatusFromLogs = (logs: string, currentStatus: OrderStatus): OrderStatus => {
   if (!logs) return currentStatus;
@@ -63,18 +64,18 @@ const OrderTrackingTimeline = ({
 
   const isStepCompleted = (stepId: number): boolean => {
     switch (stepId) {
-      case 1: 
+      case 1:
         return true;
-      case 2: 
+      case 2:
         return (
           order.payment?.status === PaymentInfoStatus.Paid ||
           order.payment?.status === PaymentInfoStatus.Completed ||
-          hasDeliveredItems 
+          hasDeliveredItems
         );
       case 3:
       case 4:
-        return hasDeliveringItems || hasDeliveredItems; 
-      case 5: 
+        return hasDeliveringItems || hasDeliveredItems;
+      case 5:
         return hasDeliveredItems;
       default:
         return false;
@@ -353,67 +354,22 @@ export default function OrderDetail() {
       <div className="text-center space-y-2">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-500 font-poppins">MÃ ĐƠN HÀNG: {order.id.slice(0, 12).toUpperCase()}</div>
-          {/* <div className="text-sm text-green-500 font-poppins">
-            {order.completedAt ? "ĐƠN HÀNG ĐÃ HOÀN THÀNH" : "ĐANG XỬ LÝ"}
-          </div> */}
         </div>
       </div>
 
       <OrderTrackingTimeline order={order} estimatedDeliveryDate={estimatedDeliveryDate} />
 
-      {/* <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <MapPin className="w-5 h-5" />
-            Địa Chỉ Nhận Hàng
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          {order.shippingAddress ? (
-            <div className="space-y-2">
-              <div className="font-medium">{order.shippingAddress.fullName}</div>
-              <div className="text-sm text-gray-600">{order.shippingAddress.phone}</div>
-              <div className="text-sm text-gray-600">
-                {order.shippingAddress.addressLine}, {order.shippingAddress.city}, {order.shippingAddress.province}
-                {order.shippingAddress.postalCode && `, ${order.shippingAddress.postalCode}`}
-                {order.shippingAddress.country && `, ${order.shippingAddress.country}`}
-              </div>
-              <div>
-                {hasShipping && shippingFee > 0 && (
-                  <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mt-2 inline-block">
-                    <Truck className="w-3 h-3 inline mr-1" />
-                    Phí vận chuyển: ₫{shippingFee.toLocaleString("vi-VN")}
-                  </div>
-                )}
-
-                {hasShipping && shippingFee === 0 && (
-                  <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded mt-2 inline-block">
-                    <Truck className="w-3 h-3 inline mr-1" />
-                    Miễn phí vận chuyển
-                  </div>
-                )}
-
-                {!hasShipping && (
-                  <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded mt-2 inline-block">
-                    <Truck className="w-3 h-3 inline mr-1" />
-                    Không áp dụng phí vận chuyển
-                  </div>
-                )}
-              </div>
-              {estimatedDeliveryDate && (
-                <div className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded mt-2 inline-block">
-                  <CheckCircle className="w-3 h-3 inline mr-1" />
-                  Dự kiến giao: {format(estimatedDeliveryDate, "dd/MM/yyyy", { locale: vi })}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground italic">
-              Đơn hàng chưa yêu cầu giao hàng tận nơi.
-            </div>
+      {order.details.some(item => item.shipments && item.shipments.length > 0) && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Thông tin vận chuyển</h2>
+          {order.details.map(item =>
+            item.shipments?.map(shipment => (
+              <ShipmentLogsCard key={shipment.id} shipmentId={shipment.id} />
+            ))
           )}
-        </CardContent>
-      </Card> */}
+        </div>
+      )}
+
 
       <Card>
         <CardHeader className="pb-3">
@@ -422,78 +378,87 @@ export default function OrderDetail() {
         <CardContent className="pt-0">
           <div className="space-y-4">
             {order.details.map((item, index) => (
-              <div key={index} className="flex items-start gap-4 p-4 border rounded-lg cursor-pointer transform transition-transform duration-200 hover:scale-[1.02] hover:shadow-md" onClick={() => {
-                if (item.blindBoxId) {
-                  router.push(`/detail-blindbox/${item.blindBoxId}`);
-                } else {
-                  router.push(`/detail/${item.productId}`);
-                }
-              }}>
-                <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
-                  {item.blindBoxImage || (item.productImages && item.productImages.length > 0) ? (
-                    <img
-                      src={item.blindBoxImage || item.productImages[0]}
-                      alt={item.blindBoxName || item.productName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Package className="w-8 h-8 text-gray-400" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-gray-900 truncate">
-                      {item.blindBoxName || item.productName}
-                    </h3>
-                    {item.blindBoxId && (
-                      <Badge variant="secondary" className="text-xs">
-                        Blindbox
-                      </Badge>
+              <div key={index}>
+                <div className="flex items-start gap-4 p-4 border rounded-lg cursor-pointer transform transition-transform duration-200 hover:scale-[1.02] hover:shadow-md" onClick={() => {
+                  if (item.blindBoxId) {
+                    router.push(`/detail-blindbox/${item.blindBoxId}`);
+                  } else {
+                    router.push(`/detail/${item.productId}`);
+                  }
+                }}>
+                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                    {item.blindBoxImage || (item.productImages && item.productImages.length > 0) ? (
+                      <img
+                        src={item.blindBoxImage || item.productImages[0]}
+                        alt={item.blindBoxName || item.productName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="w-8 h-8 text-gray-400" />
+                      </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    {(() => {
-                      const actualStatus = getActualStatusFromLogs(item.logs || '', item.status);
-                      return (
-                        <Badge
-                          className={`text-xs font-medium uppercase border pointer-events-none
-    ${actualStatus === OrderStatus.CANCELLED
-                              ? "bg-red-100 text-red-700 border-red-200"
-                              : actualStatus === OrderStatus.PENDING
-                                ? "bg-yellow-100 text-yellow-700 border-yellow-200"
-                                : actualStatus === OrderStatus.SHIPPING_REQUESTED
-                                  ? "bg-blue-100 text-blue-700 border-blue-200"
-                                  : actualStatus === OrderStatus.DELIVEREDING
-                                    ? "bg-green-100 text-green-700 border-green-200"
-                                    : actualStatus === OrderStatus.DELIVERED
-                                      ? "bg-purple-100 text-purple-700 border-purple-200"
-                                      : actualStatus === OrderStatus.IN_INVENTORY
-                                        ? "bg-teal-100 text-teal-700 border-teal-200"
-                                        : "bg-gray-100 text-gray-600 border-gray-200"
-                            }
-  `}
-                        >
-                          {OrderStatusText[actualStatus] ?? "Không xác định"}
-                        </Badge>
-                      );
-                    })()}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Phân loại hàng: {item.blindBoxId ? "Blindbox Item" : "Product"}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    x{item.quantity}
-                  </div>
-                </div>
 
-                <div className="text-right">
-                  <div className="font-semibold text-red-500">
-                    ₫{item.totalPrice.toLocaleString("vi-VN")}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-gray-900 truncate">
+                        {item.blindBoxName || item.productName}
+                      </h3>
+                      {item.blindBoxId && (
+                        <Badge variant="secondary" className="text-xs">
+                          Blindbox
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      {(() => {
+                        const actualStatus = getActualStatusFromLogs(item.logs || '', item.status);
+                        return (
+                          <Badge
+                            className={`text-xs font-medium uppercase border pointer-events-none
+      ${actualStatus === OrderStatus.CANCELLED
+                                ? "bg-red-100 text-red-700 border-red-200"
+                                : actualStatus === OrderStatus.PENDING
+                                  ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                                  : actualStatus === OrderStatus.SHIPPING_REQUESTED
+                                    ? "bg-blue-100 text-blue-700 border-blue-200"
+                                    : actualStatus === OrderStatus.DELIVEREDING
+                                      ? "bg-green-100 text-green-700 border-green-200"
+                                      : actualStatus === OrderStatus.DELIVERED
+                                        ? "bg-purple-100 text-purple-700 border-purple-200"
+                                        : actualStatus === OrderStatus.IN_INVENTORY
+                                          ? "bg-teal-100 text-teal-700 border-teal-200"
+                                          : "bg-gray-100 text-gray-600 border-gray-200"
+                              }
+    `}
+                          >
+                            {OrderStatusText[actualStatus] ?? "Không xác định"}
+                          </Badge>
+                        );
+                      })()}
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      Phân loại hàng: {item.blindBoxId ? "Blindbox Item" : "Product"}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      x{item.quantity}
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="font-semibold text-red-500">
+                      ₫{item.totalPrice.toLocaleString("vi-VN")}
+                    </div>
                   </div>
                 </div>
+                {/* {item.shipments && item.shipments.length > 0 && (
+                  <div className="mt-4 space-y-4">
+                    {item.shipments.map(shipment => (
+                      <ShipmentLogsCard key={shipment.id} shipmentId={shipment.id} />
+                    ))}
+                  </div>
+                )} */}
               </div>
             ))}
             <div className="space-y-4">

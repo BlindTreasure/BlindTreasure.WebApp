@@ -29,19 +29,40 @@ const RegisterBase = z
       .trim()
       .min(2, "Tên đầy đủ phải có ít nhất 2 ký tự")
       .max(256),
-    dateOfBirth: z.string().refine(
-      (value) => {
-        const dob = new Date(value);
-        const isInFuture = dob > today;
-        const isTooYoung = dob > minDate;
+    // dateOfBirth: z.string().refine(
+    //   (value) => {
+    //     const dob = new Date(value);
+    //     const isInFuture = dob > today;
+    //     const isTooYoung = dob > minDate;
 
-        return !(isInFuture || isTooYoung);
-      },
-      {
-        message:
-          "Ngày sinh không hợp lệ: phải từ 12 tuổi trở lên và không được là ngày trong tương lai",
-      }
-    ),
+    //     return !(isInFuture || isTooYoung);
+    //   },
+    //   {
+    //     message:
+    //       "Ngày sinh không hợp lệ: phải từ 12 tuổi trở lên và không được là ngày trong tương lai",
+    //   }
+    // ),
+    dateOfBirth: z
+      .string()
+      .nonempty("Vui lòng nhập ngày sinh")
+      .refine(
+        (value) => {
+          const dob = new Date(value);
+          const isInFuture = dob > today;
+          const isTooYoung = dob > minDate;
+
+          return !(isInFuture || isTooYoung);
+        },
+        {
+          message:
+            "Ngày sinh không hợp lệ: phải từ 12 tuổi trở lên và không được là ngày trong tương lai",
+        }
+      ),
+    // phoneNumber: z
+    //   .string()
+    //   .min(9, "Số điện thoại phải có 9 chữ số")
+    //   .max(9, "Số điện thoại chỉ gồm 9 chữ số")
+    //   .regex(/^[1-9][0-9]{8}$/, "Số điện thoại không hợp lệ (bỏ số 0 đầu)"),
     phoneNumber: z
       .string()
       .min(10, "Số điện thoại phải có 10 chữ số")
@@ -49,7 +70,6 @@ const RegisterBase = z
       .regex(/^0[0-9]{9}$/, "Số điện thoại không hợp lệ"),
       })
   .strict();
-
 
 export const RegisterBody = RegisterBase.superRefine(
   ({ password, confirmPassword }, ctx) => {
@@ -91,12 +111,16 @@ export const RegisterSellerStepOne = z
     }
   });
 
-  
 export type RegisterBodyType = z.infer<typeof RegisterBody>;
-export type RegisterBodyWithoutConfirm = Omit<RegisterBodyType, "confirmPassword">;
-  
+export type RegisterBodyWithoutConfirm = Omit<
+  RegisterBodyType,
+  "confirmPassword"
+>;
+
 export type RegisterSellerStepOneType = z.infer<typeof RegisterSellerStepOne>;
-export type RegisterSellerVerifyOtpType = z.infer<typeof RegisterSellerVerifyOtp>;
+export type RegisterSellerVerifyOtpType = z.infer<
+  typeof RegisterSellerVerifyOtp
+>;
 export type RegisterSellerBodyWithoutConfirm = Omit<
   RegisterSellerStepOneType,
   "confirmPassword"
