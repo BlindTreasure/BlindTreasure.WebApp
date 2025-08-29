@@ -453,7 +453,7 @@ export default function Inventory() {
             {/* Filter cho products */}
             {activeTab === 'all' && (
                 <div className="mt-4 mb-2 px-9">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-center">
                         {statusFilters.map((status) => (
                             <Button
                                 key={status}

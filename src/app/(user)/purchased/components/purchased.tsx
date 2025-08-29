@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { OrderResponse } from "@/services/order/typings";
 import { PaymentStatus, OrderStatus, PaymentInfoStatus, InventoryItemStatus } from "@/const/products";
@@ -11,6 +11,7 @@ import useGetAllItemInventory from "../../inventory/hooks/useGetItemInventory";
 import OrderCard from "@/components/order-card";
 import Pagination from "@/components/pagination";
 import InventoryDeliveryCard from "./inventory-delivery-card";
+import CustomerSellerChat from '@/components/chat-widget';
 
 type TabConfig = {
     value: string;
@@ -70,6 +71,8 @@ export default function Purchased() {
     const [currentTab, setCurrentTab] = useState("all");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [showChat, setShowChat] = useState(false);
+    const [chatTargetUserId, setChatTargetUserId] = useState<string>('');
     const { getAllOrderApi, isPending } = useGetAllOrder();
     const { getOrderDetailsApi, isPending: isOrderDetailsPending } = useGetOrderDetails();
     const { getAllItemInventoryApi, isPending: isInventoryPending } = useGetAllItemInventory();
@@ -226,6 +229,11 @@ export default function Purchased() {
     const handleOrderCancelled = () => {
         fetchOrders(currentTab, currentPage);
     };
+    
+    const handleOpenChat = useCallback((targetUserId: string) => {
+        setChatTargetUserId(targetUserId);
+        setShowChat(true);
+    }, []);
 
     const renderOrders = () => {
         return orders.length === 0 ? (
@@ -251,9 +259,11 @@ export default function Purchased() {
                             <OrderCard
                                 key={order.id}
                                 orderId={order.id}
+                                userIdOfSeller = {order.seller?.userId}
                                 checkoutGroupId={order.checkoutGroupId}
                                 shopName="Blind Treasure"
                                 details={order.details}
+                                handleOpenChat={handleOpenChat}
                                 total={order.totalAmount}
                                 deliveryDate={new Date(order.placedAt).toLocaleDateString("vi-VN")}
                                 payment={order.payment}
@@ -354,6 +364,15 @@ export default function Purchased() {
                     ))}
                 </div>
             </Tabs>
+            
+            {showChat && (
+                <CustomerSellerChat
+                    isOpen={showChat}
+                    onClose={() => setShowChat(false)}
+                    targetUserId={chatTargetUserId}
+                />
+            )}
+
         </div>
     );
 }

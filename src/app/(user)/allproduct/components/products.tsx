@@ -188,7 +188,6 @@ export default function AllProduct() {
     await addProductToCartApi({ productId, quantity });
   };
 
-  // Handler for adding blindbox to cart
   const handleAddBlindboxToCart = async (blindBoxId: string, quantity: number = 1) => {
     await addBlindboxToCartApi({ blindBoxId, quantity });
   };
@@ -432,7 +431,7 @@ export default function AllProduct() {
           )}
 
           {totalPages > 1 && (
-            <div className="mt-8">
+            <div className="mt-8 flex justify-center">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

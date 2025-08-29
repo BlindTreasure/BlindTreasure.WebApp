@@ -15,6 +15,7 @@ import {
   updateConversation,
   addConversation,
   updateConversationOnlineStatus,
+  removeConversation,
   setMessages,
   addMessage,
   setMessageInput,
@@ -25,7 +26,7 @@ import {
   setChatHistoryFetched,
   setInventoryItems,
   markAsRead,
-  clearMessages
+  clearMessages,
 } from '@/stores/chat-slice';
 
 import { 
@@ -580,7 +581,7 @@ export const useChatActions = (): ChatActions => {
     } catch (error) {
       console.error('Failed to send image:', error);
     }
-  }, [selectedConversation, isConnected, clearTypingForUser, useSendImageUserApi, dispatch]);
+  }, [selectedConversation, isConnected, clearTypingForUser, dispatch]);
 
   const handleSendProduct = useCallback(async (item: InventoryItem) => {
     if (!selectedConversation || !isConnected) return;

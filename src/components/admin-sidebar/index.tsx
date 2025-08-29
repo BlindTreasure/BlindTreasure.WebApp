@@ -8,6 +8,7 @@ import { CiAlignLeft } from "react-icons/ci";
 import { BsThreeDots } from "react-icons/bs";
 import { BsCardChecklist } from "react-icons/bs";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
+import { AiOutlineTransaction } from "react-icons/ai";
 
 export default function AdminSidebar() {
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -143,7 +144,7 @@ export default function AdminSidebar() {
                                     <FaMoneyBillTransfer size={20} />
                                 </div>
                                 <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
-                                    Test tạo listing sau khi trade 
+                                    Test tạo listing sau khi trade
                                 </span>
                             </Link>
                         </li>
@@ -155,6 +156,17 @@ export default function AdminSidebar() {
                                 </div>
                                 <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
                                     Test exception timeout traderequest
+                                </span>
+                            </Link>
+                        </li>
+
+                        <li>
+                            <Link href="/admin/transactions" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md">
+                                <div className="flex items-center justify-center w-8 h-8">
+                                    <AiOutlineTransaction size={20} />
+                                </div>
+                                <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
+                                    Lịch sử giao dịch
                                 </span>
                             </Link>
                         </li>

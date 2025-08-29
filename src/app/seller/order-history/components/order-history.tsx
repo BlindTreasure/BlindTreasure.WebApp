@@ -11,6 +11,7 @@ import { Clipboard, Eye } from "lucide-react";
 import useGetOrderById from "../hooks/useGetOrderById";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { BsEye } from "react-icons/bs";
 
 export default function OrderHistory() {
     const { isPending, getOrderBySellerApi } = useGetOrderBySeller();
@@ -166,16 +167,12 @@ export default function OrderHistory() {
                                                 {new Date(order.placedAt).toLocaleDateString("vi-VN")}
                                             </td>
                                             <td className="p-3 border text-center">
-                                                <button
-                                                    className="inline-flex items-center justify-center p-1 rounded hover:bg-gray-200"
-                                                    title="Xem chi tiết"
-                                                    onClick={() => {
-                                                        setSelectedOrderId(order.id);
-                                                        setOpenDetailDialog(true);
-                                                    }}
-                                                >
-                                                    <Eye size={16} />
-                                                </button>
+                                                <Button variant="outline" size="icon" onClick={() => {
+                                                    setSelectedOrderId(order.id);
+                                                    setOpenDetailDialog(true);
+                                                }}>
+                                                    <BsEye className="w-4 h-4" />
+                                                </Button>
                                             </td>
                                         </tr>
                                     ))
@@ -242,7 +239,7 @@ export default function OrderHistory() {
                                 })()}
 
                             </div>
-                            
+
                             <div className="border rounded p-3 bg-white dark:bg-gray-900">
                                 <div className="font-semibold mb-2">👤 Khách hàng</div>
                                 {orderDetail.shippingAddress ? (
@@ -287,7 +284,7 @@ export default function OrderHistory() {
                                     </tbody>
                                 </table>
                             </div>
-                            
+
                             <div className="border-t pt-3 mt-3 space-y-2">
                                 {(() => {
                                     const details = orderDetail.details || [];
