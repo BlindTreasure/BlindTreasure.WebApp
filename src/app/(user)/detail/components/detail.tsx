@@ -313,7 +313,7 @@ export default function Detail({ detailId }: DetailProps) {
 
                         <button
                             onClick={handleAddToCart}
-                            disabled={isAddingToCart || !products}
+                            disabled={isAddingToCart || !products || products?.totalStockQuantity === 0}
                             className="bg-[#252424] text-white px-6 py-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                             {isAddingToCart ? (

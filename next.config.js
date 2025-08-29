@@ -8,26 +8,6 @@
 // export default nextConfig;
 
 const nextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'img.freepik.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'encrypted-tbn0.gstatic.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'minio.fpt-devteam.fun',
-      },
-      {
-        protocol: 'https',
-        hostname: 'minio.fpt-devteam.fun',
-      },
-    ],
-  },
   webpack(config, { dev, isServer }) {
     // Xử lý SVG
     const fileLoaderRule = config.module.rules.find((rule) =>

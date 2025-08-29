@@ -290,7 +290,38 @@ export default function OrderCard({
                                     </span>
                                 );
                             })()}
-
+                            <div>
+                                {payment?.status === PaymentInfoStatus.Paid && (
+                                    <>
+                                        {loadingReviewStatuses[detail.id] ? (
+                                            <button
+                                                className="bg-gray-400 text-white px-4 py-1 rounded cursor-not-allowed"
+                                                disabled
+                                            >
+                                                Đang kiểm tra...
+                                            </button>
+                                        ) : reviewStatuses[detail.id] ? (
+                                            <button
+                                                className="bg-orange-500 text-white px-4 py-1 rounded hover:bg-orange-600 transition-colors"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedProductForReview(detail);
+                                                    setShowWriteReview(true);
+                                                }}
+                                            >
+                                                Đánh giá
+                                            </button>
+                                        ) : (
+                                            <button
+                                                className="bg-gray-400 text-white px-4 py-1 rounded cursor-not-allowed"
+                                                disabled
+                                            >
+                                                Đã đánh giá
+                                            </button>
+                                        )}
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <div className="text-right">
@@ -332,48 +363,6 @@ export default function OrderCard({
                                 </button>
                             </>
                         )}
-                    {payment?.status === PaymentInfoStatus.Paid && details.map((detail) => {
-                        const canReview = reviewStatuses[detail.id];
-                        const isLoading = loadingReviewStatuses[detail.id];
-
-                        if (isLoading) {
-                            return (
-                                <button
-                                    key={`loading-${detail.id}`}
-                                    className="bg-gray-400 text-white px-4 py-1 rounded cursor-not-allowed"
-                                    disabled
-                                >
-                                    Đang kiểm tra...
-                                </button>
-                            );
-                        }
-
-                        if (canReview === false) {
-                            return (
-                                <button
-                                    key={`reviewed-${detail.id}`}
-                                    className="bg-gray-400 text-white px-4 py-1 rounded cursor-not-allowed"
-                                    disabled
-                                >
-                                    Đã đánh giá
-                                </button>
-                            );
-                        }
-
-                        return (
-                            <button
-                                key={`review-${detail.id}`}
-                                className="bg-orange-500 text-white px-4 py-1 rounded hover:bg-orange-600 transition-colors"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedProductForReview(detail);
-                                    setShowWriteReview(true);
-                                }}
-                            >
-                                Đánh giá
-                            </button>
-                        );
-                    })}
                     <Dialog>
                         <DialogTrigger asChild>
                             <button className="border border-gray-300 px-4 py-1 rounded hover:bg-gray-100" onClick={(e) => e.stopPropagation()}>
@@ -400,7 +389,6 @@ export default function OrderCard({
                                                 <th className="p-2">Tên sản phẩm</th>
                                                 <th className="p-2 text-center">SL</th>
                                                 <th className="p-2 text-right">Đơn giá</th>
-                                                <th className="p-2 text-right">ship</th>
                                                 <th className="p-2 text-right">Thành tiền</th>
                                             </tr>
                                         </thead>
@@ -412,7 +400,6 @@ export default function OrderCard({
                                                     </td>
                                                     <td className="p-2 text-center">{item.quantity}</td>
                                                     <td className="p-2 text-right">{item.unitPrice.toLocaleString()}₫</td>
-                                                    <td className="p-2 text-right">0₫</td>
                                                     <td className="p-2 text-right">{(item.unitPrice * item.quantity).toLocaleString()}₫</td>
                                                 </tr>
                                             ))}
@@ -473,8 +460,8 @@ export default function OrderCard({
                     </Dialog>
 
                     <button
-                    onClick={() => handleOpenChat(userIdOfSeller || '')}
-                    className=" text-black border border-gray-300 px-4 py-1 rounded hover:bg-gray-100">
+                        onClick={() => handleOpenChat(userIdOfSeller || '')}
+                        className=" text-black border border-gray-300 px-4 py-1 rounded hover:bg-gray-100">
                         Liên hệ người bán
                     </button>
                 </div>
