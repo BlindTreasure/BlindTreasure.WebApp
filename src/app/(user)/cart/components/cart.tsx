@@ -420,10 +420,16 @@ const Cart: React.FC = () => {
                               value={quantity}
                               onChange={(newQuantity) => handleQuantityChange(item.id, newQuantity)}
                               min={1}
-                              max={999}
+                              max={item.availableStock ?? 999}
                               className="shadow-sm"
                             />
                           </div>
+
+                          {typeof item.availableStock === 'number' && (
+                            <div className="text-gray-500 text-xs">
+                              Tồn kho: <span className="font-medium">{item.availableStock}</span>
+                            </div>
+                          )}
 
                           <div className="text-gray-600 text-xs">
                             Đơn giá: <span className="font-medium">{item.unitPrice.toLocaleString('vi-VN')}₫</span>

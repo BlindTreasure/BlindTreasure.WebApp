@@ -48,6 +48,7 @@ declare namespace API {
     totalPrice: number;
     createdAt: string;
     isValid?: boolean;
+    availableStock?: number;
   };
 
   type SellerCartGroup = {
