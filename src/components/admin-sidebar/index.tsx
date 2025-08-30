@@ -83,7 +83,7 @@ export default function AdminSidebar() {
           </div>
 
           {staffState.openSidebar && (
-            <span className="text-lg font-semibold">Admin</span>
+            <span className="text-lg font-semibold">Admin Dashboard</span>
           )}
         </div>
 
