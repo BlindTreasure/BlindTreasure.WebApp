@@ -13,32 +13,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
-const ReactApexChart = dynamic(() => import("react-apexcharts"), {
-  ssr: false,
-});
+const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const StatisticsChart = () => {
   const { theme } = useTheme();
-  const [range, setRange] = useState<"day" | "week" | "month" | "quarter" | "year">("month");
+
+  const [range, setRange] = useState<StatisticRange>(StatisticRange.DAY);
   const [statisticsData, setStatisticsData] = useState<SellerStatisticsTimeSeries | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const getStatisticRange = (range: string) => {
-    switch (range) {
-      case "day":
-        return StatisticRange.DAY;
-      case "week":
-        return StatisticRange.WEEK;
-      case "month":
-        return StatisticRange.MONTH;
-      case "quarter":
-        return StatisticRange.QUARTER;
-      case "year":
-        return StatisticRange.YEAR;
-      default:
-        return StatisticRange.MONTH;
-    }
+  const [selectedSeries, setSelectedSeries] = useState<string[]>([
+    "sales",
+    "actualRevenue",
+    "estimatedRevenue",
+  ]);
+  const toggleSeries = (key: string) => {
+    setSelectedSeries((prev) =>
+      prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]
+    );
   };
 
   const [startDate, setStartDate] = useState<string | undefined>(undefined);
@@ -46,8 +40,8 @@ const StatisticsChart = () => {
 
   const toISODate = (dateStr?: string) => {
     if (!dateStr) return undefined;
-    if (dateStr.includes('T')) return dateStr;
-    return new Date(dateStr + 'T00:00:00.000Z').toISOString();
+    if (dateStr.includes("T")) return dateStr;
+    return new Date(dateStr + "T00:00:00.000Z").toISOString();
   };
 
   useEffect(() => {
@@ -55,17 +49,13 @@ const StatisticsChart = () => {
       setIsLoading(true);
       try {
         const response = await getSellerStatisticsTimeSeries({
-          range: getStatisticRange(range),
+          range,
           startDate: toISODate(startDate),
           endDate: toISODate(endDate),
         });
-        if (response.value?.data) {
-          setStatisticsData(response.value.data);
-        } else if (response.value) {
-          setStatisticsData(response.value as any);
-        } else if (response) {
-          setStatisticsData(response as any);
-        }
+        if (response?.value?.data) setStatisticsData(response.value.data);
+        else if (response?.value) setStatisticsData(response.value as any);
+        else setStatisticsData(response as any);
       } catch (error) {
         console.error("Error fetching statistics:", error);
       } finally {
@@ -75,38 +65,52 @@ const StatisticsChart = () => {
     fetchStatistics();
   }, [range, startDate, endDate]);
 
-
-  function groupByMonth(data: { categories: string[], sales: number[], actualRevenue: number[] }) {
+  function groupByMonth(data: {
+    categories: string[];
+    sales: number[];
+    actualRevenue: number[];
+    estimatedRevenue: number[];
+  }) {
     const result = {
       categories: [] as string[],
       sales: [] as number[],
       actualRevenue: [] as number[],
+      estimatedRevenue: [] as number[],
     };
-    const monthMap: { [month: string]: { sales: number, actualRevenue: number } } = {};
-    const now = new Date();
-    const year = now.getFullYear();
+    const monthMap: Record<
+      string,
+      { sales: number; actualRevenue: number; estimatedRevenue: number }
+    > = {};
+    const year = new Date().getFullYear();
+
     data.categories.forEach((date, idx) => {
-      // date: "dd/MM" => MM/YYYY
       if (!date) return;
-      const [d, m] = date.split("/");
+      const [, m] = date.split("/");
       if (!m) return;
-      const month = m.padStart(2, '0') + '/' + year;
-      if (!monthMap[month]) monthMap[month] = { sales: 0, actualRevenue: 0 };
-      const saleVal = Number(data.sales[idx]);
-      const revVal = Number(data.actualRevenue[idx]);
-      if (!isNaN(saleVal)) monthMap[month].sales += saleVal;
-      if (!isNaN(revVal)) monthMap[month].actualRevenue += revVal;
+      const month = m.padStart(2, "0") + "/" + year;
+      if (!monthMap[month])
+        monthMap[month] = { sales: 0, actualRevenue: 0, estimatedRevenue: 0 };
+      const s = Number(data.sales[idx]);
+      const a = Number(data.actualRevenue[idx]);
+      const e = Number(data.estimatedRevenue[idx]);
+      if (!isNaN(s)) monthMap[month].sales += s;
+      if (!isNaN(a)) monthMap[month].actualRevenue += a;
+      if (!isNaN(e)) monthMap[month].estimatedRevenue += e;
     });
-    const sortedMonths = Object.keys(monthMap).sort((a, b) => {
-      const [ma, ya] = a.split('/').map(Number);
-      const [mb, yb] = b.split('/').map(Number);
-      return ya !== yb ? ya - yb : ma - mb;
-    });
-    sortedMonths.forEach((month) => {
-      result.categories.push(month);
-      result.sales.push(monthMap[month].sales);
-      result.actualRevenue.push(monthMap[month].actualRevenue);
-    });
+
+    Object.keys(monthMap)
+      .sort((A, B) => {
+        const [ma, ya] = A.split("/").map(Number);
+        const [mb, yb] = B.split("/").map(Number);
+        return ya !== yb ? ya - yb : ma - mb;
+      })
+      .forEach((m) => {
+        result.categories.push(m);
+        result.sales.push(monthMap[m].sales);
+        result.actualRevenue.push(monthMap[m].actualRevenue);
+        result.estimatedRevenue.push(monthMap[m].estimatedRevenue);
+      });
+
     return result;
   }
 
@@ -116,16 +120,21 @@ const StatisticsChart = () => {
         categories: statisticsData.categories || [],
         sales: statisticsData.sales || [],
         actualRevenue: statisticsData.actualRevenue || [],
+        estimatedRevenue: statisticsData.estimatedRevenue || [],
       };
     }
-    return { categories: [], sales: [], actualRevenue: [] };
+    return {
+      categories: [],
+      sales: [],
+      actualRevenue: [],
+      estimatedRevenue: [],
+    };
   };
 
-  const { categories, sales, actualRevenue } = (() => {
-    let raw = getChartData();
-    if (range === "year" || range === "quarter") {
+  const { categories, sales, actualRevenue, estimatedRevenue } = (() => {
+    const raw = getChartData();
+    if (range === StatisticRange.YEAR || range === StatisticRange.QUARTER)
       return groupByMonth(raw);
-    }
     return raw;
   })();
 
@@ -137,12 +146,12 @@ const StatisticsChart = () => {
       fontFamily: "Outfit, sans-serif",
       background: "transparent",
     },
-    colors: theme === "dark" ? ["#60A5FA", "#93C5FD"] : ["#465FFF", "#9CB9FF"],
-    stroke: { curve: "straight", width: [2, 2] },
-    fill: {
-      type: "gradient",
-      gradient: { opacityFrom: 0.55, opacityTo: 0 },
-    },
+    colors:
+      theme === "dark"
+        ? ["#60A5FA", "#93C5FD", "#FACC15"]
+        : ["#465FFF", "#9CB9FF", "#F59E0B"],
+    stroke: { curve: "straight", width: [2, 2, 2] },
+    fill: { type: "gradient", gradient: { opacityFrom: 0.55, opacityTo: 0 } },
     markers: {
       size: 0,
       strokeColors: theme === "dark" ? "#374151" : "#fff",
@@ -152,11 +161,7 @@ const StatisticsChart = () => {
     dataLabels: { enabled: false },
     grid: {
       xaxis: { lines: { show: false } },
-      yaxis: {
-        lines: {
-          show: true
-        }
-      },
+      yaxis: { lines: { show: true } },
       borderColor: theme === "dark" ? "#374151" : "#E5E7EB",
     },
     xaxis: {
@@ -169,13 +174,7 @@ const StatisticsChart = () => {
         rotate: -45,
         trim: true,
         maxHeight: 60,
-        style: {
-          colors: theme === "dark" ? "#9CA3AF" : "#6B7280",
-        },
-        formatter: (val: string) => {
-          if (range === "year" || range === "quarter") return val;
-          return val;
-        },
+        style: { colors: theme === "dark" ? "#9CA3AF" : "#6B7280" },
       },
     },
     yaxis: {
@@ -186,39 +185,48 @@ const StatisticsChart = () => {
         },
       },
     },
-    tooltip: {
-      enabled: true,
-      theme: theme === "dark" ? "dark" : "light",
-    },
-    legend: {
-      show: false,
-    },
+    tooltip: { enabled: true, theme: theme === "dark" ? "dark" : "light" },
+    legend: { show: true },
   };
 
   const series = [
-    { name: "Bán", data: sales },
-    { name: "Doanh thu", data: actualRevenue },
-  ];
+    selectedSeries.includes("sales") && { name: "Bán", data: sales },
+    selectedSeries.includes("actualRevenue") && {
+      name: "Doanh thu",
+      data: actualRevenue,
+    },
+    selectedSeries.includes("estimatedRevenue") && {
+      name: "Doanh thu ước tính",
+      data: estimatedRevenue,
+    },
+  ].filter(Boolean) as { name: string; data: number[] }[];
 
-  const tabs: { label: string; value: typeof range }[] = [
-    { label: "Ngày", value: "day" },
-    { label: "Tuần", value: "week" },
-    { label: "Tháng", value: "month" },
-    { label: "Quý", value: "quarter" },
-    { label: "Năm", value: "year" },
+  const tabs: { label: string; value: StatisticRange }[] = [
+    { label: "Hôm nay", value: StatisticRange.DAY },
+    { label: "Tuần", value: StatisticRange.WEEK },
+    { label: "Tháng", value: StatisticRange.MONTH },
+    { label: "Quý", value: StatisticRange.QUARTER },
+    { label: "Năm", value: StatisticRange.YEAR },
+    { label: "Tùy chọn", value: StatisticRange.CUSTOM },
   ];
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 px-5 pb-5 pt-5 sm:px-6 sm:pt-6">
-
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Thống kê</h3>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Doanh thu theo từng giai đoạn</p>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+            Thống kê
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
+            Doanh thu theo từng giai đoạn
+          </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2 items-center">
-          <Select value={range} onValueChange={(value) => setRange(value as typeof range)}>
+          <Select
+            value={range}
+            onValueChange={(value) => setRange(value as StatisticRange)}
+          >
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="Chọn khoảng thời gian" />
             </SelectTrigger>
@@ -230,35 +238,69 @@ const StatisticsChart = () => {
               ))}
             </SelectContent>
           </Select>
-          <input
-            type="date"
-            className="border rounded px-2 py-1 text-sm dark:bg-gray-900 date-icon-black dark:date-icon-white"
-            value={startDate ? startDate.slice(0, 10) : ''}
-            onChange={e => setStartDate(e.target.value ? e.target.value : undefined)}
-            placeholder="Từ ngày"
-            style={{ minWidth: 120 }}
-          />
-          <span className="mx-1">-</span>
-          <input
-            type="date"
-            className="border rounded px-2 py-1 text-sm dark:bg-gray-900 date-icon-black dark:date-icon-white"
-            value={endDate ? endDate.slice(0, 10) : ''}
-            onChange={e => setEndDate(e.target.value ? e.target.value : undefined)}
-            placeholder="Đến ngày"
-            style={{ minWidth: 120 }}
-          />
 
+          {range === StatisticRange.CUSTOM && (
+            <div className="flex flex-col sm:flex-row gap-2 items-center">
+              <input
+                type="date"
+                className="border rounded px-2 py-1 text-sm dark:bg-gray-900 date-icon-black dark:date-icon-white"
+                value={startDate ? startDate.slice(0, 10) : ""}
+                onChange={(e) => setStartDate(e.target.value || undefined)}
+                style={{ minWidth: 120 }}
+              />
+              <span className="mx-1">-</span>
+              <input
+                type="date"
+                className="border rounded px-2 py-1 text-sm dark:bg-gray-900 date-icon-black dark:date-icon-white"
+                value={endDate ? endDate.slice(0, 10) : ""}
+                onChange={(e) => setEndDate(e.target.value || undefined)}
+                style={{ minWidth: 120 }}
+              />
+            </div>
+          )}
         </div>
+      </div>
+
+      <div className="flex gap-4 mb-4">
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox
+            checked={selectedSeries.includes("sales")}
+            onCheckedChange={() => toggleSeries("sales")}
+          />
+          Bán
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox
+            checked={selectedSeries.includes("actualRevenue")}
+            onCheckedChange={() => toggleSeries("actualRevenue")}
+          />
+          Doanh thu
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox
+            checked={selectedSeries.includes("estimatedRevenue")}
+            onCheckedChange={() => toggleSeries("estimatedRevenue")}
+          />
+          Doanh thu ước tính
+        </label>
       </div>
 
       <div className="max-w-full overflow-x-auto">
         <div className="min-w-[1000px] xl:min-w-full">
           {isLoading ? (
             <div className="flex items-center justify-center h-[310px]">
-              <div className="text-gray-500 dark:text-gray-400">Đang tải dữ liệu...</div>
+              <div className="text-gray-500 dark:text-gray-400">
+                Đang tải dữ liệu...
+              </div>
             </div>
           ) : (
-            <ReactApexChart key={theme} options={options} series={series} type="area" height={310} />
+            <ReactApexChart
+              key={theme}
+              options={options}
+              series={series}
+              type="area"
+              height={310}
+            />
           )}
         </div>
       </div>

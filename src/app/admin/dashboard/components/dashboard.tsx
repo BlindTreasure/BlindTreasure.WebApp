@@ -4,7 +4,7 @@ import { RevenueMetrics } from "./RevenueMetrics";
 import { OrderMetrics } from "./OrderMetrics";
 import { UserMetrics } from "./UserMetrics";
 import { TopCategories } from "./TopCategories";
-import { OverviewChart } from "./OverviewChart";
+import OverviewChart from "./OverviewChart";
 
 export default function Dashboard() {
   return (
@@ -14,7 +14,7 @@ export default function Dashboard() {
                 <RevenueMetrics />
                 <OrderMetrics/>
             </div>
-            <OverviewChart/>
+            <OverviewChart />
         </div>
         <div className="col-span-12 xl:col-span-4 space-y-6">
             <UserMetrics />

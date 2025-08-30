@@ -20,7 +20,7 @@ import { ChatIcon } from "@/icons";
 
 const sidebarItems = [
   {
-    label: "Dashboard",
+    label: "Tổng quan",
     icon: LayoutDashboard,
     href: "/seller/dashboard",
   },
@@ -74,7 +74,7 @@ const sidebarItems = [
     href: "/seller/promotions",
   },
   {
-    label: "Đơn hàng",
+    label: "Lịch sử đơn hàng",
     icon: ListOrdered,
     href: "/seller/order-history",
   },
