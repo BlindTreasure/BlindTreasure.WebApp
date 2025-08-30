@@ -1,7 +1,6 @@
 import { getInventoryOnHold } from "@/services/admin/api-services";
 import { isTResponseData } from "@/utils/compare";
 import { useCallback, useState } from "react";
-import {REQUEST,API} from "@/services/listing/typings"
 import {GetInventoryOnHoldParams, InventoryOnHoldResponse} from '@/services/admin/typings'
 
 export default function useGetInventoryOnHold() {
