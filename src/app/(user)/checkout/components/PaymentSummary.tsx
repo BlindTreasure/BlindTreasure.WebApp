@@ -89,7 +89,7 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
 
         <Button
           onClick={onPlaceOrder}
-          disabled={isLoading || total <= 0}
+          disabled={isLoading || total < 0}
           className="w-full h-12 text-base font-semibold"
           size="lg"
         >

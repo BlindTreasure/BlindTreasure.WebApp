@@ -107,6 +107,14 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({
                         className="w-full h-full object-cover"
                     />
 
+                    {blindbox.totalQuantity === 0 && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                            <span className="text-black text-lg font-bold uppercase bg-white/80 w-full flex justify-center p-4">
+                                Hết hàng
+                            </span>
+                        </div>
+                    )}
+
                     <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         <Dialog open={open} onOpenChange={setOpen}>
                             <DialogTrigger asChild>
@@ -135,7 +143,7 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({
                                                 <div className='flex gap-2'>
                                                     <p>Thương hiệu: <span className='text-[#00579D] text-sm uppercase'>{blindbox.brand}</span></p>
                                                     <div className="w-px h-5 bg-gray-300" />
-                                                    <p>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[blindbox?.blindBoxStockStatus as StockStatus]}</span></p>
+                                                    <p>Tình trạng: <span className='text-[#00579D]'>{stockStatusMap[blindbox?.blindBoxStockStatus as StockStatus]} ({blindbox?.totalQuantity})</span></p>
                                                     <div className="w-px h-5 bg-gray-300" />
                                                 </div>
                                                 {blindbox?.hasSecretItem && (
@@ -170,13 +178,15 @@ const BlindboxCard: React.FC<BlindboxCardProps> = ({
 
                 <div className="mt-4 flex justify-between items-center">
                     {isReleased ? (
-                        <Button
-                            className="text-xs px-3 py-2 rounded-md bg-[#252424] text-white hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105"
+                        <button
                             onClick={() => handleAddToCart(1)}
-                            disabled={isAddingToCart}
+                            disabled={isAddingToCart || blindbox.totalQuantity === 0}
+                            className={`text-xs px-3 py-2 rounded-md bg-[#252424] text-white
+    hover:bg-opacity-70 transition-all duration-300 transform hover:scale-105
+    ${isAddingToCart || blindbox.totalQuantity === 0 ? "cursor-not-allowed opacity-50 hover:scale-100 hover:bg-opacity-100" : ""}`}
                         >
                             {isAddingToCart ? "Đang thêm..." : "Thêm vào giỏ hàng"}
-                        </Button>
+                        </button>
                     ) : (
                         <Button
                             className="text-xs px-3 py-2 rounded-md bg-gray-400 text-white cursor-not-allowed"

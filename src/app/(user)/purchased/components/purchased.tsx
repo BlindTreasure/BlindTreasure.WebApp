@@ -36,13 +36,22 @@ const groupOrdersByCheckoutGroupId = (orders: OrderResponse[]): OrderResponse[] 
     const groupedMap = new Map<string, OrderResponse>();
 
     orders.forEach(order => {
-        const groupId = order.checkoutGroupId;
+        const groupId = order.checkoutGroupId || order.id;
         if (groupedMap.has(groupId)) {
             const existingOrder = groupedMap.get(groupId)!;
+
             const combinedDetails = [...existingOrder.details, ...order.details];
+
             const combinedTotalAmount = existingOrder.totalAmount + order.totalAmount;
-            const combinedShippingFee = existingOrder.totalShippingFee + order.totalShippingFee;
-            const combinedFinalAmount = existingOrder.finalAmount + order.finalAmount;
+            const combinedShippingFee = (existingOrder.totalShippingFee || 0) + (order.totalShippingFee || 0);
+            const combinedFinalAmount = (existingOrder.finalAmount || 0) + (order.finalAmount || 0);
+
+            const placedAt = new Date(existingOrder.placedAt) < new Date(order.placedAt)
+                ? existingOrder.placedAt
+                : order.placedAt;
+            const completedAt = new Date(existingOrder.completedAt || 0) > new Date(order.completedAt || 0)
+                ? existingOrder.completedAt
+                : order.completedAt;
 
             groupedMap.set(groupId, {
                 ...existingOrder,
@@ -50,12 +59,8 @@ const groupOrdersByCheckoutGroupId = (orders: OrderResponse[]): OrderResponse[] 
                 totalAmount: combinedTotalAmount,
                 totalShippingFee: combinedShippingFee,
                 finalAmount: combinedFinalAmount,
-                placedAt: new Date(existingOrder.placedAt) < new Date(order.placedAt)
-                    ? existingOrder.placedAt
-                    : order.placedAt,
-                completedAt: new Date(existingOrder.completedAt) > new Date(order.completedAt)
-                    ? existingOrder.completedAt
-                    : order.completedAt
+                placedAt,
+                completedAt
             });
         } else {
             groupedMap.set(groupId, { ...order });
@@ -64,6 +69,7 @@ const groupOrdersByCheckoutGroupId = (orders: OrderResponse[]): OrderResponse[] 
 
     return Array.from(groupedMap.values());
 };
+
 
 export default function Purchased() {
     const [orders, setOrders] = useState<OrderResponse[]>([]);
@@ -103,119 +109,108 @@ export default function Purchased() {
         }
     };
 
+    
     const fetchOrders = async (tabValue: string, page = 1) => {
-        if (tabValue === "inventory-delivery") {
-            await fetchInventoryItems(page);
-            return;
-        }
+    if (tabValue === "inventory-delivery") {
+        await fetchInventoryItems(page);
+        return;
+    }
 
-        const tab = TAB_MAP.find((t) => t.value === tabValue);
-        const statuses = tab?.statuses;
-        const orderStatuses = tab?.orderStatuses;
+    const tab = TAB_MAP.find((t) => t.value === tabValue);
+    const statuses = tab?.statuses;
+    const orderStatuses = tab?.orderStatuses;
 
-        if (orderStatuses && orderStatuses.length > 0) {
-            const res = await getOrderDetailsApi({
-                status: orderStatuses[0],
-                PageIndex: page,
-                PageSize: PAGE_SIZE,
+    if (orderStatuses && orderStatuses.length > 0) {
+        const res = await getOrderDetailsApi({
+            status: orderStatuses[0],
+            PageIndex: page,
+            PageSize: PAGE_SIZE,
+        });
+
+        if (res?.value?.data?.result && Array.isArray(res.value.data.result)) {
+            const convertedOrders: OrderResponse[] = res.value.data.result.map(detail => {
+                const firstShipment = detail.shipments?.[0];
+                const shippedDate = firstShipment?.shippedAt || new Date().toISOString();
+                const estimatedDelivery = firstShipment?.estimatedDelivery;
+                const totalShippingFee = detail.shipments?.reduce((total, shipment) => total + (shipment.totalFee || 0), 0) || 0;
+
+                return {
+                    id: detail.orderId,
+                    status: PaymentStatus.PAID,
+                    totalAmount: detail.totalPrice,
+                    placedAt: shippedDate,
+                    completedAt: estimatedDelivery || '',
+                    checkoutGroupId: '',
+                    sellerId: '',
+                    seller: undefined,
+                    details: [detail],
+                    payment: {
+                        id: '',
+                        orderId: detail.orderId,
+                        amount: detail.totalPrice,
+                        discountRate: 0,
+                        netAmount: detail.totalPrice - (detail.detailDiscountPromotion || 0),
+                        method: firstShipment?.provider || 'Giao hàng nhanh',
+                        status: PaymentInfoStatus.Paid,
+                        paymentIntentId: firstShipment?.trackingNumber || '',
+                        paidAt: shippedDate,
+                        refundedAmount: 0,
+                        transactions: []
+                    },
+                    finalAmount: detail.totalPrice + totalShippingFee,
+                    totalShippingFee: totalShippingFee,
+                    shippingAddress: firstShipment ? {
+                        id: firstShipment.id,
+                        fullName: 'Khách hàng',
+                        phone: '',
+                        addressLine: 'Địa chỉ giao hàng',
+                        city: '',
+                        province: '',
+                        postalCode: '',
+                        country: 'Việt Nam'
+                    } : undefined
+                };
             });
 
-            if (res?.value?.data?.result && Array.isArray(res.value.data.result)) {
-                const convertedOrders: OrderResponse[] = res.value.data.result.map(detail => {
-                    const firstShipment = detail.shipments?.[0];
-                    const shippedDate = firstShipment?.shippedAt || new Date().toISOString();
-                    const estimatedDelivery = firstShipment?.estimatedDelivery;
-                    const totalShippingFee = detail.shipments?.reduce((total, shipment) => total + (shipment.totalFee || 0), 0) || 0;
+            const finalOrders = tabValue === "delivered"
+                ? groupOrdersByCheckoutGroupId(convertedOrders)
+                : convertedOrders;
 
-                    return {
-                        id: detail.orderId,
-                        status: PaymentStatus.PAID,
-                        totalAmount: detail.totalPrice,
-                        placedAt: shippedDate,
-                        completedAt: estimatedDelivery || '',
-                        checkoutGroupId: '',
-                        sellerId: '',
-                        seller: undefined,
-                        details: [{
-                            id: detail.id,
-                            logs: detail.logs,
-                            orderId: detail.orderId,
-                            productId: detail.productId,
-                            productName: detail.productName,
-                            productImages: detail.productImages || [],
-                            blindBoxId: detail.blindBoxId || undefined,
-                            blindBoxName: detail.blindBoxName || undefined,
-                            blindBoxImage: detail.blindBoxImage || undefined,
-                            quantity: detail.quantity,
-                            unitPrice: detail.unitPrice,
-                            totalPrice: detail.totalPrice,
-                            status: detail.status,
-                            shipments: detail.shipments || [],
-                            inventoryItems: detail.inventoryItems || [],
-                            detailDiscountPromotion: detail.detailDiscountPromotion,
-                            finalDetailPrice: detail.totalPrice - detail.detailDiscountPromotion,
-                        }],
-                        payment: {
-                            id: '',
-                            orderId: detail.orderId,
-                            amount: detail.totalPrice,
-                            discountRate: 0,
-                            netAmount: detail.totalPrice - (detail.detailDiscountPromotion || 0),
-                            method: firstShipment?.provider || 'Giao hàng nhanh',
-                            status: PaymentInfoStatus.Paid,
-                            paymentIntentId: firstShipment?.trackingNumber || '',
-                            paidAt: shippedDate,
-                            refundedAmount: 0,
-                            transactions: []
-                        },
-                        finalAmount: detail.totalPrice + totalShippingFee,
-                        totalShippingFee: totalShippingFee,
-                        shippingAddress: firstShipment ? {
-                            id: firstShipment.id,
-                            fullName: 'Khách hàng',
-                            phone: '',
-                            addressLine: 'Địa chỉ giao hàng',
-                            city: '',
-                            province: '',
-                            postalCode: '',
-                            country: 'Việt Nam'
-                        } : undefined
-                    };
-                });
-                setOrders(convertedOrders);
-                setTotalPages(res.value.data.totalPages || 1);
-            }
-        } else {
-            const res = await getAllOrderApi({
-                status: statuses?.length === 1 ? statuses[0] : undefined,
-                pageIndex: page,
-                pageSize: PAGE_SIZE,
+            setOrders(finalOrders);
+            setTotalPages(res.value.data.totalPages || 1);
+        }
+    } else {
+        const res = await getAllOrderApi({
+            status: statuses?.length === 1 ? statuses[0] : undefined,
+            pageIndex: page,
+            pageSize: PAGE_SIZE,
+        });
+
+        if (res?.value?.data) {
+            const updatedOrders = res.value.data.result.map(order => {
+                const actualShippingFee = order.details.reduce((total, detail) => {
+                    const detailShippingFee = detail.shipments?.reduce((shipTotal, shipment) =>
+                        shipTotal + (shipment.totalFee || 0), 0) || 0;
+                    return total + detailShippingFee;
+                }, 0);
+
+                return {
+                    ...order,
+                    totalShippingFee: actualShippingFee,
+                    finalAmount: order.totalAmount + actualShippingFee
+                };
             });
 
-            if (res?.value?.data) {
-                const updatedOrders = res.value.data.result.map(order => {
-                    const actualShippingFee = order.details.reduce((total, detail) => {
-                        const detailShippingFee = detail.shipments?.reduce((shipTotal, shipment) =>
-                            shipTotal + (shipment.totalFee || 0), 0) || 0;
-                        return total + detailShippingFee;
-                    }, 0);
+            const finalOrders = (tabValue === "pending" || tabValue === "cancelled")
+                ? groupOrdersByCheckoutGroupId(updatedOrders)
+                : updatedOrders;
 
-                    return {
-                        ...order,
-                        totalShippingFee: actualShippingFee,
-                        finalAmount: order.totalAmount + actualShippingFee
-                    };
-                });
-
-                const finalOrders = (tabValue === "pending" || tabValue === "cancelled")
-                    ? groupOrdersByCheckoutGroupId(updatedOrders)
-                    : updatedOrders;
-
-                setOrders(finalOrders);
-                setTotalPages(res.value.data.totalPages || 1);
-            }
+            setOrders(finalOrders);
+            setTotalPages(res.value.data.totalPages || 1);
         }
-    };
+    }
+};
+
 
     useEffect(() => {
         fetchOrders(currentTab, currentPage);
