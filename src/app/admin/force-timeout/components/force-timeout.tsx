@@ -1,8 +1,9 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Clock, Search, X } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { useServiceForceTimeout } from '@/services/admin/services';
 import useGetAllTradeRequest from '../hooks/useGetAllTradeRequest';
+import { ConfirmTimeoutDialog } from './confirm-timeout-dialog';
 
 const TradeRequestsAdminPanel: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -89,8 +90,8 @@ const TradeRequestsAdminPanel: React.FC = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý Trade Requests</h1>
-          <p className="text-gray-600 mt-2">Chỉ hiển thị các trade request còn thời gian hiệu lực</p>
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý yêu cầu Trao đổi</h1>
+          <p className="text-gray-600 mt-2">Danh sách các yêu cầu trao đổi còn thời gian hiệu lực</p>
         </div>
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -192,7 +193,7 @@ const TradeRequestsAdminPanel: React.FC = () => {
                         className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
                       >
                         <Clock className="w-4 h-4" />
-                        <span>Force</span>
+                        <span>Xử lí thời gian chờ</span>
                       </button>
                     </td>
                   </tr>
@@ -204,31 +205,13 @@ const TradeRequestsAdminPanel: React.FC = () => {
 
       </div>
 
-      {modalOpen && selectedTradeRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Force Timeout Trade Request</h3>
-              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              Bạn có chắc muốn ép yêu cầu <strong>{selectedTradeRequest.id}</strong> hết hạn ngay?
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button onClick={closeModal} className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg">Hủy</button>
-              <button
-                onClick={handleForceTimeout}
-                disabled={forceTimeoutMutation.isPending}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50"
-              >
-                {forceTimeoutMutation.isPending ? 'Đang xử lý...' : 'Force Timeout'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmTimeoutDialog
+        isOpen={modalOpen && !!selectedTradeRequest}
+        onClose={closeModal}
+        onConfirm={handleForceTimeout}
+        isLoading={forceTimeoutMutation.isPending}
+        tradeRequestId={selectedTradeRequest?.id || ''}
+      />
     </div>
   );
 };

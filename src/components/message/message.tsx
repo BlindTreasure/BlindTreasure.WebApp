@@ -290,29 +290,29 @@ export default function Message({
             components={{
               p: (props) => (
                 <p
-                  className="text-[13px] font-sans leading-relaxed"
+                  className="text-[13px] font-sans leading-relaxed tracking-wide mb-2 last:mb-0"
                   {...props}
-                /> // Reduced font size
+                />
               ),
               strong: (props) => (
-                <strong className="font-bold inline" {...props} />
+                <strong className="font-semibold inline text-inherit" {...props} />
               ),
               br: () => <br />,
               ul: (props) => (
                 <ul
-                  className="list-disc pl-4 text-[13px] font-sans leading-relaxed" // Reduced font size
+                  className="list-disc pl-4 text-[13px] font-sans leading-relaxed space-y-1 my-2"
                   {...props}
                 />
               ),
               ol: (props) => (
                 <ol
-                  className="list-decimal pl-4 text-[13px] font-sans leading-relaxed" // Reduced font size
+                  className="list-decimal pl-4 text-[13px] font-sans leading-relaxed space-y-1 my-2"
                   {...props}
                 />
               ),
               li: (props) => (
                 <li
-                  className="mb-1 text-[13px] font-sans leading-relaxed" // Reduced font size
+                  className="text-[13px] font-sans leading-relaxed"
                   {...props}
                 />
               ),
@@ -520,18 +520,19 @@ export default function Message({
 
             <main
               ref={scrollAreaRef}
-              className="flex-1 px-2 overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 bg-gradient-to-b from-white to-blue-50"
+              className="flex-1 px-2 overflow-y-auto will-change-scroll overscroll-y-contain scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 bg-gradient-to-b from-white to-blue-50"
               tabIndex={0}
               aria-label="Chat messages"
               style={{
                 scrollBehavior: "smooth",
-                scrollbarGutter: "stable", 
+                scrollbarGutter: "stable",
+                WebkitOverflowScrolling: "touch",
               }}
             >
-              <div className="space-y-0.5 pt-2">
+              <div className="space-y-0.5 pt-2 pb-4">
                 {renderMessages(messages)}
                 {isAiTyping && <TypingIndicator />}
-                <div ref={messagesEndRef} />
+                <div ref={messagesEndRef} className="h-px w-full" />
               </div>
             </main>
 
@@ -561,12 +562,12 @@ export default function Message({
                       key={sample}
                       onClick={() => handleQuickPrompt(sample)}
                       disabled={isAiTyping || !isConnected}
-                      className={`shrink-0 px-3 py-1 whitespace-nowrap font-medium bg-gradient-to-r from-blue-100 to-blue-50 hover:from-blue-200 hover:to-blue-100 active:scale-[0.98] text-xs rounded-xl text-blue-800 transition-all duration-200 shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 border border-blue-100 ${
+                      className={`shrink-0 px-3.5 py-1.5 whitespace-nowrap font-medium bg-gradient-to-r from-blue-100/90 to-blue-50/90 hover:from-blue-200/90 hover:to-blue-100/90 active:scale-[0.98] text-xs rounded-xl text-blue-800 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 border border-blue-100/50 backdrop-blur-sm ${
                         isAiTyping || !isConnected
-                          ? "opacity-50 cursor-not-allowed"
-                          : ""
+                          ? "opacity-50 cursor-not-allowed grayscale"
+                          : "hover:border-blue-200/50"
                       }`}
-                      style={{ height: "32px" }}
+                      style={{ height: "36px" }}
                     >
                       {isAiTyping && quickPrompts[i] === sample ? (
                         <span className="inline-flex items-center gap-1">
@@ -587,12 +588,14 @@ export default function Message({
                 <Input
                   placeholder={
                     isConnected
-                      ? "Nhập nội dung chat..."
+                      ? "Nhập tin nhắn (Enter để gửi)..."
                       : "Mất kết nối — vui lòng thử lại"
                   }
                   type="text"
                   value={textMessage}
                   aria-label="Nhập tin nhắn"
+                  autoComplete="off"
+                  spellCheck="false"
                   onChange={(e) => setTextMessage(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
@@ -600,8 +603,9 @@ export default function Message({
                       handleSendMessage();
                     }
                   }}
-                  className="border border-gray-400 rounded-3xl pr-14 py-4 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:border-blue-700 text-[15px]"
+                  className="border border-gray-400 rounded-3xl pr-14 py-4 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:border-blue-700 text-[15px] placeholder:text-gray-500 transition-colors duration-200"
                   disabled={!isConnected}
+                  maxLength={1000}
                 />
                 <button
                   type="button"
@@ -631,17 +635,22 @@ export default function Message({
 
       <style jsx>{`
         .chat-shell {
-          transform: translateY(8px);
+          transform: translateY(16px) scale(0.98);
           opacity: 0;
-          transition: transform 180ms ease-out, opacity 180ms ease-out;
+          transition: transform 240ms cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 220ms cubic-bezier(0.4, 0, 0.2, 1);
+          will-change: transform, opacity;
         }
         .chat-shell[data-state="open"] {
-          transform: translateY(0);
+          transform: translateY(0) scale(1);
           opacity: 1;
         }
         @media (prefers-reduced-motion: reduce) {
-          .chat-shell {
+          .chat-shell,
+          .message-bubble,
+          .dot-wave {
             transition: none;
+            animation: none;
           }
         }
         .no-scrollbar::-webkit-scrollbar {
@@ -650,6 +659,20 @@ export default function Message({
         .no-scrollbar {
           -ms-overflow-style: none;
           scrollbar-width: none;
+        }
+        
+        @keyframes bubble-in {
+          0% {
+            transform: translateY(8px) scale(0.96);
+            opacity: 0;
+          }
+          70% {
+            transform: translateY(-1px) scale(1.01);
+          }
+          100% {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+          }
         }
       `}</style>
     </div>

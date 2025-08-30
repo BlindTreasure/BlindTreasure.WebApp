@@ -6,6 +6,7 @@ import { PaginationFooter } from "@/components/pagination-footer";
 import useGetInventoryOnHold from "../hooks/useGetInventoryOnHold";
 import { InventoryOnHold } from "@/services/admin/typings";
 import { useServiceForceReleaseHold } from "@/services/admin/services";
+import { ConfirmDialog } from "./confirm-dialog";
 
 export default function InventoryItems() {
   const { isPending, getInventoryOnHoldApi } = useGetInventoryOnHold();
@@ -13,6 +14,8 @@ export default function InventoryItems() {
     useServiceForceReleaseHold();
 
   const [data, setData] = useState<InventoryOnHold[]>([]);
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [paging, setPaging] = useState({
     pageIndex: 1,
     pageSize: 5,
@@ -56,12 +59,21 @@ export default function InventoryItems() {
     setPaging((prev) => ({ ...prev, pageSize: size, pageIndex: 1 }));
   };
 
-  const handleReleaseHold = (id: string) => {
-    forceReleaseHold(id, {
-      onSuccess: () => {
-        fetchData(); // refresh danh sách sau khi release
-      },
-    });
+  const handleOpenDialog = (id: string) => {
+    setSelectedItem(id);
+    setIsDialogOpen(true);
+  };
+
+  const handleConfirmRelease = () => {
+    if (selectedItem) {
+      forceReleaseHold(selectedItem, {
+        onSuccess: () => {
+          setIsDialogOpen(false);
+          setSelectedItem(null);
+          fetchData(); // refresh danh sách sau khi release
+        },
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -86,85 +98,116 @@ export default function InventoryItems() {
       <Card className="shadow-lg rounded-lg border border-gray-200">
         <CardContent className="space-y-6 p-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold pt-4">Vật phẩm đang giữ</h2>
+            <h2 className="text-xl font-semibold pt-4">Danh sách vật phẩm đang được Tạm giữ</h2>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-full dark:bg-gray-900 table-fixed border border-gray-200 text-sm bg-white rounded-lg">
+            <table className="min-w-full table-fixed border border-gray-200 text-sm bg-white rounded-lg overflow-hidden">
               <thead>
-                <tr className="bg-gray-100 text-center dark:bg-gray-800">
-                  <th className="p-3 border w-32">Mã vật phẩm</th>
-                  <th className="p-3 border w-48">Tên vật phẩm</th>
-                  <th className="p-3 border w-64">Mô tả</th>
-                  <th className="p-3 border w-32">Chủ sở hữu</th>
-                  <th className="p-3 border w-32">Trạng thái</th>
-                  <th className="p-3 border w-24">Hành động</th>
+                <tr className="bg-gray-100 text-center">
+                  <th className="p-3 border w-[15%]">Mã vật phẩm</th>
+                  <th className="p-3 border w-[25%]">Thông tin vật phẩm</th>
+                  <th className="p-3 border w-[20%]">Thông tin giữ</th>
+                  <th className="p-3 border w-[15%]">Khu vực</th>
+                  <th className="p-3 border w-[15%]">Trạng thái</th>
+                  <th className="p-3 border w-[10%]">Hành động</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-200">
                 {isPending ? (
                   <tr>
-                    <td colSpan={6} className="text-center p-4">
-                      Đang tải...
+                    <td colSpan={6} className="text-center p-8">
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+                        <span className="text-gray-500">Đang tải...</span>
+                      </div>
                     </td>
                   </tr>
                 ) : data.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center p-4">
-                      <img
-                        src="https://static.vecteezy.com/system/resources/previews/009/007/126/non_2x/document-file-not-found-search-no-result-concept-illustration-flat-design-eps10-modern-graphic-element-for-landing-page-empty-state-ui-infographic-icon-vector.jpg"
-                        alt="Danh sách trống"
-                        className="mx-auto mb-2 w-24 h-24"
-                      />
-                      <div>Không có vật phẩm nào</div>
+                    <td colSpan={6} className="text-center p-8">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <img
+                          src="https://static.vecteezy.com/system/resources/previews/009/007/126/non_2x/document-file-not-found-search-no-result-concept-illustration-flat-design-eps10-modern-graphic-element-for-landing-page-empty-state-ui-infographic-icon-vector.jpg"
+                          alt="Danh sách trống"
+                          className="w-32 h-32 object-contain"
+                        />
+                        <span className="text-gray-500">Hiện không có vật phẩm nào đang ở trạng thái Tạm giữ</span>
+                      </div>
                     </td>
                   </tr>
                 ) : (
                   data.map((item) => (
                     <tr
                       key={item.id}
-                      className="hover:bg-gray-50 dark:hover:bg-opacity-80 dark:hover:text-black"
+                      className="hover:bg-gray-50 transition-colors duration-150"
                     >
-                      <td className="p-3 border text-center font-medium">
-                        {item.product.id}
-                      </td>
-                      <td
-                        className="p-3 border text-left truncate"
-                        title={item.product.name}
-                      >
-                        <div className="font-medium">{item.product.name}</div>
-                      </td>
-                      <td
-                        className="p-3 border text-left"
-                        title={item.product.description}
-                      >
-                        <div className="text-sm text-gray-600 line-clamp-2">
-                          {item.product.description}
+                      <td className="p-3 border">
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{item.product.id.substring(0, 8)}...</div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            ID: {item.id.substring(0, 8)}...
+                          </div>
                         </div>
                       </td>
-                      <td
-                        className="p-3 border text-center truncate"
-                        title={item.product.brand}
-                      >
-                        {item.product.brand}
+                      <td className="p-3 border">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-gray-900 truncate" title={item.product.name}>
+                              {item.product.name}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-medium">
+                                {item.product.brand}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </td>
-                      <td className="p-3 border text-center">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
-                            item.status
-                          )}`}
-                          title={item.status}
-                        >
-                          {item.status}
-                        </span>
+                      <td className="p-3 border">
+                        <div className="text-center">
+                          {item.holdInfo && (
+                            <>
+                              <div className="text-sm text-gray-900">
+                                Còn {Math.ceil(item.holdInfo.remainingDays)} ngày Tạm giữ
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                Ngày hết hạn Tạm giữ: {new Date(item.holdInfo.holdUntil).toLocaleDateString('vi-VN')}
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </td>
-                      <td className="p-3 border text-center">
+                      <td className="p-3 border">
+                        <div className="text-center font-medium text-gray-600">
+                          Hồ Chí Minh
+                        </div>
+                      </td>
+                      <td className="p-3 border">
+                        <div className="flex flex-col items-center gap-1">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              item.status
+                            )}`}
+                          >
+                            {item.status}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-3 border">
                         <button
-                          onClick={() => handleReleaseHold(item.id)}
+                          onClick={() => handleOpenDialog(item.id)}
                           disabled={isReleasing}
-                          className="px-3 py-1 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-medium rounded transition-colors duration-200"
+                          className="w-full px-3 py-1.5 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-medium rounded-md transition-all duration-200 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                         >
-                          {isReleasing ? "Đang xử lý..." : "Giải phóng giữ"}
+                            {isReleasing ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <div className="w-3 h-3 border-2 border-white rounded-full animate-spin border-t-transparent"></div>
+                              <span>Đang cập nhật...</span>
+                            </div>
+                          ) : (
+                            "Giải phóng giữ"
+                          )}
                         </button>
                       </td>
                     </tr>
@@ -184,6 +227,16 @@ export default function InventoryItems() {
           />
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        isOpen={isDialogOpen}
+        onClose={() => {
+          setIsDialogOpen(false);
+          setSelectedItem(null);
+        }}
+        onConfirm={handleConfirmRelease}
+        isLoading={isReleasing}
+      />
     </div>
   );
 }

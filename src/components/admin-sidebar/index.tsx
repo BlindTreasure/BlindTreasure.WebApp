@@ -144,7 +144,7 @@ export default function AdminSidebar() {
                                     <FaMoneyBillTransfer size={20} />
                                 </div>
                                 <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
-                                    Test tạo listing sau khi trade
+                                    Quản lí trạng thái Tạm Giữ
                                 </span>
                             </Link>
                         </li>
@@ -155,7 +155,7 @@ export default function AdminSidebar() {
                                     <FaMoneyBillTransfer size={20} />
                                 </div>
                                 <span className={`${staffState.openSidebar || isMobile ? "block" : "hidden"} truncate`}>
-                                    Test exception timeout traderequest
+                                    Quản lí Cronjobs
                                 </span>
                             </Link>
                         </li>
