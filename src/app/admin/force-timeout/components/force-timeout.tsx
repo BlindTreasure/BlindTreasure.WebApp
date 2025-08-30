@@ -94,33 +94,24 @@ const TradeRequestsAdminPanel: React.FC = () => {
           <p className="text-gray-600 mt-2">Danh sách các yêu cầu trao đổi còn thời gian hiệu lực</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full table-fixed divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-28">
+            <table className="min-w-full table-fixed border border-gray-200 text-sm bg-white rounded-lg overflow-hidden">
+              <thead>
+                <tr className="bg-gray-100 text-center">
+                  <th className="p-3 border w-[15%]">
                     Mã yêu cầu
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-40">
-                    Vật phẩm listing
+                  <th className="p-3 border w-[40%]">
+                    Chi tiết trao đổi
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">
-                    Chủ sở hữu
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">
-                    Người yêu cầu
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-40">
-                    Vật phẩm đề xuất
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-28">
+                  <th className="p-3 border w-[15%]">
                     Trạng thái
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-28">
-                    Ngày tạo
+                  <th className="p-3 border w-[15%]">
+                    Thời gian tạo
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">
+                  <th className="p-3 border w-[15%]">
                     Hành động
                   </th>
                 </tr>
@@ -130,47 +121,27 @@ const TradeRequestsAdminPanel: React.FC = () => {
                   <tr key={tradeRequest.id} className="hover:bg-gray-50">
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div
-                        className="text-sm font-medium text-gray-900 truncate max-w-[100px]"
+                        className="text-sm font-medium text-gray-900 truncate max-w-[120px]"
                         title={tradeRequest.id}
                       >
-                        {tradeRequest.id}
+                        {tradeRequest.id.substring(0, 8)}...
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <div
-                        className="text-sm text-gray-900 truncate max-w-[140px]"
-                        title={tradeRequest.listingItemName}
-                      >
-                        {tradeRequest.listingItemName}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div
-                        className="text-sm text-gray-900 truncate max-w-[120px]"
-                        title={tradeRequest.listingOwnerName}
-                      >
-                        {tradeRequest.listingOwnerName}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div
-                        className="text-sm text-gray-900 truncate max-w-[120px]"
-                        title={tradeRequest.requesterName}
-                      >
-                        {tradeRequest.requesterName}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-wrap gap-1">
-                        {tradeRequest.offeredItems.map((item) => (
-                          <span
-                            key={item.inventoryItemId}
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTierColor(item.tier)}`}
-                            title={item.itemName}
-                          >
-                            {item.tier}
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-900">Vật phẩm:</span>
+                          <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${getTierColor(tradeRequest.listingItemTier)}`}>
+                            {tradeRequest.listingItemName}
                           </span>
-                        ))}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <span>Từ:</span>
+                          <span className="font-medium">{tradeRequest.listingOwnerName}</span>
+                          <span className="mx-1">→</span>
+                          <span>Đến:</span>
+                          <span className="font-medium">{tradeRequest.requesterName}</span>
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -180,8 +151,14 @@ const TradeRequestsAdminPanel: React.FC = () => {
                         {tradeRequest.status}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-sm text-gray-900 whitespace-nowrap">
-                      {tradeRequest.requestedAt}
+                    <td className="px-4 py-4 text-sm text-gray-600 whitespace-nowrap">
+                      {new Date(tradeRequest.requestedAt).toLocaleString('vi-VN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })}
                     </td>
                     <td className="px-4 py-4 text-sm font-medium">
                       <button
