@@ -61,13 +61,17 @@ const ProductSelectionModal = ({
     selectedProductId,
     onSelectProduct,
     isOpen,
-    onOpenChange
+    onOpenChange,
+    usedProductIds,
+    currentSlotIndex
 }: {
     products: ProductOption[];
     selectedProductId?: string;
     onSelectProduct: (productId: string) => void;
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
+    usedProductIds: string[];
+    currentSlotIndex: number;
 }) => {
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -76,15 +80,18 @@ const ProductSelectionModal = ({
     );
 
     const handleSelectProduct = (productId: string) => {
-        onSelectProduct(productId);
-        onOpenChange(false);
+        // Only allow selection if product is not used in other slots
+        if (!usedProductIds.includes(productId)) {
+            onSelectProduct(productId);
+            onOpenChange(false);
+        }
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
                 <DialogHeader>
-                    <DialogTitle>Chọn sản phẩm</DialogTitle>
+                    <DialogTitle>Chọn sản phẩm - Slot {currentSlotIndex + 1}</DialogTitle>
                 </DialogHeader>
 
                 <div className="mb-4">
@@ -98,45 +105,69 @@ const ProductSelectionModal = ({
 
                 <div className="flex-1 overflow-y-auto">
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {filteredProducts.map((product) => (
-                            <div
-                                key={product.id}
-                                className={`relative border p-3 cursor-pointer transition-all hover:shadow-md ${selectedProductId === product.id
-                                        ? 'border-blue-500 bg-blue-50 shadow-md'
-                                        : 'border-gray-200 hover:border-gray-300'
-                                    }`}
-                                onClick={() => handleSelectProduct(product.id)}
-                            >
-                                {selectedProductId === product.id && (
-                                    <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
-                                        <Check className="w-3 h-3" />
-                                    </div>
-                                )}
+                        {filteredProducts.map((product) => {
+                            const isUsedInOtherSlot = usedProductIds.includes(product.id);
+                            const isCurrentlySelected = selectedProductId === product.id;
+                            const isClickable = !isUsedInOtherSlot || isCurrentlySelected;
 
-                                <div className="aspect-square mb-2 overflow-hidden bg-gray-100">
-                                    {product.imageUrls && product.imageUrls.length > 0 ? (
-                                        <img
-                                            src={product.imageUrls[0]}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                e.currentTarget.src = '/placeholder-product.jpg';
-                                            }}
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                            <GiftIcon className="w-8 h-8" />
+                            return (
+                                <div
+                                    key={product.id}
+                                    className={`relative border p-3 transition-all ${
+                                        isClickable 
+                                            ? `cursor-pointer hover:shadow-md ${
+                                                isCurrentlySelected
+                                                    ? 'border-blue-500 shadow-md'
+                                                    : 'border-gray-200 hover:border-gray-300'
+                                            }`
+                                            : 'border-gray-100 opacity-50 cursor-not-allowed'
+                                    }`}
+                                    onClick={() => isClickable && handleSelectProduct(product.id)}
+                                >
+                                    {isCurrentlySelected && (
+                                        <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1 z-10">
+                                            <Check className="w-3 h-3" />
                                         </div>
                                     )}
-                                </div>
 
-                                <div>
-                                    <h4 className="font-medium text-sm line-clamp-2">
-                                        {product.name}
-                                    </h4>
+                                    {isUsedInOtherSlot && !isCurrentlySelected && (
+                                        <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1 z-10">
+                                            <Check className="w-3 h-3" />
+                                        </div>
+                                    )}
+
+                                    <div className="aspect-square mb-2 overflow-hidden bg-gray-100">
+                                        {product.imageUrls && product.imageUrls.length > 0 ? (
+                                            <img
+                                                src={product.imageUrls[0]}
+                                                alt={product.name}
+                                                className={`w-full h-full object-cover ${
+                                                    isUsedInOtherSlot && !isCurrentlySelected ? 'grayscale' : ''
+                                                }`}
+                                                onError={(e) => {
+                                                    e.currentTarget.src = '/placeholder-product.jpg';
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                <GiftIcon className="w-8 h-8" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <h4 className={`font-medium text-sm line-clamp-2 ${
+                                            isUsedInOtherSlot && !isCurrentlySelected ? 'text-gray-400' : ''
+                                        }`}>
+                                            {product.name}
+                                        </h4>
+                                        {isUsedInOtherSlot && !isCurrentlySelected && (
+                                            <p className="text-xs text-gray-400 mt-1">Đã được sử dụng</p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     {filteredProducts.length === 0 && (
@@ -283,6 +314,13 @@ export const AddItemToBlindboxForm = ({
 
     const getSelectedProduct = (productId: string): ProductOption | undefined => {
         return filteredProducts.find(p => p.id === productId);
+    };
+
+    // Get list of product IDs that are used in other slots
+    const getUsedProductIds = (excludeSlotIndex: number): string[] => {
+        return items
+            .filter((item, index) => index !== excludeSlotIndex && item.productId)
+            .map(item => item.productId);
     };
 
     return (
@@ -446,26 +484,15 @@ export const AddItemToBlindboxForm = ({
                         className="grid grid-cols-6 gap-4 items-center mb-4 border-b pb-4"
                     >
                         <div>
-                            <Label className="mb-2 block text-center">Chọn sản phẩm</Label>
+                            <Label className="mb-2 block text-center">
+                                Chọn sản phẩm (Slot {index + 1})
+                            </Label>
                             <SelectedProductDisplay
                                 product={getSelectedProduct(item.productId)}
                                 onClear={() => handleProductClear(index)}
                                 onClick={() => handleProductModalToggle(index, true)}
                             />
                         </div>
-
-                        {/* <div>
-                            <Label className="mb-2 block text-center">Số lượng</Label>
-                            <Input
-                                type="text"
-                                inputMode="numeric"
-                                value={item.quantity?.toString() ?? ""}
-                                onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
-                                onWheel={(e) => e.currentTarget.blur()}
-                                placeholder="Nhập số lượng"
-                                className="w-full text-center"
-                            />
-                        </div> */}
 
                         <div>
                             <Label className="mb-2 block text-center">Số lượng</Label>
@@ -605,6 +632,8 @@ export const AddItemToBlindboxForm = ({
                     onSelectProduct={(productId) => handleProductSelect(index, productId)}
                     isOpen={productModalStates[index] || false}
                     onOpenChange={(isOpen) => handleProductModalToggle(index, isOpen)}
+                    usedProductIds={getUsedProductIds(index)}
+                    currentSlotIndex={index}
                 />
             ))}
         </>
