@@ -8,6 +8,8 @@ import {
   Coins,
   ChevronDown,
   Menu,
+  FileChartColumn,
+  ArrowRightLeft,
 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/stores/store";
 import { closeSidebar, openSidebar } from "@/stores/difference-slice";
@@ -122,35 +124,10 @@ export default function AdminSidebar() {
                       staffState.openSidebar || isMobile ? "block" : "hidden"
                     } truncate`}
                   >
-                    Dashboard
+                    Tổng quan
                   </span>
                 </Link>
-                {staffState.openSidebar && !isMobile && (
-                  <ChevronDown
-                    className={`size-4 transition-transform ${
-                      openDropdown === "dashboard" ? "rotate-180" : ""
-                    } text-gray-400`}
-                  />
-                )}
               </button>
-
-              {openDropdown === "dashboard" &&
-                staffState.openSidebar &&
-                !isMobile && (
-                  <ul className="pl-4 mt-1 space-y-1">
-                    <li>
-                      <Link
-                        href="/admin/user-donate"
-                        className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded-md"
-                      >
-                        <div className="flex items-center justify-center w-8 h-8">
-                          <Coins size={20} />
-                        </div>
-                        <span className="truncate">All users donation</span>
-                      </Link>
-                    </li>
-                  </ul>
-                )}
             </li>
 
             <li>
@@ -195,7 +172,7 @@ export default function AdminSidebar() {
                 className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md"
               >
                 <div className="flex items-center justify-center w-8 h-8">
-                  <FaMoneyBillTransfer size={20} />
+                  <FileChartColumn size={20} />
                 </div>
                 <span
                   className={`${
@@ -213,7 +190,7 @@ export default function AdminSidebar() {
                 className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md"
               >
                 <div className="flex items-center justify-center w-8 h-8">
-                  <FaMoneyBillTransfer size={20} />
+                  <ArrowRightLeft size={20} />
                 </div>
                 <span
                   className={`${

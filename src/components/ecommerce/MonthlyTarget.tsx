@@ -9,7 +9,18 @@ import { StatisticRange } from "@/const/seller";
 import { getSellerStatistics } from "@/services/seller-dashboard/api-services";
 import { Skeleton } from "../ui/skeleton";
 import { useTheme } from "@/context/ThemeContext";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from "@/components/ui/table";
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
@@ -22,6 +33,7 @@ export default function MonthlyTarget() {
   const [monthlyData, setMonthlyData] = useState<any>(null);
   const [todayData, setTodayData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -114,20 +126,11 @@ export default function MonthlyTarget() {
     setIsOpen(false);
   }
 
-  // const formatCurrency = (amount: number) => {
-  //   if (amount >= 1000000) {
-  //     return `${(amount / 1000000).toFixed(1)}M ₫`;
-  //   } else if (amount >= 1000) {
-  //     return `${(amount / 1000).toFixed(1)}K ₫`;
-  //   }
-  //   return `${amount.toLocaleString("vi-VN")} ₫`;
-  // };
-
   const formatCurrency = (amount: number) => {
     if (amount == null || isNaN(amount)) return "0 ₫";
 
     return new Intl.NumberFormat("vi-VN", {
-      notation: "compact", // rút gọn: 3,55 Tr, 2,5 N, 1,2 T
+      notation: "compact",
       maximumFractionDigits: 2,
     }).format(amount) + " ₫";
   };
@@ -157,16 +160,13 @@ export default function MonthlyTarget() {
               className="w-40 p-2"
             >
               <DropdownItem
-                onItemClick={closeDropdown}
+                onItemClick={() => {
+                  setIsDetailOpen(true);
+                  closeDropdown();
+                }}
                 className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
                 Xem chi tiết
-              </DropdownItem>
-              <DropdownItem
-                onItemClick={closeDropdown}
-                className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-              >
-                Xuất dữ liệu
               </DropdownItem>
             </Dropdown>
           </div>
@@ -255,6 +255,54 @@ export default function MonthlyTarget() {
             </p>
           </div>
         </div>
+        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Chi tiết doanh thu tháng</DialogTitle>
+            </DialogHeader>
+
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium">Mục tiêu tháng</TableCell>
+                  <TableCell className="text-right">
+                    {formatCurrency(monthlyTarget)}
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Doanh thu thực tế</TableCell>
+                  <TableCell className="text-right">
+                    {formatCurrency(monthlyData?.overview?.actualRevenue || 0)}
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Doanh thu ước tính</TableCell>
+                  <TableCell className="text-right">
+                    {formatCurrency(monthlyData?.overview?.estimatedRevenue || 0)}
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Tổng đơn hàng</TableCell>
+                  <TableCell className="text-right">
+                    {monthlyData?.overview?.totalOrders}
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Sản phẩm bán ra</TableCell>
+                  <TableCell className="text-right">
+                    {monthlyData?.overview?.totalProductsSold}
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Giá trị đơn trung bình</TableCell>
+                  <TableCell className="text-right">
+                    {formatCurrency(monthlyData?.overview?.averageOrderValue || 0)}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

@@ -13,9 +13,11 @@ export enum StatisticRange {
   QUARTER = "Quarter",
   YEAR = "Year",
   CUSTOM = "Custom",
+  TODAY = "Today",
 }
 
 export const StatisticRangeText: Record<StatisticRange, string> = {
+  [StatisticRange.TODAY]: "Hôm nay",
   [StatisticRange.DAY]: "Ngày",
   [StatisticRange.WEEK]: "Tuần",
   [StatisticRange.MONTH]: "Tháng",

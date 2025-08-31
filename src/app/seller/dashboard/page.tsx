@@ -4,8 +4,8 @@ import Dashboard from './components/dashboard';
 
 
 export const metadata: Metadata = {
-    title: "Dashboard Seller",
-    description: "Dashboard seller page for BlindTreasure",
+    title: "Trang tổng quan người bán | BlindTreasure",
+    description: "Trang tổng quan người bán của BlindTreasure",
 };
 export default function DashboardPageForSeller() {
     return (
