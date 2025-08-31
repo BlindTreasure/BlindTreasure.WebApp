@@ -274,32 +274,24 @@ export default function UnboxLogs() {
 
                     <div className="text-sm text-gray-700">
                       {" "}
-                      <strong>Mô tả: </strong>
-                      {productDetail.description}
-                    </div>
-                    <div className="text-sm text-gray-700">
-                      {" "}
                       <strong>Sản phẩm thuộc: </strong>
                       {selectedLog.blindBoxName}
-                    </div>
-
-                    <div className="text-sm">
-                      <strong className="text-gray-700">Giá:</strong>{" "}
-                      <span className="text-[#d02a2a]">
-                        {productDetail.realSellingPrice?.toLocaleString()}₫
-                      </span>
                     </div>
 
                     <div className="text-sm text-gray-600">
                       <strong>Ngày mở:</strong>{" "}
                       {moment(selectedLog.unboxedAt).format("DD/MM/YYYY HH:mm")}
                     </div>
-                    <div className="text-sm text-gray-600">
-                      <strong>Lí do:</strong>
-                      <div className="mt-2 prose prose-sm max-w-none dark:prose-invert">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {selectedLog.reason}
-                        </ReactMarkdown>
+                    <div className="text-sm text-gray-700">
+                      <div className="mt-2 rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                        <div className="prose prose-sm max-w-none dark:prose-invert">
+                          <div
+                            className="prose prose-sm max-w-none dark:prose-invert"
+                            dangerouslySetInnerHTML={{
+                              __html: selectedLog.reason,
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
