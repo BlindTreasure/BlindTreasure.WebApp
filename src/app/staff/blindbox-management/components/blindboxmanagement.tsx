@@ -5,7 +5,8 @@ import { Package, ChevronRight, Clock, Sparkles, Check, X, Eye, Filter } from 'l
 import useGetAllBlindBoxes from '@/app/seller/allblindboxes/hooks/useGetAllBlindBoxes';
 import useReviewBlindbox from '../hooks/useReviewBlindbox'; // Import hook review
 import { GetBlindBoxes, BlindBox, BlindBoxListResponse } from '@/services/blindboxes/typings';
-
+import { Button } from '@/components/ui/button';
+import { SlRefresh } from "react-icons/sl";
 interface BlindBoxApprovalData {
   all: BlindBox[];
   PendingApproval: BlindBox[];
@@ -48,7 +49,7 @@ const RejectModal: React.FC<RejectModalProps> = ({ isOpen, onClose, onConfirm, b
           <p className="text-gray-600 mb-4">
             Bạn có chắc chắn muốn từ chối blind box <strong>"{boxName}"</strong>?
           </p>
-          
+
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -64,7 +65,7 @@ const RejectModal: React.FC<RejectModalProps> = ({ isOpen, onClose, onConfirm, b
                 disabled={isPending}
               />
             </div>
-            
+
             <div className="flex gap-3 justify-end">
               <button
                 type="button"
@@ -94,7 +95,7 @@ const BlindBoxApprovalDashboard: React.FC = () => {
   const router = useRouter();
   const { getAllBlindBoxesApi, isPending } = useGetAllBlindBoxes();
   const { onReview, isPending: isReviewPending } = useReviewBlindbox();
-  
+
   const [statusFilter, setStatusFilter] = useState<'all' | 'PendingApproval' | 'Approved' | 'Rejected'>('PendingApproval');
   const [blindBoxData, setBlindBoxData] = useState<BlindBoxApprovalData>({
     all: [],
@@ -109,7 +110,7 @@ const BlindBoxApprovalDashboard: React.FC = () => {
     Rejected: false
   });
   const [error, setError] = useState<string | null>(null);
-  
+
   // Reject Modal state
   const [rejectModal, setRejectModal] = useState<{
     isOpen: boolean;
@@ -145,7 +146,7 @@ const BlindBoxApprovalDashboard: React.FC = () => {
     try {
       const params = { ...baseParams, status };
       const response = await getAllBlindBoxesApi(params);
-      
+
       if (response?.value?.data) {
         const data = response.value.data.result || [];
         setBlindBoxData(prev => ({
@@ -178,7 +179,7 @@ const BlindBoxApprovalDashboard: React.FC = () => {
 
       const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
         pendingPromise,
-        approvedPromise, 
+        approvedPromise,
         rejectedPromise
       ]);
 
@@ -204,7 +205,7 @@ const BlindBoxApprovalDashboard: React.FC = () => {
   // Hàm refresh toàn bộ dữ liệu sau khi approve/reject
   const refreshAllData = async () => {
     setError(null);
-    
+
     try {
       // Gọi song song 3 API để lấy data mới nhất
       const [pendingPromise, approvedPromise, rejectedPromise] = [
@@ -215,7 +216,7 @@ const BlindBoxApprovalDashboard: React.FC = () => {
 
       const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
         pendingPromise,
-        approvedPromise, 
+        approvedPromise,
         rejectedPromise
       ]);
 
@@ -299,7 +300,7 @@ const BlindBoxApprovalDashboard: React.FC = () => {
   // Approve blindbox
   const handleApprove = async (box: BlindBox, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     onReview(
       {
         blindboxesId: box.id,
@@ -327,9 +328,9 @@ const BlindBoxApprovalDashboard: React.FC = () => {
     onReview(
       {
         blindboxesId: rejectModal.boxId,
-        reviewData: { 
-          approve: false, 
-          rejectReason: reason 
+        reviewData: {
+          approve: false,
+          rejectReason: reason
         }
       },
       () => {
@@ -371,7 +372,7 @@ const BlindBoxApprovalDashboard: React.FC = () => {
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-red-600">{error}</p>
-            <button 
+            <button
               onClick={() => statusFilter === 'all' ? fetchAllData() : fetchDataByStatus(statusFilter)}
               className="mt-2 text-red-700 underline"
             >
@@ -398,16 +399,21 @@ const BlindBoxApprovalDashboard: React.FC = () => {
                   key={filter.key}
                   onClick={() => handleFilterChange(filter.key as any)}
                   disabled={isCurrentLoading || isReviewPending}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
-                    statusFilter === filter.key
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-white text-gray-600 hover:text-gray-900 border border-gray-200'
-                  }`}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${statusFilter === filter.key
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-600 hover:text-gray-900 border border-gray-200'
+                    }`}
                 >
                   {filter.label} ({filter.count})
                 </button>
               ))}
             </div>
+          </div>
+          <div className='flex justify-end'>
+            <Button className='bg-green-500 hover:bg-opacity-80' onClick={refreshAllData}>
+              <SlRefresh />
+              Làm mới
+            </Button>
           </div>
         </div>
 
@@ -534,10 +540,10 @@ const BlindBoxApprovalDashboard: React.FC = () => {
           <div className="text-center py-12">
             <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {statusFilter === 'PendingApproval' ? 'Không có blind box nào chờ duyệt' : 
-               statusFilter === 'Approved' ? 'Không có blind box nào đã duyệt' :
-               statusFilter === 'Rejected' ? 'Không có blind box nào bị từ chối' :
-               'Không có blind box nào'}
+              {statusFilter === 'PendingApproval' ? 'Không có blind box nào chờ duyệt' :
+                statusFilter === 'Approved' ? 'Không có blind box nào đã duyệt' :
+                  statusFilter === 'Rejected' ? 'Không có blind box nào bị từ chối' :
+                    'Không có blind box nào'}
             </h3>
             <p className="text-gray-600">
               {statusFilter === 'PendingApproval' ? 'Tất cả blind box đã được xử lý' : 'Thử chọn bộ lọc khác'}
