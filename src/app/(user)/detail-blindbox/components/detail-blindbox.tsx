@@ -276,11 +276,11 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
           >
             {images.map((img, idx) => (
               <SwiperSlide key={`main-${idx}`}>
-                <div className="w-full flex items-center justify-center bg-black">
+                <div className="w-full flex items-center justify-center bg-white  p-2">
                   <img
                     src={img}
                     alt={`Main ${idx}`}
-                    className="max-w-full max-h-[80vh] object-contain cursor-pointer"
+                    className="max-w-full max-h-[60vh] object-contain cursor-pointer"
                     onClick={openSheet}
                   />
                 </div>
@@ -303,7 +303,7 @@ export default function BlindboxDetail({ blindBoxId }: BlindboxProps) {
                   <img
                     src={img}
                     alt={`Thumb ${idx}`}
-                    className="w-full h-20 object-contain rounded-md cursor-pointer border-2 hover:border-black bg-white"
+                    className="w-full h-16 object-contain rounded-md cursor-pointer border hover:border-black bg-white"
                     onClick={openSheet}
                   />
                 </SwiperSlide>

@@ -75,12 +75,29 @@ export const BlindboxItemSheet = ({ open, onClose, items }: Props) => {
                   />
                 </div>
               </div>
-              <div className="w-1/2 flex flex-col text-sm space-y-2">
-                <p className="text-xl font-semibold">{item.productName}</p>
-                <p className={`${getRarityColor(item.rarity)} font-medium`}>
-                  Độ hiếm: {getRarityLabel(item.rarity)}
+              <div className="w-1/2 flex flex-col justify-center space-y-3 px-2">
+                {/* Tên sản phẩm */}
+                <p className="text-2xl font-bold text-gray-900">
+                  {item.productName}
                 </p>
-                <p className="text-gray-700">Tỷ lệ rơi: {item.dropRate}%</p>
+
+                {/* Độ hiếm */}
+                <p
+                  className={`text-base font-medium ${getRarityColor(
+                    item.rarity
+                  )}`}
+                >
+                  Độ hiếm:{" "}
+                  <span className="font-semibold">
+                    {getRarityLabel(item.rarity)}
+                  </span>
+                </p>
+
+                {/* Tỷ lệ rơi */}
+                <p className="text-base text-gray-600">
+                  Tỷ lệ rơi:{" "}
+                  <span className="font-semibold">{item.dropRate}%</span>
+                </p>
               </div>
             </div>
           ))}
