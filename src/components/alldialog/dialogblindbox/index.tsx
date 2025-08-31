@@ -32,6 +32,11 @@ const BlindboxDetailDialog: React.FC<BlindboxDetailDialogProps> = ({ blindbox, i
                                 <div className="text-gray-700 dark:text-gray-300">
                                     <strong>Thương hiệu:</strong> {blindbox.brand}
                                 </div>
+                                {blindbox.rejectReason && (
+                                    <div className="text-gray-700 dark:text-gray-300">
+                                        <strong>Lí do bị từ chối:</strong> {blindbox.rejectReason}
+                                    </div>
+                                )}
                             </div>
                             <div className="space-y-2">
                                 <div className="text-gray-700 dark:text-gray-300">
