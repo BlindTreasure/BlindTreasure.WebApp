@@ -56,12 +56,12 @@ type Props = {
 };
 
 // Product Selection Modal Component
-const ProductSelectionModal = ({ 
-    products, 
-    selectedProductId, 
-    onSelectProduct, 
-    isOpen, 
-    onOpenChange 
+const ProductSelectionModal = ({
+    products,
+    selectedProductId,
+    onSelectProduct,
+    isOpen,
+    onOpenChange
 }: {
     products: ProductOption[];
     selectedProductId?: string;
@@ -70,7 +70,7 @@ const ProductSelectionModal = ({
     onOpenChange: (open: boolean) => void;
 }) => {
     const [searchTerm, setSearchTerm] = useState("");
-    
+
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -86,7 +86,7 @@ const ProductSelectionModal = ({
                 <DialogHeader>
                     <DialogTitle>Chọn sản phẩm</DialogTitle>
                 </DialogHeader>
-                
+
                 <div className="mb-4">
                     <Input
                         placeholder="Tìm kiếm sản phẩm..."
@@ -101,11 +101,10 @@ const ProductSelectionModal = ({
                         {filteredProducts.map((product) => (
                             <div
                                 key={product.id}
-                                className={`relative border p-3 cursor-pointer transition-all hover:shadow-md ${
-                                    selectedProductId === product.id
+                                className={`relative border p-3 cursor-pointer transition-all hover:shadow-md ${selectedProductId === product.id
                                         ? 'border-blue-500 bg-blue-50 shadow-md'
                                         : 'border-gray-200 hover:border-gray-300'
-                                }`}
+                                    }`}
                                 onClick={() => handleSelectProduct(product.id)}
                             >
                                 {selectedProductId === product.id && (
@@ -113,7 +112,7 @@ const ProductSelectionModal = ({
                                         <Check className="w-3 h-3" />
                                     </div>
                                 )}
-                                
+
                                 <div className="aspect-square mb-2 overflow-hidden bg-gray-100">
                                     {product.imageUrls && product.imageUrls.length > 0 ? (
                                         <img
@@ -130,7 +129,7 @@ const ProductSelectionModal = ({
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 <div>
                                     <h4 className="font-medium text-sm line-clamp-2">
                                         {product.name}
@@ -139,7 +138,7 @@ const ProductSelectionModal = ({
                             </div>
                         ))}
                     </div>
-                    
+
                     {filteredProducts.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                             <GiftIcon className="w-12 h-12 mb-4" />
@@ -153,18 +152,18 @@ const ProductSelectionModal = ({
 };
 
 // Selected Product Display Component
-const SelectedProductDisplay = ({ 
-    product, 
-    onClear, 
-    onClick 
-}: { 
-    product?: ProductOption; 
+const SelectedProductDisplay = ({
+    product,
+    onClear,
+    onClick
+}: {
+    product?: ProductOption;
     onClear: () => void;
     onClick: () => void;
 }) => {
     if (!product) {
         return (
-            <div 
+            <div
                 className="border-2 border-dashed border-gray-300 p-4 cursor-pointer hover:border-gray-400 transition-colors"
                 onClick={onClick}
             >
@@ -177,7 +176,7 @@ const SelectedProductDisplay = ({
     }
 
     return (
-        <div 
+        <div
             className="relative border border-gray-200 p-3 cursor-pointer hover:shadow-md transition-all group"
             onClick={onClick}
         >
@@ -191,7 +190,7 @@ const SelectedProductDisplay = ({
             >
                 <X className="w-3 h-3" />
             </button>
-            
+
             <div className="flex items-center justify-center gap-3">
                 <div className="w-16 h-16 overflow-hidden bg-gray-100 flex-shrink-0">
                     {product.imageUrls && product.imageUrls.length > 0 ? (
@@ -209,7 +208,7 @@ const SelectedProductDisplay = ({
                         </div>
                     )}
                 </div>
-                
+
                 <div className="flex-1 min-w-0 text-center">
                     <h4 className="font-medium text-sm line-clamp-2">
                         {product.name}
@@ -455,7 +454,7 @@ export const AddItemToBlindboxForm = ({
                             />
                         </div>
 
-                        <div>
+                        {/* <div>
                             <Label className="mb-2 block text-center">Số lượng</Label>
                             <Input
                                 type="text"
@@ -463,6 +462,24 @@ export const AddItemToBlindboxForm = ({
                                 value={item.quantity?.toString() ?? ""}
                                 onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
                                 onWheel={(e) => e.currentTarget.blur()}
+                                placeholder="Nhập số lượng"
+                                className="w-full text-center"
+                            />
+                        </div> */}
+
+                        <div>
+                            <Label className="mb-2 block text-center">Số lượng</Label>
+                            <Input
+                                type="number"
+                                min={1}
+                                step={1}
+                                value={item.quantity || ''}
+                                onChange={(e) => {
+                                    const value = parseInt(e.target.value) || 0;
+                                    handleItemChange(index, "quantity", value);
+                                }}
+                                onWheel={(e) => e.currentTarget.blur()}
+                                placeholder="Nhập số lượng"
                                 className="w-full text-center"
                             />
                         </div>
@@ -570,7 +587,7 @@ export const AddItemToBlindboxForm = ({
                         Thêm sản phẩm vào túi
                     </Button>
                 </div>
-                {error && ( 
+                {error && (
                     <Alert variant="destructive" className="mb-4">
                         <ExclamationTriangleIcon className="h-4 w-4" />
                         <AlertTitle>Lỗi</AlertTitle>
