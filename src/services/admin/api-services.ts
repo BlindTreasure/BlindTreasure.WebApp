@@ -1,6 +1,6 @@
 import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/admin/api-path";
-import { ConfirmPayoutRequest, GetOrderParams, OrderResponse, PayoutHistoryItem, PayoutHistoryParams, PayoutHistoryResponse, GetInventoryOnHoldParams, InventoryOnHoldResponse, TransactionsParams, StripeTransactionResponse, StripeTransaction } from "./typings";
+import { ConfirmPayoutRequest, GetOrderParams, OrderResponse, PayoutHistoryItem, PayoutHistoryParams, PayoutHistoryResponse, GetInventoryOnHoldParams, InventoryOnHoldResponse, TransactionsParams, StripeTransactionResponse, StripeTransaction, ShipmentsParams, ShipmentResponse } from "./typings";
 import { InventoryItem } from "@/services/inventory-item/typings"
 
 export const getOrderByAdmin = async (params?: GetOrderParams) => {
@@ -99,6 +99,17 @@ export const getTransactionId = async (id: string) => {
     API_ENDPOINTS.DETAIL_TRANSACTIONS(id),
     {
       method: "GET",
+    }
+  );
+  return response.data;
+};
+
+export const getShipmetsByAdmin = async (params?: ShipmentsParams) => {
+  const response = await request<TResponseData<ShipmentResponse>>(
+    API_ENDPOINTS.SHIPMENT_LIST,
+    {
+      method: "GET",
+      params,
     }
   );
   return response.data;
