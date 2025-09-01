@@ -19,6 +19,7 @@ import { BsCardChecklist } from "react-icons/bs";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
 import { AiOutlineTransaction } from "react-icons/ai";
 import { BsBagCheck } from "react-icons/bs";
+import { SlLock } from "react-icons/sl";
 
 export default function AdminSidebar() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -159,6 +160,23 @@ export default function AdminSidebar() {
                 Hoàn thành đơn hàng túi đồ
               </span>
             </Link>
+
+            <li>
+              <Link
+                href="/admin/archived"
+                className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md"
+              >
+                <div className="flex items-center justify-center w-8 h-8">
+                  <SlLock size={20} />
+                </div>
+                <span
+                  className={`${staffState.openSidebar || isMobile ? "block" : "hidden"
+                    } truncate`}
+                >
+                  Đơn hàng tồn quá hạn
+                </span>
+              </Link>
+            </li>
 
             <li>
               <Link

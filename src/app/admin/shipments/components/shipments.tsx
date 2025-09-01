@@ -167,7 +167,6 @@ export default function Shipments() {
                                         {Object.values(ShipmentStatus).map((s) => (
                                             <SelectItem key={s} value={s}>{ShipmentStatusText[s]}</SelectItem>
                                         ))}
-
                                     </SelectContent>
                                 </Select>
                             </div>
