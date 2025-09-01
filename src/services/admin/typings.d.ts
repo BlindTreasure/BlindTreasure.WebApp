@@ -24,6 +24,26 @@ export type GetOrderParams = {
   pageSize?: number;
 };
 
+export type ShipmentsParams = {
+  search?: string;
+  status?: string;
+  minTotalFee?: number;
+  maxTotalFee?: number;
+  fromEstimatedPickupTime?: string;
+  toEstimatedPickupTime?: string;
+  pageIndex?: number;
+  pageSize?: number;
+  desc?: boolean;
+};
+
+export type ShipmentResponse = {
+  result: Shipment[];
+  count: number;
+  pageSize: number;
+  currentPage: number;
+  totalPages: number;
+};
+
 export type GetInventoryOnHoldParams = {
   pageIndex?: number;
   pageSize?: number;
@@ -295,9 +315,9 @@ export type Payout = {
 };
 
 export type TransactionsParams = {
-  sellerId?: string; 
+  sellerId?: string;
   transferredFrom?: string;
-  transferredTo?: string; 
+  transferredTo?: string;
   minAmount?: number;
   maxAmount?: number;
   isInitiatedBySystem?: boolean;

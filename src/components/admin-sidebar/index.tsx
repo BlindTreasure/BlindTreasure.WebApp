@@ -18,6 +18,7 @@ import { BsThreeDots } from "react-icons/bs";
 import { BsCardChecklist } from "react-icons/bs";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
 import { AiOutlineTransaction } from "react-icons/ai";
+import { BsBagCheck } from "react-icons/bs";
 
 export default function AdminSidebar() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -64,15 +65,14 @@ export default function AdminSidebar() {
 
       <aside
         className={`fixed lg:static z-50 h-screen bg-gray-900 text-white transition-all duration-300
-    ${
-      isMobile
-        ? staffState.openSidebar
-          ? "w-72"
-          : "w-0 overflow-hidden"
-        : staffState.openSidebar
-        ? "w-72"
-        : "w-20"
-    }`}
+    ${isMobile
+            ? staffState.openSidebar
+              ? "w-72"
+              : "w-0 overflow-hidden"
+            : staffState.openSidebar
+              ? "w-72"
+              : "w-20"
+          }`}
       >
         <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-700">
           <div className="rounded-full w-16 h-16 flex items-center justify-center font-bold text-xs">
@@ -92,9 +92,8 @@ export default function AdminSidebar() {
         <div className="p-4 w-full">
           <ul className="space-y-1">
             <li
-              className={`flex items-center pt-4 text-sm font-semibold text-gray-400 h-10 ${
-                staffState.openSidebar ? "justify-start" : "justify-center"
-              }`}
+              className={`flex items-center pt-4 text-sm font-semibold text-gray-400 h-10 ${staffState.openSidebar ? "justify-start" : "justify-center"
+                }`}
             >
               {staffState.openSidebar ? (
                 <div className="transition-all duration-300 truncate w-full opacity-100">
@@ -120,9 +119,8 @@ export default function AdminSidebar() {
                     <LayoutDashboard size={20} />
                   </div>
                   <span
-                    className={`${
-                      staffState.openSidebar || isMobile ? "block" : "hidden"
-                    } truncate`}
+                    className={`${staffState.openSidebar || isMobile ? "block" : "hidden"
+                      } truncate`}
                   >
                     Tổng quan
                   </span>
@@ -139,14 +137,28 @@ export default function AdminSidebar() {
                   <BsCardChecklist size={20} />
                 </div>
                 <span
-                  className={`${
-                    staffState.openSidebar || isMobile ? "block" : "hidden"
-                  } truncate`}
+                  className={`${staffState.openSidebar || isMobile ? "block" : "hidden"
+                    } truncate`}
                 >
-                  Đơn hàng
+                  Hoàn thành đơn hàng
                 </span>
               </Link>
             </li>
+
+            <Link
+              href="/admin/shipments"
+              className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-md"
+            >
+              <div className="flex items-center justify-center w-8 h-8">
+                <BsBagCheck size={20} />
+              </div>
+              <span
+                className={`${staffState.openSidebar || isMobile ? "block" : "hidden"
+                  } truncate`}
+              >
+                Hoàn thành đơn hàng túi đồ
+              </span>
+            </Link>
 
             <li>
               <Link
@@ -157,9 +169,8 @@ export default function AdminSidebar() {
                   <FaMoneyBillTransfer size={20} />
                 </div>
                 <span
-                  className={`${
-                    staffState.openSidebar || isMobile ? "block" : "hidden"
-                  } truncate`}
+                  className={`${staffState.openSidebar || isMobile ? "block" : "hidden"
+                    } truncate`}
                 >
                   Duyệt yêu cầu rút tiền
                 </span>
@@ -175,9 +186,8 @@ export default function AdminSidebar() {
                   <FileChartColumn size={20} />
                 </div>
                 <span
-                  className={`${
-                    staffState.openSidebar || isMobile ? "block" : "hidden"
-                  } truncate`}
+                  className={`${staffState.openSidebar || isMobile ? "block" : "hidden"
+                    } truncate`}
                 >
                   Quản lí trạng thái Tạm Giữ
                 </span>
@@ -193,9 +203,8 @@ export default function AdminSidebar() {
                   <ArrowRightLeft size={20} />
                 </div>
                 <span
-                  className={`${
-                    staffState.openSidebar || isMobile ? "block" : "hidden"
-                  } truncate`}
+                  className={`${staffState.openSidebar || isMobile ? "block" : "hidden"
+                    } truncate`}
                 >
                   Quản lý yêu cầu Trao đổi
                 </span>
@@ -211,9 +220,8 @@ export default function AdminSidebar() {
                   <AiOutlineTransaction size={20} />
                 </div>
                 <span
-                  className={`${
-                    staffState.openSidebar || isMobile ? "block" : "hidden"
-                  } truncate`}
+                  className={`${staffState.openSidebar || isMobile ? "block" : "hidden"
+                    } truncate`}
                 >
                   Lịch sử giao dịch
                 </span>

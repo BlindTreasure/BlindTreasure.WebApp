@@ -17,6 +17,7 @@ import { useServiceProcessPayout } from "@/services/payout/services";
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import UploadProofDialog from "./UploadProofDialog";
 import ProofImageGrid from "./ProofImageGrid";
+import { SlRefresh } from "react-icons/sl";
 export default function Payouts() {
   const { isPending, getPayoutsApi } = useGetPayouts();
   const { mutate: approvePayout, isPending: isApproving } = useServiceProcessPayout();
@@ -81,6 +82,7 @@ export default function Payouts() {
             <h2 className="text-xl font-semibold pt-4">Lịch sử thanh toán</h2>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex flex-wrap gap-4 items-center">
+                <Button className='bg-green-500 hover:bg-opacity-80' onClick={fetchData}><SlRefresh />Làm mới</Button>
                 <Select value={status} onValueChange={setStatus}>
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Trạng thái thanh toán" />
@@ -234,7 +236,7 @@ export default function Payouts() {
                         </div>
                       </td>
 
-                      <td className="p-3 border text-center">
+                      {/* <td className="p-3 border text-center">
                         {item.status === PayoutStatus.REQUESTED ? (
                           <Button
                             size="sm"
@@ -243,6 +245,25 @@ export default function Payouts() {
                             })}
                             disabled={isApproving}
                             className="bg-green-500 hover:bg-opacity-80"
+                          >
+                            {isApproving ? "Đang duyệt..." : "Duyệt"}
+                          </Button>
+                        ) : (
+                          <span className="text-gray-400 text-sm">—</span>
+                        )}
+                      </td> */}
+
+                      <td className="p-3 border text-center">
+                        {item.status === PayoutStatus.REQUESTED ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isApproving}
+                            onClick={() =>
+                              approvePayout(item.sellerId, {
+                                onSuccess: () => fetchData(),
+                              })
+                            }
                           >
                             {isApproving ? "Đang duyệt..." : "Duyệt"}
                           </Button>
