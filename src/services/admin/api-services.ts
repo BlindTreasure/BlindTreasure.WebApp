@@ -158,3 +158,14 @@ export const getUserAdmin = async (params?: UserParams) => {
   );
   return response.data;
 };
+
+export const updateInventoryItemStatus = async (id: string, status: string) => {
+  const response = await request<TResponseData<InventoryItem>>(
+    API_ENDPOINTS.STATUS_INVENTORY_ITEMS(id), 
+    {
+      method: "PUT",
+      data: { status }, 
+    }
+  );
+  return response.data;
+};

@@ -17,6 +17,7 @@ import { closeSidebar, openSidebar } from "@/stores/difference-slice";
 import { CiAlignLeft } from "react-icons/ci";
 import { BsThreeDots } from "react-icons/bs";
 import { ChatIcon } from "@/icons";
+import { SlLockOpen } from "react-icons/sl";
 
 const sidebarItems = [
   {
@@ -77,6 +78,11 @@ const sidebarItems = [
     label: "Lịch sử đơn hàng",
     icon: ListOrdered,
     href: "/seller/order-history",
+  },
+  {
+    label: "Mở lại đơn lưu trữ",
+    icon: SlLockOpen,
+    href: "/seller/archived",
   },
   {
     label: "Nhắn tin",

@@ -10,6 +10,7 @@ const DETAIL_TRANSACTIONS = (id: string) => `${ADMIN}/stripe-transactions/${id}`
 const SHIPMENT_LIST = ADMIN + "/shipments"
 const INVENTORY_ITEMS = ADMIN + "/inventory-items"
 const USER = ADMIN + "/users"
+const STATUS_INVENTORY_ITEMS = (id: string) => `${ADMIN}/inventory-items/${id}/status`
 
 export default {
   ADMIN,
@@ -23,5 +24,6 @@ export default {
   DETAIL_TRANSACTIONS,
   SHIPMENT_LIST,
   INVENTORY_ITEMS,
-  USER
+  USER,
+  STATUS_INVENTORY_ITEMS
 };
