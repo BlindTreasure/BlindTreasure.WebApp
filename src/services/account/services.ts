@@ -92,9 +92,9 @@ export const useServiceGetSellerProfile = (options?: { enabled?: boolean }) => {
     enabled: options?.enabled ?? true,
 
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchInterval: false,
-    staleTime: Infinity,
+    staleTime: 0,
     cacheTime: 0,
     
     onError: (error: Error) => {
