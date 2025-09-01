@@ -1,7 +1,25 @@
 import request from "@/services/interceptor";
 import API_ENDPOINTS from "@/services/admin/api-path";
-import { ConfirmPayoutRequest, GetOrderParams, OrderResponse, PayoutHistoryItem, PayoutHistoryParams, PayoutHistoryResponse, GetInventoryOnHoldParams, InventoryOnHoldResponse, TransactionsParams, StripeTransactionResponse, StripeTransaction, ShipmentsParams, ShipmentResponse } from "./typings";
-import { InventoryItem } from "@/services/inventory-item/typings"
+import {
+  ConfirmPayoutRequest,
+  GetOrderParams,
+  OrderResponse,
+  PayoutHistoryItem,
+  PayoutHistoryParams,
+  PayoutHistoryResponse,
+  GetInventoryOnHoldParams,
+  InventoryOnHoldResponse,
+  TransactionsParams,
+  StripeTransactionResponse,
+  StripeTransaction,
+  ShipmentsParams,
+  ShipmentResponse,
+  InventoryResponse,
+  InventoryParams,
+  UserParams,
+  UserResponse,
+} from "./typings";
+import { InventoryItem } from "@/services/inventory-item/typings";
 
 export const getOrderByAdmin = async (params?: GetOrderParams) => {
   const response = await request<TResponseData<OrderResponse>>(
@@ -50,22 +68,26 @@ export const confirmPayout = async (
   return response.data;
 };
 
-export const forceReleaseHold = async (inventoryItemId: string): Promise<TResponseData<InventoryItem>> => {
+export const forceReleaseHold = async (
+  inventoryItemId: string
+): Promise<TResponseData<InventoryItem>> => {
   const response = await request<TResponseData<InventoryItem>>(
     API_ENDPOINTS.FORCE_RELEASE_HOLD(inventoryItemId),
     {
-      method: "POST", 
+      method: "POST",
     }
   );
 
   return response.data;
 };
 
-export const forceTimeout = async (tradeRequestId: string): Promise<TResponseData<API.TradeRequest>> => {
+export const forceTimeout = async (
+  tradeRequestId: string
+): Promise<TResponseData<API.TradeRequest>> => {
   const response = await request<TResponseData<API.TradeRequest>>(
     API_ENDPOINTS.FORCE_TIMEOUT(tradeRequestId),
     {
-      method: "POST", 
+      method: "POST",
     }
   );
 
@@ -107,6 +129,28 @@ export const getTransactionId = async (id: string) => {
 export const getShipmetsByAdmin = async (params?: ShipmentsParams) => {
   const response = await request<TResponseData<ShipmentResponse>>(
     API_ENDPOINTS.SHIPMENT_LIST,
+    {
+      method: "GET",
+      params,
+    }
+  );
+  return response.data;
+};
+
+export const getItemInventoryAdmin = async (params?: InventoryParams) => {
+  const response = await request<TResponseData<InventoryResponse>>(
+    API_ENDPOINTS.INVENTORY_ITEMS,
+    {
+      method: "GET",
+      params,
+    }
+  );
+  return response.data;
+};
+
+export const getUserAdmin = async (params?: UserParams) => {
+  const response = await request<TResponseData<UserResponse>>(
+    API_ENDPOINTS.USER,
     {
       method: "GET",
       params,

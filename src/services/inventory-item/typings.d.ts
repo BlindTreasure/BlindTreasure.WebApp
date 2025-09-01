@@ -144,3 +144,4 @@ export type Shipment = {
   status: ShipmentStatus;
   inventoryItems: any[];
 };
+

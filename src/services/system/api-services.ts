@@ -9,3 +9,12 @@ export const getOrderByAdmin = async (data?: CompletedParams) => {
   });
   return response.data;
 };
+
+export const itemInventoryArchived = async (inventoryItemId: string) => {
+  const response = await request(API_ENDPOINTS.INVENTORY_ITEM_ARCHIVED(inventoryItemId),
+    {
+      method: "POST",
+    }
+  );
+  return response.data;
+};

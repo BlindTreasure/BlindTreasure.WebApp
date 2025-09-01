@@ -58,3 +58,31 @@ export const sampleQuestions = [
       "Chúng tôi hỗ trợ đổi trả đối với các sản phẩm lỗi hoặc không đúng mô tả (không áp dụng cho Blindbox đã mở). Vui lòng liên hệ bộ phận CSKH để được hỗ trợ.",
   },
 ];
+
+export enum UserStatus {
+  Active = "Active",
+  Locked = "Locked",
+  Suspended = "Suspended",
+  Pending = "Pending",
+}
+
+export const UserStatusText: Record<UserStatus, string> = {
+  [UserStatus.Active]: "Hoạt động",
+  [UserStatus.Locked]: "Bị khóa",
+  [UserStatus.Suspended]: "Bị đình chỉ",
+  [UserStatus.Pending]: "Đang chờ duyệt",
+};
+
+export enum UserRole {
+  Seller = "Seller",
+  Customer = "Customer",
+  Staff = "Staff",
+  Admin = "Admin",
+}
+
+export const UserRoleText: Record<UserRole, string> = {
+  [UserRole.Seller]: "Người bán",
+  [UserRole.Customer]: "Khách hàng",
+  [UserRole.Staff]: "Nhân viên",
+  [UserRole.Admin]: "Quản trị viên",
+};
