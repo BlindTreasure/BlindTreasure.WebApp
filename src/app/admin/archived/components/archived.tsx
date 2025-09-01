@@ -42,6 +42,7 @@ export default function Archived() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [selectedCustomer, setSelectedCustomer] = useState<string>("all");
+  const [isFromBlindBox, setIsFromBlindBox] = useState<boolean | undefined>(undefined);
 
   const statusBadgeClass = (s: InventoryItemStatus) => {
     switch (s) {
@@ -69,6 +70,7 @@ export default function Archived() {
       search: search || undefined,
       status: status !== "all" ? status : undefined,
       userId: selectedCustomer !== "all" ? selectedCustomer : undefined,
+      isFromBlindBox: isFromBlindBox,
     };
 
     const res = await getInventoryByAdminApi(params);
@@ -88,7 +90,7 @@ export default function Archived() {
 
   useEffect(() => {
     fetchData();
-  }, [paging.pageIndex, paging.pageSize, status, search]);
+  }, [paging.pageIndex, paging.pageSize, status, search, selectedCustomer, isFromBlindBox]);
 
   const { mutate: archiveItem, isPending: isArchiving } = useInventoryItemArchived({
     onSuccess: () => {
@@ -110,11 +112,6 @@ export default function Archived() {
     fetchCustomers();
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [paging.pageIndex, paging.pageSize, status, search, selectedCustomer]);
-
-
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > paging.totalPages) return;
     setPaging((prev) => ({ ...prev, pageIndex: newPage }));
@@ -131,56 +128,75 @@ export default function Archived() {
     <div className="p-4">
       <Card className="shadow-lg rounded-lg border border-gray-200">
         <CardContent className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold mb-4 pt-4">
-              Kho lưu trữ
-            </h2>
+          <div className="flex flex-col gap-4">
+            <div>
+              <h2 className="text-xl font-semibold pt-4">
+                Kho lưu trữ
+              </h2>
+            </div>
 
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex flex-wrap gap-4 items-center mt-4">
-                <Button
-                  className="bg-green-500 hover:bg-opacity-80"
-                  onClick={fetchData}
-                >
-                  <SlRefresh className="mr-2" />
-                  Làm mới
-                </Button>
+            <div className="flex flex-wrap gap-4 items-center mx-auto">
+              <Button
+                className="bg-green-500 hover:bg-opacity-80"
+                onClick={fetchData}
+              >
+                <SlRefresh className="mr-2" />
+                Làm mới
+              </Button>
 
-                <div className="relative w-56">
-                  <CiSearch className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4" />
-                  <Input
-                    placeholder="Tìm kiếm"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-
-                <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger className="w-52">
-                    <SelectValue placeholder="Trạng thái" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                    {Object.values(InventoryItemStatus).map((i) => (
-                      <SelectItem key={i} value={i}>{InventoryItemStatusText[i]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
-                  <SelectTrigger className="w-52">
-                    <SelectValue placeholder="Khách hàng" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả khách hàng</SelectItem>
-                    {customers.map((c) => (
-                      <SelectItem key={c.userId} value={c.userId}>
-                        {c.fullName || c.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="relative w-56">
+                <CiSearch className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4" />
+                <Input
+                  placeholder="Tìm kiếm"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-8"
+                />
               </div>
+
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger className="w-52">
+                  <SelectValue placeholder="Trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  {Object.values(InventoryItemStatus).map((i) => (
+                    <SelectItem key={i} value={i}>{InventoryItemStatusText[i]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
+                <SelectTrigger className="w-52">
+                  <SelectValue placeholder="Khách hàng" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả khách hàng</SelectItem>
+                  {customers.map((c) => (
+                    <SelectItem key={c.userId} value={c.userId}>
+                      {c.fullName || c.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={isFromBlindBox === undefined ? "all" : isFromBlindBox ? "blindbox" : "product"}
+                onValueChange={(val) => {
+                  if (val === "all") setIsFromBlindBox(undefined);
+                  else if (val === "blindbox") setIsFromBlindBox(true);
+                  else setIsFromBlindBox(false);
+                }}
+              >
+                <SelectTrigger className="w-52">
+                  <SelectValue placeholder="Loại" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
+                  <SelectItem value="product">Sản phẩm thường</SelectItem>
+                  <SelectItem value="blindbox">BlindBox</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

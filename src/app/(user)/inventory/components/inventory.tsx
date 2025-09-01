@@ -27,7 +27,7 @@ import useRequestShipment from '../hooks/useRequestShipment'
 import useGetAllAddress from '../../address-list/hooks/useGetAllAddress'
 import { InventoryItem as WonInventoryItem, ShipmentPreview } from '@/services/inventory-item/typings'
 import { InventoryItemStatus, InventoryItemStatusText } from '@/const/products'
-import MarketplaceListing from '@/app/(user)/marketplace/create/components/createListing'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface InventoryItem {
     id: string
@@ -87,6 +87,7 @@ export default function Inventory() {
     const [totalCount, setTotalCount] = useState(0)
     const [blindboxFilter, setBlindboxFilter] = useState<'all' | 'opened' | 'unopened'>('all')
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+    const [itemTypeFilter, setItemTypeFilter] = useState<'all' | 'product' | 'blindbox'>('all')
 
     const { handleUnbox, isUnboxing } = useUnbox()
     const [showPrizeDialog, setShowPrizeDialog] = useState(false)
@@ -162,10 +163,24 @@ export default function Inventory() {
                         setTotalCount(blindboxRes.value.data.count)
                     }
                 } else if (activeTab === 'all') {
-                    const paginationParams = {
+                    const paginationParams: {
+                        pageIndex: number,
+                        pageSize: number,
+                        status?: string,
+                        isFromBlindBox?: boolean
+                    } = {
                         pageIndex: currentPage,
                         pageSize: PAGE_SIZE,
-                        status: statusFilter === 'all' ? undefined : statusFilter
+                    };
+
+                    if (statusFilter !== 'all') {
+                        paginationParams.status = statusFilter;
+                    }
+
+                    if (itemTypeFilter === 'product') {
+                        paginationParams.isFromBlindBox = false;
+                    } else if (itemTypeFilter === 'blindbox') {
+                        paginationParams.isFromBlindBox = true;
                     }
 
                     const itemRes = await getAllItemInventoryApi(paginationParams)
@@ -204,7 +219,7 @@ export default function Inventory() {
         }
 
         fetchInventory()
-    }, [activeTab, currentPage, blindboxFilter, statusFilter])
+    }, [activeTab, currentPage, blindboxFilter, statusFilter, itemTypeFilter])
 
     useEffect(() => {
         getAllAddressApi()
@@ -288,7 +303,8 @@ export default function Inventory() {
             ((item.type === 'product' && !item.isFromBlindBox) ||
                 (item.type === 'product' && item.isFromBlindBox)) &&
             item.inventoryItemStatus !== InventoryItemStatus.Delivering &&
-            item.inventoryItemStatus !== InventoryItemStatus.Delivered
+            item.inventoryItemStatus !== InventoryItemStatus.Delivered &&
+            item.inventoryItemStatus !== InventoryItemStatus.Archived
         )
 
         if (selectedItems.length === selectableItems.length) {
@@ -387,9 +403,15 @@ export default function Inventory() {
         }
     }
 
-    // Hàm để xử lý filter status
+    const handleItemTypeFilterChange = (type: 'all' | 'product' | 'blindbox') => {
+        setItemTypeFilter(type);
+        setStatusFilter('all');
+        setCurrentPage(1);
+    };
+
     const handleStatusFilter = (status: StatusFilter) => {
         setStatusFilter(status)
+        setItemTypeFilter('all');
         setCurrentPage(1)
     }
 
@@ -449,19 +471,39 @@ export default function Inventory() {
 
             {/* Filter cho products */}
             {activeTab === 'all' && (
-                <div className="mt-4 mb-2 px-9">
-                    <div className="flex flex-wrap gap-2 justify-center">
-                        {statusFilters.map((status) => (
-                            <Button
-                                key={status}
-                                variant={statusFilter === status ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => handleStatusFilter(status)}
-                                className="text-xs sm:text-sm"
-                            >
-                                {statusDisplayMap[status]}
-                            </Button>
-                        ))}
+                <div className="mt-4 mb-2 px-10 flex justify-end">
+                    <div className="flex gap-4 justify-center w-fit">
+                        {/* Select loại item */}
+                        <Select
+                            value={itemTypeFilter}
+                            onValueChange={handleItemTypeFilterChange}
+                        >
+                            <SelectTrigger className="min-w-[150px]">
+                                <SelectValue placeholder="Chọn loại" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Tất cả</SelectItem>
+                                <SelectItem value="product">Sản phẩm</SelectItem>
+                                <SelectItem value="blindbox">Blindbox</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        {/* Select trạng thái */}
+                        <Select
+                            value={statusFilter}
+                            onValueChange={handleStatusFilter}
+                        >
+                            <SelectTrigger className="min-w-[150px]">
+                                <SelectValue placeholder="Chọn trạng thái" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {statusFilters.map((status) => (
+                                    <SelectItem key={status} value={status}>
+                                        {statusDisplayMap[status]}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
             )}
@@ -617,19 +659,6 @@ export default function Inventory() {
                                         </div>
                                     ) : (
                                         <div className="flex gap-2 w-full">
-                                            {/* {item.type === 'product' && !item.isFromBlindBox && (
-                                                <Button
-                                                    onClick={() => handleDeliver(item.id)}
-                                                    disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering || item.inventoryItemStatus === InventoryItemStatus.Delivered}
-                                                    className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                                >
-                                                    {item.inventoryItemStatus === InventoryItemStatus.Delivering
-                                                        ? 'Đang giao hàng'
-                                                        : item.inventoryItemStatus === InventoryItemStatus.Delivered
-                                                            ? 'Đã giao hàng'
-                                                            : 'Giao hàng'}
-                                                </Button>
-                                            )} */}
                                             {item.type === 'product' && !item.isFromBlindBox && (
                                                 item.inventoryItemStatus === InventoryItemStatus.Archived ? (
                                                     <Button
@@ -657,28 +686,42 @@ export default function Inventory() {
                                             )}
 
                                             {item.type === 'product' && item.isFromBlindBox && (
-                                                <>
-                                                    {item.inventoryItemStatus !== InventoryItemStatus.Delivering && item.inventoryItemStatus !== InventoryItemStatus.Delivered && (
-                                                        <Button
-                                                            onClick={() => handleResellItem(item.id)}
-                                                            className="flex-1 border border-orange-600 text-orange-600 bg-transparent hover:bg-orange-600 hover:text-white transition"
-                                                        >
-                                                            Đổi hàng
-                                                        </Button>
-                                                    )}
+                                                item.inventoryItemStatus === InventoryItemStatus.Archived ? (
                                                     <Button
-                                                        onClick={() => handleDeliver(item.id)}
-                                                        disabled={item.inventoryItemStatus === InventoryItemStatus.Delivering || item.inventoryItemStatus === InventoryItemStatus.Delivered}
-                                                        className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        disabled
+                                                        className="flex-1 border border-gray-400 text-gray-400 bg-gray-100 cursor-not-allowed"
                                                     >
-                                                        {item.inventoryItemStatus === InventoryItemStatus.Delivering
-                                                            ? 'Đang giao hàng'
-                                                            : item.inventoryItemStatus === InventoryItemStatus.Delivered
-                                                                ? 'Đã giao hàng'
-                                                                : 'Giao hàng'}
+                                                        Đã lưu trữ
                                                     </Button>
-                                                </>
+                                                ) : (
+                                                    <>
+                                                        {item.inventoryItemStatus !== InventoryItemStatus.Delivering &&
+                                                            item.inventoryItemStatus !== InventoryItemStatus.Delivered && (
+                                                                <Button
+                                                                    onClick={() => handleResellItem(item.id)}
+                                                                    className="flex-1 border border-orange-600 text-orange-600 bg-transparent hover:bg-orange-600 hover:text-white transition"
+                                                                >
+                                                                    Đổi hàng
+                                                                </Button>
+                                                            )}
+                                                        <Button
+                                                            onClick={() => handleDeliver(item.id)}
+                                                            disabled={
+                                                                item.inventoryItemStatus === InventoryItemStatus.Delivering ||
+                                                                item.inventoryItemStatus === InventoryItemStatus.Delivered
+                                                            }
+                                                            className="flex-1 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            {item.inventoryItemStatus === InventoryItemStatus.Delivering
+                                                                ? 'Đang giao hàng'
+                                                                : item.inventoryItemStatus === InventoryItemStatus.Delivered
+                                                                    ? 'Đã giao hàng'
+                                                                    : 'Giao hàng'}
+                                                        </Button>
+                                                    </>
+                                                )
                                             )}
+
                                             {item.type === 'blindbox' && item.status === 'unopened' && (
                                                 <Button
                                                     onClick={() => handleOpenBox(item.id)}
