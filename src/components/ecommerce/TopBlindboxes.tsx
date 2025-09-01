@@ -89,11 +89,183 @@
 //   );
 // }
 
+// "use client";
+// import React, { useState, useEffect } from "react";
+// import { getSellerStatisticsTopBlindBoxes } from "@/services/seller-dashboard/api-services";
+// import { StatisticRange, StatisticRangeText } from "@/const/seller";
+// import { SellerStatisticsTopBlindboxes } from "@/services/seller-dashboard/typings";
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow,
+// } from "@/components/ui/table";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+// import { Input } from "@/components/ui/input";
+// import { Button } from "@/components/ui/button";
+
+// export default function TopBlindboxes() {
+//   const [topBlindboxes, setTopBlindboxes] = useState<SellerStatisticsTopBlindboxes[]>([]);
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [range, setRange] = useState<StatisticRange>(StatisticRange.DAY);
+//   const [fromDate, setFromDate] = useState<string>("");
+//   const [toDate, setToDate] = useState<string>("");
+
+//   const fetchTopBlindboxes = async () => {
+//     setIsLoading(true);
+//     try {
+//       const params: any = { range };
+//       if (range === StatisticRange.CUSTOM && fromDate && toDate) {
+//         params.from = fromDate;
+//         params.to = toDate;
+//       }
+
+//       const response = await getSellerStatisticsTopBlindBoxes(params);
+//       if (response.value?.data) {
+//         setTopBlindboxes(response.value.data);
+//       } else {
+//         setTopBlindboxes([]);
+//       }
+//     } catch (error) {
+//       console.error("Error fetching top blindboxes:", error);
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (range !== StatisticRange.CUSTOM) {
+//       fetchTopBlindboxes();
+//     }
+//   }, [range]);
+
+//   const handleCustomSubmit = () => {
+//     if (fromDate && toDate) {
+//       fetchTopBlindboxes();
+//     }
+//   };
+
+//   const formatCurrency = (num: number) => {
+//     return new Intl.NumberFormat("vi-VN").format(num) + "₫";
+//   };
+
+//   return (
+//     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-6 py-6 dark:border-gray-900 dark:bg-gray-900">
+//       <div className="flex items-center justify-between mb-6">
+//         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+//           Top Blindboxes bán chạy
+//         </h3>
+
+//         <Select
+//           value={range}
+//           onValueChange={(val: StatisticRange) => setRange(val)}
+//         >
+//           <SelectTrigger className="w-[160px]">
+//             <SelectValue placeholder="Khoảng thời gian" />
+//           </SelectTrigger>
+//           <SelectContent>
+//             {Object.values(StatisticRange)
+//               .filter((r) => r !== StatisticRange.TODAY)
+//               .map((r) => (
+//                 <SelectItem key={r} value={r}>
+//                   {StatisticRangeText[r]}
+//                 </SelectItem>
+//               ))}
+//           </SelectContent>
+//         </Select>
+//       </div>
+
+//       {range === StatisticRange.CUSTOM && (
+//         <div className="flex flex-col gap-3 pt-2 border-t border-border/50">
+//           <div className="flex flex-col sm:flex-row gap-2">
+//             <Input
+//               type="date"
+//               value={fromDate}
+//               onChange={(e) => setFromDate(e.target.value)}
+//               className="text-sm flex-1"
+//             />
+//             <Input
+//               type="date"
+//               value={toDate}
+//               onChange={(e) => setToDate(e.target.value)}
+//               className="text-sm flex-1"
+//             />
+//           </div>
+//           <Button size="sm" className="w-1/3 mx-auto" onClick={handleCustomSubmit}>
+//             Áp dụng
+//           </Button>
+//         </div>
+//       )}
+
+//       <div className="mb-4">
+//         <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
+//           <span>Blindbox</span>
+//           <span>Doanh thu</span>
+//         </div>
+//       </div>
+
+//       {isLoading ? (
+//         <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+//           Đang tải dữ liệu...
+//         </div>
+//       ) : topBlindboxes.length === 0 ? (
+//         <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+//           Chưa có blindbox bán chạy
+//         </div>
+//       ) : (
+//         <Table>
+//           <TableHeader>
+//             <TableRow>
+//               <TableHead className="w-10">#</TableHead>
+//               <TableHead>Blindbox</TableHead>
+//               <TableHead className="text-right">SL bán</TableHead>
+//               <TableHead className="text-right">Doanh thu</TableHead>
+//             </TableRow>
+//           </TableHeader>
+//           <TableBody>
+//             {topBlindboxes.slice(0, 10).map((blindbox, index) => (
+//               <TableRow key={blindbox.blindBoxId}>
+//                 <TableCell className="text-sm text-gray-500 dark:text-gray-400">
+//                   {index + 1}
+//                 </TableCell>
+//                 <TableCell>
+//                   <div className="flex items-center gap-3">
+//                     <img
+//                       src={blindbox.blindBoxImageUrl}
+//                       alt={blindbox.blindBoxName}
+//                       className="w-12 h-12 object-cover rounded"
+//                     />
+//                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+//                       {blindbox.blindBoxName}
+//                     </span>
+//                   </div>
+//                 </TableCell>
+//                 <TableCell className="text-right">
+//                   {blindbox.quantitySold}
+//                 </TableCell>
+//                 <TableCell className="text-right font-semibold">
+//                   {formatCurrency(blindbox.revenue)}
+//                 </TableCell>
+//               </TableRow>
+//             ))}
+//           </TableBody>
+//         </Table>
+//       )}
+//     </div>
+//   );
+// }
+
 "use client";
 import React, { useState, useEffect } from "react";
-import { getSellerStatisticsTopBlindBoxes } from "@/services/seller-dashboard/api-services";
 import { StatisticRange, StatisticRangeText } from "@/const/seller";
-import { SellerStatisticsTopBlindboxes } from "@/services/seller-dashboard/typings";
 import {
   Table,
   TableBody,
@@ -111,6 +283,14 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { getSellerStatisticsTopBlindBoxes } from "@/services/seller-dashboard/api-services";
+import { SellerStatisticsTopBlindboxes } from "@/services/seller-dashboard/typings";
 
 export default function TopBlindboxes() {
   const [topBlindboxes, setTopBlindboxes] = useState<SellerStatisticsTopBlindboxes[]>([]);
@@ -118,6 +298,9 @@ export default function TopBlindboxes() {
   const [range, setRange] = useState<StatisticRange>(StatisticRange.DAY);
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
+
+  const [selectedBlindbox, setSelectedBlindbox] = useState<SellerStatisticsTopBlindboxes | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const fetchTopBlindboxes = async () => {
     setIsLoading(true);
@@ -161,7 +344,7 @@ export default function TopBlindboxes() {
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-6 py-6 dark:border-gray-900 dark:bg-gray-900">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Top Blindboxes bán chạy
+          Top blindbox bán chạy
         </h3>
 
         <Select
@@ -226,8 +409,8 @@ export default function TopBlindboxes() {
             <TableRow>
               <TableHead className="w-10">#</TableHead>
               <TableHead>Blindbox</TableHead>
-              <TableHead className="text-right">SL bán</TableHead>
               <TableHead className="text-right">Doanh thu</TableHead>
+              <TableHead className="text-right">Chi tiết</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -237,29 +420,65 @@ export default function TopBlindboxes() {
                   {index + 1}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 max-w-[220px]">
                     <img
                       src={blindbox.blindBoxImageUrl}
                       alt={blindbox.blindBoxName}
-                      className="w-12 h-12 object-cover rounded"
+                      className="w-12 h-12 object-cover rounded shrink-0"
                     />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <span
+                      className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate"
+                      title={blindbox.blindBoxName}
+                    >
                       {blindbox.blindBoxName}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-right">
-                  {blindbox.quantitySold}
-                </TableCell>
                 <TableCell className="text-right font-semibold">
                   {formatCurrency(blindbox.revenue)}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedBlindbox(blindbox);
+                      setIsDetailOpen(true);
+                    }}
+                  >
+                    Xem
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       )}
+
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-md">
+          {selectedBlindbox && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Thông tin chi tiết blindbox</DialogTitle>
+              </DialogHeader>
+              <div className="flex gap-4 mt-4">
+                <img
+                  src={selectedBlindbox.blindBoxImageUrl}
+                  alt={selectedBlindbox.blindBoxName}
+                  className="w-24 h-24 rounded object-cover"
+                />
+                <div className="text-sm space-y-1">
+                  <p><strong>Tên:</strong> {selectedBlindbox.blindBoxName}</p>
+                  <p><strong>Giá:</strong> {formatCurrency(selectedBlindbox.price)}</p>
+                  <p><strong>SL bán:</strong> {selectedBlindbox.quantitySold}</p>
+                  <p><strong>Doanh thu:</strong> {formatCurrency(selectedBlindbox.revenue)}</p>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
-
