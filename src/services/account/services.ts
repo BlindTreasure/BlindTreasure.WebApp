@@ -83,7 +83,6 @@ export const useServiceUpdateInfoProfile = () => {
 };
 
 export const useServiceGetSellerProfile = (options?: { enabled?: boolean }) => {
-  const { addToast } = useToast();
 
   return useQuery<TResponseData<API.Seller>, TMeta>({
     queryKey: ["seller", "profile"],

@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save, X, Eye, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
-// Mock types for demo
+
 const PromotionType = {
   Percentage: 'percentage',
   Fixed: 'fixed'
@@ -70,6 +70,12 @@ const formatToISOWithTimezone = (dateTimeLocal: string): string => {
   return dateObj.toISOString().replace('.000Z', '+00:00');
 };
 
+// Helper function to get current datetime-local string
+const getCurrentDateTimeLocal = (): string => {
+  const now = new Date();
+  return formatDateTimeLocal(now);
+};
+
 const getStatusConfig = (status: string) => {
   const configs = {
     [PromotionStatus.Approved]: {
@@ -115,6 +121,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
   });
 
   const discountType = watch('discountType');
+  const startDate = watch('startDate');
   
   // Memoized mode checks
   const modeFlags = useMemo(() => ({
@@ -300,11 +307,6 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                   {getModalTitle()}
                 </h2>
               </div>
-              {(modeFlags.isViewMode || modeFlags.isReviewMode) && statusConfig && (
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusConfig.color}`}>
-                  {statusConfig.text}
-                </span>
-              )}
             </div>
             <button
               onClick={handleClose}
@@ -509,6 +511,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                         {...field}
                         type="datetime-local"
                         disabled={isFieldDisabled}
+                        min={!isFieldDisabled ? getCurrentDateTimeLocal() : undefined}
                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                           errors.startDate ? 'border-red-500' : 'border-gray-300'
                         } ${isFieldDisabled ? 'bg-gray-50 cursor-not-allowed' : ''}`}
@@ -533,7 +536,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                         {...field}
                         type="datetime-local"
                         disabled={isFieldDisabled}
-                        min={!isFieldDisabled ? watch('startDate') : undefined}
+                        min={!isFieldDisabled ? (startDate || getCurrentDateTimeLocal()) : undefined}
                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                           errors.endDate ? 'border-red-500' : 'border-gray-300'
                         } ${isFieldDisabled ? 'bg-gray-50 cursor-not-allowed' : ''}`}
@@ -561,9 +564,20 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                         min="0"
                         onChange={(e) => {
                           if (isFieldDisabled) return;
-                          const value = parseInt(e.target.value) || 0;
-                          field.onChange(Math.max(value, 0));
+                          const value = e.target.value;
+                          
+                          // Nếu input rỗng, giữ nguyên empty string
+                          if (value === '') {
+                            field.onChange(0);
+                            return;
+                          }
+                          
+                          const numValue = parseInt(value);
+                          if (!isNaN(numValue)) {
+                            field.onChange(Math.max(numValue, 0));
+                          }
                         }}
+                        value={field.value}
                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                           errors.usageLimit ? 'border-red-500' : 'border-gray-300'
                         } ${isFieldDisabled ? 'bg-gray-50 cursor-not-allowed' : ''}`}
@@ -576,7 +590,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                   )}
                 </div>
 
-                {/* Max Usage Per User Field - NEW */}
+                {/* Max Usage Per User Field */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
                     Giới hạn sử dụng cho mỗi người <span className="text-red-500">*</span>
@@ -592,9 +606,20 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                         min="1"
                         onChange={(e) => {
                           if (isFieldDisabled) return;
-                          const value = parseInt(e.target.value) || 1;
-                          field.onChange(Math.max(value, 1));
+                          const value = e.target.value;
+                          
+                          // Nếu input rỗng, set về 1 (minimum)
+                          if (value === '') {
+                            field.onChange(1);
+                            return;
+                          }
+                          
+                          const numValue = parseInt(value);
+                          if (!isNaN(numValue)) {
+                            field.onChange(Math.max(numValue, 1));
+                          }
                         }}
+                        value={field.value}
                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                           errors.maxUsagePerUser ? 'border-red-500' : 'border-gray-300'
                         } ${isFieldDisabled ? 'bg-gray-50 cursor-not-allowed' : ''}`}

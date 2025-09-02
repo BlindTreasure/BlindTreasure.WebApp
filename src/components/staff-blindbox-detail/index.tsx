@@ -127,6 +127,16 @@ const BlindBoxDetail: React.FC<BlindBoxDetailProps> = ({
     }
   };
 
+  const convertRarityName = (rarity: string) => {
+    switch (rarity) {
+      case 'Common': return "Phổ biến";
+      case 'Rare': return "Cao cấp";
+      case 'Epic': return "Hiếm";
+      case 'Secret': return "Cực hiếm";
+      default: return 0;
+    }
+  }
+
   const handleApprove = () => {
     onApprove();
   };
@@ -333,7 +343,7 @@ const BlindBoxDetail: React.FC<BlindBoxDetailProps> = ({
                         <h4 className="font-semibold text-gray-900 mb-2 text-lg">{item.productName}</h4>
                         <div className="flex items-center gap-4">
                           <span className={`px-3 py-1 rounded-full text-sm font-semibold border-2 ${getRarityColor(item.rarity)}`}>
-                            {item.rarity}
+                            ${convertRarityName(item.rarity)}
                           </span>
                           <div className="flex items-center gap-1 text-gray-600">
                             <Hash className="w-4 h-4" />
