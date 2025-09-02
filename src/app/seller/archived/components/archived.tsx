@@ -115,11 +115,11 @@ export default function Archived() {
 
   return (
     <div className="p-4">
-      <Card className="shadow-lg rounded-lg border border-gray-200">
+      <Card className="shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <CardContent className="space-y-6">
           <div className="flex flex-col gap-4">
             <div>
-              <h2 className="text-xl font-semibold pt-4">
+              <h2 className="text-xl font-semibold pt-4 text-gray-900 dark:text-gray-100">
                 Kho lưu trữ
               </h2>
             </div>
@@ -177,47 +177,47 @@ export default function Archived() {
 
           {/* TABLE */}
           <div className="overflow-x-auto">
-            <table className="min-w-full table-fixed border border-gray-200 text-sm bg-white rounded-lg">
+            <table className="min-w-full table-fixed border border-gray-200 dark:border-gray-700 text-sm bg-white dark:bg-gray-900 rounded-lg">
               <thead>
-                <tr className="bg-gray-100 text-left">
-                  <th className="p-3 border w-24">Ảnh</th>
-                  <th className="p-3 border w-64">Tên sản phẩm</th>
-                  <th className="p-3 border w-40">Trạng thái</th>
-                  <th className="p-3 border w-40">Ngày lưu trữ</th>
-                  <th className="p-3 border w-60">Lý do</th>
-                  <th className="p-3 border w-60">Hành động</th>
+                <tr className="bg-gray-100 dark:bg-gray-800 text-left">
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-200 w-24">Ảnh</th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-200 w-64">Tên sản phẩm</th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-200 w-40">Trạng thái</th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-200 w-40">Ngày lưu trữ</th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-200 w-60">Lý do</th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-200 w-60">Hành động</th>
                 </tr>
               </thead>
               <tbody>
                 {isPending ? (
                   <tr>
-                    <td colSpan={5} className="text-center p-4">
+                    <td colSpan={6} className="text-center p-4 text-gray-600 dark:text-gray-300">
                       Đang tải...
                     </td>
                   </tr>
                 ) : items.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center p-4">
+                    <td colSpan={6} className="text-center p-4 text-gray-600 dark:text-gray-300">
                       <img
                         src="https://static.thenounproject.com/png/empty-box-icon-7507343-512.png"
                         alt="Empty"
-                        className="mx-auto mb-2 w-24 h-24"
+                        className="mx-auto mb-2 w-24 h-24 opacity-50"
                       />
                       <div>Không có dữ liệu</div>
                     </td>
                   </tr>
                 ) : (
                   items.map((it) => (
-                    <tr key={it.id} className="hover:bg-gray-50">
-                      <td className="p-3 border text-center">
+                    <tr key={it.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                      <td className="p-3 border border-gray-200 dark:border-gray-700 text-center">
                         <img
                           src={it.image || it.product.imageUrls?.[0]}
                           alt={it.product.name}
                           className="w-16 h-16 object-cover rounded-md mx-auto"
                         />
                       </td>
-                      <td className="p-3 border">{it.product.name}</td>
-                      <td className="p-3 border">
+                      <td className="p-3 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-200">{it.product.name}</td>
+                      <td className="p-3 border border-gray-200 dark:border-gray-700">
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium ${statusBadgeClass(
                             it.status as InventoryItemStatus
@@ -228,11 +228,11 @@ export default function Archived() {
                             it.status}
                         </span>
                       </td>
-                      <td className="p-3 border">{formatDate(it.archivedAt)}</td>
-                      <td className="p-3 border">
+                      <td className="p-3 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-200">{formatDate(it.archivedAt)}</td>
+                      <td className="p-3 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-200">
                         {it.archivedReason || "-"}
                       </td>
-                      <td className="p-3 border w-60">
+                      <td className="p-3 border border-gray-200 dark:border-gray-700 w-60">
                         {it.status === InventoryItemStatus.Archived ? (
                           <div className="space-y-2">
                             <Select
@@ -267,7 +267,7 @@ export default function Archived() {
                           </div>
                         ) : (
                           <div className="text-center">
-                            <span className="text-gray-400 text-sm">
+                            <span className="text-gray-400 dark:text-gray-500 text-sm">
                               Chỉ có thể thay đổi khi đã lưu trữ
                             </span>
                           </div>
@@ -290,6 +290,6 @@ export default function Archived() {
           />
         </CardContent>
       </Card>
-    </div>
+    </div >
   );
 }

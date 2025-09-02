@@ -216,13 +216,13 @@ export default function Archived() {
               <tbody>
                 {isPending ? (
                   <tr>
-                    <td colSpan={5} className="text-center p-4">
+                    <td colSpan={6} className="text-center p-4">
                       Đang tải...
                     </td>
                   </tr>
                 ) : items.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center p-4">
+                    <td colSpan={6} className="text-center p-4">
                       <img
                         src="https://static.thenounproject.com/png/empty-box-icon-7507343-512.png"
                         alt="Empty"
