@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import PromotionModal from '@/components/promotion-modal';
 import PromotionTable from '@/components/promotion-table';
 import { PaginationFooter } from '@/components/pagination-footer';
@@ -14,6 +14,98 @@ import { useServiceDeletePromotion } from '@/services/promotion/services';
 import { useServiceParticipantPromotion } from '@/services/promotion/services';
 import { useServiceWithdrawPromotion } from '@/services/promotion/services';
 import { useAppSelector } from "@/stores/store";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
+// Confirmation Dialog Types
+interface ConfirmationDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  description: string;
+  confirmText?: string;
+  cancelText?: string;
+  variant?: 'destructive' | 'default';
+  icon?: React.ReactNode;
+}
+
+// Custom Confirmation Dialog Component
+const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  description,
+  confirmText = 'Xác nhận',
+  cancelText = 'Hủy',
+  variant = 'default',
+  icon
+}) => {
+  const handleConfirm = () => {
+    onConfirm();
+    onClose();
+  };
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={onClose}>
+      <AlertDialogContent className="sm:max-w-[425px]">
+        <AlertDialogHeader>
+          <div className="flex items-center gap-3">
+            {icon && <div className="flex-shrink-0">{icon}</div>}
+            <div>
+              <AlertDialogTitle className="text-lg font-semibold">
+                {title}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="mt-2 text-sm text-gray-600">
+                {description}
+              </AlertDialogDescription>
+            </div>
+          </div>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="gap-2 sm:gap-2">
+          <AlertDialogCancel 
+            onClick={onClose}
+            className="mt-0 sm:mt-0"
+          >
+            {cancelText}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleConfirm}
+            className={
+              variant === 'destructive' 
+                ? 'bg-red-600 hover:bg-red-700 focus:ring-red-600' 
+                : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-600'
+            }
+          >
+            {confirmText}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
+// Dialog State Interface
+interface DialogState {
+  isOpen: boolean;
+  title: string;
+  description: string;
+  confirmText?: string;
+  cancelText?: string;
+  variant?: 'destructive' | 'default';
+  icon?: React.ReactNode;
+  onConfirm: () => void;
+}
 
 const PromotionCrud: React.FC = () => {
   const [promotions, setPromotions] = useState<API.Promotion[]>([]);
@@ -23,6 +115,14 @@ const PromotionCrud: React.FC = () => {
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
   const [pendingAction, setPendingAction] = useState<{ type: 'approve' | 'reject', id: string } | null>(null);
   const [isLoadingPromotionDetail, setIsLoadingPromotionDetail] = useState<boolean>(false);
+  
+  // Confirmation Dialog State
+  const [dialogState, setDialogState] = useState<DialogState>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {}
+  });
   
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
@@ -42,6 +142,19 @@ const PromotionCrud: React.FC = () => {
   
   const profile = useAppSelector((state) => state.userSlice.user);
   const currentUserRole = profile?.roleName as PromotionCreateByRole;
+
+  // Helper function to show confirmation dialog
+  const showConfirmDialog = (config: Omit<DialogState, 'isOpen'>) => {
+    setDialogState({
+      ...config,
+      isOpen: true
+    });
+  };
+
+  // Helper function to close dialog
+  const closeDialog = () => {
+    setDialogState(prev => ({ ...prev, isOpen: false }));
+  };
   
   const loadPromotions = async () => {
     try {
@@ -164,28 +277,35 @@ const PromotionCrud: React.FC = () => {
   };
 
   const handleDelete = async (id: string): Promise<void> => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa promotion này?')) {
-      try {
-        deletePromotion(
-          { promotionId: id },
-          {
-            onSuccess: () => {
-              // Refresh promotions after successful deletion
-              refreshPromotions();
-            },
-            onError: (error) => {
-              console.error('Error deleting promotion:', error);
-              // Optionally refresh to ensure data consistency
-              refreshPromotions();
+    const promotion = promotions.find(p => p.id === id);
+    if (!promotion) return;
+
+    showConfirmDialog({
+      title: 'Xác nhận xóa',
+      description: `Bạn có chắc chắn muốn xóa promotion "${promotion.code}"? Hành động này không thể hoàn tác.`,
+      confirmText: 'Xóa',
+      variant: 'destructive',
+      icon: <AlertTriangle className="h-6 w-6 text-red-600" />,
+      onConfirm: () => {
+        try {
+          deletePromotion(
+            { promotionId: id },
+            {
+              onSuccess: () => {
+                refreshPromotions();
+              },
+              onError: (error) => {
+                console.error('Error deleting promotion:', error);
+                refreshPromotions();
+              }
             }
-          }
-        );
-      } catch (error) {
-        console.error('Error deleting promotion:', error);
-        // Refresh promotions in case of error to ensure data consistency
-        refreshPromotions();
+          );
+        } catch (error) {
+          console.error('Error deleting promotion:', error);
+          refreshPromotions();
+        }
       }
-    }
+    });
   };
 
   // Xử lý duyệt promotion - mở modal trước
@@ -217,30 +337,31 @@ const PromotionCrud: React.FC = () => {
     const promotion = promotions.find(p => p.id === id);
     if (!promotion) return;
 
-    const confirmMessage = `Bạn có chắc chắn muốn tham gia promotion "${promotion.code}"?`;
-    
-    if (window.confirm(confirmMessage)) {
-      try {
-        participantPromotion(
-          { promotionId: id },
-          {
-            onSuccess: () => {
-              // Refresh promotions after successful participation
-              refreshPromotions();
-            },
-            onError: (error) => {
-              console.error('Error joining promotion:', error);
-              // Optionally refresh to ensure data consistency
-              refreshPromotions();
+    showConfirmDialog({
+      title: 'Xác nhận tham gia',
+      description: `Bạn có chắc chắn muốn tham gia promotion "${promotion.code}"?`,
+      confirmText: 'Tham gia',
+      icon: <CheckCircle className="h-6 w-6 text-green-600" />,
+      onConfirm: () => {
+        try {
+          participantPromotion(
+            { promotionId: id },
+            {
+              onSuccess: () => {
+                refreshPromotions();
+              },
+              onError: (error) => {
+                console.error('Error joining promotion:', error);
+                refreshPromotions();
+              }
             }
-          }
-        );
-      } catch (error) {
-        console.error('Error joining promotion:', error);
-        // Refresh promotions in case of error to ensure data consistency
-        refreshPromotions();
+          );
+        } catch (error) {
+          console.error('Error joining promotion:', error);
+          refreshPromotions();
+        }
       }
-    }
+    });
   };
 
   // New function to handle withdrawing from promotion
@@ -248,66 +369,79 @@ const PromotionCrud: React.FC = () => {
     const promotion = promotions.find(p => p.id === id);
     if (!promotion) return;
 
-    const confirmMessage = `Bạn có chắc chắn muốn rút khỏi promotion "${promotion.code}"?`;
-    
-    if (window.confirm(confirmMessage)) {
-      try {
-        withdrawPromotion(
-          { promotionId: id, sellerId: profile?.sellerId },
-          {
-            onSuccess: () => {
-              // Refresh promotions after successful withdrawal
-              refreshPromotions();
-            },
-            onError: (error) => {
-              console.error('Error withdrawing from promotion:', error);
-              // Optionally refresh to ensure data consistency
-              refreshPromotions();
+    showConfirmDialog({
+      title: 'Xác nhận rút khỏi',
+      description: `Bạn có chắc chắn muốn rút khỏi promotion "${promotion.code}"?`,
+      confirmText: 'Rút khỏi',
+      variant: 'destructive',
+      icon: <XCircle className="h-6 w-6 text-orange-600" />,
+      onConfirm: () => {
+        try {
+          withdrawPromotion(
+            { promotionId: id, sellerId: profile?.sellerId },
+            {
+              onSuccess: () => {
+                refreshPromotions();
+              },
+              onError: (error) => {
+                console.error('Error withdrawing from promotion:', error);
+                refreshPromotions();
+              }
             }
-          }
-        );
-      } catch (error) {
-        console.error('Error withdrawing from promotion:', error);
-        // Refresh promotions in case of error to ensure data consistency
-        refreshPromotions();
+          );
+        } catch (error) {
+          console.error('Error withdrawing from promotion:', error);
+          refreshPromotions();
+        }
       }
-    }
+    });
   };
 
   const handleReviewAction = async (action: boolean, rejectReason?: string): Promise<void> => {
     if (!pendingAction) return;
 
-    const confirmMessage = action
-      ? 'Bạn có chắc chắn muốn duyệt promotion này?' 
-      : 'Bạn có chắc chắn muốn từ chối promotion này?';
+    const promotion = promotions.find(p => p.id === pendingAction.id);
+    const actionText = action ? 'duyệt' : 'từ chối';
+    const description = action 
+      ? `Bạn có chắc chắn muốn duyệt promotion "${promotion?.code}"?`
+      : `Bạn có chắc chắn muốn từ chối promotion "${promotion?.code}"?`;
 
-    if (window.confirm(confirmMessage)) {
-      try {
-        const reviewData: REQUEST.ReviewPromotion = {
-          promotionId: pendingAction.id,
-          isApproved: action,
-          rejectReason: !action ? (rejectReason || '') : ''
-        };
+    showConfirmDialog({
+      title: `Xác nhận ${actionText}`,
+      description,
+      confirmText: action ? 'Duyệt' : 'Từ chối',
+      variant: action ? 'default' : 'destructive',
+      icon: action 
+        ? <CheckCircle className="h-6 w-6 text-green-600" />
+        : <XCircle className="h-6 w-6 text-red-600" />,
+      onConfirm: () => {
+        try {
+          const reviewData: REQUEST.ReviewPromotion = {
+            promotionId: pendingAction.id,
+            isApproved: action,
+            rejectReason: !action ? (rejectReason || '') : ''
+          };
 
-        reviewPromotion(reviewData, {
-          onSuccess: () => {
-            // Đóng modal
-            setIsModalOpen(false);
-            setEditingPromotion(null);
-            setPendingAction(null);
-            setModalMode('create');
-            
-            // Refresh data
-            refreshPromotions();
-          },
-          onError: (error) => {
-            console.error(`Error ${action ? 'approving' : 'rejecting'} promotion:`, error);
-          }
-        });
-      } catch (error) {
-        console.error(`Error ${action ? 'approving' : 'rejecting'} promotion:`, error);
+          reviewPromotion(reviewData, {
+            onSuccess: () => {
+              // Đóng modal
+              setIsModalOpen(false);
+              setEditingPromotion(null);
+              setPendingAction(null);
+              setModalMode('create');
+              
+              // Refresh data
+              refreshPromotions();
+            },
+            onError: (error) => {
+              console.error(`Error ${action ? 'approving' : 'rejecting'} promotion:`, error);
+            }
+          });
+        } catch (error) {
+          console.error(`Error ${action ? 'approving' : 'rejecting'} promotion:`, error);
+        }
       }
-    }
+    });
   };
 
   const handleModalSubmit = async (formData: REQUEST.PromotionForm): Promise<void> => {
@@ -460,6 +594,7 @@ const PromotionCrud: React.FC = () => {
         </div>
       </div>
 
+      {/* Promotion Modal */}
       <PromotionModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
@@ -470,6 +605,19 @@ const PromotionCrud: React.FC = () => {
         currentUserRole={currentUserRole}
         pendingAction={pendingAction}
         onReviewAction={handleReviewAction}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={dialogState.isOpen}
+        onClose={closeDialog}
+        onConfirm={dialogState.onConfirm}
+        title={dialogState.title}
+        description={dialogState.description}
+        confirmText={dialogState.confirmText}
+        cancelText={dialogState.cancelText}
+        variant={dialogState.variant}
+        icon={dialogState.icon}
       />
     </div>
   );

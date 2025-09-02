@@ -36,14 +36,6 @@ export default function AllBlindBoxes() {
     "Trên 4.000.000₫",
   ];
 
-  const releaseDateRanges = [
-    "1 tháng qua",
-    "3 tháng qua",
-    "6 tháng qua",
-    "1 năm qua",
-    "Trên 1 năm",
-  ];
-
   const [blindboxes, setBlindboxes] = useState<BlindBoxListResponse>();
   const [categories, setCategories] = useState<API.ResponseDataCategory>();
   const { getAllBlindBoxesApi, isPending: isPendingBlindbox } = useGetAllBlindBoxes();
@@ -189,7 +181,6 @@ export default function AllBlindBoxes() {
           <ProductFilterSidebar
             categories={categories}
             prices={prices}
-            releaseDateRanges={releaseDateRanges}
             filters={filters} // Pass current filters to sidebar
             onCategoryFilter={handleCategoryFilter}
             onPriceFilter={handlePriceFilter}

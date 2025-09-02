@@ -41,14 +41,6 @@ export default function AllProduct() {
     "Trên 4.000.000₫",
   ];
 
-  const releaseDateRanges = [
-    "1 tháng qua",
-    "3 tháng qua",
-    "6 tháng qua",
-    "1 năm qua",
-    "Trên 1 năm",
-  ];
-
   const [currentPage, setCurrentPage] = useState(1);
   const [categories, setCategories] = useState<API.ResponseDataCategory>();
   const [isInitialized, setIsInitialized] = useState(false);
@@ -346,7 +338,6 @@ export default function AllProduct() {
           <ProductFilterSidebar
             categories={categories}
             prices={prices}
-            releaseDateRanges={releaseDateRanges}
             filters={{
               ...filters,
               selectedCategoryId: selectedCategoryId
