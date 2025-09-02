@@ -15,6 +15,9 @@ import { useServiceReviewPromotion } from '@/services/promotion/services';
 import { useServiceDeletePromotion } from '@/services/promotion/services';
 import { useAppSelector } from "@/stores/store";
 
+// Import the reusable confirmation dialog
+import { ConfirmationDialog, useConfirmationDialog, DialogConfigs } from '@/components/promotion-confirm-dialog';
+
 const PromotionCrud: React.FC = () => {
   const [promotions, setPromotions] = useState<API.Promotion[]>([]);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -33,6 +36,9 @@ const PromotionCrud: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(5);
   const [totalItems, setTotalItems] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(0);
+  
+  // Use the confirmation dialog hook
+  const { dialogState, showConfirmDialog, closeDialog } = useConfirmationDialog();
   
   const { isPending: isLoadingPromotions, getPromotionApi } = useGetPromotion();
   const { isPending: isLoadingPromotionById, getPromotionByIdApi } = useGetPromotionById();
@@ -189,28 +195,31 @@ const PromotionCrud: React.FC = () => {
   };
 
   const handleDelete = async (id: string): Promise<void> => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa promotion này?')) {
-      try {
-        deletePromotion(
-          { promotionId: id },
-          {
-            onSuccess: () => {
-              // Refresh promotions after successful deletion
-              refreshPromotions();
-            },
-            onError: (error) => {
-              console.error('Error deleting promotion:', error);
-              // Optionally refresh to ensure data consistency
-              refreshPromotions();
+    const promotion = promotions.find(p => p.id === id);
+    if (!promotion) return;
+
+    // Use the predefined delete dialog config
+    showConfirmDialog(
+      DialogConfigs.delete(promotion.code, () => {
+        try {
+          deletePromotion(
+            { promotionId: id },
+            {
+              onSuccess: () => {
+                refreshPromotions();
+              },
+              onError: (error) => {
+                console.error('Error deleting promotion:', error);
+                refreshPromotions();
+              }
             }
-          }
-        );
-      } catch (error) {
-        console.error('Error deleting promotion:', error);
-        // Refresh promotions in case of error to ensure data consistency
-        refreshPromotions();
-      }
-    }
+          );
+        } catch (error) {
+          console.error('Error deleting promotion:', error);
+          refreshPromotions();
+        }
+      })
+    );
   };
 
   // Xử lý duyệt promotion - mở modal trước
@@ -240,36 +249,44 @@ const PromotionCrud: React.FC = () => {
   const handleReviewAction = async (action: boolean, rejectReason?: string): Promise<void> => {
     if (!pendingAction) return;
 
-    const confirmMessage = action
-      ? 'Bạn có chắc chắn muốn duyệt promotion này?' 
-      : 'Bạn có chắc chắn muốn từ chối promotion này?';
+    const promotion = promotions.find(p => p.id === pendingAction.id);
+    if (!promotion) return;
 
-    if (window.confirm(confirmMessage)) {
-      try {
-        const reviewData: REQUEST.ReviewPromotion = {
-          promotionId: pendingAction.id,
-          isApproved: action,
-          rejectReason: !action ? (rejectReason || '') : ''
-        };
+    // Use predefined dialog configs for review actions
+    const dialogConfig = action 
+      ? DialogConfigs.approve(promotion.code, () => performReviewAction(action, rejectReason))
+      : DialogConfigs.reject(promotion.code, () => performReviewAction(action, rejectReason));
 
-        reviewPromotion(reviewData, {
-          onSuccess: () => {
-            // Đóng modal
-            setIsModalOpen(false);
-            setEditingPromotion(null);
-            setPendingAction(null);
-            setModalMode('create');
-            
-            // Refresh data
-            refreshPromotions();
-          },
-          onError: (error) => {
-            console.error(`Error ${action ? 'approving' : 'rejecting'} promotion:`, error);
-          }
-        });
-      } catch (error) {
-        console.error(`Error ${action ? 'approving' : 'rejecting'} promotion:`, error);
-      }
+    showConfirmDialog(dialogConfig);
+  };
+
+  const performReviewAction = async (action: boolean, rejectReason?: string): Promise<void> => {
+    if (!pendingAction) return;
+
+    try {
+      const reviewData: REQUEST.ReviewPromotion = {
+        promotionId: pendingAction.id,
+        isApproved: action,
+        rejectReason: !action ? (rejectReason || '') : ''
+      };
+
+      reviewPromotion(reviewData, {
+        onSuccess: () => {
+          // Đóng modal
+          setIsModalOpen(false);
+          setEditingPromotion(null);
+          setPendingAction(null);
+          setModalMode('create');
+          
+          // Refresh data
+          refreshPromotions();
+        },
+        onError: (error) => {
+          console.error(`Error ${action ? 'approving' : 'rejecting'} promotion:`, error);
+        }
+      });
+    } catch (error) {
+      console.error(`Error ${action ? 'approving' : 'rejecting'} promotion:`, error);
     }
   };
 
@@ -427,6 +444,7 @@ const PromotionCrud: React.FC = () => {
         </div>
       </div>
 
+      {/* Promotion Modal */}
       <PromotionModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
@@ -439,12 +457,27 @@ const PromotionCrud: React.FC = () => {
         onReviewAction={handleReviewAction}
       />
 
+      {/* Participants Modal */}
       <PromotionParticipantsModal
         isOpen={isParticipantsModalOpen}
         onClose={handleParticipantsModalClose}
         participants={promotionParticipants}
         isLoading={isLoadingPromotionParticipant}
         promotionTitle={selectedPromotionForParticipants?.code}
+      />
+
+      {/* Reusable Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={dialogState.isOpen}
+        onClose={closeDialog}
+        onConfirm={dialogState.onConfirm}
+        title={dialogState.title}
+        description={dialogState.description}
+        confirmText={dialogState.confirmText}
+        cancelText={dialogState.cancelText}
+        variant={dialogState.variant}
+        icon={dialogState.icon}
+        size={dialogState.size}
       />
     </div>
   );

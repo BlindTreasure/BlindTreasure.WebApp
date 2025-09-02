@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit, Trash2, Plus, UserCheck, UserPlus, UserMinus, Users } from 'lucide-react';
+import { Edit, Trash2, Plus, UserCheck, UserPlus, UserMinus, Users, Eye } from 'lucide-react';
 import { PromotionType, PromotionStatus, PromotionCreateByRole } from '@/const/promotion';
 
 const formatDate = (dateString: string): string => {
@@ -135,7 +135,7 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
                   Giới hạn
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] dark:text-white">
-                  Giới hạn/User
+                  Giới hạn/Khách hàng
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px] dark:text-white">
                   Trạng thái
@@ -252,7 +252,7 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
                                   title="Xem chi tiết"
                                   type="button"
                                 >
-                                  <Edit size={14} />
+                                  <Eye size={14} />
                                 </button>
                               )}
                               
@@ -287,7 +287,7 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
                                       title="Xem chi tiết"
                                       type="button"
                                     >
-                                      <Edit size={14} />
+                                      <Eye size={14} />
                                     </button>
                                   )}
                                 </>
@@ -349,7 +349,7 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
                                         title="Xem chi tiết"
                                         type="button"
                                       >
-                                        <Edit size={14} />
+                                        <Eye size={14} />
                                       </button>
                                     )
                                   )}

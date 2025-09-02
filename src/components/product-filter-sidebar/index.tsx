@@ -22,7 +22,6 @@ interface CategoriesResponse {
 type SidebarProps = {
   categories?: CategoriesResponse;
   prices: string[];
-  releaseDateRanges: string[];
   filters: FilterState;
   onCategoryFilter: (categoryId: string) => void;
   onPriceFilter: (priceRange: string) => void;
@@ -34,7 +33,6 @@ type SidebarProps = {
 export default function ProductFilterSidebar({ 
   categories, 
   prices, 
-  releaseDateRanges, 
   filters,
   onCategoryFilter,
   onPriceFilter,
@@ -328,25 +326,6 @@ export default function ProductFilterSidebar({
       </div>
 
       <Separator />
-
-      {/* Ngày phát hành - RadioGroup để chỉ chọn 1 */}
-      <div>
-        <h3 className="text-[#d02a2a] font-semibold mb-2 text-base">Ngày phát hành</h3>
-        <RadioGroup 
-          className="space-y-2 pl-1" 
-          value={getCurrentReleaseDateRange()}
-          onValueChange={handleReleaseDateChange}
-        >
-          {releaseDateRanges.map((dateRange, index) => (
-            <div className="flex items-center space-x-2" key={index}>
-              <RadioGroupItem value={dateRange} id={`date-${index}`} />
-              <Label htmlFor={`date-${index}`} className="cursor-pointer">
-                {dateRange}
-              </Label>
-            </div>
-          ))}
-        </RadioGroup>
-      </div>
     </div>
   );
 
