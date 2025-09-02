@@ -13,6 +13,7 @@ import { GetOrderParams, Order, OrderResponse } from "@/services/admin/typings";
 import { Button } from "@/components/ui/button";
 import useAdminCompleteShipment from "../hooks/useAdminCompleteShipment";
 import { StatusSeller, StatusSellerText } from "@/const/seller";
+import { SlRefresh } from "react-icons/sl";
 
 export default function Orders() {
     const completeShipmentMutation = useAdminCompleteShipment();
@@ -82,6 +83,7 @@ export default function Orders() {
                         <h2 className="text-xl font-semibold mb-4 pt-4">Lịch sử đơn hàng</h2>
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div className="flex flex-wrap gap-4 items-center">
+                                <Button className='bg-green-500 hover:bg-opacity-80' onClick={fetchData}><SlRefresh />Làm mới</Button>
                                 <Select value={status} onValueChange={setStatus}>
                                     <SelectTrigger className="w-48">
                                         <SelectValue placeholder="Trạng thái thanh toán" />

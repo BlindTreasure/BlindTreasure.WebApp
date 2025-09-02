@@ -88,6 +88,7 @@ export type GetItemInventoryResponse = TResponseData<
 >;
 
 export type GetItemInventoryParams = {
+  isFromBlindBox?: boolean;
   pageIndex?: number;
   pageSize?: number;
   status?: string;
@@ -144,3 +145,4 @@ export type Shipment = {
   status: ShipmentStatus;
   inventoryItems: any[];
 };
+

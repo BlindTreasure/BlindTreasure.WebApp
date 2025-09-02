@@ -8,10 +8,12 @@ import {
   OrderStatus,
   ShipmentStatus,
   PaymentInfoStatus,
+  InventoryItemStatus,
 } from "@/const/products";
 
 import { StatusSeller } from "@/const/seller";
 import { PayoutStatus, PeriodType } from "@/const/payout";
+import { UserRole, UserStatus } from "@/const/user";
 
 export type GetOrderParams = {
   SellerId?: string;
@@ -22,6 +24,26 @@ export type GetOrderParams = {
   CheckoutGroupId?: string;
   pageIndex?: number;
   pageSize?: number;
+};
+
+export type ShipmentsParams = {
+  search?: string;
+  status?: string;
+  minTotalFee?: number;
+  maxTotalFee?: number;
+  fromEstimatedPickupTime?: string;
+  toEstimatedPickupTime?: string;
+  pageIndex?: number;
+  pageSize?: number;
+  desc?: boolean;
+};
+
+export type ShipmentResponse = {
+  result: Shipment[];
+  count: number;
+  pageSize: number;
+  currentPage: number;
+  totalPages: number;
 };
 
 export type GetInventoryOnHoldParams = {
@@ -295,9 +317,9 @@ export type Payout = {
 };
 
 export type TransactionsParams = {
-  sellerId?: string; 
+  sellerId?: string;
   transferredFrom?: string;
-  transferredTo?: string; 
+  transferredTo?: string;
   minAmount?: number;
   maxAmount?: number;
   isInitiatedBySystem?: boolean;
@@ -305,3 +327,115 @@ export type TransactionsParams = {
   pageSize?: number;
   desc?: boolean;
 };
+
+//All Inven
+export type InventoryParams = {
+  userId?: string;
+  productId?: string;
+  sellerId?: string;
+  search?: string;
+  categoryId?: string;
+  status?: string;
+  isFromBlindBox?: boolean;
+  pageIndex?: number;
+  pageSize?: number;
+  desc?: boolean;
+};
+
+export type InventoryResponse = {
+  result: InventoryItem[];
+  count: number;
+  pageSize: number;
+  currentPage: number;
+  totalPages: number;
+};
+
+export type InventoryItem = {
+  id: string;
+  userId: string;
+  productId: string;
+  product: ProductInven;
+  productName: string | null;
+  image: string | null;
+  location: string;
+  status: InventoryItemStatus;
+  createdAt: string;
+  isFromBlindBox: boolean;
+  sourceCustomerBlindBoxId: string | null;
+  holdInfo: HoldInfo;
+  orderDetailId: string | null;
+  orderDetail: any | null;
+  shipmentId: string | null;
+  shipment: any | null;
+  tier: string | null;
+  isOnHold: boolean;
+  hasActiveListing: boolean;
+  archivedAt: string | null;
+  archivedReason: string | null;
+};
+
+export type HoldInfo = {
+  isOnHold: boolean;
+  holdUntil: string | null;
+  remainingDays: number | null;
+  lastTradeId: string | null;
+};
+
+export type ProductInven = {
+  id: string;
+  name: string;
+  description: string;
+  brand: string;
+  categoryId: string;
+  sellerId: string;
+  realSellingPrice: number;
+  listedPrice: number | null;
+  totalStockQuantity: number;
+  reservedInBlindBox: number;
+  availableToSell: number;
+  productStockStatus: StockStatus;
+  height: number;
+  material: string;
+  productType: ProductType;
+  status: Status;
+  imageUrls: string[];
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+};
+
+//User
+export type UserParams = {
+  search?: string;
+  status?: string;
+  roleName?: string;
+  sortBy?: string;
+  pageIndex?: number;
+  pageSize?: number;
+  desc?: boolean;
+};
+
+export type UserResponse = {
+  result: UserItem[];
+  count: number;
+  pageSize: number;
+  currentPage: number;
+  totalPages: number;
+};
+
+export type UserItem = {
+  userId: string;
+  fullName: string;
+  email: string;
+  avatarUrl: string | null;
+  dateOfBirth: string;       
+  gender: string | null;    
+  status: UserStatus; 
+  phoneNumber: string | null;
+  roleName: UserRole;           
+  reason: string | null;     
+  createdAt: string;          
+  sellerId: string | null;    
+};
+
