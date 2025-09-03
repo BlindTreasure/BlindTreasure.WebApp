@@ -248,7 +248,7 @@ export default function Wallet() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
-                    onClick={(e) => e.preventDefault()}
+                    // onClick={(e) => e.preventDefault()}
                     disabled={!isVerified || !canPayout || requestPayoutMutation.isPending}
                   >
                     {requestPayoutMutation.isPending ? "Đang xử lý..." : "Rút tiền"}
