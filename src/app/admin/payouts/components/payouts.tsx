@@ -18,6 +18,17 @@ import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle, Dialog
 import UploadProofDialog from "./UploadProofDialog";
 import ProofImageGrid from "./ProofImageGrid";
 import { SlRefresh } from "react-icons/sl";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 export default function Payouts() {
   const { isPending, getPayoutsApi } = useGetPayouts();
   const { mutate: approvePayout, isPending: isApproving } = useServiceProcessPayout();
@@ -253,7 +264,7 @@ export default function Payouts() {
                         )}
                       </td> */}
 
-                      <td className="p-3 border text-center">
+                      {/* <td className="p-3 border text-center">
                         {item.status === PayoutStatus.REQUESTED ? (
                           <Button
                             size="sm"
@@ -267,6 +278,46 @@ export default function Payouts() {
                           >
                             {isApproving ? "Đang duyệt..." : "Duyệt"}
                           </Button>
+                        ) : (
+                          <span className="text-gray-400 text-sm">—</span>
+                        )}
+                      </td> */}
+                      <td className="p-3 border text-center">
+                        {item.status === PayoutStatus.REQUESTED ? (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={isApproving}
+                              >
+                                {isApproving ? "Đang duyệt..." : "Duyệt"}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận duyệt thanh toán</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Bạn có chắc chắn muốn duyệt yêu cầu thanh toán cho seller{" "}
+                                  <b>{item.sellerId}</b> không?
+                                  Hành động này sẽ tiến hành giải ngân và không thể hoàn tác.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() =>
+                                    approvePayout(item.sellerId, {
+                                      onSuccess: () => fetchData(),
+                                    })
+                                  }
+                                  disabled={isApproving}
+                                >
+                                  {isApproving ? "Đang duyệt..." : "Xác nhận"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         ) : (
                           <span className="text-gray-400 text-sm">—</span>
                         )}

@@ -24,7 +24,17 @@ import {
 import { ShipmentStatus, ShipmentStatusText } from "@/const/products";
 import { CiSearch } from "react-icons/ci";
 import { useAdminCompleteShipment } from "@/services/system/services";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 export default function Shipments() {
     const completeShipmentMutation = useAdminCompleteShipment();
     const { isPending, getShipmentsByAdminApi } = useGetShipmentsByAdmin();
@@ -247,7 +257,7 @@ export default function Shipments() {
                                                 </span>
                                             </td>
                                             <td className="p-3 border">{s.description || "-"}</td>
-                                            <td className="p-3 border text-center">
+                                            {/* <td className="p-3 border text-center">
                                                 {s.status === ShipmentStatus.PROCESSING && (
                                                     <Button
                                                         size="sm"
@@ -262,6 +272,43 @@ export default function Shipments() {
                                                     >
                                                         Hoàn thành
                                                     </Button>
+                                                )}
+                                            </td> */}
+                                            <td className="p-3 border text-center">
+                                                {s.status === ShipmentStatus.PROCESSING && (
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                disabled={completeShipmentMutation.isPending}
+                                                            >
+                                                                Hoàn thành
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Xác nhận hoàn thành</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Bạn có chắc chắn muốn đánh dấu lô hàng này là <b>Hoàn thành</b> không?
+                                                                    Hành động này không thể hoàn tác.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() =>
+                                                                        completeShipmentMutation.mutate(
+                                                                            { shipmentId: s.id },
+                                                                            { onSuccess: fetchData }
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Xác nhận
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
                                                 )}
                                             </td>
                                         </tr>

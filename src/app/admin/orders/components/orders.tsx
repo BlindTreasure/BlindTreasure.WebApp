@@ -14,7 +14,17 @@ import { Button } from "@/components/ui/button";
 import useAdminCompleteShipment from "../hooks/useAdminCompleteShipment";
 import { StatusSeller, StatusSellerText } from "@/const/seller";
 import { SlRefresh } from "react-icons/sl";
-
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 export default function Orders() {
     const completeShipmentMutation = useAdminCompleteShipment();
     const [openCustomerDialog, setOpenCustomerDialog] = useState(false);
@@ -238,7 +248,7 @@ export default function Orders() {
                                             <td className="p-3 border">
                                                 {new Date(order.placedAt).toLocaleDateString("vi-VN")}
                                             </td>
-                                            <td className="p-3 border">
+                                            {/* <td className="p-3 border">
                                                 {order.details?.map((detail: any) =>
                                                     detail.status === "DELIVERING" && detail.shipments?.map((shipment: any) => (
                                                         <Button
@@ -253,6 +263,48 @@ export default function Orders() {
                                                         >
                                                             Hoàn thành
                                                         </Button>
+                                                    ))
+                                                )}
+                                            </td> */}
+                                            <td className="p-3 border">
+                                                {order.details?.map((detail: any) =>
+                                                    detail.status === "DELIVERING" &&
+                                                    detail.shipments?.map((shipment: any) => (
+                                                        <AlertDialog key={shipment.id}>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    disabled={completeShipmentMutation.isPending}
+                                                                >
+                                                                    Hoàn thành
+                                                                </Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Xác nhận hoàn thành</AlertDialogTitle>
+                                                                    <AlertDialogDescription>
+                                                                        Bạn có chắc chắn muốn đánh dấu lô hàng{" "}
+                                                                        này là <b>Hoàn thành</b> không?
+                                                                        Hành động này không thể hoàn tác.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                                                    <AlertDialogAction
+                                                                        onClick={() =>
+                                                                            completeShipmentMutation.mutate(
+                                                                                { shipmentId: shipment.id },
+                                                                                { onSuccess: fetchData }
+                                                                            )
+                                                                        }
+                                                                        disabled={completeShipmentMutation.isPending}
+                                                                    >
+                                                                        {completeShipmentMutation.isPending ? "Đang xử lý..." : "Xác nhận"}
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
                                                     ))
                                                 )}
                                             </td>

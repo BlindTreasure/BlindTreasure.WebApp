@@ -25,7 +25,17 @@ import { InventoryItemStatus, InventoryItemStatusText } from "@/const/products";
 import useGetUserAdmin from "../hooks/useGetUser";
 import { UserRole } from "@/const/user";
 import { useInventoryItemArchived } from "@/services/system/services";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 export default function Archived() {
   const { isPending, getInventoryByAdminApi } = useGetInventoryByAdmin();
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -257,7 +267,7 @@ export default function Archived() {
                       <td className="p-3 border">
                         {it.archivedReason || "-"}
                       </td>
-                      <td className="p-3 border text-center">
+                      {/* <td className="p-3 border text-center">
                         {it.status === InventoryItemStatus.Available && (
                           <Button
                             variant="outline"
@@ -267,6 +277,39 @@ export default function Archived() {
                           >
                             {isArchiving ? "Đang xử lý..." : "Lưu trữ"}
                           </Button>
+                        )}
+                      </td> */}
+                      <td className="p-3 border text-center">
+                        {it.status === InventoryItemStatus.Available && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={isArchiving}
+                              >
+                                {isArchiving ? "Đang xử lý..." : "Lưu trữ"}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận lưu trữ</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Bạn có chắc chắn muốn lưu trữ item <b>{it.id}</b> không?
+                                  Item này sẽ không còn hiển thị trong kho.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => archiveItem(it.id)}
+                                  disabled={isArchiving}
+                                >
+                                  {isArchiving ? "Đang xử lý..." : "Xác nhận"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         )}
                       </td>
                     </tr>

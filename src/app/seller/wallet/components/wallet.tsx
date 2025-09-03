@@ -19,7 +19,17 @@ import { Clipboard, Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogTrigger } from "@/components/ui/dialog";
 import { BsEye } from 'react-icons/bs';
 import ProofImageGrid from '@/app/admin/payouts/components/ProofImageGrid';
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 export default function Wallet() {
   const { data: payoutData, isLoading: isPayoutLoading, isError } = useServiceCalculateUpcoming();
   const requestPayoutMutation = useServiceRequestPayout();
@@ -229,12 +239,40 @@ export default function Wallet() {
                   Đăng nhập Stripe
                 </Button>
               )}
-              <Button
+              {/* <Button
                 onClick={handleWithdraw}
                 disabled={!isVerified || !canPayout || requestPayoutMutation.isPending}
               >
                 Rút tiền
-              </Button>
+              </Button> */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    onClick={(e) => e.preventDefault()}
+                    disabled={!isVerified || !canPayout || requestPayoutMutation.isPending}
+                  >
+                    {requestPayoutMutation.isPending ? "Đang xử lý..." : "Rút tiền"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Xác nhận rút tiền</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Bạn có chắc chắn muốn rút tiền về tài khoản đã đăng ký không?
+                      Hành động này sẽ tạo yêu cầu rút tiền và không thể hoàn tác.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Hủy</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleWithdraw}
+                      disabled={!isVerified || !canPayout || requestPayoutMutation.isPending}
+                    >
+                      {requestPayoutMutation.isPending ? "Đang xử lý..." : "Xác nhận"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
 
             {showSuccessMessage && (
