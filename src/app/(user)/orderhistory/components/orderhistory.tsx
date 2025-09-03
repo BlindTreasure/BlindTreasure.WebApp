@@ -172,7 +172,7 @@ export default function OrderHistory() {
           <Card className="w-full lg:w-[calc(50%-12px)]">
             <CardContent className="p-4">
               <h3 className="font-semibold mb-3 flex items-center gap-2">
-                🚚 Thông tin giao hàng
+                🚚 Thông tin khách hàng
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div className="space-y-2">
