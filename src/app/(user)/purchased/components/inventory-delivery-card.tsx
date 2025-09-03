@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 import useGetItemInventoryById from "../../inventory/hooks/useGetItemInventoryById";
+import ShipmentLogsCard from "@/app/(user)/orderdetail/components/ShipmentLogsCard";
 
 interface InventoryDeliveryCardProps {
   item: InventoryItem;
@@ -217,6 +218,11 @@ export default function InventoryDeliveryCard({ item }: InventoryDeliveryCardPro
           {detailedItem && (
             <div className="mt-4">
               <InventoryTrackingTimeline item={detailedItem} />
+            </div>
+          )}
+          {detailedItem?.shipment?.id && (
+            <div className="mt-4">
+              <ShipmentLogsCard shipmentId={detailedItem.shipment.id} />
             </div>
           )}
           <div>
