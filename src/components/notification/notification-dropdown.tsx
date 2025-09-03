@@ -1,10 +1,77 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { X, Check, Trash2, Bell } from 'lucide-react';
 import { useNotification } from '@/hooks/use-notification';
 import { formatDistanceToNow } from 'date-fns';
 import { useAppSelector } from '@/stores/store';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+
+interface NotificationItemProps {
+    notification: any; // Using any as the type was not provided in context
+    onMarkAsRead: (notificationId: string, sourceUrl?: string) => void;
+    onDelete: (notificationId: string) => void;
+    getNotificationIcon: (type: string) => JSX.Element;
+    formatTime: (dateString: string) => string;
+}
+
+const NotificationItem: React.FC<NotificationItemProps> = React.memo(({
+    notification,
+    onMarkAsRead,
+    onDelete,
+    getNotificationIcon,
+    formatTime,
+}) => {
+    const hasSourceUrl = notification.type === 'Trading' && notification.sourceUrl;
+
+    return (
+        <div
+            className={`p-4 hover:bg-gray-50 transition-colors duration-200 ${
+                !notification.isRead ? 'bg-blue-50' : ''
+            }`}
+        >
+            <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-1">
+                    {getNotificationIcon(notification.type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                            <p className={`text-sm font-medium ${!notification.isRead ? 'text-gray-900' : 'text-gray-600'}`}>
+                                {notification.title}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-1">
+                                {notification.message}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-2">
+                                {formatTime(notification.sentAt)}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-1 ml-2">
+                            {!notification.isRead && (
+                                <button
+                                    onClick={() => onMarkAsRead(notification.id, hasSourceUrl ? notification.sourceUrl : undefined)}
+                                    className={`p-1 transition-colors ${hasSourceUrl ? 'text-orange-500 hover:text-orange-700' : 'text-gray-400 hover:text-green-600'}`}
+                                    title={hasSourceUrl ? "Đánh dấu đã đọc và xem chi tiết" : "Đánh dấu đã đọc"}
+                                >
+                                    <Check className="h-3 w-3" />
+                                </button>
+                            )}
+                            <button
+                                onClick={() => onDelete(notification.id)}
+                                className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                title="Xóa thông báo"
+                            >
+                                <Trash2 className="h-3 w-3" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+});
+NotificationItem.displayName = 'NotificationItem';
+
 
 interface NotificationDropdownProps {
   onClose: () => void;
@@ -61,29 +128,25 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
     }
   }, [page, fetchNotifications]);
 
-  const handleMarkAsRead = async (notificationId: string, sourceUrl?: string) => {
+  const handleMarkAsRead = useCallback(async (notificationId: string, sourceUrl?: string) => {
     const response = await markNotificationAsRead(notificationId);
     if (response.isSuccess) {
-      
-      // Nếu có sourceUrl thì chuyển hướng đến trang đó
       if (sourceUrl) {
-        // Đóng dropdown trước khi chuyển hướng
         onClose();
-        // Chuyển hướng đến sourceUrl
         router.push(sourceUrl);
       }
     }
-  };
+  }, [markNotificationAsRead, onClose, router]);
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = useCallback(async () => {
     await markAllNotificationsAsRead();
-  };
+  }, [markAllNotificationsAsRead]);
 
-  const handleDelete = async (notificationId: string) => {
+  const handleDelete = useCallback(async (notificationId: string) => {
     await deleteNotification(notificationId);
-  };
+  }, [deleteNotification]);
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = useCallback((type: string) => {
     switch (type) {
       case 'System':
         return <Bell className="h-4 w-4 text-blue-500" />;
@@ -98,39 +161,33 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
       default:
         return <Bell className="h-4 w-4 text-gray-500" />;
     }
-  };
+  }, []);
 
-  const formatTime = (dateString: string) => {
+  const formatTime = useCallback((dateString: string) => {
     try {
       return formatDistanceToNow(new Date(dateString), { addSuffix: true });
     } catch {
       return 'Unknown time';
     }
-  };
+  }, []);
 
-  // Lọc thông báo phù hợp với role của người dùng
-  const filteredNotifications = notifications.filter(notification => {
-    // Nếu notification có targetRole và không khớp với role hiện tại thì bỏ qua
+  const filteredNotifications = useMemo(() => notifications.filter(notification => {
     if (notification.targetRole && notification.targetRole !== userRole) {
       return false;
     }
     
-    // Các loại thông báo khác nhau cho từng role
     switch (userRole) {
       case "Customer":
-        // Customer nhận thông báo liên quan đến Order, Promotion
         return ["System", "Order", "Promotion", "General", "Trading"].includes(notification.type);
       case "Seller":
-        // Seller nhận thông báo liên quan đến Order, Product
         return ["System", "Order", "Product", "General", "Trading"].includes(notification.type);
       case "Staff":
       case "Admin":
-        // Staff và Admin nhận tất cả các loại thông báo
         return true;
       default:
         return true;
     }
-  });
+  }), [notifications, userRole]);
 
   return (
     <motion.div
@@ -176,62 +233,15 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
           <div className="divide-y divide-gray-200">
             {filteredNotifications.map((notification, index) => {
               const isLastElement = index === filteredNotifications.length - 1;
-              const hasSourceUrl = notification.type === 'Trading' && notification.sourceUrl;
-              
               return (
-                <div
-                  ref={isLastElement ? lastNotificationElementRef : null}
-                  key={notification.id}
-                  className={`p-4 hover:bg-gray-50 transition-colors duration-200 ${
-                    !notification.isRead ? 'bg-blue-50' : ''
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 mt-1">
-                      {getNotificationIcon(notification.type)}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className={`text-sm font-medium ${
-                            !notification.isRead ? 'text-gray-900' : 'text-gray-600'
-                          }`}>
-                            {notification.title}
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {notification.message}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-2">
-                            {formatTime(notification.sentAt)}
-                          </p>
-                        </div>
-                        
-                        <div className="flex items-center gap-1 ml-2">
-                          {!notification.isRead && (
-                            <button
-                              onClick={() => handleMarkAsRead(notification.id, hasSourceUrl ? notification.sourceUrl : undefined)}
-                              className={`p-1 transition-colors ${
-                                hasSourceUrl 
-                                  ? 'text-orange-500 hover:text-orange-700' 
-                                  : 'text-gray-400 hover:text-green-600'
-                              }`}
-                              title={hasSourceUrl ? "Đánh dấu đã đọc và xem chi tiết" : "Đánh dấu đã đọc"}
-                            >
-                              <Check className="h-3 w-3" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDelete(notification.id)}
-                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                            title="Xóa thông báo"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div ref={isLastElement ? lastNotificationElementRef : null} key={notification.id}>
+                    <NotificationItem
+                        notification={notification}
+                        onMarkAsRead={handleMarkAsRead}
+                        onDelete={handleDelete}
+                        getNotificationIcon={getNotificationIcon}
+                        formatTime={formatTime}
+                    />
                 </div>
               );
             })}
