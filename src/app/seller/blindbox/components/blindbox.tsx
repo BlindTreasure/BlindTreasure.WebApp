@@ -138,6 +138,11 @@ export default function BlindboxTabs() {
         return total === 100 && allSet;
     };
 
+    const handleLoadExistingItems = (existingItems: BlindBoxItemRequest[]) => {
+        setItems(existingItems);
+        setTotalItems(existingItems.length)
+    };
+
     useEffect(() => {
         const total = selectedRarities.reduce((sum, rarity) => sum + (rarityRates[rarity] || 0), 0);
         const allSet = selectedRarities.every(r => rarityRates[r] !== undefined && rarityRates[r] > 0);
@@ -279,6 +284,7 @@ export default function BlindboxTabs() {
                         totalItemsToAdd={totalItemsToAdd}
                         totalItems={totalItems}
                         selectKey={selectKey}
+                        onLoadExistingItems={handleLoadExistingItems}
                     />
                 </TabsContent>
             </div>

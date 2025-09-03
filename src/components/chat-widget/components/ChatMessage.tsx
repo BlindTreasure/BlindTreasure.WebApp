@@ -1,4 +1,5 @@
 import { Package, Download, FileText, Image as ImageIcon, MapPin, Gift, Clock, Eye, Crown } from "lucide-react";
+import Zoom from "react-medium-image-zoom";
 
 interface ChatMessageProps {
   message: API.ChatHistoryDetail;
@@ -261,7 +262,7 @@ export default function ChatMessage({
           {isImageMessage && imageUrl && (
             <div className="mb-2">
               <div className="relative group">
-                <img 
+                  <img 
                   src={imageUrl} 
                   alt={message.fileName || "Hình ảnh"}
                   className="max-w-full h-auto rounded-lg max-h-80 object-cover cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
@@ -341,11 +342,7 @@ export default function ChatMessage({
             // 4. Là inventory item và không có additional content
             if (
               (isImageMessage && hasImageContent) ||
-              message.content === 'Đã gửi một hình ảnh' || 
               message.content === '[Hình ảnh]' ||
-              message.content === 'Đã gửi một sản phẩm' ||
-              message.content === 'Đã gửi một tệp' ||
-              message.content === 'Đã gửi một inventory item' ||
               message.content === '[Sản phẩm]' ||
               (message.isInventoryItem && !message.content?.trim()) ||
               !message.content ||

@@ -13,8 +13,7 @@ import {
   setShowInventory, 
   setSelectedConversation, 
   setSearchQuery,
-  clearMessages,
-  removeConversation
+  clearMessages
 } from '@/stores/chat-slice';
 import { useSignalRMessages, useChatData, useChatActions } from '@/hooks/chat/useChat';
 import { useChat } from '@/hooks/chat/use-send-message-user';
@@ -77,7 +76,6 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
     isConnected, 
     userStatuses,
     typingUsers,
-    isUserOnline,
     checkUserOnlineStatus,
     startTyping,
     stopTyping,
@@ -92,29 +90,9 @@ const CustomerSellerChat: React.FC<CustomerSellerChatProps> = ({
   useEffect(() => {
     if (!targetUserId || !isOpen || isSelfChat || hasSelectedRef.current) return;
     
-    const targetConversation = conversations.find(conv => conv.otherUserId === targetUserId);
-    const newConversation = conversations.find(conv => conv.lastMessageTime == null);
+    handleSelectConversation(targetUserId);
+    hasSelectedRef.current = true;
 
-    if (targetConversation || (newConversation && newConversation.otherUserId == targetUserId)) {
-        // Trường hợp 1: User chọn new conversation và new conversation đó là cái trong list hoặc không chọn new conversation 
-        dispatch(setSelectedConversation(targetUserId));
-        checkUserOnlineStatus(targetUserId);  
-        hasSelectedRef.current = true;
-        
-    } else if (!newConversation && !targetConversation) {
-        // Trường hợp 2: User chọn new conversation và trong list không có new conversation 
-        chatActions.handleSelectConversation(targetUserId);
-        checkUserOnlineStatus(targetUserId);
-        hasSelectedRef.current = true;
-        
-    }else {
-        if (newConversation) {
-          dispatch(removeConversation(newConversation.otherUserId))
-        }
-        chatActions.handleSelectConversation(targetUserId);
-        checkUserOnlineStatus(targetUserId);
-        hasSelectedRef.current = true;
-    }
   }, [targetUserId, isOpen, conversations, isSelfChat]);
 
   // Effect để check online status cho tất cả conversations khi mở chat

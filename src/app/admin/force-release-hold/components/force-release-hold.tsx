@@ -206,7 +206,7 @@ export default function InventoryItems() {
                               <span>Đang cập nhật...</span>
                             </div>
                           ) : (
-                            "Giải phóng giữ"
+                            "Chuyển đổi trạng thái Tạm giữ"
                           )}
                         </button>
                       </td>

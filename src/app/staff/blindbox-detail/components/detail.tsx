@@ -125,7 +125,6 @@ const BlindBoxDetailView: React.FC = () => {
           hasSecretItem: response.value.data.hasSecretItem,
           secretProbability: response.value.data.secretProbability,
           items: response.value.data.items || [],
-          // Add reject reason if available
           rejectReason: response.value.data.rejectReason || undefined
         };
         setBlindBoxData(mappedData);
