@@ -7,7 +7,7 @@ import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { BlindBox, BlindBoxItemRequest } from "@/services/blindboxes/typings";
-import { AlertCircleIcon, CheckCircle2Icon, GiftIcon, X, Check } from "lucide-react"
+import { AlertCircleIcon, CheckCircle2Icon, GiftIcon, X, Check, Info } from "lucide-react"
 import {
     Alert,
     AlertDescription,
@@ -16,6 +16,7 @@ import {
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -23,6 +24,7 @@ import {
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { Product } from "@/services/product-seller/typings";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 type BlindboxOption = Pick<BlindBox, "id" | "name" | "hasSecretItem" | "secretProbability" | "categoryId" | "tierWeights" | "items">;
 
@@ -114,15 +116,13 @@ const ProductSelectionModal = ({
                             return (
                                 <div
                                     key={product.id}
-                                    className={`relative border p-3 transition-all ${
-                                        isClickable 
-                                            ? `cursor-pointer hover:shadow-md ${
-                                                isCurrentlySelected
-                                                    ? 'border-blue-500 shadow-md'
-                                                    : 'border-gray-200 hover:border-gray-300'
-                                            }`
-                                            : 'border-gray-100 opacity-50 cursor-not-allowed'
-                                    }`}
+                                    className={`relative border p-3 transition-all ${isClickable
+                                        ? `cursor-pointer hover:shadow-md ${isCurrentlySelected
+                                            ? 'border-blue-500 shadow-md'
+                                            : 'border-gray-200 hover:border-gray-300'
+                                        }`
+                                        : 'border-gray-100 opacity-50 cursor-not-allowed'
+                                        }`}
                                     onClick={() => isClickable && handleSelectProduct(product.id)}
                                 >
                                     {isCurrentlySelected && (
@@ -142,9 +142,8 @@ const ProductSelectionModal = ({
                                             <img
                                                 src={product.imageUrls[0]}
                                                 alt={product.name}
-                                                className={`w-full h-full object-cover ${
-                                                    isUsedInOtherSlot && !isCurrentlySelected ? 'grayscale' : ''
-                                                }`}
+                                                className={`w-full h-full object-cover ${isUsedInOtherSlot && !isCurrentlySelected ? 'grayscale' : ''
+                                                    }`}
                                                 onError={(e) => {
                                                     e.currentTarget.src = '/placeholder-product.jpg';
                                                 }}
@@ -157,9 +156,8 @@ const ProductSelectionModal = ({
                                     </div>
 
                                     <div>
-                                        <h4 className={`font-medium text-sm line-clamp-2 ${
-                                            isUsedInOtherSlot && !isCurrentlySelected ? 'text-gray-400' : ''
-                                        }`}>
+                                        <h4 className={`font-medium text-sm line-clamp-2 ${isUsedInOtherSlot && !isCurrentlySelected ? 'text-gray-400' : ''
+                                            }`}>
                                             {product.name}
                                         </h4>
                                         {isUsedInOtherSlot && !isCurrentlySelected && (
@@ -296,10 +294,10 @@ export const AddItemToBlindboxForm = ({
         // Auto-load existing data if available
         if (selectedBox.tierWeights && Object.keys(selectedBox.tierWeights).length > 0) {
             const existingRarities = Object.keys(selectedBox.tierWeights) as Rarity[];
-            const finalRarities = existingRarities.includes(Rarity.Secret) 
-                ? existingRarities 
+            const finalRarities = existingRarities.includes(Rarity.Secret)
+                ? existingRarities
                 : [...existingRarities, Rarity.Secret];
-            
+
             setSelectedRarities(finalRarities);
             setRarityRates(selectedBox.tierWeights);
 
@@ -320,7 +318,7 @@ export const AddItemToBlindboxForm = ({
         } else {
             setSelectedRarities([Rarity.Secret]);
             setRarityRates({});
-            
+
             // Clear items if no existing data
             if (onLoadExistingItems) {
                 onLoadExistingItems([]);
@@ -400,7 +398,48 @@ export const AddItemToBlindboxForm = ({
                 </div>
 
                 <div className="space-y-4 border p-4 rounded-md shadow-sm">
-                    <h3 className="font-semibold">Thiết lập độ hiếm & trọng số</h3>
+                    <div className="flex items-center space-x-2">
+                        <h3 className="font-semibold">Thiết lập độ hiếm & trọng số</h3>
+                        <Dialog>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <DialogTrigger asChild>
+                                            <button
+                                                className="inline-flex items-center text-muted-foreground hover:text-foreground transition"
+                                                aria-label="Giải thích"
+                                            >
+                                                <Info className="h-4 w-4" />
+                                            </button>
+                                        </DialogTrigger>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="text-xs">
+                                        Lưu ý: Trọng số càng nhỏ thì sản phẩm càng hiếm. Click để xem chi tiết.
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
+                            <DialogContent className="max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle>Hướng dẫn trọng số</DialogTitle>
+                                    <DialogDescription>
+                                        Đây là cách phân bổ độ hiếm cho từng sản phẩm trong blindbox.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-3 text-sm leading-relaxed">
+                                    <p>- Tổng trọng số các độ hiếm nên bằng <b>100%</b>.</p>
+                                    <p>
+                                        - <b>Trọng số càng nhỏ</b> thì tỉ lệ sản phẩm rơi vào độ hiếm đó{" "}
+                                        <b>càng thấp</b> (hiếm hơn).
+                                    </p>
+                                    <p>
+                                        Ví dụ: Common 70, Rare 20, Epic 10 → nghĩa là Common có tỉ lệ
+                                        xuất hiện cao hơn Epic.
+                                    </p>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                     <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <p className="text-sm text-yellow-800">
                             <strong>Lưu ý:</strong> Bắt buộc phải có độ hiếm "Cực hiếm" và tổng trọng số phải bằng 100
