@@ -470,29 +470,22 @@ export const useChatActions = (): ChatActions => {
     const targetConversation = conversations.find(conv => conv.otherUserId === targetUserId );
     const newConversation = conversations.find(conv => conv.lastMessageTime == null);
 
-    // Case 1: Conversation already exists in list
-    if (targetConversation) {
+
+    if (newConversation && (newConversation.otherUserId !== targetUserId || targetConversation == newConversation)) {
+      
+      dispatch(removeConversation(newConversation.otherUserId));
+    }
+
+    // Case 1: New conversation exists and matches target user
+    if (newConversation && newConversation.otherUserId === targetUserId) {
       dispatch(setSelectedConversation(targetUserId));
       await checkUserOnlineStatus(targetUserId );
       return;
     }
-
-    // Case 2: New conversation exists and matches target user
-    if (newConversation && newConversation.otherUserId === targetUserId ) {
-      dispatch(setSelectedConversation(targetUserId ));
-      await checkUserOnlineStatus(targetUserId );
-      return;
-    }
-
-    // Case 3: Need to handle new conversation creation
-    // Remove existing new conversation if it's for different user
-    if (newConversation && newConversation.otherUserId !== targetUserId ) {
-      dispatch(removeConversation(newConversation.otherUserId));
-    }
-
+    
     // Create new conversation if doesn't exist
     try {
-      const response = await getNewChatConversationApi(targetUserId );
+      const response = await getNewChatConversationApi(targetUserId);
       if (response?.value?.data) {
         const newConv: API.ChatConversation = {
           otherUserId: targetUserId ,
