@@ -174,13 +174,13 @@ export default function Orders() {
                                             </td>
                                             <td className="p-3 border">
                                                 <div className="flex items-center justify-between gap-2">
-                                                    {order.shippingAddress?.fullName ?? "Chưa có thông tin"}
-                                                    {order.shippingAddress && (
+                                                    {order.user?.fullName ?? "Chưa có thông tin"}
+                                                    {order.user && (
                                                         <button
                                                             type="button"
                                                             className="hover:text-[#d02a2a]"
                                                             onClick={() => {
-                                                                setSelectedCustomer(order.shippingAddress);
+                                                                setSelectedCustomer(order.user);
                                                                 setOpenCustomerDialog(true);
                                                             }}
                                                             title="Xem chi tiết khách hàng"
@@ -308,17 +308,23 @@ export default function Orders() {
                     <DialogHeader>
                         <DialogTitle>Chi tiết khách hàng</DialogTitle>
                     </DialogHeader>
+
                     {selectedCustomer ? (
                         <div className="space-y-2">
-                            <div><b>Họ tên:</b> {selectedCustomer.fullName || "-"}</div>
-                            <div><b>Số điện thoại:</b> {selectedCustomer.phone || "-"}</div>
-                            <div><b>Địa chỉ:</b> {selectedCustomer.addressLine || "-"}</div>
-                            <div><b>Thành phố:</b> {selectedCustomer.city || "-"}</div>
-                            <div><b>Tỉnh/TP:</b> {selectedCustomer.province || "-"}</div>
+                            <div>
+                                <b>Họ tên:</b> {selectedCustomer.fullName || "-"}
+                            </div>
+                            <div>
+                                <b>Email:</b> {selectedCustomer.email || "-"}
+                            </div>
+                            <div>
+                                <b>Số điện thoại:</b> {selectedCustomer.phoneNumber || "Chưa có"}
+                            </div>
                         </div>
                     ) : (
                         <div>Không có thông tin khách hàng.</div>
                     )}
+
                     <DialogFooter>
                         <DialogClose asChild>
                             <Button>Đóng</Button>
