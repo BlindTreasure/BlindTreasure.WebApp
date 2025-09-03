@@ -85,6 +85,8 @@ export type GetOrderParams = {
   CheckoutGroupId?: string;
   pageIndex?: number;
   pageSize?: number;
+  userId?: string;
+  
 };
 
 export type OrderResponse = {

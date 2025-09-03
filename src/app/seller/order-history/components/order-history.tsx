@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Button } from "@/components/ui/button";
 import { BsEye } from "react-icons/bs";
 import { SlRefresh } from "react-icons/sl";
+import useGetUserSeller from "../../archived/hooks/GetUserSeller";
 
 export default function OrderHistory() {
     const { isPending, getOrderBySellerApi } = useGetOrderBySeller();
@@ -30,7 +31,9 @@ export default function OrderHistory() {
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
     const [orderDetail, setOrderDetail] = useState<Order | null>(null);
     const { getOrderDetailApi, isPending: isDetailPending } = useGetOrderById();
-
+    const [selectedCustomer, setSelectedCustomer] = useState<string>("all");
+    const { isPending: isPendingAdmin, getUserSellerApi } = useGetUserSeller();
+    const [customers, setCustomers] = useState<API.UserItem[]>([]);
     // useEffect(() => {
     //     const fetchData = async () => {
     //         const toISODate = (d: string, isEnd = false) => {
@@ -72,6 +75,7 @@ export default function OrderHistory() {
             status: status !== "all" ? (status as PaymentStatus) : undefined,
             placedFrom: toISODate(dateFrom),
             placedTo: toISODate(dateTo, true),
+            userId: selectedCustomer !== "all" ? selectedCustomer : undefined,
         };
 
         const res = await getOrderBySellerApi(params);
@@ -88,7 +92,7 @@ export default function OrderHistory() {
 
     useEffect(() => {
         fetchData();
-    }, [paging.pageIndex, paging.pageSize, status, dateFrom, dateTo]);
+    }, [paging.pageIndex, paging.pageSize, status, dateFrom, dateTo, selectedCustomer]);
 
     useEffect(() => {
         if (!selectedOrderId) return;
@@ -102,6 +106,16 @@ export default function OrderHistory() {
         };
         fetchDetail();
     }, [selectedOrderId]);
+
+    useEffect(() => {
+        const fetchCustomers = async () => {
+            const res = await getUserSellerApi();
+            if (res?.isSuccess && res.value?.data) {
+                setCustomers(res.value.data);
+            }
+        };
+        fetchCustomers();
+    }, []);
 
     const handlePageChange = (newPage: number) => {
         if (newPage < 1 || newPage > paging.totalPages) return;
@@ -138,6 +152,21 @@ export default function OrderHistory() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                
+                                <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
+                                    <SelectTrigger className="w-52">
+                                        <SelectValue placeholder="Khách hàng" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Tất cả khách hàng</SelectItem>
+                                        {customers.map((c) => (
+                                            <SelectItem key={c.userId} value={c.userId}>
+                                                {c.fullName || c.email}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+
                                 <div className="flex gap-2 items-center">
                                     <span className="text-gray-500 text-sm">Từ</span>
                                     <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-1/2 date-icon-black dark:date-icon-white" />
