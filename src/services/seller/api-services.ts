@@ -84,3 +84,11 @@ export const getSellerOverview = async (
   );
   return response.data;
 };
+
+export const getUserSeller = async () => {
+  const response = await request<TResponseData<API.UserItem[]>>(
+    API_ENDPOINTS.USERS,
+    { method: "GET" }
+  );
+  return response.data; 
+};

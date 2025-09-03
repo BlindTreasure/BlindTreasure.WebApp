@@ -1,3 +1,4 @@
+// import { UserRole, UserStatus } from "@/const/user";
 declare namespace REQUEST {
   type GetSellers = {
     status?: SellerStatus;
@@ -67,7 +68,7 @@ declare namespace API {
   type SellerInfo = {
     sellerId: string;
     averageRating: number;
-    joinedAt: string; 
+    joinedAt: string;
     joinedAtToText: string;
     productCount: number;
     companyName: string;
@@ -75,5 +76,20 @@ declare namespace API {
     productInSellingCount: number;
     productInBlindBoxCount: number;
     blindBoxCount: number;
+  };
+
+  type UserItem = {
+    userId: string;
+    fullName: string;
+    email: string;
+    avatarUrl: string | null;
+    dateOfBirth: string;
+    gender: string | null;
+    status: UserStatus;
+    phoneNumber: string | null;
+    roleName: UserRole;
+    reason: string | null;
+    createdAt: string;
+    sellerId: string | null;
   };
 }
