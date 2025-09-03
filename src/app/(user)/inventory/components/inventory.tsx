@@ -701,7 +701,7 @@ export default function Inventory() {
                                                                     onClick={() => handleResellItem(item.id)}
                                                                     className="flex-1 border border-orange-600 text-orange-600 bg-transparent hover:bg-orange-600 hover:text-white transition"
                                                                 >
-                                                                    Đổi hàng
+                                                                    Trao đổi
                                                                 </Button>
                                                             )}
                                                         <Button
@@ -914,7 +914,7 @@ export default function Inventory() {
                                                         className="w-1/2 border border-green-600 text-green-600 bg-transparent hover:bg-green-600 hover:text-white transition"
                                                         onClick={() => handleExchangeItem(wonItem?.product?.id)}
                                                     >
-                                                        Đổi hàng
+                                                        Trao đổi
                                                     </Button>
                                                 </div>
                                             </div>
