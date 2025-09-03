@@ -79,7 +79,7 @@ export default function Shipments() {
             pageIndex: paging.pageIndex,
             pageSize: paging.pageSize,
             search: search || undefined,
-            status: status !== "all" ? status : undefined, 
+            status: status !== "all" ? status : undefined,
             minTotalFee: numberOrUndef(minFee),
             maxTotalFee: numberOrUndef(maxFee),
             fromEstimatedPickupTime: toISODate(dateFrom),
@@ -179,24 +179,25 @@ export default function Shipments() {
                             <thead>
                                 <tr className="bg-gray-100 text-left">
                                     <th className="p-3 border w-36">Mã đơn</th>
-                                    <th className="p-3 border w-40">Nhà vận chuyển</th>
-                                    <th className="p-3 border w-32">Phí</th>
+                                    <th className="p-3 border w-36">Nhà vận chuyển</th>
+                                    <th className="p-3 border w-24">Phí</th>
                                     <th className="p-3 border w-44">Thời gian lấy</th>
                                     <th className="p-3 border w-44">Dự kiến giao</th>
                                     <th className="p-3 border w-36">Trạng thái</th>
+                                    <th className="p-3 border w-44">Mô tả</th>
                                     <th className="p-3 border w-36">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {isPending ? (
                                     <tr>
-                                        <td colSpan={7} className="text-center p-4">
+                                        <td colSpan={8} className="text-center p-4">
                                             Đang tải...
                                         </td>
                                     </tr>
                                 ) : shipments.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="text-center p-4">
+                                        <td colSpan={8} className="text-center p-4">
                                             <img
                                                 src="https://static.thenounproject.com/png/empty-box-icon-7507343-512.png"
                                                 alt="Empty"
@@ -209,17 +210,21 @@ export default function Shipments() {
                                     shipments.map((s) => (
                                         <tr key={s.id} className="hover:bg-gray-50">
                                             <td className="p-3 border">
-                                                <div
-                                                    className="flex items-center gap-2 cursor-pointer group"
-                                                    onClick={() => navigator.clipboard.writeText(s.orderCode)}
-                                                    title="Sao chép mã đơn"
-                                                >
-                                                    <span>#{s.orderCode}</span>
-                                                    <Clipboard
-                                                        size={14}
-                                                        className="text-gray-400 group-hover:text-gray-600"
-                                                    />
-                                                </div>
+                                                {s.orderCode ? (
+                                                    <div
+                                                        className="flex items-center gap-2 cursor-pointer group"
+                                                        onClick={() => navigator.clipboard.writeText(s.orderCode)}
+                                                        title="Sao chép mã đơn"
+                                                    >
+                                                        <span>#{s.orderCode}</span>
+                                                        <Clipboard
+                                                            size={14}
+                                                            className="text-gray-400 group-hover:text-gray-600"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-400 italic">Chưa có mã đơn</span>
+                                                )}
                                             </td>
 
                                             <td className="p-3 border">{s.provider || "-"}</td>
@@ -241,6 +246,7 @@ export default function Shipments() {
                                                         s.status}
                                                 </span>
                                             </td>
+                                            <td className="p-3 border">{s.description || "-"}</td>
                                             <td className="p-3 border text-center">
                                                 {s.status === ShipmentStatus.PROCESSING && (
                                                     <Button
