@@ -110,6 +110,10 @@ export interface Order {
   checkoutGroupId: string;
   sellerId: string;
   seller: Seller | null;
+  totalRefundAmount: number;
+  refundReason: string;
+  userId: string;
+  user: User;
 }
 
 export type ShippingAddress = {
@@ -181,4 +185,19 @@ export type PaymentTransaction = {
   occurredAt: string;
   externalRef: string;
   paymentId: string;
+};
+
+export type User = {
+  userId: string;
+  fullName: string;
+  email: string;
+  avatarUrl: string | null;
+  dateOfBirth: string;       
+  gender: string | null;    
+  status: UserStatus; 
+  phoneNumber: string | null;
+  roleName: UserRole;           
+  reason: string | null;     
+  createdAt: string;          
+  sellerId: string | null;    
 };
