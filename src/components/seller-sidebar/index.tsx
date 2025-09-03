@@ -70,7 +70,7 @@ const sidebarItems = [
     href: "/seller/reply",
   },
   {
-    label: "Voucher",
+    label: "Mã khuyến mãi",
     icon: Users,
     href: "/seller/promotions",
   },

@@ -192,27 +192,46 @@ export const WelcomeScreen: React.FC = () => (
 
 export const MessageBubble: React.FC<{ message: API.ChatHistoryDetail }> = ({ message }) => {
   const isOwn = message.isCurrentUserSender;
+  
   return (
     <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4`}>
       <div className={`flex items-end gap-2 max-w-[70%] ${isOwn ? 'flex-row-reverse' : ''}`}>
+        {/* Avatar - chỉ hiển thị cho tin nhắn từ người khác */}
         {!isOwn && (
-          <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium overflow-hidden">
+          <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium overflow-hidden flex-shrink-0">
             {message.senderAvatar ? (
-              <img src={message.senderAvatar} alt={message.senderName} className="w-full h-full object-cover" />
+              <img 
+                src={message.senderAvatar} 
+                alt={message.senderName} 
+                className="w-full h-full object-cover" 
+              />
             ) : (
               message.senderName.charAt(0).toUpperCase()
             )}
           </div>
         )}
+        
+        {/* Message bubble */}
         <div className={`relative px-4 py-3 rounded-2xl ${
           isOwn ? 'bg-blue-500 text-white rounded-br-sm' : 'bg-gray-100 text-gray-900 rounded-bl-sm'
         }`}>
-          {message.messageType === 'image' && message.fileUrl && (
+          {/* Hiển thị hình ảnh nếu là tin nhắn hình */}
+          {message.isImage && message.fileUrl && (
             <div className="mb-2">
-              <img src={message.fileUrl} alt="Shared" className="max-w-full h-auto rounded-lg" />
+              <img 
+                src={message.fileUrl} 
+                alt="Shared image" 
+                className="max-w-full h-auto rounded-lg max-h-64 object-contain" 
+              />
             </div>
           )}
-          {message.content && <p className="text-sm break-words">{message.content}</p>}
+          
+          {/* Hiển thị text nếu có content và không phải là image-only */}
+          {message.content && (
+            <p className="text-sm break-words whitespace-pre-wrap">{message.content}</p>
+          )}
+          
+          {/* Timestamp */}
           <span className={`text-xs mt-1 block ${isOwn ? 'text-blue-100' : 'text-gray-500'}`}>
             {new Date(message.sentAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
           </span>

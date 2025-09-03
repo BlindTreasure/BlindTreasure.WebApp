@@ -24,7 +24,7 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { Product } from "@/services/product-seller/typings";
 
-type BlindboxOption = Pick<BlindBox, "id" | "name" | "hasSecretItem" | "secretProbability" | "categoryId">;
+type BlindboxOption = Pick<BlindBox, "id" | "name" | "hasSecretItem" | "secretProbability" | "categoryId" | "tierWeights" | "items">;
 
 type ProductOption = Pick<Product, "id" | "name" | "productType" | "categoryId" | "imageUrls">;
 
@@ -53,6 +53,7 @@ type Props = {
     totalItemsToAdd?: number | null;
     totalItems?: number | null;
     selectKey: number;
+    onLoadExistingItems?: (items: BlindBoxItemRequest[]) => void;
 };
 
 // Product Selection Modal Component
@@ -273,7 +274,8 @@ export const AddItemToBlindboxForm = ({
     onTotalItemsChange,
     totalItemsToAdd = null,
     totalItems,
-    selectKey
+    selectKey,
+    onLoadExistingItems
 }: Props) => {
 
     const [filteredProducts, setFilteredProducts] = useState<ProductOption[]>([]);
@@ -284,17 +286,46 @@ export const AddItemToBlindboxForm = ({
         const selectedBox = blindboxes?.result?.find((b) => b.id === boxId);
         if (!selectedBox) return;
 
-        // Always require Secret rarity and initialize with empty rates
-        setSelectedRarities([Rarity.Secret]);
-        setRarityRates({});
-
         const matchingProducts = products?.result?.filter(
             (p) =>
                 p.categoryId === selectedBox.categoryId &&
                 p.id !== selectedBox.id
         );
-
         setFilteredProducts(matchingProducts ?? []);
+
+        // Auto-load existing data if available
+        if (selectedBox.tierWeights && Object.keys(selectedBox.tierWeights).length > 0) {
+            const existingRarities = Object.keys(selectedBox.tierWeights) as Rarity[];
+            const finalRarities = existingRarities.includes(Rarity.Secret) 
+                ? existingRarities 
+                : [...existingRarities, Rarity.Secret];
+            
+            setSelectedRarities(finalRarities);
+            setRarityRates(selectedBox.tierWeights);
+
+            // Load existing items if available
+            if (selectedBox.items && selectedBox.items.length > 0) {
+                const existingItems: BlindBoxItemRequest[] = selectedBox.items.map(item => ({
+                    productId: item.productId,
+                    rarity: item.rarity,
+                    weight: item.weight,
+                    quantity: item.quantity
+                }));
+
+                // Call parent function to update items
+                if (onLoadExistingItems) {
+                    onLoadExistingItems(existingItems);
+                }
+            }
+        } else {
+            setSelectedRarities([Rarity.Secret]);
+            setRarityRates({});
+            
+            // Clear items if no existing data
+            if (onLoadExistingItems) {
+                onLoadExistingItems([]);
+            }
+        }
     };
 
     const handleProductModalToggle = (index: number, isOpen: boolean) => {
@@ -369,10 +400,10 @@ export const AddItemToBlindboxForm = ({
                 </div>
 
                 <div className="space-y-4 border p-4 rounded-md shadow-sm">
-                    <h3 className="font-semibold">Thiết lập độ hiếm & tỉ lệ rơi (%)</h3>
+                    <h3 className="font-semibold">Thiết lập độ hiếm & trọng số</h3>
                     <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <p className="text-sm text-yellow-800">
-                            <strong>Lưu ý:</strong> Bắt buộc phải có độ hiếm "Cực hiếm" và tổng tỷ lệ phải bằng 100%
+                            <strong>Lưu ý:</strong> Bắt buộc phải có độ hiếm "Cực hiếm" và tổng trọng số phải bằng 100
                         </p>
                     </div>
                     {Object.values(Rarity).map((rarity) => {
@@ -425,7 +456,7 @@ export const AddItemToBlindboxForm = ({
                                         }))
                                     }
                                     disabled={!selectedRarities.includes(rarity)}
-                                    placeholder="% tỉ lệ"
+                                    placeholder="trọng số"
                                 />
                                 <span className="text-sm text-muted-foreground">({count} sản phẩm)</span>
                             </div>
