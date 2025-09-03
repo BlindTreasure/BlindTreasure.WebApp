@@ -152,7 +152,7 @@ export default function OrderHistory() {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                
+
                                 <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
                                     <SelectTrigger className="w-52">
                                         <SelectValue placeholder="Khách hàng" />
@@ -218,7 +218,7 @@ export default function OrderHistory() {
                                                 </span>
                                             </td>
                                             <td className="p-3 border">
-                                                {order.shippingAddress?.fullName ?? "Chưa có thông tin"}
+                                                {order.user?.fullName ?? "Chưa có thông tin"}
                                             </td>
                                             <td className="p-3 border">
                                                 {(() => {
@@ -311,13 +311,15 @@ export default function OrderHistory() {
 
                             <div className="border rounded p-3 bg-white dark:bg-gray-900">
                                 <div className="font-semibold mb-2">👤 Khách hàng</div>
-                                {orderDetail.shippingAddress ? (
+                                {orderDetail.user ? (
                                     <>
-                                        <div>Họ tên: {orderDetail.shippingAddress.fullName}</div>
-                                        <div>Địa chỉ: {orderDetail.shippingAddress.addressLine}, {orderDetail.shippingAddress.city}, {orderDetail.shippingAddress.province}</div>
-                                        <div>Điện thoại: {orderDetail.shippingAddress.phone}</div>
+                                        <div>Họ tên: {orderDetail.user.fullName}</div>
+                                        <div>Email: {orderDetail.user.email}</div>
+                                        <div>Điện thoại: {orderDetail.user.phoneNumber || "Chưa có"}</div>
                                     </>
-                                ) : <div>Không có thông tin</div>}
+                                ) : (
+                                    <div>Không có thông tin khách hàng</div>
+                                )}
                             </div>
 
                             <div className="border rounded p-3 bg-white dark:bg-gray-900">
