@@ -12,6 +12,7 @@ import useGetOrderById from "../hooks/useGetOrderById";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { BsEye } from "react-icons/bs";
+import { SlRefresh } from "react-icons/sl";
 
 export default function OrderHistory() {
     const { isPending, getOrderBySellerApi } = useGetOrderBySeller();
@@ -30,30 +31,62 @@ export default function OrderHistory() {
     const [orderDetail, setOrderDetail] = useState<Order | null>(null);
     const { getOrderDetailApi, isPending: isDetailPending } = useGetOrderById();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const toISODate = (d: string, isEnd = false) => {
-                if (!d) return undefined;
-                return isEnd ? new Date(d + 'T23:59:59').toISOString() : new Date(d + 'T00:00:00').toISOString();
-            };
-            const params: GetOrderParams = {
-                pageIndex: paging.pageIndex,
-                pageSize: paging.pageSize,
-                status: status !== "all" ? (status as PaymentStatus) : undefined,
-                placedFrom: toISODate(dateFrom),
-                placedTo: toISODate(dateTo, true),
-            };
-            const res = await getOrderBySellerApi(params);
-            if (res) {
-                const data: OrderResponse = res.value.data;
-                setOrders(data.result);
-                setPaging((prev) => ({
-                    ...prev,
-                    totalPages: data.totalPages,
-                    totalItems: data.count,
-                }));
-            }
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //         const toISODate = (d: string, isEnd = false) => {
+    //             if (!d) return undefined;
+    //             return isEnd ? new Date(d + 'T23:59:59').toISOString() : new Date(d + 'T00:00:00').toISOString();
+    //         };
+    //         const params: GetOrderParams = {
+    //             pageIndex: paging.pageIndex,
+    //             pageSize: paging.pageSize,
+    //             status: status !== "all" ? (status as PaymentStatus) : undefined,
+    //             placedFrom: toISODate(dateFrom),
+    //             placedTo: toISODate(dateTo, true),
+    //         };
+    //         const res = await getOrderBySellerApi(params);
+    //         if (res) {
+    //             const data: OrderResponse = res.value.data;
+    //             setOrders(data.result);
+    //             setPaging((prev) => ({
+    //                 ...prev,
+    //                 totalPages: data.totalPages,
+    //                 totalItems: data.count,
+    //             }));
+    //         }
+    //     };
+    //     fetchData();
+    // }, [paging.pageIndex, paging.pageSize, status, dateFrom, dateTo]);
+
+    const fetchData = async () => {
+        const toISODate = (d: string, isEnd = false) => {
+            if (!d) return undefined;
+            return isEnd
+                ? new Date(d + "T23:59:59").toISOString()
+                : new Date(d + "T00:00:00").toISOString();
         };
+
+        const params: GetOrderParams = {
+            pageIndex: paging.pageIndex,
+            pageSize: paging.pageSize,
+            status: status !== "all" ? (status as PaymentStatus) : undefined,
+            placedFrom: toISODate(dateFrom),
+            placedTo: toISODate(dateTo, true),
+        };
+
+        const res = await getOrderBySellerApi(params);
+        if (res) {
+            const data: OrderResponse = res.value.data;
+            setOrders(data.result);
+            setPaging((prev) => ({
+                ...prev,
+                totalPages: data.totalPages,
+                totalItems: data.count,
+            }));
+        }
+    };
+
+    useEffect(() => {
         fetchData();
     }, [paging.pageIndex, paging.pageSize, status, dateFrom, dateTo]);
 
@@ -87,6 +120,13 @@ export default function OrderHistory() {
                         <h2 className="text-xl font-semibold mb-4 pt-4">Lịch sử đơn hàng</h2>
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div className="flex flex-wrap gap-4 items-center">
+                                <Button
+                                    className="bg-green-500 hover:bg-opacity-80"
+                                    onClick={fetchData}
+                                >
+                                    <SlRefresh className="mr-2" />
+                                    Làm mới
+                                </Button>
                                 <Select value={status} onValueChange={setStatus}>
                                     <SelectTrigger className="w-48">
                                         <SelectValue placeholder="Trạng thái thanh toán" />

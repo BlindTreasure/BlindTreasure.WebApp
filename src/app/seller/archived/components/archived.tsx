@@ -23,6 +23,7 @@ import { InventoryItemStatus, InventoryItemStatusText } from "@/const/products";
 import { useAppSelector } from "@/stores/store";
 import useGetInventoryByAdmin from "@/app/admin/archived/hooks/useGetInventoryByAdmin";
 import { useUpdateInventoryItemStatus } from "@/services/admin/services";
+import useGetUserSeller from "../hooks/GetUserSeller";
 
 export default function Archived() {
   const { isPending, getInventoryByAdminApi } = useGetInventoryByAdmin();
@@ -41,6 +42,8 @@ export default function Archived() {
   const [status, setStatus] = useState<string>("all");
   const [selectedCustomer, setSelectedCustomer] = useState<string>("all");
   const [isFromBlindBox, setIsFromBlindBox] = useState<boolean | undefined>(undefined);
+  const { isPending: isPendingAdmin, getUserSellerApi } = useGetUserSeller();
+  const [customers, setCustomers] = useState<API.UserItem[]>([]);
 
   const statusBadgeClass = (s: InventoryItemStatus) => {
     switch (s) {
@@ -69,6 +72,7 @@ export default function Archived() {
       status: status !== "all" ? status : undefined,
       isFromBlindBox: isFromBlindBox,
       sellerId: sellerId,
+      userId: selectedCustomer !== "all" ? selectedCustomer : undefined,
     };
 
     const res = await getInventoryByAdminApi(params);
@@ -100,6 +104,17 @@ export default function Archived() {
       }
     );
   };
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      const res = await getUserSellerApi();
+      if (res?.isSuccess && res.value?.data) {
+        setCustomers(res.value.data);
+      }
+    };
+    fetchCustomers();
+  }, []);
+
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > paging.totalPages) return;
@@ -151,6 +166,20 @@ export default function Archived() {
                   <SelectItem value="all">Tất cả trạng thái</SelectItem>
                   {Object.values(InventoryItemStatus).map((i) => (
                     <SelectItem key={i} value={i}>{InventoryItemStatusText[i]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
+                <SelectTrigger className="w-52">
+                  <SelectValue placeholder="Khách hàng" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả khách hàng</SelectItem>
+                  {customers.map((c) => (
+                    <SelectItem key={c.userId} value={c.userId}>
+                      {c.fullName || c.email}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
