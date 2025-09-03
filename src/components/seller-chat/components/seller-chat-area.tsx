@@ -52,9 +52,14 @@ const SellerChatArea: React.FC<{
           <EmptyState type="messages" />
         ) : (
           <>
-            {messages.map(msg => (
-              <MessageBubble key={msg.id} message={msg} />
-            ))}
+            {messages.map(msg => {
+              return (
+                <MessageBubble 
+                  key={msg.id} 
+                  message={msg}
+                />
+              );
+            })}
             <div id="messages-end" />
           </>
         )}
