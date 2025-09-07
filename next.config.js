@@ -23,13 +23,20 @@ const nextConfig = {
       use: ["@svgr/webpack"],
     });
     
-    // Vô hiệu hóa cache trong development
-    if (dev) {
-      config.cache = false;
-    }
+    // Loại bỏ dòng vô hiệu hóa cache để cải thiện performance
     
     return config;
   },
+  // Thêm cấu hình image optimization
+  images: {
+    domains: ["img.freepik.com"],
+    // Tối ưu hình ảnh
+    formats: ['image/avif', 'image/webp'],
+    // Sử dụng cache
+    minimumCacheTTL: 60,
+  },
+  // Tăng tốc độ build
+  swcMinify: true,
 };
 
 module.exports = nextConfig;

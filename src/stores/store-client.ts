@@ -9,7 +9,8 @@ const persistConfig = {
   key: "root",
   version: 1,
   storage,
-  whitelist: ["cartSlice", "userSlice", "authSlice", "filterSlice"],
+  whitelist: ["userSlice", "authSlice"], // Giảm số lượng slice được persist
+  throttle: 1000, // Thêm throttle để giảm số lần ghi vào storage
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
