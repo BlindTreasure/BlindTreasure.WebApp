@@ -28,6 +28,7 @@ export type BlindBoxItem = {
   dropRate: number;
   rarity:  Rarity;
   imageUrl: string;
+  weight: number;
 };
 
 export type BlindBox = {
@@ -40,6 +41,7 @@ export type BlindBox = {
   blindBoxStockStatus: StockStatus;
   brand: string;
   imageUrl: string;
+  tierWeights: Object<RarityName, number> | null;
   releaseDate: string;
   createdAt: string;
   status: BlindboxStatus;
@@ -91,3 +93,5 @@ type ReviewBlindboxParams = {
   blindboxesId: string;
   reviewData: BlindBoxReviewRequest;
 }
+
+type RarityName = "Common" | "Rare" | "Epic" | "Secret"

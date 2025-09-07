@@ -495,7 +495,7 @@ const MarketplaceListing: React.FC = () => {
                     {/* Listing Type Info */}
                     <div className="mb-6">
                       <div className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium mb-4">
-                        {isFree ? '🎁 Bằng tiền' : '🔄 Trao đổi'}
+                        {isFree ? '🎁 Miễn phí' : '🔄 Trao đổi'}
                       </div>
                       {selectedItem.isFromBlindBox && (
                         <div className="bg-purple-50 p-3 rounded-lg mb-3">

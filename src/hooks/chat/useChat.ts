@@ -26,6 +26,7 @@ import {
   setInventoryItems,
   markAsRead,
   clearMessages,
+  removeConversation
 } from '@/stores/chat-slice';
 
 import { 
@@ -465,69 +466,79 @@ export const useChatActions = (): ChatActions => {
     }
   }, [dispatch, getChatHistoryDetailApi, currentUserId]);
 
-  const handleSelectConversation = useCallback(async (conversationId: string) => {
-    const existingConversation = conversations.find(conv => conv.otherUserId === conversationId);
+  const handleSelectConversation = useCallback(async (targetUserId : string) => {
+    const targetConversation = conversations.find(conv => conv.otherUserId === targetUserId );
+    const newConversation = conversations.find(conv => conv.lastMessageTime == null);
 
-    // Handle new conversation creation
-    if (!existingConversation) {
-      try {
-        const response = await getNewChatConversationApi(conversationId);
-        if (response?.value?.data) {
-          const newConversation: API.ChatConversation = {
-            otherUserId: conversationId,
-            otherUserName: response.value.data.otherUserName,
-            otherUserAvatar: response.value.data.otherUserAvatar,
-            lastMessage: '',
-            lastMessageTime: null,
-            unreadCount: 0,
-            isOnline: isUserOnline(conversationId),
-            isSeller: response.value.data.isSeller
-          };
-          dispatch(addConversation(newConversation));
-        }
-      } catch (error) {
-        console.error('Error creating new conversation:', error);
-        return;
-      }
+
+    if (newConversation && (newConversation.otherUserId !== targetUserId || targetConversation == newConversation)) {
+      
+      dispatch(removeConversation(newConversation.otherUserId));
     }
 
-    // Set selected conversation - this will trigger chat history fetch in useChatData
-    dispatch(setSelectedConversation(conversationId));
+    // Case 1: New conversation exists and matches target user
+    if (newConversation && newConversation.otherUserId === targetUserId) {
+      dispatch(setSelectedConversation(targetUserId));
+      await checkUserOnlineStatus(targetUserId );
+      return;
+    }
     
-    // Check online status
+    // Create new conversation if doesn't exist
+    try {
+      const response = await getNewChatConversationApi(targetUserId);
+      if (response?.value?.data) {
+        const newConv: API.ChatConversation = {
+          otherUserId: targetUserId ,
+          otherUserName: response.value.data.otherUserName,
+          otherUserAvatar: response.value.data.otherUserAvatar,
+          lastMessage: '',
+          lastMessageTime: null,
+          unreadCount: 0,
+          isOnline: isUserOnline(targetUserId ),
+          isSeller: response.value.data.isSeller
+        };
+        dispatch(addConversation(newConv));
+        dispatch(setSelectedConversation(targetUserId));
+      }
+    } catch (error) {
+      console.error('Error creating new conversation:', error);
+      return;
+    }
+
+    // Check online status if connected
     if (isConnected) {
-      await checkUserOnlineStatus(conversationId);
+      await checkUserOnlineStatus(targetUserId );
     }
 
     // Mark as read if needed
-    const selectedConv = conversations.find(conv => conv.otherUserId === conversationId);
-    if (selectedConv && selectedConv?.unreadCount > 0) {
-      markAsReadMutation.mutate({ fromUserId: conversationId });
+    const selectedConv = conversations.find(conv => conv.otherUserId === targetUserId );
+    if (selectedConv && selectedConv.unreadCount > 0) {
+      markAsReadMutation.mutate({ fromUserId: targetUserId  });
     }
-  }, [conversations, dispatch, getNewChatConversationApi, isUserOnline, markAsReadMutation, isConnected]);
+  }, [conversations, dispatch, getNewChatConversationApi, isUserOnline, markAsReadMutation, isConnected, checkUserOnlineStatus]);
 
-  const handleSendMessage = useCallback(async () => {
-    if (!messageInput.trim() || !selectedConversation || !isConnected) return;
+// Tối ưu handleSendMessage (không thay đổi nhiều nhưng clean hơn)
+const handleSendMessage = useCallback(async () => {
+  if (!messageInput.trim() || !selectedConversation || !isConnected) return;
 
-    const messageContent = messageInput.trim();
-    dispatch(setMessageInput(''));
+  const messageContent = messageInput.trim();
+  dispatch(setMessageInput(''));
 
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = null;
-    }
+  // Clear typing timeout
+  if (typingTimeoutRef.current) {
+    clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = null;
+  }
 
-    try {
-      await sendMessage(selectedConversation, messageContent);
-
-      // Trigger refresh conversations sau khi gửi tin nhắn thành công
-      triggerRefresh();
-
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      dispatch(setMessageInput(messageContent));
-    }
-  }, [messageInput, selectedConversation, isConnected, dispatch, sendMessage, triggerRefresh]);
+  try {
+    await sendMessage(selectedConversation, messageContent);
+    triggerRefresh(); // Refresh conversations after successful send
+  } catch (error) {
+    console.error('Failed to send message:', error);
+    // Restore message input on error
+    dispatch(setMessageInput(messageContent));
+  }
+}, [messageInput, selectedConversation, isConnected, dispatch, sendMessage, triggerRefresh]);
 
   const handleInputChange = useCallback(async (value: string) => {
     dispatch(setMessageInput(value));

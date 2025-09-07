@@ -42,10 +42,10 @@ export interface BlindBoxData {
 
 interface BlindBoxDetailProps {
   blindBoxData: BlindBoxData;
-  onApprove: () => void; // Đã có blindBoxData.id rồi nên không cần truyền id
-  onReject: () => void;   // Tương tự
+  onApprove: () => void;
+  onReject: () => void;
   onBack: () => void;
-  isReviewPending?: boolean; // Thêm prop này
+  isReviewPending?: boolean;
   loading?: boolean;
 }
 
@@ -150,8 +150,9 @@ const BlindBoxDetail: React.FC<BlindBoxDetailProps> = ({
     getRarityOrder(a.rarity) - getRarityOrder(b.rarity)
   );
 
-  const totalDropRate = blindBoxData.items.reduce((sum, item) => sum + item.dropRate, 0);
-  const totalItems = blindBoxData.items.reduce((sum, item) => sum + item.quantity, 0);
+  let totalDropRate = blindBoxData.items.reduce((sum, item) => sum + item.dropRate, 0.0);
+  totalDropRate = Math.round(totalDropRate * 100) / 100;
+  const totalItems = blindBoxData.items.reduce((sum, item) => sum + item.quantity, 0.0);
 
   if (loading) {
     return (
@@ -343,15 +344,13 @@ const BlindBoxDetail: React.FC<BlindBoxDetailProps> = ({
                         <h4 className="font-semibold text-gray-900 mb-2 text-lg">{item.productName}</h4>
                         <div className="flex items-center gap-4">
                           <span className={`px-3 py-1 rounded-full text-sm font-semibold border-2 ${getRarityColor(item.rarity)}`}>
-                            ${convertRarityName(item.rarity)}
+                            {convertRarityName(item.rarity)}
                           </span>
                           <div className="flex items-center gap-1 text-gray-600">
-                            <Hash className="w-4 h-4" />
                             <span className="font-medium">SL: {item.quantity}</span>
                           </div>
                           <div className="flex items-center gap-1 text-gray-600">
-                            <Percent className="w-4 h-4" />
-                            <span className="font-medium">Drop: {item.dropRate}%</span>
+                            <span className="font-medium">Tỉ lệ: {item.dropRate}%</span>
                           </div>
                         </div>
                       </div>
